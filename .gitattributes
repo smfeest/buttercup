@@ -1,2 +1,3 @@
 .editorconfig eol=lf
 .gitattributes eol=lf
+*.sln eol=lf
