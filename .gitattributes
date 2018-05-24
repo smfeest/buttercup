@@ -1,5 +1,8 @@
 .editorconfig eol=lf
 .gitattributes eol=lf
+*.cs eol=lf
+*.cshtml eol=lf
+*.csproj eol=lf
 *.json eol=lf
 *.props eol=lf
 *.ruleset eol=lf
