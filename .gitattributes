@@ -1,3 +1,6 @@
 .editorconfig eol=lf
 .gitattributes eol=lf
+*.json eol=lf
+*.props eol=lf
+*.ruleset eol=lf
 *.sln eol=lf
