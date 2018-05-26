@@ -1,0 +1,21 @@
+.top-bar {
+  align-items: center;
+  background-color: @color-blue;
+  display: flex;
+  margin: -@padding -@padding @padding -@padding;
+  min-height: 48px;
+  padding: 0 @padding;
+}
+
+.top-bar__logotype {
+  a&:hover > svg& {
+    opacity: 0.95;
+  }
+
+  svg& {
+    fill: @color-white;
+    height: 30px;
+    margin-top: 8px;
+    width: 114px;
+  }
+}
