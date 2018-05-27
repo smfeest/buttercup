@@ -37,5 +37,16 @@ namespace Buttercup.DataAccess
         /// A task for the operation.
         /// </returns>
         Task<IList<Recipe>> GetRecipes(DbConnection connection);
+
+        /// <summary>
+        /// Gets the ten most recently added recipes.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task<IList<Recipe>> GetRecentlyAddedRecipes(DbConnection connection);
     }
 }

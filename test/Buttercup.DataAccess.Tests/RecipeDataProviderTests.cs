@@ -65,6 +65,31 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region GetRecentlyAddedRecipes
+
+        [Fact]
+        public Task GetRecentlyAddedRecipesReturnsRecipesInReverseChronologicalOrder() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            for (var i = 1; i <= 15; i++)
+            {
+                var recipe = CreateSampleRecipe(title: $"recipe-{i}-title");
+                recipe.Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i);
+                await InsertSampleRecipe(connection, recipe);
+            }
+
+            var recipes = await new RecipeDataProvider().GetRecentlyAddedRecipes(connection);
+
+            Assert.Equal(10, recipes.Count);
+
+            for (var i = 0; i < 10; i++)
+            {
+                Assert.Equal($"recipe-{15 - i}-title", recipes[i].Title);
+            }
+        });
+
+        #endregion
+
         #region ReadRecipe
 
         [Fact]
