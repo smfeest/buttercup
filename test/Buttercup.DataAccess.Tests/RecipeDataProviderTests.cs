@@ -90,6 +90,52 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region GetRecentlyUpdatedRecipes
+
+        [Fact]
+        public Task GetRecentlyUpdatedRecipesReturnsRecipesInReverseChronologicalOrder() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            for (var i = 1; i <= 10; i++)
+            {
+                var recipe = CreateSampleRecipe(title: $"recently-updated-{i}");
+                recipe.Created = new DateTime(2010, 1, 2, 3, 4, 5);
+                recipe.Modified = new DateTime(2016, 7, i, 9, 10, 11);
+                await InsertSampleRecipe(connection, recipe);
+            }
+
+            for (var i = 1; i <= 5; i++)
+            {
+                var recipe = CreateSampleRecipe(title: $"recently-created-never-updated-{i}");
+                recipe.Created = recipe.Modified = new DateTime(2016, 8, i, 9, 10, 11);
+                await InsertSampleRecipe(connection, recipe);
+            }
+
+            for (var i = 1; i <= 15; i++)
+            {
+                var recipe = CreateSampleRecipe(title: $"recently-created-and-updated-{i}");
+                recipe.Created = new DateTime(2016, 9, i, 9, 10, 11);
+                recipe.Modified = new DateTime(2016, 10, i, 9, 10, 11);
+                await InsertSampleRecipe(connection, recipe);
+            }
+
+            var recipes = await new RecipeDataProvider().GetRecentlyUpdatedRecipes(connection);
+
+            Assert.Equal(10, recipes.Count);
+
+            for (var i = 0; i < 5; i++)
+            {
+                Assert.Equal($"recently-created-and-updated-{5 - i}", recipes[i].Title);
+            }
+
+            for (var i = 0; i < 5; i++)
+            {
+                Assert.Equal($"recently-updated-{10 - i}", recipes[5 + i].Title);
+            }
+        });
+
+        #endregion
+
         #region ReadRecipe
 
         [Fact]
