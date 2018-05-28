@@ -16,6 +16,88 @@ namespace Buttercup.DataAccess
         public RecipeDataProviderTests(DatabaseFixture databaseFixture) =>
             this.databaseFixture = databaseFixture;
 
+        #region AddRecipe
+
+        [Fact]
+        public Task AddRecipeInsertsRecipeAndReturnsId() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var expected = CreateSampleRecipe(includeOptionalAttributes: true);
+
+            var recipeDataProvider = new RecipeDataProvider();
+            var id = await recipeDataProvider.AddRecipe(connection, expected);
+            var actual = await recipeDataProvider.GetRecipe(connection, id);
+
+            Assert.Equal(expected.Title, actual.Title);
+            Assert.Equal(expected.PreparationMinutes, actual.PreparationMinutes);
+            Assert.Equal(expected.CookingMinutes, actual.CookingMinutes);
+            Assert.Equal(expected.Servings, actual.Servings);
+            Assert.Equal(expected.Ingredients, actual.Ingredients);
+            Assert.Equal(expected.Method, actual.Method);
+            Assert.Equal(expected.Suggestions, actual.Suggestions);
+            Assert.Equal(expected.Remarks, actual.Remarks);
+            Assert.Equal(expected.Source, actual.Source);
+        });
+
+        [Fact]
+        public Task AddRecipeAcceptsNullForOptionalAttributes() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var expected = CreateSampleRecipe(includeOptionalAttributes: false);
+
+            var recipeDataProvider = new RecipeDataProvider();
+            var id = await recipeDataProvider.AddRecipe(connection, expected);
+            var actual = await recipeDataProvider.GetRecipe(connection, id);
+
+            Assert.Null(actual.PreparationMinutes);
+            Assert.Null(actual.CookingMinutes);
+            Assert.Null(actual.Servings);
+            Assert.Null(actual.Suggestions);
+            Assert.Null(actual.Remarks);
+            Assert.Null(actual.Source);
+        });
+
+        [Fact]
+        public Task AddRecipeTrimsStringValues() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var expected = CreateSampleRecipe();
+
+            expected.Title = " new-recipe-title ";
+            expected.Ingredients = " new-recipe-ingredients ";
+            expected.Method = " new-recipe-method ";
+            expected.Suggestions = string.Empty;
+            expected.Remarks = " ";
+            expected.Source = string.Empty;
+
+            var recipeDataProvider = new RecipeDataProvider();
+            var id = await recipeDataProvider.AddRecipe(connection, expected);
+            var actual = await recipeDataProvider.GetRecipe(connection, id);
+
+            Assert.Equal("new-recipe-title", actual.Title);
+            Assert.Equal("new-recipe-ingredients", actual.Ingredients);
+            Assert.Equal("new-recipe-method", actual.Method);
+            Assert.Null(actual.Suggestions);
+            Assert.Null(actual.Remarks);
+            Assert.Null(actual.Source);
+        });
+
+        [Fact]
+        public Task AddRecipeSetsCreatedAndModifiedTimes() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var startTime = DateTime.UtcNow;
+
+            var recipeDataProvider = new RecipeDataProvider();
+            var id = await recipeDataProvider.AddRecipe(connection, CreateSampleRecipe());
+            var recipe = await recipeDataProvider.GetRecipe(connection, id);
+
+            AssertInRangeWithRounding(recipe.Created, startTime, DateTime.UtcNow);
+            Assert.Equal(recipe.Created, recipe.Modified);
+        });
+
+        #endregion
+
         #region GetRecipe
 
         [Fact]
@@ -237,6 +319,11 @@ namespace Buttercup.DataAccess
 
                 await command.ExecuteNonQueryAsync();
             }
+        }
+
+        private static void AssertInRangeWithRounding(DateTime actual, DateTime start, DateTime end)
+        {
+            Assert.InRange(actual, start.AddSeconds(-1), end.AddSeconds(1));
         }
     }
 }

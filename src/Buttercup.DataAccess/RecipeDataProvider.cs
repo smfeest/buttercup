@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySql.Data.MySqlClient;
 
 namespace Buttercup.DataAccess
 {
@@ -11,6 +12,31 @@ namespace Buttercup.DataAccess
     /// </summary>
     internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
+        /// <inheritdoc />
+        public async Task<long> AddRecipe(DbConnection connection, Recipe recipe)
+        {
+            using (var command = (MySqlCommand)connection.CreateCommand())
+            {
+                command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, modified)
+VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created)";
+
+                command.AddParameterWithStringValue("@title", recipe.Title);
+                command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
+                command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
+                command.AddParameterWithValue("@servings", recipe.Servings);
+                command.AddParameterWithStringValue("@ingredients", recipe.Ingredients);
+                command.AddParameterWithStringValue("@method", recipe.Method);
+                command.AddParameterWithStringValue("@suggestions", recipe.Suggestions);
+                command.AddParameterWithStringValue("@remarks", recipe.Remarks);
+                command.AddParameterWithStringValue("@source", recipe.Source);
+                command.AddParameterWithValue("@created", DateTime.UtcNow);
+
+                await command.ExecuteNonQueryAsync();
+
+                return command.LastInsertedId;
+            }
+        }
+
         /// <inheritdoc />
         public async Task<Recipe> GetRecipe(DbConnection connection, long id)
         {
