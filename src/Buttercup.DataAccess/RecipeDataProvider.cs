@@ -30,6 +30,23 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
         }
 
         /// <inheritdoc />
+        public async Task DeleteRecipe(DbConnection connection, long id, int revision)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    "DELETE FROM recipe WHERE id = @id AND revision = @revision";
+                command.AddParameterWithValue("@id", id);
+                command.AddParameterWithValue("@revision", revision);
+
+                if (await command.ExecuteNonQueryAsync() == 0)
+                {
+                    throw await ConcurrencyOrNotFoundException(connection, id, revision);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<Recipe> GetRecipe(DbConnection connection, long id)
         {
             using (var command = connection.CreateCommand())

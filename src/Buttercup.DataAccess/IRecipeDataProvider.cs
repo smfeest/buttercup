@@ -25,6 +25,29 @@ namespace Buttercup.DataAccess
         Task<long> AddRecipe(DbConnection connection, Recipe recipe);
 
         /// <summary>
+        /// Deletes a recipe.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="id">
+        /// The recipe ID.
+        /// </param>
+        /// <param name="revision">
+        /// The current revision. Used to prevent lost updates.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        /// <exception cref="NotFoundException">
+        /// No matching recipe was found.
+        /// </exception>
+        /// <exception cref="ConcurrencyException">
+        /// <paramref name="revision"/> does not match the revision in the database.
+        /// </exception>
+        Task DeleteRecipe(DbConnection connection, long id, int revision);
+
+        /// <summary>
         /// Gets a recipe.
         /// </summary>
         /// <param name="connection">
