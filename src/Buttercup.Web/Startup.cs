@@ -30,7 +30,11 @@ namespace Buttercup.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc()
+                .AddViewOptions(options =>
+                {
+                    options.HtmlHelperOptions.ClientValidationEnabled = false;
+                });
 
             services.AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"));
         }
