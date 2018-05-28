@@ -57,3 +57,16 @@
     @border-color: @color-blue);
   font-weight: bold;
 }
+
+.button-bar {
+  display: flex;
+
+  > a,
+    button {
+    margin-left: 10px;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
