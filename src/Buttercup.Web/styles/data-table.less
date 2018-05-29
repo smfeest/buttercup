@@ -1,0 +1,19 @@
+.data-table {
+  border-spacing: 0;
+  width: 100%;
+
+  td,
+  th {
+    border-bottom: 1px solid @color-grey;
+    padding: @padding 0 @padding @padding;
+    text-align: left;
+
+    &:first-child {
+      padding-left: 0;
+    }
+
+    &.data-table--right-aligned {
+      text-align: right;
+    }
+  }
+}
