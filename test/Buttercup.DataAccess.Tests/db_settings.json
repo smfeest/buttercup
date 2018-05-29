@@ -1,0 +1,4 @@
+{
+  "ConnectionString": "Server=localhost;Uid=buttercup_test;",
+  "DatabaseName": "buttercup_test"
+}
