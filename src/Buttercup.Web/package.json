@@ -9,5 +9,8 @@
     "gulp-lesshint": "^5.0.2",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-watch-less": "^1.0.1"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.0"
   }
 }
