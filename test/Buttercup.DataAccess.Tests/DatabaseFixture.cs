@@ -17,6 +17,7 @@ namespace Buttercup.DataAccess
             var configuration = new ConfigurationBuilder().AddJsonFile("db_settings.json").Build();
             this.ConnectionString = configuration.GetValue<string>("ConnectionString");
             this.DatabaseName = configuration.GetValue<string>("DatabaseName");
+            this.DatabaseConnectionString = this.BuildDatabaseConnectionString();
         }
 
         /// <summary>
@@ -26,6 +27,14 @@ namespace Buttercup.DataAccess
         /// The connection string for connecting to the database server.
         /// </value>
         public string ConnectionString { get; }
+
+        /// <summary>
+        /// Gets the connection string for connecting to the test database created by this fixture.
+        /// </summary>
+        /// <value>
+        /// The connection string for connecting to the test database created by this fixture.
+        /// </value>
+        public string DatabaseConnectionString { get; }
 
         /// <summary>
         /// Gets the database name.
@@ -38,6 +47,12 @@ namespace Buttercup.DataAccess
         public Task InitializeAsync() => this.RecreateDatabase();
 
         public Task DisposeAsync() => Task.CompletedTask;
+
+        private string BuildDatabaseConnectionString() =>
+            new MySqlConnectionStringBuilder(this.ConnectionString)
+            {
+                Database = this.DatabaseName,
+            }.ToString();
 
         private async Task RecreateDatabase()
         {
