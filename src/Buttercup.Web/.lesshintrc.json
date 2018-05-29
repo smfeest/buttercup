@@ -1,0 +1,12 @@
+{
+  "hexLength": {
+    "style": "short"
+  },
+  "qualifyingElement": false,
+  "spaceAroundComma": {
+    "allowNewline": true
+  },
+  "zeroUnit": {
+    "style": "no_unit"
+  }
+}
