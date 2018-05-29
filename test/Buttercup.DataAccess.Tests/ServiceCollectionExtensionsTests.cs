@@ -33,6 +33,19 @@ namespace Buttercup.DataAccess
             Assert.Equal("sample-connection-string", connectionSource.ConnectionString);
         }
 
+        [Fact]
+        public void AddDataAccessServicesAddsRecipeDataProvider()
+        {
+            var mockServiceCollection = new Mock<IServiceCollection>();
+
+            mockServiceCollection.Object.AddDataAccessServices("sample-connection-string");
+
+            mockServiceCollection.Verify(x => x.Add(It.Is<ServiceDescriptor>(serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IRecipeDataProvider) &&
+                serviceDescriptor.ImplementationType == typeof(RecipeDataProvider) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient)));
+        }
+
         #endregion
     }
 }
