@@ -5,6 +5,7 @@
 *.csproj eol=lf
 *.json eol=lf
 *.less eol=lf
+*.lock eol=lf
 *.props eol=lf
 *.ruleset eol=lf
 *.sln eol=lf
