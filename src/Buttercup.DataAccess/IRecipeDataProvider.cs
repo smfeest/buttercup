@@ -11,6 +11,23 @@ namespace Buttercup.DataAccess
     public interface IRecipeDataProvider
     {
         /// <summary>
+        /// Gets a recipe.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="id">
+        /// The recipe ID.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        /// <exception cref="NotFoundException">
+        /// No matching recipe was found.
+        /// </exception>
+        Task<Recipe> GetRecipe(DbConnection connection, long id);
+
+        /// <summary>
         /// Gets all the recipes ordered by title.
         /// </summary>
         /// <param name="connection">

@@ -16,6 +16,36 @@ namespace Buttercup.DataAccess
         public RecipeDataProviderTests(DatabaseFixture databaseFixture) =>
             this.databaseFixture = databaseFixture;
 
+        #region GetRecipe
+
+        [Fact]
+        public async Task GetRecipeReturnsRecipe() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            var expected = CreateSampleRecipe(id: 5);
+
+            await InsertSampleRecipe(connection, expected);
+
+            var actual = await new RecipeDataProvider().GetRecipe(connection, 5);
+
+            Assert.Equal(5, actual.Id);
+            Assert.Equal(expected.Title, actual.Title);
+        });
+
+        [Fact]
+        public async Task GetRecipeThrowsIfRecordNotFound() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 5));
+
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
+                () => new RecipeDataProvider().GetRecipe(connection, 3));
+
+            Assert.Equal("Recipe 3 not found", exception.Message);
+        });
+
+        #endregion
+
         #region GetRecipes
 
         [Fact]
@@ -85,13 +115,13 @@ namespace Buttercup.DataAccess
         #endregion
 
         private static Recipe CreateSampleRecipe(
-            bool includeOptionalAttributes = false, string title = null)
+            bool includeOptionalAttributes = false, long? id = null, string title = null)
         {
             var i = ++sampleRecipeCount;
 
             var recipe = new Recipe
             {
-                Id = i,
+                Id = id ?? i,
                 Title = title ?? $"recipe-{i}-title",
                 Ingredients = $"recipe-{i}-ingredients",
                 Method = $"recipe-{i}-method",

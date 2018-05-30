@@ -12,6 +12,26 @@ namespace Buttercup.DataAccess
     internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         /// <inheritdoc />
+        public async Task<Recipe> GetRecipe(DbConnection connection, long id)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM recipe WHERE id = @id";
+                command.AddParameterWithValue("@id", id);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (!await reader.ReadAsync())
+                    {
+                        throw new NotFoundException($"Recipe {id} not found");
+                    }
+
+                    return ReadRecipe(reader);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<IList<Recipe>> GetRecipes(DbConnection connection)
         {
             using (var command = connection.CreateCommand())
