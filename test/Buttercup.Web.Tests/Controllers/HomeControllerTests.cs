@@ -21,10 +21,14 @@ namespace Buttercup.Web.Controllers
             using (var context = new Context())
             {
                 IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
+                IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
 
                 context.MockRecipeDataProvider
                     .Setup(x => x.GetRecentlyAddedRecipes(context.MockConnection.Object))
                     .ReturnsAsync(recentlyAddedRecipes);
+                context.MockRecipeDataProvider
+                    .Setup(x => x.GetRecentlyUpdatedRecipes(context.MockConnection.Object))
+                    .ReturnsAsync(recentlyUpdatedRecipes);
 
                 var result = await context.HomeController.Index();
 
@@ -32,6 +36,7 @@ namespace Buttercup.Web.Controllers
                 var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
 
                 Assert.Same(recentlyAddedRecipes, viewModel.RecentlyAddedRecipes);
+                Assert.Same(recentlyUpdatedRecipes, viewModel.RecentlyUpdatedRecipes);
             }
         }
 

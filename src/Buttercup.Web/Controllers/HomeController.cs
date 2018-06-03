@@ -27,6 +27,8 @@ namespace Buttercup.Web.Controllers
                 {
                     RecentlyAddedRecipes =
                         await this.RecipeDataProvider.GetRecentlyAddedRecipes(connection),
+                    RecentlyUpdatedRecipes =
+                        await this.RecipeDataProvider.GetRecentlyUpdatedRecipes(connection),
                 });
             }
         }
