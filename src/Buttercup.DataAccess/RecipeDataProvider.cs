@@ -52,16 +52,7 @@ namespace Buttercup.DataAccess
             }
         }
 
-        /// <summary>
-        /// Reads the values from a row into a new <see cref="Recipe"/> model.
-        /// </summary>
-        /// <param name="reader">
-        /// The data reader the row should be read from.
-        /// </param>
-        /// <returns>
-        /// The <see cref="Recipe"/> model.
-        /// </returns>
-        internal static Recipe ReadRecipe(DbDataReader reader) =>
+        private static Recipe ReadRecipe(DbDataReader reader) =>
             new Recipe
             {
                 Id = reader.GetInt64("id"),

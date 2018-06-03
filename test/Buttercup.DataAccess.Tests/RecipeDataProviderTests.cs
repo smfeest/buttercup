@@ -75,7 +75,7 @@ namespace Buttercup.DataAccess
 
             await InsertSampleRecipe(connection, expected);
 
-            var actual = await ReadRecipe(connection, expected.Id);
+            var actual = await new RecipeDataProvider().GetRecipe(connection, expected.Id);
 
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Title, actual.Title);
@@ -102,7 +102,7 @@ namespace Buttercup.DataAccess
 
             await InsertSampleRecipe(connection, expected);
 
-            var actual = await ReadRecipe(connection, expected.Id);
+            var actual = await new RecipeDataProvider().GetRecipe(connection, expected.Id);
 
             Assert.Null(actual.PreparationMinutes);
             Assert.Null(actual.CookingMinutes);
@@ -165,23 +165,6 @@ namespace Buttercup.DataAccess
                 command.AddParameterWithValue("@revision", recipe.Revision);
 
                 await command.ExecuteNonQueryAsync();
-            }
-        }
-
-        private static async Task<Recipe> ReadRecipe(DbConnection connection, long id)
-        {
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = "SELECT * FROM recipe WHERE id = @id";
-
-                command.AddParameterWithValue("@id", id);
-
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    await reader.ReadAsync();
-
-                    return RecipeDataProvider.ReadRecipe(reader);
-                }
             }
         }
     }
