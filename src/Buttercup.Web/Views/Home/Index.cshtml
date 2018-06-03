@@ -1,4 +1,24 @@
 ﻿@{
   ViewData["Title"] = "Home";
 }
-<h1>Home</h1>
+@model HomePageViewModel
+<div class="home-page__container">
+  <section class="home-page__recipe-list">
+    <h1>Recently added</h1>
+    <ul>
+      @foreach (var recipe in Model.RecentlyAddedRecipes)
+      {
+        <li><a asp-controller="Recipes" asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></li>
+      }
+    </ul>
+  </section>
+  <section class="home-page__recipe-list">
+    <h1>Recently updated</h1>
+    <ul>
+      @foreach (var recipe in Model.RecentlyUpdatedRecipes)
+      {
+        <li><a asp-controller="Recipes" asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></li>
+      }
+    </ul>
+  </section>
+</div>

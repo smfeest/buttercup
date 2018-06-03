@@ -32,11 +32,30 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task<IList<Recipe>> GetRecipes(DbConnection connection)
+        public Task<IList<Recipe>> GetRecipes(DbConnection connection) =>
+            GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
+
+        /// <inheritdoc />
+        public Task<IList<Recipe>> GetRecentlyAddedRecipes(DbConnection connection) =>
+            GetRecipes(connection, "SELECT * FROM recipe ORDER BY created DESC LIMIT 10");
+
+        /// <inheritdoc />
+        public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(DbConnection connection)
+        {
+            var query = @"SELECT *
+                FROM recipe
+                LEFT JOIN (SELECT id AS added_id FROM recipe ORDER BY created DESC LIMIT 10) AS added ON added_id = id
+                WHERE created != modified AND added_id IS NULL
+                ORDER BY modified DESC LIMIT 10";
+
+            return GetRecipes(connection, query);
+        }
+
+        private static async Task<IList<Recipe>> GetRecipes(DbConnection connection, string query)
         {
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT * FROM recipe ORDER BY title";
+                command.CommandText = query;
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {

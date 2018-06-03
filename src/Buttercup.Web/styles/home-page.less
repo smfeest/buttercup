@@ -1,0 +1,28 @@
+.home-page__container {
+  display: grid;
+  grid: auto-flow / 1fr;
+  grid-row-gap: @padding;
+  margin: 0 auto;
+  max-width: 980px;
+
+  @media (min-width : 750px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.home-page__recipe-list {
+  text-align: center;
+
+  h1 {
+    font-size: 1.8em;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    margin: 0 0 @padding;
+  }
+}
