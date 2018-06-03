@@ -1,0 +1,65 @@
+﻿@{
+  ViewData["Title"] = Model.Title;
+}
+@model Recipe
+<h1>@Model.Title</h1>
+
+<table class="recipe-header">
+  @if (Model.PreparationMinutes != null)
+  {
+    <tr>
+      <th>Preparation Time</th>
+      <td>@Html.FormatAsHoursAndMinutes(Model.PreparationMinutes.Value)</td>
+    </tr>
+  }
+  @if (Model.CookingMinutes != null)
+  {
+    <tr>
+      <th>Cooking Time</th>
+      <td>@Html.FormatAsHoursAndMinutes(Model.CookingMinutes.Value)</td>
+    </tr>
+  }
+  @if (Model.Servings != null)
+  {
+    <tr>
+      <th>Servings</th>
+      <td>@Html.FormatValue(Model.Servings, "{0:d}")</td>
+    </tr>
+  }
+  @if (Model.Source != null)
+  {
+    <tr>
+      <th>Source</th>
+      <td>@Model.Source</td>
+    </tr>
+  }
+  <tr>
+    <th>Added</th>
+    <td>@Html.FormatValue(Model.Created, "{0:G}")</td>
+  </tr>
+  @if (Model.Modified > Model.Created)
+  {
+    <tr>
+      <th>Updated</th>
+      <td>@Html.FormatValue(Model.Modified, "{0:G}")</td>
+    </tr>
+  }
+</table>
+
+<h2>Ingredients</h2>
+<ul lines-in="@Model.Ingredients"></ul>
+
+<h2>Method</h2>
+<ol lines-in="@Model.Method"></ol>
+
+@if (Model.Suggestions != null)
+{
+  <h2>Suggestions</h2>
+  <ul lines-in="@Model.Suggestions"></ul>
+}
+
+@if (Model.Remarks != null)
+{
+  <h2>Remarks</h2>
+  <ul lines-in="@Model.Remarks"></ul>
+}

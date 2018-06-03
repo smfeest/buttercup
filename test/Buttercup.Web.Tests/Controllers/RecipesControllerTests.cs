@@ -34,6 +34,28 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
+        #region Show
+
+        [Fact]
+        public async Task ShowReturnsViewResultWithRecipe()
+        {
+            using (var context = new Context())
+            {
+                var recipe = new Recipe();
+
+                context.MockRecipeDataProvider
+                    .Setup(x => x.GetRecipe(context.MockConnection.Object, 3))
+                    .ReturnsAsync(recipe);
+
+                var result = await context.RecipesController.Show(3);
+                var viewResult = Assert.IsType<ViewResult>(result);
+
+                Assert.Same(recipe, viewResult.Model);
+            }
+        }
+
+        #endregion
+
         private class Context : IDisposable
         {
             public Context()

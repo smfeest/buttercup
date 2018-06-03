@@ -26,5 +26,14 @@ namespace Buttercup.Web.Controllers
                 return this.View(await this.RecipeDataProvider.GetRecipes(connection));
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Show(long id)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
+            }
+        }
     }
 }
