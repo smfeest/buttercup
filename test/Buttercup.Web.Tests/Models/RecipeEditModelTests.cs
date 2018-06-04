@@ -1,9 +1,43 @@
+using Buttercup.Models;
 using Xunit;
 
 namespace Buttercup.Web.Models
 {
     public class RecipeEditModelTests
     {
+        #region Constructor(Recipe)
+
+        [Fact]
+        public void ConstructorCopiesValuesFromRecipe()
+        {
+            var recipe = new Recipe
+            {
+                Title = "recipe-title",
+                PreparationMinutes = 1,
+                CookingMinutes = 2,
+                Servings = 3,
+                Ingredients = "recipe-ingredients",
+                Method = "recipe-method",
+                Suggestions = "recipe-suggestions",
+                Remarks = "recipe-remarks",
+                Source = "recipe-source",
+            };
+
+            var editModel = new RecipeEditModel(recipe);
+
+            Assert.Equal(recipe.Title, editModel.Title);
+            Assert.Equal(recipe.PreparationMinutes, editModel.PreparationMinutes);
+            Assert.Equal(recipe.CookingMinutes, editModel.CookingMinutes);
+            Assert.Equal(recipe.Servings, editModel.Servings);
+            Assert.Equal(recipe.Ingredients, editModel.Ingredients);
+            Assert.Equal(recipe.Method, editModel.Method);
+            Assert.Equal(recipe.Suggestions, editModel.Suggestions);
+            Assert.Equal(recipe.Remarks, editModel.Remarks);
+            Assert.Equal(recipe.Source, editModel.Source);
+        }
+
+        #endregion
+
         #region ToRecipe
 
         [Fact]

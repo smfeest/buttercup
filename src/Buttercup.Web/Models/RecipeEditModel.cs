@@ -5,6 +5,23 @@ namespace Buttercup.Web.Models
 {
     public class RecipeEditModel
     {
+        public RecipeEditModel()
+        {
+        }
+
+        public RecipeEditModel(Recipe recipe)
+        {
+            this.Title = recipe.Title;
+            this.PreparationMinutes = recipe.PreparationMinutes;
+            this.CookingMinutes = recipe.CookingMinutes;
+            this.Servings = recipe.Servings;
+            this.Ingredients = recipe.Ingredients;
+            this.Method = recipe.Method;
+            this.Suggestions = recipe.Suggestions;
+            this.Remarks = recipe.Remarks;
+            this.Source = recipe.Source;
+        }
+
         [Required]
         [StringLength(255)]
         public string Title { get; set; }
