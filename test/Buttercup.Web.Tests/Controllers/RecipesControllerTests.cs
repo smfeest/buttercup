@@ -190,6 +190,51 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
+        #region Delete (GET)
+
+        [Fact]
+        public async Task DeleteGetReturnsViewResultWithRecipe()
+        {
+            using (var context = new Context())
+            {
+                var recipe = new Recipe();
+
+                context.MockRecipeDataProvider
+                    .Setup(x => x.GetRecipe(context.MockConnection.Object, 8))
+                    .ReturnsAsync(recipe);
+
+                var result = await context.RecipesController.Delete(8);
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.Same(recipe, viewResult.Model);
+            }
+        }
+
+        #endregion
+
+        #region Delete (POST)
+
+        [Fact]
+        public async Task DeletePostDeletesRecipeAndRedirectsToIndexPage()
+        {
+            using (var context = new Context())
+            {
+                context.MockRecipeDataProvider
+                    .Setup(x => x.DeleteRecipe(context.MockConnection.Object, 6, 12))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var result = await context.RecipesController.Delete(6, 12);
+
+                context.MockRecipeDataProvider.Verify();
+
+                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+                Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
+            }
+        }
+
+        #endregion
+
         private class Context : IDisposable
         {
             public Context()
