@@ -1,0 +1,62 @@
+@form-horizontal-padding: 1em;
+@form-vertical-padding-large: 1.5em;
+@form-vertical-padding-small: 0.5em;
+
+@form-input-border-width: 1px;
+@form-input-height: 40px;
+@form-input-input-padding: 12px;
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: @form-vertical-padding-large;
+}
+
+.form-field__label {
+  margin-bottom: @form-vertical-padding-small;
+}
+
+.form-field__required-label {
+  color: @color-dark-grey;
+  font-size: 0.8em;
+
+  &::before {
+    content: '— ';
+  }
+}
+
+.form-field__input {
+  background-color: @color-white;
+  border: @form-input-border-width solid @color-grey;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  height: @form-input-height;
+  padding: 0 @form-input-input-padding;
+
+  &.input-validation-error {
+    border-color: @color-red;
+  }
+
+  &:focus {
+    border-color: @color-blue;
+    outline: 0;
+  }
+
+  textarea& {
+    height: auto;
+    padding: calc(((@form-input-height - (2 * @form-input-border-width)) / 2) ~' - 0.5em')
+      @form-input-input-padding;
+    resize: vertical;
+
+    &.form-field__input--tall {
+      height: 10em;
+    }
+  }
+}
+
+.field-validation-error {
+  background-color: @color-red;
+  color: @color-white;
+  font-weight: bold;
+  padding: @form-vertical-padding-small @form-horizontal-padding;
+}

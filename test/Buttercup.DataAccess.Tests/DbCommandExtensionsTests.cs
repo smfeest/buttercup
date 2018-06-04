@@ -66,6 +66,64 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region AddParameterWithStringValue
+
+        [Fact]
+        public void AddParameterWithStringValueSetsName()
+        {
+            var context = new AddParameterContext();
+
+            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
+
+            context.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("\n")]
+        public void AddParameterWithStringValueConvertsNullAndWhiteSpaceValues(string value)
+        {
+            var context = new AddParameterContext();
+
+            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", value);
+
+            context.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
+        }
+
+        [Fact]
+        public void AddParameterWithStringValueTrimsValue()
+        {
+            var context = new AddParameterContext();
+
+            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "  beta\t  ");
+
+            context.MockDbParameter.VerifySet(p => p.Value = "beta");
+        }
+
+        [Fact]
+        public void AddParameterWithStringValueAddsParameter()
+        {
+            var context = new AddParameterContext();
+
+            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
+
+            context.MockDbParameterCollection.Verify(c => c.Add(context.MockDbParameter.Object));
+        }
+
+        [Fact]
+        public void AddParameterWithStringValueReturnsParameter()
+        {
+            var context = new AddParameterContext();
+
+            var parameter = context.MockDbCommand.Object.AddParameterWithStringValue(
+                "@alpha", "beta");
+
+            Assert.Same(context.MockDbParameter.Object, parameter);
+        }
+
+        #endregion
+
         private class AddParameterContext
         {
             public AddParameterContext()

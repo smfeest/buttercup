@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -51,6 +52,66 @@ namespace Buttercup.Web.Controllers
                 var viewResult = Assert.IsType<ViewResult>(result);
 
                 Assert.Same(recipe, viewResult.Model);
+            }
+        }
+
+        #endregion
+
+        #region New (GET)
+
+        [Fact]
+        public void NewGetReturnsViewResult()
+        {
+            using (var context = new Context())
+            {
+                var result = context.RecipesController.New();
+                var viewResult = Assert.IsType<ViewResult>(result);
+            }
+        }
+
+        #endregion
+
+        #region New (POST)
+
+        [Fact]
+        public async Task NewPostAddsRecipeAndRedirectsToShowPage()
+        {
+            using (var context = new Context())
+            {
+                var editModel = new RecipeEditModel
+                {
+                    Title = "recipe-title",
+                };
+
+                context.MockRecipeDataProvider
+                    .Setup(x => x.AddRecipe(
+                        context.MockConnection.Object,
+                        It.Is<Recipe>(r => r.Title == editModel.Title)))
+                    .ReturnsAsync(5)
+                    .Verifiable();
+
+                var result = await context.RecipesController.New(editModel);
+
+                context.MockRecipeDataProvider.Verify();
+
+                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+                Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
+                Assert.Equal(5L, redirectResult.RouteValues["id"]);
+            }
+        }
+
+        [Fact]
+        public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
+        {
+            using (var context = new Context())
+            {
+                context.RecipesController.ModelState.AddModelError("test", "test");
+
+                var editModel = new RecipeEditModel();
+                var result = await context.RecipesController.New(editModel);
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.Same(editModel, viewResult.Model);
             }
         }
 

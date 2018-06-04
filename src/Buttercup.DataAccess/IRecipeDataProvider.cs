@@ -11,6 +11,20 @@ namespace Buttercup.DataAccess
     public interface IRecipeDataProvider
     {
         /// <summary>
+        /// Adds a new recipe.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="recipe">
+        /// The recipe.
+        /// </param>
+        /// <returns>
+        /// A task for the operation. The task result is the ID of the new recipe.
+        /// </returns>
+        Task<long> AddRecipe(DbConnection connection, Recipe recipe);
+
+        /// <summary>
         /// Gets a recipe.
         /// </summary>
         /// <param name="connection">

@@ -1,5 +1,8 @@
+using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
+using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers
@@ -34,6 +37,28 @@ namespace Buttercup.Web.Controllers
             {
                 return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
             }
+        }
+
+        [HttpGet("new")]
+        public IActionResult New() => this.View();
+
+        [HttpPost("new")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> New(RecipeEditModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            long id;
+
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                id = await this.RecipeDataProvider.AddRecipe(connection, model.ToRecipe());
+            }
+
+            return this.RedirectToAction(nameof(this.Show), new { id = id });
         }
     }
 }
