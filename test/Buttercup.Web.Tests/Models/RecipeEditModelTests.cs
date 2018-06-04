@@ -21,6 +21,7 @@ namespace Buttercup.Web.Models
                 Suggestions = "recipe-suggestions",
                 Remarks = "recipe-remarks",
                 Source = "recipe-source",
+                Revision = 4,
             };
 
             var editModel = new RecipeEditModel(recipe);
@@ -34,6 +35,7 @@ namespace Buttercup.Web.Models
             Assert.Equal(recipe.Suggestions, editModel.Suggestions);
             Assert.Equal(recipe.Remarks, editModel.Remarks);
             Assert.Equal(recipe.Source, editModel.Source);
+            Assert.Equal(recipe.Revision, editModel.Revision);
         }
 
         #endregion
@@ -54,6 +56,7 @@ namespace Buttercup.Web.Models
                 Suggestions = "recipe-suggestions",
                 Remarks = "recipe-remarks",
                 Source = "recipe-source",
+                Revision = 4,
             };
 
             var recipe = editModel.ToRecipe();
@@ -67,6 +70,7 @@ namespace Buttercup.Web.Models
             Assert.Equal(editModel.Suggestions, recipe.Suggestions);
             Assert.Equal(editModel.Remarks, recipe.Remarks);
             Assert.Equal(editModel.Source, recipe.Source);
+            Assert.Equal(editModel.Revision, recipe.Revision);
         }
 
         #endregion

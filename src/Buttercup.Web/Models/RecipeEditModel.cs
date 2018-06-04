@@ -20,6 +20,7 @@ namespace Buttercup.Web.Models
             this.Suggestions = recipe.Suggestions;
             this.Remarks = recipe.Remarks;
             this.Source = recipe.Source;
+            this.Revision = recipe.Revision;
         }
 
         [Required]
@@ -52,6 +53,8 @@ namespace Buttercup.Web.Models
         [StringLength(255)]
         public string Source { get; set; }
 
+        public int Revision { get; set; }
+
         public Recipe ToRecipe() => new Recipe
         {
             Title = this.Title,
@@ -63,6 +66,7 @@ namespace Buttercup.Web.Models
             Suggestions = this.Suggestions,
             Remarks = this.Remarks,
             Source = this.Source,
+            Revision = this.Revision,
         };
     }
 }
