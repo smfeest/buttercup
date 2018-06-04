@@ -218,6 +218,125 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region UpdateRecipe
+
+        [Fact]
+        public Task UpdateRecipeUpdatesAllUpdatableAttributes() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 3, revision: 0));
+
+            var expected = CreateSampleRecipe(includeOptionalAttributes: true, id: 3, revision: 0);
+
+            var recipeDataProvider = new RecipeDataProvider();
+            await recipeDataProvider.UpdateRecipe(connection, expected);
+            var actual = await recipeDataProvider.GetRecipe(connection, 3);
+
+            Assert.Equal(expected.Title, actual.Title);
+            Assert.Equal(expected.PreparationMinutes, actual.PreparationMinutes);
+            Assert.Equal(expected.CookingMinutes, actual.CookingMinutes);
+            Assert.Equal(expected.Servings, actual.Servings);
+            Assert.Equal(expected.Ingredients, actual.Ingredients);
+            Assert.Equal(expected.Method, actual.Method);
+            Assert.Equal(expected.Suggestions, actual.Suggestions);
+            Assert.Equal(expected.Remarks, actual.Remarks);
+            Assert.Equal(expected.Source, actual.Source);
+        });
+
+        [Fact]
+        public Task UpdateRecipeAcceptsNullForOptionalAttributes() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(
+                connection,
+                CreateSampleRecipe(includeOptionalAttributes: true, id: 7, revision: 3));
+
+            var recipeDataProvider = new RecipeDataProvider();
+            await recipeDataProvider.UpdateRecipe(
+                connection,
+                CreateSampleRecipe(includeOptionalAttributes: false, id: 7, revision: 3));
+
+            var actual = await recipeDataProvider.GetRecipe(connection, 7);
+
+            Assert.Null(actual.PreparationMinutes);
+            Assert.Null(actual.CookingMinutes);
+            Assert.Null(actual.Servings);
+            Assert.Null(actual.Suggestions);
+            Assert.Null(actual.Remarks);
+            Assert.Null(actual.Source);
+        });
+
+        [Fact]
+        public Task UpdateRecipeTrimsStringValues() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 13, revision: 0));
+
+            var expected = CreateSampleRecipe(id: 13, revision: 0);
+            expected.Title = " new-recipe-title ";
+            expected.Ingredients = " new-recipe-ingredients ";
+            expected.Method = " new-recipe-method ";
+            expected.Suggestions = string.Empty;
+            expected.Remarks = " ";
+            expected.Source = string.Empty;
+
+            var recipeDataProvider = new RecipeDataProvider();
+            await recipeDataProvider.UpdateRecipe(connection, expected);
+            var actual = await recipeDataProvider.GetRecipe(connection, 13);
+
+            Assert.Equal("new-recipe-title", actual.Title);
+            Assert.Equal("new-recipe-ingredients", actual.Ingredients);
+            Assert.Equal("new-recipe-method", actual.Method);
+            Assert.Null(actual.Suggestions);
+            Assert.Null(actual.Remarks);
+            Assert.Null(actual.Source);
+        });
+
+        [Fact]
+        public Task UpdateRecipeSetsModifiedTimeOnly() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var original = CreateSampleRecipe(id: 2, revision: 3);
+            await InsertSampleRecipe(connection, original);
+
+            var startTime = DateTime.UtcNow;
+
+            var recipeDataProvider = new RecipeDataProvider();
+            await recipeDataProvider.UpdateRecipe(
+                connection, CreateSampleRecipe(id: 2, revision: 3));
+            var updated = await recipeDataProvider.GetRecipe(connection, original.Id);
+
+            AssertInRangeWithRounding(updated.Modified, startTime, DateTime.UtcNow);
+            Assert.Equal(original.Created, updated.Created);
+        });
+
+        [Fact]
+        public async Task UpdateRecipeThrowsIfRecordNotFound() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 5));
+
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
+                () => new RecipeDataProvider().UpdateRecipe(connection, CreateSampleRecipe(id: 2)));
+
+            Assert.Equal("Recipe 2 not found", exception.Message);
+        });
+
+        [Fact]
+        public async Task UpdateRecipeThrowsIfRevisionOutOfSync() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 6, revision: 4));
+
+            var exception = await Assert.ThrowsAsync<ConcurrencyException>(
+                () => new RecipeDataProvider().UpdateRecipe(
+                    connection, CreateSampleRecipe(id: 6, revision: 3)));
+
+            Assert.Equal("Revision 3 does not match current revision 4", exception.Message);
+        });
+
+        #endregion
+
         #region ReadRecipe
 
         [Fact]
@@ -268,7 +387,10 @@ namespace Buttercup.DataAccess
         #endregion
 
         private static Recipe CreateSampleRecipe(
-            bool includeOptionalAttributes = false, long? id = null, string title = null)
+            bool includeOptionalAttributes = false,
+            long? id = null,
+            string title = null,
+            int? revision = null)
         {
             var i = ++sampleRecipeCount;
 
@@ -280,7 +402,7 @@ namespace Buttercup.DataAccess
                 Method = $"recipe-{i}-method",
                 Created = new DateTime(2001, 2, 3, 4, 5, 6),
                 Modified = new DateTime(2002, 3, 4, 5, 6, 7),
-                Revision = i + 4,
+                Revision = revision ?? (i + 4),
             };
 
             if (includeOptionalAttributes)

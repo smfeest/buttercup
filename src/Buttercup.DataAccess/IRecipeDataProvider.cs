@@ -77,5 +77,25 @@ namespace Buttercup.DataAccess
         /// A task for the operation.
         /// </returns>
         Task<IList<Recipe>> GetRecentlyUpdatedRecipes(DbConnection connection);
+
+        /// <summary>
+        /// Updates a recipe.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="recipe">
+        /// The recipe.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        /// <exception cref="NotFoundException">
+        /// No matching recipe was found.
+        /// </exception>
+        /// <exception cref="ConcurrencyException">
+        /// The revision in <paramref name="recipe"/> does not match the revision in the database.
+        /// </exception>
+        Task UpdateRecipe(DbConnection connection, Recipe recipe);
     }
 }
