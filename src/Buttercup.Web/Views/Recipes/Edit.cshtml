@@ -1,0 +1,13 @@
+﻿@{
+  ViewData["Title"] = $"Edit - {Model.Title}";
+}
+@model RecipeEditModel
+<h1>Edit recipe</h1>
+<form method="post">
+  @await Html.PartialAsync("_FormFields", Model)
+  <input type="hidden" asp-for="Revision">
+  <div class="button-bar">
+    <button class="primary-push-button">Save</button>
+    <a class="push-button" asp-action="Show">Cancel</a>
+  </div>
+</form>

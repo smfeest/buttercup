@@ -47,9 +47,26 @@
   }
 }
 
+.push-button {
+  .push-button;
+}
+
 .primary-push-button {
   .push-button(@background-color: @color-blue,
     @foreground-color: @color-white,
     @border-color: @color-blue);
   font-weight: bold;
+}
+
+.button-bar {
+  display: flex;
+
+  > a,
+    button {
+    margin-left: 10px;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
 }

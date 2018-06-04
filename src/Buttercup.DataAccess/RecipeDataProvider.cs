@@ -20,15 +20,7 @@ namespace Buttercup.DataAccess
                 command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, modified)
 VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created)";
 
-                command.AddParameterWithStringValue("@title", recipe.Title);
-                command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
-                command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
-                command.AddParameterWithValue("@servings", recipe.Servings);
-                command.AddParameterWithStringValue("@ingredients", recipe.Ingredients);
-                command.AddParameterWithStringValue("@method", recipe.Method);
-                command.AddParameterWithStringValue("@suggestions", recipe.Suggestions);
-                command.AddParameterWithStringValue("@remarks", recipe.Remarks);
-                command.AddParameterWithStringValue("@source", recipe.Source);
+                AddInsertUpdateParameters(command, recipe);
                 command.AddParameterWithValue("@created", DateTime.UtcNow);
 
                 await command.ExecuteNonQueryAsync();
@@ -75,6 +67,67 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
                 ORDER BY modified DESC LIMIT 10";
 
             return GetRecipes(connection, query);
+        }
+
+        /// <inheritdoc />
+        public async Task UpdateRecipe(DbConnection connection, Recipe recipe)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"UPDATE recipe
+                    SET title = @title, preparation_minutes = @preparation_minutes,
+                        cooking_minutes = @cooking_minutes, servings = @servings,
+                        ingredients = @ingredients, method = @method, suggestions = @suggestions,
+                        remarks = @remarks, source = @source, modified = @modified,
+                        revision = revision + 1
+                    WHERE id = @id AND revision = @revision";
+
+                AddInsertUpdateParameters(command, recipe);
+                command.AddParameterWithValue("@id", recipe.Id);
+                command.AddParameterWithValue("@modified", DateTime.UtcNow);
+                command.AddParameterWithValue("@revision", recipe.Revision);
+
+                if (await command.ExecuteNonQueryAsync() == 0)
+                {
+                    throw await ConcurrencyOrNotFoundException(
+                        connection, recipe.Id, recipe.Revision);
+                }
+            }
+        }
+
+        private static void AddInsertUpdateParameters(DbCommand command, Recipe recipe)
+        {
+            command.AddParameterWithStringValue("@title", recipe.Title);
+            command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
+            command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
+            command.AddParameterWithValue("@servings", recipe.Servings);
+            command.AddParameterWithStringValue("@ingredients", recipe.Ingredients);
+            command.AddParameterWithStringValue("@method", recipe.Method);
+            command.AddParameterWithStringValue("@suggestions", recipe.Suggestions);
+            command.AddParameterWithStringValue("@remarks", recipe.Remarks);
+            command.AddParameterWithStringValue("@source", recipe.Source);
+        }
+
+        private static async Task<Exception> ConcurrencyOrNotFoundException(
+            DbConnection connection, long id, int revision)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT revision FROM recipe WHERE id = @id";
+                command.AddParameterWithValue("@id", id);
+
+                var currentRevision = await command.ExecuteScalarAsync();
+
+                if (currentRevision == null)
+                {
+                    return new NotFoundException($"Recipe {id} not found");
+                }
+                else
+                {
+                    return new ConcurrencyException(
+                        $"Revision {revision} does not match current revision {currentRevision}");
+                }
+            }
         }
 
         private static async Task<IList<Recipe>> GetRecipes(DbConnection connection, string query)

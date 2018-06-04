@@ -60,5 +60,35 @@ namespace Buttercup.Web.Controllers
 
             return this.RedirectToAction(nameof(this.Show), new { id = id });
         }
+
+        [HttpGet("{id}/edit")]
+        public async Task<IActionResult> Edit(long id)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                return this.View(new RecipeEditModel(
+                    await this.RecipeDataProvider.GetRecipe(connection, id)));
+            }
+        }
+
+        [HttpPost("{id}/edit")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(long id, RecipeEditModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            var recipe = model.ToRecipe();
+            recipe.Id = id;
+
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                await this.RecipeDataProvider.UpdateRecipe(connection, recipe);
+            }
+
+            return this.RedirectToAction(nameof(this.Show), new { id = id });
+        }
     }
 }

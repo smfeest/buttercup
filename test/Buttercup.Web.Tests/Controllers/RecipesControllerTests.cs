@@ -117,6 +117,79 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
+        #region Edit (GET)
+
+        [Fact]
+        public async Task EditGetReturnsViewResultWithEditModel()
+        {
+            using (var context = new Context())
+            {
+                var recipe = new Recipe
+                {
+                    Title = "recipe-title",
+                };
+
+                context.MockRecipeDataProvider
+                    .Setup(x => x.GetRecipe(context.MockConnection.Object, 5))
+                    .ReturnsAsync(recipe);
+
+                var result = await context.RecipesController.Edit(5);
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var editModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
+                Assert.Equal(recipe.Title, editModel.Title);
+            }
+        }
+
+        #endregion
+
+        #region Edit (POST)
+
+        [Fact]
+        public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
+        {
+            using (var context = new Context())
+            {
+                var editModel = new RecipeEditModel
+                {
+                    Title = "recipe-title",
+                };
+
+                context.MockRecipeDataProvider
+                    .Setup(x => x.UpdateRecipe(
+                        context.MockConnection.Object,
+                        It.Is<Recipe>(r => r.Id == 3 && r.Title == editModel.Title)))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var result = await context.RecipesController.Edit(3, editModel);
+
+                context.MockRecipeDataProvider.Verify();
+
+                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+                Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
+                Assert.Equal(3L, redirectResult.RouteValues["id"]);
+            }
+        }
+
+        [Fact]
+        public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
+        {
+            using (var context = new Context())
+            {
+                context.RecipesController.ModelState.AddModelError("test", "test");
+
+                var editModel = new RecipeEditModel();
+
+                var result = await context.RecipesController.Edit(3, editModel);
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.Same(editModel, viewResult.Model);
+            }
+        }
+
+        #endregion
+
         private class Context : IDisposable
         {
             public Context()
