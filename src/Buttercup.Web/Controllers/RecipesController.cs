@@ -90,5 +90,26 @@ namespace Buttercup.Web.Controllers
 
             return this.RedirectToAction(nameof(this.Show), new { id = id });
         }
+
+        [HttpGet("{id}/delete")]
+        public async Task<IActionResult> Delete(long id)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
+            }
+        }
+
+        [HttpPost("{id}/delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(long id, int revision)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                await this.RecipeDataProvider.DeleteRecipe(connection, id, revision);
+            }
+
+            return this.RedirectToAction(nameof(this.Index));
+        }
     }
 }

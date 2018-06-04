@@ -98,6 +98,47 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region DeleteRecipe
+
+        [Fact]
+        public async Task DeleteRecipeReturnsRecipe() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 5, revision: 1));
+
+            var recipeDataProvider = new RecipeDataProvider();
+
+            await recipeDataProvider.DeleteRecipe(connection, 5, 1);
+
+            Assert.Empty(await recipeDataProvider.GetRecipes(connection));
+        });
+
+        [Fact]
+        public async Task DeleteRecipeThrowsIfRecordNotFound() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 1));
+
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
+                () => new RecipeDataProvider().DeleteRecipe(connection, 2, 0));
+
+            Assert.Equal("Recipe 2 not found", exception.Message);
+        });
+
+        [Fact]
+        public async Task DeleteRecipeThrowsIfRevisionOutOfSync() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await InsertSampleRecipe(connection, CreateSampleRecipe(id: 4, revision: 2));
+
+            var exception = await Assert.ThrowsAsync<ConcurrencyException>(
+                () => new RecipeDataProvider().DeleteRecipe(connection, 4, 1));
+
+            Assert.Equal("Revision 1 does not match current revision 2", exception.Message);
+        });
+
+        #endregion
+
         #region GetRecipe
 
         [Fact]

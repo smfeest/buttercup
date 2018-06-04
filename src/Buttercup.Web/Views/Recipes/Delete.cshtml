@@ -1,0 +1,13 @@
+﻿@{
+  ViewData["Title"] = $"Delete - {Model.Title}";
+}
+@model Recipe
+<h1>Delete @Model.Title</h1>
+<form method="post">
+  <input type="hidden" asp-for="Revision">
+  <p>Are you sure you wish to permanently delete this recipe?</p>
+  <div class="button-bar">
+    <button class="critical-push-button">Delete forever</button>
+    <a class="push-button" asp-action="Show">Cancel</a>
+  </div>
+</form>
