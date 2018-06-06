@@ -48,6 +48,28 @@ namespace Buttercup.DataAccess
 
         public Task DisposeAsync() => Task.CompletedTask;
 
+        /// <summary>
+        /// Runs asynchronous code within a transaction that is rolled back on completion.
+        /// </summary>
+        /// <param name="action">
+        /// The asynchronous action.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        public async Task WithRollback(Func<MySqlConnection, Task> action)
+        {
+            using (var connection = new MySqlConnection(this.DatabaseConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    await action(connection);
+                }
+            }
+        }
+
         private string BuildDatabaseConnectionString() =>
             new MySqlConnectionStringBuilder(this.ConnectionString)
             {

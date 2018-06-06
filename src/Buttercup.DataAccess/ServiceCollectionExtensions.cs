@@ -24,6 +24,7 @@ namespace Buttercup.DataAccess
             this IServiceCollection services, string connectionString) =>
             services
                 .AddTransient<IDbConnectionSource>(
-                    serviceProvider => new DbConnectionSource(connectionString));
+                    serviceProvider => new DbConnectionSource(connectionString))
+                .AddTransient<IRecipeDataProvider, RecipeDataProvider>();
     }
 }

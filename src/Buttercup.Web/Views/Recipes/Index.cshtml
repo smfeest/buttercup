@@ -1,0 +1,24 @@
+﻿@{
+  ViewData["Title"] = "All recipes";
+}
+@model IList<Recipe>
+<h1>All recipes</h1>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th class="data-table--right-aligned">Added</th>
+      <th class="data-table--right-aligned">Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var recipe in Model)
+    {
+      <tr>
+        <td>@recipe.Title</td>
+        <td class="data-table--right-aligned">@Html.FormatValue(recipe.Created, "{0:d}")</td>
+        <td class="data-table--right-aligned">@Html.FormatValue(recipe.Modified, "{0:d}")</td>
+      </tr>
+    }
+  </tbody>
+</table>
