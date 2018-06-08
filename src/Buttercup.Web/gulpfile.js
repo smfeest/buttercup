@@ -1,5 +1,6 @@
 
 const cleanCss = require('gulp-clean-css');
+const del = require('del');
 const gulp = require('gulp');
 const less = require('gulp-less');
 const lesshint = require('gulp-lesshint');
@@ -33,6 +34,11 @@ gulp.task('build:styles:prod', ['build:styles:dev', 'build:staticAssets:prod'],
   () => revAssets(gulp.src(`${paths.styleAssets}/main.css`, { base: paths.assets })
     .pipe(revReplace({ manifest: gulp.src(paths.prodAssetManifest) }))
     .pipe(cleanCss())));
+
+gulp.task('clean', () => del([
+  `${paths.styleAssets}/**/*`,
+  `${paths.prodAssets}/**/*`,
+]));
 
 gulp.task('lint', ['lint:styles']);
 
