@@ -11,7 +11,7 @@ const watchLess = require('gulp-watch-less');
 
 const paths = {};
 paths.styles = `${__dirname}/styles`;
-paths.lessEntryPoint = `${paths.styles}/main.less`;
+paths.lessEntryPoint = `${paths.styles}/{main,print}.less`;
 paths.assets = `${__dirname}/wwwroot/assets`;
 paths.styleAssets = `${paths.assets}/styles`;
 paths.prodAssets = `${__dirname}/wwwroot/prod-assets`;
@@ -31,7 +31,7 @@ gulp.task('build:styles', ['build:styles:dev', 'build:styles:prod', 'lint:styles
 gulp.task('build:styles:dev', () => bundleStyles(gulp.src(paths.lessEntryPoint)));
 
 gulp.task('build:styles:prod', ['build:styles:dev', 'build:staticAssets:prod'],
-  () => revAssets(gulp.src(`${paths.styleAssets}/main.css`, { base: paths.assets })
+  () => revAssets(gulp.src(`${paths.styleAssets}/*.css`, { base: paths.assets })
     .pipe(revReplace({ manifest: gulp.src(paths.prodAssetManifest) }))
     .pipe(cleanCss())));
 

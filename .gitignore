@@ -2,4 +2,4 @@ bin/
 node_modules/
 obj/
 prod-assets/
-main.css*
+*.css*
