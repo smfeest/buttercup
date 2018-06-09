@@ -40,6 +40,7 @@ namespace Buttercup.Web
             services.AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"));
 
             services
+                .AddTransient<IAssetHelper, AssetHelper>()
                 .AddTransient<IAssetManifestReader, AssetManifestReader>()
                 .AddSingleton<IAssetManifestSource, AssetManifestSource>();
         }
