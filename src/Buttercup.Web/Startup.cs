@@ -68,6 +68,7 @@ namespace Buttercup.Web
                         HttpOnly = true,
                         SameSite = SameSiteMode.Strict
                     };
+                    options.LoginPath = "/sign-in";
                 });
 
             services
