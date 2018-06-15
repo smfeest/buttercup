@@ -46,6 +46,19 @@ namespace Buttercup.DataAccess
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient)));
         }
 
+        [Fact]
+        public void AddDataAccessServicesAddsUserDataProvider()
+        {
+            var mockServiceCollection = new Mock<IServiceCollection>();
+
+            mockServiceCollection.Object.AddDataAccessServices("sample-connection-string");
+
+            mockServiceCollection.Verify(x => x.Add(It.Is<ServiceDescriptor>(serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IUserDataProvider) &&
+                serviceDescriptor.ImplementationType == typeof(UserDataProvider) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient)));
+        }
+
         #endregion
     }
 }
