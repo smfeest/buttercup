@@ -3,8 +3,10 @@ using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +43,8 @@ namespace Buttercup.Web
 
             app.UseStaticFiles();
 
+            app.UseAuthentication();
+
             app.UseMvc();
         }
 
@@ -53,6 +57,18 @@ namespace Buttercup.Web
                 });
 
             services.AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"));
+
+            services
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.Cookie = new CookieBuilder()
+                    {
+                        Name = "buttercup.auth",
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.Strict
+                    };
+                });
 
             services
                 .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
