@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -55,6 +56,7 @@ namespace Buttercup.Web
 
             services
                 .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
+                .AddTransient<IAuthenticationManager, AuthenticationManager>()
                 .AddTransient<IAssetHelper, AssetHelper>()
                 .AddTransient<IAssetManifestReader, AssetManifestReader>()
                 .AddSingleton<IAssetManifestSource, AssetManifestSource>();
