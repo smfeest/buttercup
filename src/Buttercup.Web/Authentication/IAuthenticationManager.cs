@@ -37,5 +37,16 @@ namespace Buttercup.Web.Authentication
         /// A task for the operation.
         /// </returns>
         Task SignIn(HttpContext httpContext, User user);
+
+        /// <summary>
+        /// Signs out the current user.
+        /// </summary>
+        /// <param name="httpContext">
+        /// The HTTP context for the current request.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task SignOut(HttpContext httpContext);
     }
 }

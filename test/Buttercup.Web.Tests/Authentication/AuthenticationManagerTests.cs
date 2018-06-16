@@ -123,6 +123,22 @@ namespace Buttercup.Web.Authentication
 
         #endregion
 
+        #region SignOut
+
+        [Fact]
+        public async Task SignOutSignsOutUser()
+        {
+            var context = new Context();
+
+            var httpContext = new DefaultHttpContext();
+
+            await context.AuthenticationManager.SignOut(httpContext);
+
+            context.MockAuthenticationService.Verify(x => x.SignOutAsync(httpContext, null, null));
+        }
+
+        #endregion
+
         private class Context
         {
             public Context()

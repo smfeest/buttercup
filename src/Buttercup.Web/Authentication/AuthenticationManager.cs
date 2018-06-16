@@ -99,5 +99,19 @@ namespace Buttercup.Web.Authentication
 
             this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
         }
+
+        public async Task SignOut(HttpContext httpContext)
+        {
+            var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            await this.AuthenticationService.SignOutAsync(httpContext, null, null);
+
+            if (userId != null)
+            {
+                var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
+
+                this.Logger.LogInformation("User {userId} ({email}) signed out", userId, email);
+            }
+        }
     }
 }
