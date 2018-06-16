@@ -1,10 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         public HomeController(
