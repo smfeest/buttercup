@@ -1,8 +1,10 @@
 ﻿using System.Globalization;
 using Buttercup.DataAccess;
+using Buttercup.Models;
 using Buttercup.Web.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,6 +54,7 @@ namespace Buttercup.Web
             services.AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"));
 
             services
+                .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
                 .AddTransient<IAssetHelper, AssetHelper>()
                 .AddTransient<IAssetManifestReader, AssetManifestReader>()
                 .AddSingleton<IAssetManifestSource, AssetManifestSource>();
