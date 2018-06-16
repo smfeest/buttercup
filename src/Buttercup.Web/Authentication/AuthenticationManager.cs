@@ -1,6 +1,11 @@
+using System.Globalization;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -9,16 +14,20 @@ namespace Buttercup.Web.Authentication
     public class AuthenticationManager : IAuthenticationManager
     {
         public AuthenticationManager(
+            IAuthenticationService authenticationService,
             IDbConnectionSource dbConnectionSource,
             ILogger<AuthenticationManager> logger,
             IPasswordHasher<User> passwordHasher,
             IUserDataProvider userDataProvider)
         {
+            this.AuthenticationService = authenticationService;
             this.DbConnectionSource = dbConnectionSource;
             this.Logger = logger;
             this.PasswordHasher = passwordHasher;
             this.UserDataProvider = userDataProvider;
         }
+
+        public IAuthenticationService AuthenticationService { get; }
 
         public IDbConnectionSource DbConnectionSource { get; }
 
@@ -71,6 +80,24 @@ namespace Buttercup.Web.Authentication
 
                 return user;
             }
+        }
+
+        public async Task SignIn(HttpContext httpContext, User user)
+        {
+            var claims = new Claim[]
+            {
+                new Claim(
+                    ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+                new Claim(ClaimTypes.Email, user.Email),
+            };
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
+
+            await this.AuthenticationService.SignInAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
+
+            this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
         }
     }
 }

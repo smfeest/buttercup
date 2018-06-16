@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Buttercup.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Buttercup.Web.Authentication
 {
@@ -22,5 +23,19 @@ namespace Buttercup.Web.Authentication
         /// null reference otherwise.
         /// </returns>
         Task<User> Authenticate(string email, string password);
+
+        /// <summary>
+        /// Signs in a user.
+        /// </summary>
+        /// <param name="httpContext">
+        /// The HTTP context for the current request.
+        /// </param>
+        /// <param name="user">
+        /// The user.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task SignIn(HttpContext httpContext, User user);
     }
 }

@@ -1,7 +1,11 @@
 using System.Data.Common;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -89,11 +93,42 @@ namespace Buttercup.Web.Authentication
 
         #endregion
 
+        #region SignIn
+
+        [Fact]
+        public async Task SignInSignsInUser()
+        {
+            var context = new Context();
+
+            var httpContext = new DefaultHttpContext();
+
+            ClaimsPrincipal principal = null;
+
+            context.MockAuthenticationService
+                .Setup(x => x.SignInAsync(
+                    httpContext,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    It.IsAny<ClaimsPrincipal>(),
+                    null))
+                .Callback<HttpContext, string, ClaimsPrincipal, AuthenticationProperties>(
+                   (contextArg, scheme, principalArg, properties) => principal = principalArg)
+                .Returns(Task.CompletedTask);
+
+            await context.AuthenticationManager.SignIn(
+                httpContext, new User { Id = 6, Email = "sample@example.com" });
+
+            Assert.Equal("6", principal.FindFirstValue(ClaimTypes.NameIdentifier));
+            Assert.Equal("sample@example.com", principal.Identity.Name);
+        }
+
+        #endregion
+
         private class Context
         {
             public Context()
             {
                 this.AuthenticationManager = new AuthenticationManager(
+                    this.MockAuthenticationService.Object,
                     this.MockDbConnectionSource.Object,
                     this.MockLogger.Object,
                     this.MockPasswordHasher.Object,
@@ -105,6 +140,9 @@ namespace Buttercup.Web.Authentication
             }
 
             public AuthenticationManager AuthenticationManager { get; }
+
+            public Mock<IAuthenticationService> MockAuthenticationService { get; } =
+                new Mock<IAuthenticationService>();
 
             public Mock<DbConnection> MockConnection { get; } = new Mock<DbConnection>();
 
