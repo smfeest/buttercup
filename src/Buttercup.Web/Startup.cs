@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Buttercup.DataAccess;
+using Buttercup.Email;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
@@ -56,7 +57,10 @@ namespace Buttercup.Web
                     options.HtmlHelperOptions.ClientValidationEnabled = false;
                 });
 
-            services.AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"));
+            services
+                .AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"))
+                .AddEmailServices()
+                .Configure<EmailOptions>(this.Configuration.GetSection("Email"));
 
             services
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
