@@ -25,6 +25,26 @@ namespace Buttercup.Web.Authentication
         Task<User> Authenticate(string email, string password);
 
         /// <summary>
+        /// Sends a password reset link to the user with a given email address.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// No email is sent if there is no user with the specified email address.
+        /// </para>
+        /// <para>
+        /// To reduce the risk of revealing the existence of a matching user, any exception raised
+        /// while sending the email is caught, logged and not rethrown.
+        /// </para>
+        /// </remarks>
+        /// <param name="email">
+        /// The email address.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task SendPasswordResetLink(string email);
+
+        /// <summary>
         /// Signs in a user.
         /// </summary>
         /// <param name="httpContext">

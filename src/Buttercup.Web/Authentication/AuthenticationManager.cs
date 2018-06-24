@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,18 +15,26 @@ namespace Buttercup.Web.Authentication
     public class AuthenticationManager : IAuthenticationManager
     {
         public AuthenticationManager(
+            IAuthenticationMailer authenticationMailer,
             IAuthenticationService authenticationService,
             IDbConnectionSource dbConnectionSource,
             ILogger<AuthenticationManager> logger,
             IPasswordHasher<User> passwordHasher,
+            IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
+            IRandomTokenGenerator randomTokenGenerator,
             IUserDataProvider userDataProvider)
         {
+            this.AuthenticationMailer = authenticationMailer;
             this.AuthenticationService = authenticationService;
             this.DbConnectionSource = dbConnectionSource;
             this.Logger = logger;
             this.PasswordHasher = passwordHasher;
+            this.PasswordResetTokenDataProvider = passwordResetTokenDataProvider;
+            this.RandomTokenGenerator = randomTokenGenerator;
             this.UserDataProvider = userDataProvider;
         }
+
+        public IAuthenticationMailer AuthenticationMailer { get; }
 
         public IAuthenticationService AuthenticationService { get; }
 
@@ -34,6 +43,10 @@ namespace Buttercup.Web.Authentication
         public ILogger<AuthenticationManager> Logger { get; }
 
         public IPasswordHasher<User> PasswordHasher { get; }
+
+        public IPasswordResetTokenDataProvider PasswordResetTokenDataProvider { get; }
+
+        public IRandomTokenGenerator RandomTokenGenerator { get; }
 
         public IUserDataProvider UserDataProvider { get; }
 
@@ -79,6 +92,45 @@ namespace Buttercup.Web.Authentication
                     user.Email);
 
                 return user;
+            }
+        }
+
+        public async Task SendPasswordResetLink(string email)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                var user = await this.UserDataProvider.FindUserByEmail(connection, email);
+
+                if (user == null)
+                {
+                    this.Logger.LogInformation(
+                        "Unable to send password reset link; No user with email {email}", email);
+                    return;
+                }
+
+                email = user.Email;
+
+                var token = this.RandomTokenGenerator.Generate();
+
+                await this.PasswordResetTokenDataProvider.InsertToken(connection, user.Id, token);
+
+                try
+                {
+                    await this.AuthenticationMailer.SendPasswordResetLink(email, token);
+
+                    this.Logger.LogInformation(
+                        "Password reset link sent to user {userId} ({email})",
+                        user.Id,
+                        email);
+                }
+                catch (Exception e)
+                {
+                    this.Logger.LogError(
+                        e,
+                        "Error sending password reset link to user {userId} ({email})",
+                        user.Id,
+                        email);
+                }
             }
         }
 
