@@ -14,6 +14,23 @@ namespace Buttercup.Web.Controllers
 
         public IAuthenticationManager AuthenticationManager { get; }
 
+        [HttpGet("reset-password")]
+        public IActionResult RequestPasswordReset() => this.View();
+
+        [HttpPost("reset-password")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetViewModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            await this.AuthenticationManager.SendPasswordResetLink(model.Email);
+
+            return this.View("RequestPasswordResetConfirmation", model);
+        }
+
         [HttpGet("sign-in")]
         public async Task<IActionResult> SignIn()
         {

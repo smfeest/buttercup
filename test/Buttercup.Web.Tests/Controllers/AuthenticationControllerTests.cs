@@ -12,6 +12,67 @@ namespace Buttercup.Web.Controllers
 {
     public class AuthenticationControllerTests
     {
+        #region RequestPasswordReset (GET)
+
+        [Fact]
+        public void RequestPasswordResetGetReturnsViewResult()
+        {
+            using (var context = new Context())
+            {
+                var result = context.AuthenticationController.RequestPasswordReset();
+                Assert.IsType<ViewResult>(result);
+            }
+        }
+
+        #endregion
+
+        #region RequestPasswordReset (POST)
+
+        [Fact]
+        public async Task RequestPasswordResetPostReturnsViewResultWhenModelIsInvalid()
+        {
+            using (var context = new Context())
+            {
+                context.AuthenticationController.ModelState.AddModelError("test", "test");
+
+                var model = new RequestPasswordResetViewModel();
+                var result = await context.AuthenticationController.RequestPasswordReset(model);
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.Same(model, viewResult.Model);
+            }
+        }
+
+        [Fact]
+        public async Task RequestPasswordResetPostSendsPasswordResetLink()
+        {
+            using (var context = new Context())
+            {
+                var model = new RequestPasswordResetViewModel { Email = "sample-user@example.com" };
+                var result = await context.AuthenticationController.RequestPasswordReset(model);
+
+                context.MockAuthenticationManager.Verify(
+                    x => x.SendPasswordResetLink("sample-user@example.com"));
+            }
+        }
+
+        [Fact]
+        public async Task RequestPasswordResetPostReturnsViewResult()
+        {
+            using (var context = new Context())
+            {
+                var model = new RequestPasswordResetViewModel();
+
+                var result = await context.AuthenticationController.RequestPasswordReset(model);
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                Assert.Equal("RequestPasswordResetConfirmation", viewResult.ViewName);
+                Assert.Same(model, viewResult.Model);
+            }
+        }
+
+        #endregion
+
         #region SignIn (GET)
 
         [Fact]
