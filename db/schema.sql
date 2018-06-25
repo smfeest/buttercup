@@ -2,6 +2,13 @@ DROP DATABASE IF EXISTS `{DatabaseName}`;
 CREATE DATABASE `{DatabaseName}` DEFAULT CHARACTER SET utf8;
 USE `{DatabaseName}`;
 
+CREATE TABLE password_reset_token (
+  token CHAR(48) NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
+  created DATETIME NOT NULL,
+  PRIMARY KEY (token)
+) ENGINE=InnoDB;
+
 CREATE TABLE recipe (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   title VARCHAR(255) NOT NULL,
@@ -29,3 +36,9 @@ CREATE TABLE user (
   PRIMARY KEY (id),
   UNIQUE KEY user_u1 (email)
 ) ENGINE=InnoDB;
+
+ALTER TABLE password_reset_token
+  ADD FOREIGN KEY password_reset_token_FK1 (user_id)
+    REFERENCES user (id)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
