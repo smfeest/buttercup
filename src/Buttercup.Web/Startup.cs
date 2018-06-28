@@ -1,4 +1,5 @@
 ﻿using Buttercup.DataAccess;
+using Buttercup.Web.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +38,11 @@ namespace Buttercup.Web
                 });
 
             services.AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"));
+
+            services
+                .AddTransient<IAssetHelper, AssetHelper>()
+                .AddTransient<IAssetManifestReader, AssetManifestReader>()
+                .AddSingleton<IAssetManifestSource, AssetManifestSource>();
         }
     }
 }
