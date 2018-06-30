@@ -51,8 +51,8 @@ namespace Buttercup.Web.Controllers
                 var model = new RequestPasswordResetViewModel { Email = "sample-user@example.com" };
                 var result = await context.AuthenticationController.RequestPasswordReset(model);
 
-                context.MockAuthenticationManager.Verify(
-                    x => x.SendPasswordResetLink("sample-user@example.com"));
+                context.MockAuthenticationManager.Verify(x => x.SendPasswordResetLink(
+                    context.ControllerContext, "sample-user@example.com"));
             }
         }
 
@@ -310,18 +310,22 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
+                this.ControllerContext = new ControllerContext()
+                {
+                    HttpContext = this.HttpContext,
+                };
+
                 this.AuthenticationController = new AuthenticationController(
                     this.MockAuthenticationManager.Object)
                 {
-                    ControllerContext = new ControllerContext()
-                    {
-                        HttpContext = this.HttpContext,
-                    },
+                    ControllerContext = this.ControllerContext,
                     Url = this.MockUrlHelper.Object,
                 };
             }
 
             public AuthenticationController AuthenticationController { get; }
+
+            public ControllerContext ControllerContext { get; }
 
             public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
 

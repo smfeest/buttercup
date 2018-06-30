@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -207,7 +210,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task SendPasswordResetLinkSendsTokenToUser()
+        public async Task SendPasswordResetLinkSendsLinkToUser()
         {
             var context = new SendPasswordResetLinkContext();
 
@@ -216,7 +219,7 @@ namespace Buttercup.Web.Authentication
             await context.SendPasswordResetLink();
 
             context.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordResetLink(context.User.Email, context.Token));
+                x => x.SendPasswordResetLink(context.User.Email, context.Link));
         }
 
         [Fact]
@@ -292,6 +295,7 @@ namespace Buttercup.Web.Authentication
                     this.MockPasswordHasher.Object,
                     this.MockPasswordResetTokenDataProvider.Object,
                     this.MockRandomTokenGenerator.Object,
+                    this.MockUrlHelperFactory.Object,
                     this.MockUserDataProvider.Object);
 
                 this.MockDbConnectionSource
@@ -323,6 +327,9 @@ namespace Buttercup.Web.Authentication
 
             public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } =
                 new Mock<IRandomTokenGenerator>();
+
+            public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } =
+                new Mock<IUrlHelperFactory>();
 
             public Mock<IUserDataProvider> MockUserDataProvider { get; } =
                 new Mock<IUserDataProvider>();
@@ -368,11 +375,22 @@ namespace Buttercup.Web.Authentication
 
         private class SendPasswordResetLinkContext : Context
         {
+            public SendPasswordResetLinkContext() =>
+                this.MockUrlHelperFactory
+                    .Setup(x => x.GetUrlHelper(this.ActionContext))
+                    .Returns(this.MockUrlHelper.Object);
+
+            public Mock<IUrlHelper> MockUrlHelper { get; } = new Mock<IUrlHelper>();
+
+            public ActionContext ActionContext { get; } = new ActionContext();
+
             public string Email { get; } = "sample@example.com";
 
             public User User { get; private set; }
 
             public string Token { get; private set; }
+
+            public string Link { get; private set; }
 
             public void SetupSuccess()
             {
@@ -383,13 +401,20 @@ namespace Buttercup.Web.Authentication
                 this.MockRandomTokenGenerator
                     .Setup(x => x.Generate())
                     .Returns(this.Token = "sample-token");
+
+                this.MockUrlHelper
+                    .Setup(x => x.Link(
+                        "ResetPassword",
+                        It.Is<object>(
+                            o => this.Token.Equals(new RouteValueDictionary(o)["token"]))))
+                    .Returns(this.Link = "https://example.com/reset-password/sample-token");
             }
 
             public void SetupUnrecognizedEmail() =>
                 this.SetupFindUserByEmail(this.Email, this.User = null);
 
             public Task SendPasswordResetLink() =>
-                this.AuthenticationManager.SendPasswordResetLink(this.Email);
+                this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
         }
     }
 }

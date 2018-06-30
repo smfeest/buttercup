@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Web.Authentication
@@ -23,6 +25,7 @@ namespace Buttercup.Web.Authentication
             IPasswordHasher<User> passwordHasher,
             IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
             IRandomTokenGenerator randomTokenGenerator,
+            IUrlHelperFactory urlHelperFactory,
             IUserDataProvider userDataProvider)
         {
             this.AuthenticationMailer = authenticationMailer;
@@ -32,6 +35,7 @@ namespace Buttercup.Web.Authentication
             this.PasswordHasher = passwordHasher;
             this.PasswordResetTokenDataProvider = passwordResetTokenDataProvider;
             this.RandomTokenGenerator = randomTokenGenerator;
+            this.UrlHelperFactory = urlHelperFactory;
             this.UserDataProvider = userDataProvider;
         }
 
@@ -48,6 +52,8 @@ namespace Buttercup.Web.Authentication
         public IPasswordResetTokenDataProvider PasswordResetTokenDataProvider { get; }
 
         public IRandomTokenGenerator RandomTokenGenerator { get; }
+
+        public IUrlHelperFactory UrlHelperFactory { get; }
 
         public IUserDataProvider UserDataProvider { get; }
 
@@ -151,7 +157,7 @@ namespace Buttercup.Web.Authentication
             }
         }
 
-        public async Task SendPasswordResetLink(string email)
+        public async Task SendPasswordResetLink(ActionContext actionContext, string email)
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
@@ -170,9 +176,12 @@ namespace Buttercup.Web.Authentication
 
                 await this.PasswordResetTokenDataProvider.InsertToken(connection, user.Id, token);
 
+                var urlHelper = this.UrlHelperFactory.GetUrlHelper(actionContext);
+                var link = urlHelper.Link("ResetPassword", new { token = token });
+
                 try
                 {
-                    await this.AuthenticationMailer.SendPasswordResetLink(email, token);
+                    await this.AuthenticationMailer.SendPasswordResetLink(email, link);
 
                     this.Logger.LogInformation(
                         "Password reset link sent to user {userId} ({email})",

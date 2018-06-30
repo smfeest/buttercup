@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Buttercup.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Authentication
 {
@@ -68,13 +69,16 @@ namespace Buttercup.Web.Authentication
         /// while sending the email is caught, logged and not rethrown.
         /// </para>
         /// </remarks>
+        /// <param name="actionContext">
+        /// The current action context.
+        /// </param>
         /// <param name="email">
         /// The email address.
         /// </param>
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task SendPasswordResetLink(string email);
+        Task SendPasswordResetLink(ActionContext actionContext, string email);
 
         /// <summary>
         /// Signs in a user.

@@ -27,12 +27,13 @@ namespace Buttercup.Web.Controllers
                 return this.View(model);
             }
 
-            await this.AuthenticationManager.SendPasswordResetLink(model.Email);
+            await this.AuthenticationManager.SendPasswordResetLink(
+                this.ControllerContext, model.Email);
 
             return this.View("RequestPasswordResetConfirmation", model);
         }
 
-        [HttpGet("reset-password/{token}")]
+        [HttpGet("reset-password/{token}", Name = "ResetPassword")]
         public async Task<IActionResult> ResetPassword(string token)
         {
             if (!await this.AuthenticationManager.PasswordResetTokenIsValid(token))
