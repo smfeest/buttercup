@@ -43,6 +43,36 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region GetUser
+
+        [Fact]
+        public async Task GetUserReturnsUser() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            var expected = SampleUsers.CreateSampleUser(id: 76);
+
+            await SampleUsers.InsertSampleUser(connection, expected);
+
+            var actual = await new UserDataProvider().GetUser(connection, 76);
+
+            Assert.Equal(76, actual.Id);
+            Assert.Equal(expected.Email, actual.Email);
+        });
+
+        [Fact]
+        public async Task GetUserThrowsIfRecordNotFound() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
+
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
+                () => new UserDataProvider().GetUser(connection, 7));
+
+            Assert.Equal("User 7 not found", exception.Message);
+        });
+
+        #endregion
+
         #region ReadUser
 
         [Fact]

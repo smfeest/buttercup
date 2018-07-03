@@ -30,6 +30,26 @@ namespace Buttercup.DataAccess
             }
         }
 
+        /// <inheritdoc />
+        public async Task<User> GetUser(DbConnection connection, long id)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM user WHERE id = @id";
+                command.AddParameterWithValue("@id", id);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (!await reader.ReadAsync())
+                    {
+                        throw new NotFoundException($"User {id} not found");
+                    }
+
+                    return ReadUser(reader);
+                }
+            }
+        }
+
         private static User ReadUser(DbDataReader reader) =>
             new User
             {

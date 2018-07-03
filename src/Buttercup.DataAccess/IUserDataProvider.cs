@@ -23,5 +23,22 @@ namespace Buttercup.DataAccess
         /// user is found.
         /// </returns>
         Task<User> FindUserByEmail(DbConnection connection, string email);
+
+        /// <summary>
+        /// Gets a user.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="id">
+        /// The user ID.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        /// <exception cref="NotFoundException">
+        /// No matching user was found.
+        /// </exception>
+        Task<User> GetUser(DbConnection connection, long id);
     }
 }
