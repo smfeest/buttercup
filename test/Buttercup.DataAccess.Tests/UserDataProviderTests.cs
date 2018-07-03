@@ -83,7 +83,7 @@ namespace Buttercup.DataAccess
 
             await SampleUsers.InsertSampleUser(connection, expected);
 
-            var actual = await new UserDataProvider().FindUserByEmail(connection, expected.Email);
+            var actual = await new UserDataProvider().GetUser(connection, expected.Id);
 
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Email, actual.Email);
