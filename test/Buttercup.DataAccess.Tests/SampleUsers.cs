@@ -9,7 +9,8 @@ namespace Buttercup.DataAccess
     {
         private static int sampleUserCount;
 
-        public static User CreateSampleUser(long? id = null, string email = null)
+        public static User CreateSampleUser(
+            long? id = null, string email = null, int? revision = null)
         {
             var i = ++sampleUserCount;
 
@@ -20,7 +21,7 @@ namespace Buttercup.DataAccess
                 HashedPassword = $"user-{i}-password",
                 Created = new DateTime(2001, 2, 3, 4, 5, 6),
                 Modified = new DateTime(2002, 3, 4, 5, 6, 7),
-                Revision = i + 1,
+                Revision = revision ?? (i + 1),
             };
         }
 
