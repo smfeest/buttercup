@@ -181,6 +181,19 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
+        public async Task ResetPasswordSendsPasswordChangeNotification()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordChangeNotification(context.Email));
+        }
+
+        [Fact]
         public async Task ResetPasswordReturnsUser()
         {
             var context = new ResetPasswordContext();
@@ -360,13 +373,18 @@ namespace Buttercup.Web.Authentication
 
             public User User { get; private set; }
 
+            public string Email { get; private set; }
+
             public void SetupInvalidToken() =>
                 this.SetupGetUserIdForToken(this.Token, this.UserId = null);
 
             public void SetupSuccess()
             {
-                this.SetupGetUserIdForToken(this.Token, this.UserId = 23);
-                this.SetupGetUser(this.UserId.Value, this.User = new User());
+                this.UserId = 23;
+                this.User = new User { Email = this.Email = "user@example.com" };
+
+                this.SetupGetUserIdForToken(this.Token, this.UserId);
+                this.SetupGetUser(this.UserId.Value, this.User);
             }
 
             public Task<User> ResetPassword() =>

@@ -153,7 +153,11 @@ namespace Buttercup.Web.Authentication
                     userId,
                     RedactToken(token));
 
-                return await this.UserDataProvider.GetUser(connection, userId.Value);
+                var user = await this.UserDataProvider.GetUser(connection, userId.Value);
+
+                await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+
+                return user;
             }
         }
 
