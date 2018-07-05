@@ -181,22 +181,11 @@ namespace Buttercup.Web.Controllers
         #region SignIn (GET)
 
         [Fact]
-        public async Task SignInGetSignsOutCurrentUser()
+        public void SignInGetReturnsViewResult()
         {
             using (var context = new Context())
             {
-                await context.AuthenticationController.SignIn();
-
-                context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
-            }
-        }
-
-        [Fact]
-        public async Task SignInGetReturnsViewResult()
-        {
-            using (var context = new Context())
-            {
-                var result = await context.AuthenticationController.SignIn();
+                var result = context.AuthenticationController.SignIn();
                 Assert.IsType<ViewResult>(result);
             }
         }

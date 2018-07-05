@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
+using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +35,7 @@ namespace Buttercup.Web.Controllers
         }
 
         [HttpGet("reset-password/{token}", Name = "ResetPassword")]
+        [EnsureSignedOut]
         public async Task<IActionResult> ResetPassword(string token)
         {
             if (!await this.AuthenticationManager.PasswordResetTokenIsValid(token))
@@ -67,12 +69,8 @@ namespace Buttercup.Web.Controllers
         }
 
         [HttpGet("sign-in")]
-        public async Task<IActionResult> SignIn()
-        {
-            await this.AuthenticationManager.SignOut(this.HttpContext);
-
-            return this.View();
-        }
+        [EnsureSignedOut]
+        public IActionResult SignIn() => this.View();
 
         [HttpPost("sign-in")]
         [ValidateAntiForgeryToken]
