@@ -181,22 +181,11 @@ namespace Buttercup.Web.Controllers
         #region SignIn (GET)
 
         [Fact]
-        public async Task SignInGetSignsOutCurrentUser()
+        public void SignInGetReturnsViewResult()
         {
             using (var context = new Context())
             {
-                await context.AuthenticationController.SignIn();
-
-                context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
-            }
-        }
-
-        [Fact]
-        public async Task SignInGetReturnsViewResult()
-        {
-            using (var context = new Context())
-            {
-                var result = await context.AuthenticationController.SignIn();
+                var result = context.AuthenticationController.SignIn();
                 Assert.IsType<ViewResult>(result);
             }
         }
@@ -297,6 +286,50 @@ namespace Buttercup.Web.Controllers
 
                 var result = await context.AuthenticationController.SignIn(
                     context.CreateSampleSignInViewModel(), "https://evil.com/");
+
+                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+                Assert.Equal("Home", redirectResult.ControllerName);
+                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
+            }
+        }
+
+        #endregion
+
+        #region SignOut
+
+        [Fact]
+        public void SignOutSignsOutUser()
+        {
+            using (var context = new Context())
+            {
+                var result = context.AuthenticationController.SignOut();
+
+                context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
+            }
+        }
+
+        [Fact]
+        public async Task SignOutRedirectsToInternalUrls()
+        {
+            using (var context = new Context())
+            {
+                context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
+
+                var result = await context.AuthenticationController.SignOut("/sample/redirect");
+
+                var redirectResult = Assert.IsType<RedirectResult>(result);
+                Assert.Equal("/sample/redirect", redirectResult.Url);
+            }
+        }
+
+        [Fact]
+        public async Task SignOutDoesNotRedirectToExternalUrls()
+        {
+            using (var context = new Context())
+            {
+                context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
+
+                var result = await context.AuthenticationController.SignOut("https://evil.com/");
 
                 var redirectResult = Assert.IsType<RedirectToActionResult>(result);
                 Assert.Equal("Home", redirectResult.ControllerName);
