@@ -306,6 +306,50 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
+        #region SignOut
+
+        [Fact]
+        public void SignOutSignsOutUser()
+        {
+            using (var context = new Context())
+            {
+                var result = context.AuthenticationController.SignOut();
+
+                context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
+            }
+        }
+
+        [Fact]
+        public async Task SignOutRedirectsToInternalUrls()
+        {
+            using (var context = new Context())
+            {
+                context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
+
+                var result = await context.AuthenticationController.SignOut("/sample/redirect");
+
+                var redirectResult = Assert.IsType<RedirectResult>(result);
+                Assert.Equal("/sample/redirect", redirectResult.Url);
+            }
+        }
+
+        [Fact]
+        public async Task SignOutDoesNotRedirectToExternalUrls()
+        {
+            using (var context = new Context())
+            {
+                context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
+
+                var result = await context.AuthenticationController.SignOut("https://evil.com/");
+
+                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+                Assert.Equal("Home", redirectResult.ControllerName);
+                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
+            }
+        }
+
+        #endregion
+
         private class Context : IDisposable
         {
             public Context()

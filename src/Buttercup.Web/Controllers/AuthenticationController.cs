@@ -104,6 +104,21 @@ namespace Buttercup.Web.Controllers
             }
         }
 
+        [HttpGet("sign-out")]
+        public async Task<IActionResult> SignOut(string returnUrl = null)
+        {
+            await this.AuthenticationManager.SignOut(this.HttpContext);
+
+            if (this.Url.IsLocalUrl(returnUrl))
+            {
+                return this.Redirect(returnUrl);
+            }
+            else
+            {
+                return this.RedirectToHome();
+            }
+        }
+
         private RedirectToActionResult RedirectToHome() =>
             this.RedirectToAction(nameof(HomeController.Index), "Home");
     }
