@@ -7,6 +7,24 @@ namespace Buttercup.Web.Authentication
 {
     public class AuthenticationMailerTests
     {
+        #region SendPasswordChangeNotification
+
+        [Fact]
+        public async Task SendPasswordChangeNotificationSendsEmail()
+        {
+            var mockEmailSender = new Mock<IEmailSender>();
+
+            await new AuthenticationMailer(mockEmailSender.Object).SendPasswordChangeNotification(
+                "user@example.com");
+
+            mockEmailSender.Verify(x => x.Send(
+                "user@example.com",
+                "Your password has been changed",
+                It.Is<string>(body => body.Contains("Your Buttercup password has been changed"))));
+        }
+
+        #endregion
+
         #region SendPasswordResetLink
 
         [Fact]

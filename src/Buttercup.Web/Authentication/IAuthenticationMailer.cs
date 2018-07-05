@@ -8,6 +8,17 @@ namespace Buttercup.Web.Authentication
     public interface IAuthenticationMailer
     {
         /// <summary>
+        /// Sends a password change notification.
+        /// </summary>
+        /// <param name="email">
+        /// The recipient's email address.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task SendPasswordChangeNotification(string email);
+
+        /// <summary>
         /// Sends a password reset link.
         /// </summary>
         /// <param name="email">

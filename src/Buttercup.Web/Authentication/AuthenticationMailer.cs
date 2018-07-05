@@ -9,6 +9,15 @@ namespace Buttercup.Web.Authentication
 
         public IEmailSender EmailSender { get; }
 
+        public async Task SendPasswordChangeNotification(string email)
+        {
+            var body = @"Your Buttercup password has been changed.
+
+Please contact buttercup@doubliez.net if you did not request this change.";
+
+            await this.EmailSender.Send(email, "Your password has been changed", body);
+        }
+
         public async Task SendPasswordResetLink(string email, string resetLink)
         {
             var body = $@"Please use this link to reset your Buttercup password:
