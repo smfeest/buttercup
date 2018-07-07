@@ -7,6 +7,7 @@ const lesshint = require('gulp-lesshint');
 const rev = require('gulp-rev');
 const revReplace = require('gulp-rev-replace');
 const sourcemaps = require('gulp-sourcemaps');
+const tslint = require('gulp-tslint');
 const watchLess = require('gulp-watch-less');
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
@@ -25,7 +26,7 @@ gulp.task('default', ['build']);
 
 gulp.task('build', ['build:scripts', 'build:staticAssets', 'build:styles']);
 
-gulp.task('build:scripts', ['build:scripts:dev', 'build:scripts:prod']);
+gulp.task('build:scripts', ['build:scripts:dev', 'build:scripts:prod', 'lint:scripts']);
 
 gulp.task('build:scripts:dev', () => webpackDevScripts().pipe(gulp.dest(paths.assets)));
 
@@ -52,7 +53,11 @@ gulp.task('clean', () => del([
   `${paths.prodAssets}/**/*`,
 ]));
 
-gulp.task('lint', ['lint:styles']);
+gulp.task('lint', ['lint:scripts', 'lint:styles']);
+
+gulp.task('lint:scripts', () => gulp.src(`${paths.scripts}/**/*.ts`)
+  .pipe(tslint({ formatter: "verbose" }))
+  .pipe(tslint.report()));
 
 gulp.task('lint:styles', () => gulp.src(`${paths.styles}/*.less`)
   .pipe(lesshint())
