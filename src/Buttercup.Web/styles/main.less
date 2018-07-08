@@ -17,9 +17,13 @@
 @small-padding: 5px;
 @padding: 15px;
 
+@min-width: 260px;
+@max-width: 1200px;
+
 body {
   font-family: @font-family-roboto;
-  margin: @padding;
+  min-width: @min-width;
+  padding: 0 @padding;
 }
 
 h1 {
@@ -40,6 +44,8 @@ a {
   color: @color-blue;
   text-decoration: none;
 }
+
+@import './layout';
 
 @import './buttons';
 @import './data-table';

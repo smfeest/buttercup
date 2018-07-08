@@ -1,10 +1,15 @@
 .top-bar {
-  align-items: center;
   background-color: @color-blue;
-  display: flex;
-  margin: -@padding -@padding @padding -@padding;
-  min-height: 48px;
+  margin: 0 -@padding;
   padding: 0 @padding;
+}
+
+.top-bar__content {
+  align-items: center;
+  display: flex;
+  margin: 0 auto;
+  max-width: @max-width;
+  min-height: 48px;
 }
 
 .top-bar__logotype {
