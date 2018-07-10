@@ -2,6 +2,7 @@
   "hexLength": {
     "style": "short"
   },
+  "idSelector": false,
   "qualifyingElement": false,
   "spaceAroundComma": {
     "allowNewline": true
