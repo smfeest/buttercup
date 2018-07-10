@@ -2,6 +2,7 @@
 const cleanCss = require('gulp-clean-css');
 const del = require('del');
 const gulp = require('gulp');
+const karma = require('karma');
 const less = require('gulp-less');
 const lesshint = require('gulp-lesshint');
 const rev = require('gulp-rev');
@@ -64,6 +65,12 @@ gulp.task('lint:styles', () => gulp.src(`${paths.styles}/*.less`)
   .pipe(lesshint.reporter())
   .pipe(lesshint.failOnError()));
 
+gulp.task('test', ['test:headless']);
+
+gulp.task('test:headless', karmaTask('ChromeHeadless'));
+
+gulp.task('test:debug', karmaTask('Chrome'));
+
 gulp.task('watch', ['watch:scripts', 'watch:styles']);
 
 gulp.task('watch:scripts', () => webpackDevScripts({
@@ -86,6 +93,15 @@ function bundleStyles(stream) {
     .pipe(less())
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest(paths.styleAssets));
+}
+
+function karmaTask(browser) {
+  return doneCallback => {
+    new karma.Server({
+      browsers: [browser],
+      configFile: `${__dirname}/karma.conf.js`,
+    }, doneCallback).start();
+  };
 }
 
 function revAssets(stream) {
