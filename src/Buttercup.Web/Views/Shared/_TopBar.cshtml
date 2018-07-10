@@ -11,6 +11,12 @@
       <li class="top-bar__tab-item top-bar__tab-item--fixed-size"><button id="top-bar__menu-button" class="top-bar__tab" type="button">⋮</button></li>
     </ul>
     <ul id="top-bar__menu-popover" class="popover-menu">
+      <li>
+        <div class="popover-menu__item top-bar__user">
+          <div class="top-bar__user-label">Signed in as</div>
+          <div>@ViewContext.HttpContext.User.Identity.Name</div>
+        </div>
+      </li>
       <li><a class="popover-menu__item" asp-controller="Authentication" asp-action="SignOut">Sign out</a></li>
     </ul>
 }
