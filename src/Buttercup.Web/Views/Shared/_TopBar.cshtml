@@ -17,6 +17,7 @@
           <div>@ViewContext.HttpContext.User.Identity.Name</div>
         </div>
       </li>
+      <li><a class="popover-menu__item" asp-controller="Authentication" asp-action="ChangePassword">Change password</a></li>
       <li><a class="popover-menu__item" asp-controller="Authentication" asp-action="SignOut">Sign out</a></li>
     </ul>
 }
