@@ -1,5 +1,6 @@
 bin/
 node_modules/
 obj/
+**/assets/scripts
+**/assets/styles
 prod-assets/
-*.css*

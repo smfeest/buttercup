@@ -12,3 +12,4 @@
 *.sh eol=lf
 *.sln eol=lf
 *.sql eol=lf
+*.ts eol=lf
