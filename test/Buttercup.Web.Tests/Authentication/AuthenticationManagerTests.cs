@@ -88,6 +88,55 @@ namespace Buttercup.Web.Authentication
 
         #endregion
 
+        #region GetCurrentUser
+
+        [Fact]
+        public async Task GetCurrentUserReturnsAndCachesUserIfAuthenticated()
+        {
+            var context = new Context();
+
+            var expected = new User();
+
+            context.SetupGetUser(12, expected);
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                new Claim[] { new Claim(ClaimTypes.NameIdentifier, "12") },
+                CookieAuthenticationDefaults.AuthenticationScheme));
+
+            var httpContext = new DefaultHttpContext { User = principal };
+
+            var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
+
+            Assert.Equal(expected, actual);
+            Assert.Equal(expected, httpContext.Items[typeof(User)]);
+        }
+
+        [Fact]
+        public async Task GetCurrentUserReturnsAndCachesNullIfUnauthenticated()
+        {
+            var httpContext = new DefaultHttpContext();
+
+            Assert.Null(await new Context().AuthenticationManager.GetCurrentUser(httpContext));
+            Assert.Null(httpContext.Items[typeof(User)]);
+        }
+
+        [Fact]
+        public async Task GetCurrentUserReturnsUserFromRequestItemsOnceCached()
+        {
+            var context = new Context();
+
+            var expected = new User();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Items[typeof(User)] = expected;
+
+            var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
+
+            Assert.Equal(expected, actual);
+        }
+
+        #endregion
+
         #region PasswordResetTokenIsValid
 
         [Fact]

@@ -102,6 +102,38 @@ namespace Buttercup.Web.Authentication
             }
         }
 
+        public async Task<User> GetCurrentUser(HttpContext httpContext)
+        {
+            object cachedUser;
+
+            if (httpContext.Items.TryGetValue(typeof(User), out cachedUser))
+            {
+                return (User)cachedUser;
+            }
+
+            User user;
+
+            if (httpContext.User.Identity.IsAuthenticated)
+            {
+                var userId = long.Parse(
+                    httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value,
+                    CultureInfo.InvariantCulture);
+
+                using (var connection = await this.DbConnectionSource.OpenConnection())
+                {
+                    user = await this.UserDataProvider.GetUser(connection, userId);
+                }
+            }
+            else
+            {
+                user = null;
+            }
+
+            httpContext.Items.Add(typeof(User), user);
+
+            return user;
+        }
+
         public async Task<bool> PasswordResetTokenIsValid(string token)
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
