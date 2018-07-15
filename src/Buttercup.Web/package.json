@@ -28,6 +28,7 @@
     "webpack-stream": "^4.0.3"
   },
   "dependencies": {
-    "normalize.css": "^8.0.0"
+    "normalize.css": "^8.0.0",
+    "popper.js": "^1.14.3"
   }
 }

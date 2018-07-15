@@ -3,6 +3,11 @@
     "target": "es5",
     "module": "commonjs",
     "sourceMap": true,
+    "lib": [
+      "dom",
+      "es2015.core",
+      "es5"
+    ],
     "noImplicitAny": true,
     "noUnusedLocals": true
   }
