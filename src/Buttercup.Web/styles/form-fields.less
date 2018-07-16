@@ -54,9 +54,20 @@
   }
 }
 
-.field-validation-error {
+.field-validation-error,
+.validation-summary-errors {
   background-color: @color-red;
   color: @color-white;
   font-weight: bold;
   padding: @form-vertical-padding-small @form-horizontal-padding;
+}
+
+.validation-summary-errors {
+  margin-bottom: @form-vertical-padding-large;
+
+  > ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
 }
