@@ -48,6 +48,35 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region GetUserIdForToken
+
+        [Fact]
+        public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            var context = new Context();
+
+            await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 5));
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 5, "sample-token");
+
+            var actual = await context.PasswordResetTokenDataProvider.GetUserIdForToken(
+                connection, "sample-token");
+
+            Assert.Equal(5, actual);
+        });
+
+        [Fact]
+        public async Task GetUserIdForTokenReturnsNullIfNoMatchFound() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            var actual = await new Context().PasswordResetTokenDataProvider.GetUserIdForToken(
+                connection, "sample-token");
+
+            Assert.Null(actual);
+        });
+
+        #endregion
+
         #region InsertToken
 
         [Fact]

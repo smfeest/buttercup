@@ -31,6 +31,20 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
+        public async Task<long?> GetUserIdForToken(
+            DbConnection connection, string token)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText =
+                    "SELECT user_id FROM password_reset_token WHERE token = @token";
+                command.AddParameterWithValue("@token", token);
+
+                return await command.ExecuteScalarAsync<uint?>();
+            }
+        }
+
+        /// <inheritdoc />
         public async Task InsertToken(DbConnection connection, long userId, string token)
         {
             using (var command = connection.CreateCommand())
