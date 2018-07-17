@@ -21,6 +21,20 @@ namespace Buttercup.DataAccess
         Task DeleteExpiredTokens(DbConnection connection);
 
         /// <summary>
+        /// Deletes all password reset tokens belonging to a user.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="userId">
+        /// The user ID.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task DeleteTokensForUser(DbConnection connection, long userId);
+
+        /// <summary>
         /// Tries to get the user ID associated with a password reset token.
         /// </summary>
         /// <param name="connection">

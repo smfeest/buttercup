@@ -31,6 +31,18 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
+        public async Task DeleteTokensForUser(DbConnection connection, long userId)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"DELETE FROM password_reset_token WHERE user_id = @user_id";
+                command.AddParameterWithValue("@user_id", userId);
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<long?> GetUserIdForToken(
             DbConnection connection, string token)
         {

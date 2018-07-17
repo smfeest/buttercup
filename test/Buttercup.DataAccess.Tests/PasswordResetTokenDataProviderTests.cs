@@ -48,6 +48,36 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region DeleteTokensForUser
+
+        [Fact]
+        public Task DeleteTokensForUserDeletesTokensBelongingToUser() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var context = new Context();
+
+            await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 7));
+            await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 11));
+
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 7, "token-a");
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 11, "token-b");
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 7, "token-c");
+
+            await context.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
+
+            string survivingTokens;
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_token";
+                survivingTokens = (string)await command.ExecuteScalarAsync();
+            }
+
+            Assert.Equal("token-b", survivingTokens);
+        });
+
+        #endregion
+
         #region GetUserIdForToken
 
         [Fact]
