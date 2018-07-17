@@ -95,6 +95,32 @@ namespace Buttercup.Web.Authentication
             }
         }
 
+        public async Task<bool> PasswordResetTokenIsValid(string token)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
+
+                var userId = await this.PasswordResetTokenDataProvider.GetUserIdForToken(
+                    connection, token);
+
+                if (userId.HasValue)
+                {
+                    this.Logger.LogDebug(
+                        "Password reset token '{token}' is valid and belongs to user {userId}",
+                        RedactToken(token),
+                        userId);
+                }
+                else
+                {
+                    this.Logger.LogDebug(
+                        "Password reset token '{token}' is no longer valid", RedactToken(token));
+                }
+
+                return userId.HasValue;
+            }
+        }
+
         public async Task SendPasswordResetLink(string email)
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
@@ -165,5 +191,7 @@ namespace Buttercup.Web.Authentication
                 this.Logger.LogInformation("User {userId} ({email}) signed out", userId, email);
             }
         }
+
+        private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
     }
 }

@@ -25,6 +25,18 @@ namespace Buttercup.Web.Authentication
         Task<User> Authenticate(string email, string password);
 
         /// <summary>
+        /// Validates a password reset token.
+        /// </summary>
+        /// <param name="token">
+        /// The password reset token.
+        /// </param>
+        /// <returns>
+        /// A task for the operation. The result is <b>true</b> if the token is valid, <b>false</b>
+        /// if it isn't.
+        /// </returns>
+        Task<bool> PasswordResetTokenIsValid(string token);
+
+        /// <summary>
         /// Sends a password reset link to the user with a given email address.
         /// </summary>
         /// <remarks>
