@@ -122,6 +122,75 @@ namespace Buttercup.Web.Authentication
 
         #endregion
 
+        #region ResetPassword
+
+        [Fact]
+        public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteExpiredTokens(context.MockConnection.Object));
+        }
+
+        [Fact]
+        public async Task ResetPasswordThrowsIfTokenIsInvalid()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupInvalidToken();
+
+            await Assert.ThrowsAsync<InvalidTokenException>(context.ResetPassword);
+        }
+
+        [Fact]
+        public async Task ResetPasswordUpdatesPassword()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            context.MockPasswordHasher
+                .Setup(x => x.HashPassword(null, context.NewPassword))
+                .Returns("sample-hashed-password");
+
+            await context.ResetPassword();
+
+            context.MockUserDataProvider.Verify(x => x.UpdatePassword(
+                context.MockConnection.Object, context.UserId.Value, "sample-hashed-password"));
+        }
+
+        [Fact]
+        public async Task ResetPasswordDeletesPasswordResetTokens()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteTokensForUser(context.MockConnection.Object, context.UserId.Value));
+        }
+
+        [Fact]
+        public async Task ResetPasswordReturnsUser()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            var actual = await context.ResetPassword();
+
+            Assert.Equal(context.User, actual);
+        }
+
+        #endregion
+
         #region SendPasswordResetLink
 
         [Fact]
@@ -263,10 +332,38 @@ namespace Buttercup.Web.Authentication
                     .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
                     .ReturnsAsync(user);
 
+            public void SetupGetUser(long id, User user) =>
+                this.MockUserDataProvider
+                    .Setup(x => x.GetUser(this.MockConnection.Object, id))
+                    .ReturnsAsync(user);
+
             public void SetupGetUserIdForToken(string token, long? userId) =>
                 this.MockPasswordResetTokenDataProvider
                     .Setup(x => x.GetUserIdForToken(this.MockConnection.Object, token))
                     .ReturnsAsync(userId);
+        }
+
+        private class ResetPasswordContext : Context
+        {
+            public string Token { get; } = "sample-token";
+
+            public string NewPassword { get; } = "sample-password";
+
+            public long? UserId { get; private set; }
+
+            public User User { get; private set; }
+
+            public void SetupInvalidToken() =>
+                this.SetupGetUserIdForToken(this.Token, this.UserId = null);
+
+            public void SetupSuccess()
+            {
+                this.SetupGetUserIdForToken(this.Token, this.UserId = 23);
+                this.SetupGetUser(this.UserId.Value, this.User = new User());
+            }
+
+            public Task<User> ResetPassword() =>
+                this.AuthenticationManager.ResetPassword(this.Token, this.NewPassword);
         }
 
         private class SendPasswordResetLinkContext : Context

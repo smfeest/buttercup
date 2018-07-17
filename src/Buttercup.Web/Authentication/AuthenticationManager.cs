@@ -1,4 +1,5 @@
 using System;
+using System.Data.Common;
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -99,10 +100,7 @@ namespace Buttercup.Web.Authentication
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
-                await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
-
-                var userId = await this.PasswordResetTokenDataProvider.GetUserIdForToken(
-                    connection, token);
+                var userId = await this.ValidatePasswordResetToken(connection, token);
 
                 if (userId.HasValue)
                 {
@@ -118,6 +116,38 @@ namespace Buttercup.Web.Authentication
                 }
 
                 return userId.HasValue;
+            }
+        }
+
+        public async Task<User> ResetPassword(string token, string newPassword)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                var userId = await this.ValidatePasswordResetToken(connection, token);
+
+                if (!userId.HasValue)
+                {
+                    this.Logger.LogInformation(
+                        "Unable to reset password; password reset token {token} is invalid",
+                        RedactToken(token));
+
+                    throw new InvalidTokenException("Password reset token is invalid");
+                }
+
+                var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
+
+                await this.UserDataProvider.UpdatePassword(
+                    connection, userId.Value, hashedPassword);
+
+                await this.PasswordResetTokenDataProvider.DeleteTokensForUser(
+                    connection, userId.Value);
+
+                this.Logger.LogInformation(
+                    "Password reset for user {userId} using token {token}",
+                    userId,
+                    RedactToken(token));
+
+                return await this.UserDataProvider.GetUser(connection, userId.Value);
             }
         }
 
@@ -193,5 +223,12 @@ namespace Buttercup.Web.Authentication
         }
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
+
+        private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
+        {
+            await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
+
+            return await this.PasswordResetTokenDataProvider.GetUserIdForToken(connection, token);
+        }
     }
 }
