@@ -78,6 +78,7 @@ namespace Buttercup.Web
 
             services
                 .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
+                .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
                 .AddTransient<IAuthenticationManager, AuthenticationManager>()
                 .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
                 .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
