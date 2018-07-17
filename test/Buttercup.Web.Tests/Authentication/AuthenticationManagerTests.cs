@@ -27,9 +27,7 @@ namespace Buttercup.Web.Authentication
                 HashedPassword = "sample-hashed-password",
             };
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .ReturnsAsync(expected);
+            context.SetupFindUserByEmail("sample@example.com", expected);
 
             context.MockPasswordHasher
                 .Setup(x => x.VerifyHashedPassword(
@@ -47,9 +45,7 @@ namespace Buttercup.Web.Authentication
         {
             var context = new Context();
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .Returns(Task.FromResult<User>(null));
+            context.SetupFindUserByEmail("sample@example.com", null);
 
             Assert.Null(await context.AuthenticationManager.Authenticate(
                 "sample@example.com", "sample-password"));
@@ -60,9 +56,7 @@ namespace Buttercup.Web.Authentication
         {
             var context = new Context();
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .ReturnsAsync(new User { HashedPassword = null });
+            context.SetupFindUserByEmail("sample@example.com", new User { HashedPassword = null });
 
             Assert.Null(await context.AuthenticationManager.Authenticate(
                 "sample@example.com", "sample-password"));
@@ -78,9 +72,7 @@ namespace Buttercup.Web.Authentication
                 HashedPassword = "sample-hashed-password",
             };
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .ReturnsAsync(user);
+            context.SetupFindUserByEmail("sample@example.com", user);
 
             context.MockPasswordHasher
                 .Setup(x => x.VerifyHashedPassword(
@@ -173,6 +165,11 @@ namespace Buttercup.Web.Authentication
 
             public Mock<IUserDataProvider> MockUserDataProvider { get; } =
                 new Mock<IUserDataProvider>();
+
+            public void SetupFindUserByEmail(string email, User user) =>
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
+                    .ReturnsAsync(user);
         }
     }
 }
