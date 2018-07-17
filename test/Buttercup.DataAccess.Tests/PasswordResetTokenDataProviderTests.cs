@@ -13,6 +13,41 @@ namespace Buttercup.DataAccess
         public PasswordResetTokenDataProviderTests(DatabaseFixture databaseFixture) =>
             this.databaseFixture = databaseFixture;
 
+        #region DeleteExpiredTokens
+
+        [Fact]
+        public Task DeleteExpiredTokensDeletesExpiredTokens() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var context = new Context();
+
+            await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
+
+            context.SetupUtcNow(new DateTime(2000, 1, 2, 11, 59, 59));
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 3, "token-a");
+
+            context.SetupUtcNow(new DateTime(2000, 1, 2, 12, 00, 00));
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 3, "token-b");
+
+            context.SetupUtcNow(new DateTime(2000, 1, 2, 12, 00, 01));
+            await context.PasswordResetTokenDataProvider.InsertToken(connection, 3, "token-c");
+
+            context.SetupUtcNow(new DateTime(2000, 1, 3, 12, 00, 00));
+            await context.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
+
+            string survivingTokens;
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_token";
+                survivingTokens = (string)await command.ExecuteScalarAsync();
+            }
+
+            Assert.Equal("token-b,token-c", survivingTokens);
+        });
+
+        #endregion
+
         #region InsertToken
 
         [Fact]
@@ -24,7 +59,7 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
 
             var utcNow = new DateTime(2000, 1, 2, 3, 4, 5);
-            context.MockClock.SetupGet(x => x.UtcNow).Returns(utcNow);
+            context.SetupUtcNow(utcNow);
 
             await context.PasswordResetTokenDataProvider.InsertToken(connection, 6, "sample-token");
 
@@ -54,6 +89,9 @@ namespace Buttercup.DataAccess
             public PasswordResetTokenDataProvider PasswordResetTokenDataProvider { get; }
 
             public Mock<IClock> MockClock { get; } = new Mock<IClock>();
+
+            public void SetupUtcNow(DateTime utcNow) =>
+                this.MockClock.SetupGet(x => x.UtcNow).Returns(utcNow);
         }
     }
 }

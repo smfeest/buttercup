@@ -10,6 +10,17 @@ namespace Buttercup.DataAccess
     public interface IPasswordResetTokenDataProvider
     {
         /// <summary>
+        /// Deletes all password reset tokens that are more than 24 hours old.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task DeleteExpiredTokens(DbConnection connection);
+
+        /// <summary>
         /// Inserts a password reset token.
         /// </summary>
         /// <param name="connection">

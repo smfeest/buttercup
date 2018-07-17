@@ -19,6 +19,18 @@ namespace Buttercup.DataAccess
         public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
 
         /// <inheritdoc />
+        public async Task DeleteExpiredTokens(DbConnection connection)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"DELETE FROM password_reset_token WHERE created < @cut_off";
+                command.AddParameterWithValue("@cut_off", this.clock.UtcNow.AddDays(-1));
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        /// <inheritdoc />
         public async Task InsertToken(DbConnection connection, long userId, string token)
         {
             using (var command = connection.CreateCommand())
