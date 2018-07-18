@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -27,9 +30,7 @@ namespace Buttercup.Web.Authentication
                 HashedPassword = "sample-hashed-password",
             };
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .ReturnsAsync(expected);
+            context.SetupFindUserByEmail("sample@example.com", expected);
 
             context.MockPasswordHasher
                 .Setup(x => x.VerifyHashedPassword(
@@ -47,9 +48,7 @@ namespace Buttercup.Web.Authentication
         {
             var context = new Context();
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .Returns(Task.FromResult<User>(null));
+            context.SetupFindUserByEmail("sample@example.com", null);
 
             Assert.Null(await context.AuthenticationManager.Authenticate(
                 "sample@example.com", "sample-password"));
@@ -60,9 +59,7 @@ namespace Buttercup.Web.Authentication
         {
             var context = new Context();
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .ReturnsAsync(new User { HashedPassword = null });
+            context.SetupFindUserByEmail("sample@example.com", new User { HashedPassword = null });
 
             Assert.Null(await context.AuthenticationManager.Authenticate(
                 "sample@example.com", "sample-password"));
@@ -78,9 +75,7 @@ namespace Buttercup.Web.Authentication
                 HashedPassword = "sample-hashed-password",
             };
 
-            context.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(context.MockConnection.Object, "sample@example.com"))
-                .ReturnsAsync(user);
+            context.SetupFindUserByEmail("sample@example.com", user);
 
             context.MockPasswordHasher
                 .Setup(x => x.VerifyHashedPassword(
@@ -89,6 +84,168 @@ namespace Buttercup.Web.Authentication
 
             Assert.Null(await context.AuthenticationManager.Authenticate(
                 "sample@example.com", "sample-password"));
+        }
+
+        #endregion
+
+        #region PasswordResetTokenIsValid
+
+        [Fact]
+        public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
+        {
+            var context = new Context();
+
+            await context.AuthenticationManager.PasswordResetTokenIsValid("sample-token");
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteExpiredTokens(context.MockConnection.Object));
+        }
+
+        [Fact]
+        public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
+        {
+            var context = new Context();
+
+            context.SetupGetUserIdForToken("sample-token", 43);
+
+            Assert.True(
+                await context.AuthenticationManager.PasswordResetTokenIsValid("sample-token"));
+        }
+
+        [Fact]
+        public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
+        {
+            var context = new Context();
+
+            context.SetupGetUserIdForToken("sample-token", null);
+
+            Assert.False(
+                await context.AuthenticationManager.PasswordResetTokenIsValid("sample-token"));
+        }
+
+        #endregion
+
+        #region ResetPassword
+
+        [Fact]
+        public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteExpiredTokens(context.MockConnection.Object));
+        }
+
+        [Fact]
+        public async Task ResetPasswordThrowsIfTokenIsInvalid()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupInvalidToken();
+
+            await Assert.ThrowsAsync<InvalidTokenException>(context.ResetPassword);
+        }
+
+        [Fact]
+        public async Task ResetPasswordUpdatesPassword()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            context.MockPasswordHasher
+                .Setup(x => x.HashPassword(null, context.NewPassword))
+                .Returns("sample-hashed-password");
+
+            await context.ResetPassword();
+
+            context.MockUserDataProvider.Verify(x => x.UpdatePassword(
+                context.MockConnection.Object, context.UserId.Value, "sample-hashed-password"));
+        }
+
+        [Fact]
+        public async Task ResetPasswordDeletesPasswordResetTokens()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteTokensForUser(context.MockConnection.Object, context.UserId.Value));
+        }
+
+        [Fact]
+        public async Task ResetPasswordSendsPasswordChangeNotification()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordChangeNotification(context.Email));
+        }
+
+        [Fact]
+        public async Task ResetPasswordReturnsUser()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            var actual = await context.ResetPassword();
+
+            Assert.Equal(context.User, actual);
+        }
+
+        #endregion
+
+        #region SendPasswordResetLink
+
+        [Fact]
+        public async Task SendPasswordResetLinkInsertsPasswordResetToken()
+        {
+            var context = new SendPasswordResetLinkContext();
+
+            context.SetupSuccess();
+
+            await context.SendPasswordResetLink();
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.InsertToken(context.MockConnection.Object, context.User.Id, context.Token));
+        }
+
+        [Fact]
+        public async Task SendPasswordResetLinkSendsLinkToUser()
+        {
+            var context = new SendPasswordResetLinkContext();
+
+            context.SetupSuccess();
+
+            await context.SendPasswordResetLink();
+
+            context.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordResetLink(context.User.Email, context.Link));
+        }
+
+        [Fact]
+        public async Task SendPasswordResetLinkDoesNotSendLinkWhenEmailIsUnrecognized()
+        {
+            var context = new SendPasswordResetLinkContext();
+
+            context.SetupUnrecognizedEmail();
+
+            await context.SendPasswordResetLink();
+
+            context.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         #endregion
@@ -144,10 +301,14 @@ namespace Buttercup.Web.Authentication
             public Context()
             {
                 this.AuthenticationManager = new AuthenticationManager(
+                    this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
                     this.MockDbConnectionSource.Object,
                     this.MockLogger.Object,
                     this.MockPasswordHasher.Object,
+                    this.MockPasswordResetTokenDataProvider.Object,
+                    this.MockRandomTokenGenerator.Object,
+                    this.MockUrlHelperFactory.Object,
                     this.MockUserDataProvider.Object);
 
                 this.MockDbConnectionSource
@@ -156,6 +317,9 @@ namespace Buttercup.Web.Authentication
             }
 
             public AuthenticationManager AuthenticationManager { get; }
+
+            public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } =
+                new Mock<IAuthenticationMailer>();
 
             public Mock<IAuthenticationService> MockAuthenticationService { get; } =
                 new Mock<IAuthenticationService>();
@@ -171,8 +335,104 @@ namespace Buttercup.Web.Authentication
             public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } =
                 new Mock<IPasswordHasher<User>>();
 
+            public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } =
+                new Mock<IPasswordResetTokenDataProvider>();
+
+            public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } =
+                new Mock<IRandomTokenGenerator>();
+
+            public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } =
+                new Mock<IUrlHelperFactory>();
+
             public Mock<IUserDataProvider> MockUserDataProvider { get; } =
                 new Mock<IUserDataProvider>();
+
+            public void SetupFindUserByEmail(string email, User user) =>
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
+                    .ReturnsAsync(user);
+
+            public void SetupGetUser(long id, User user) =>
+                this.MockUserDataProvider
+                    .Setup(x => x.GetUser(this.MockConnection.Object, id))
+                    .ReturnsAsync(user);
+
+            public void SetupGetUserIdForToken(string token, long? userId) =>
+                this.MockPasswordResetTokenDataProvider
+                    .Setup(x => x.GetUserIdForToken(this.MockConnection.Object, token))
+                    .ReturnsAsync(userId);
+        }
+
+        private class ResetPasswordContext : Context
+        {
+            public string Token { get; } = "sample-token";
+
+            public string NewPassword { get; } = "sample-password";
+
+            public long? UserId { get; private set; }
+
+            public User User { get; private set; }
+
+            public string Email { get; private set; }
+
+            public void SetupInvalidToken() =>
+                this.SetupGetUserIdForToken(this.Token, this.UserId = null);
+
+            public void SetupSuccess()
+            {
+                this.UserId = 23;
+                this.User = new User { Email = this.Email = "user@example.com" };
+
+                this.SetupGetUserIdForToken(this.Token, this.UserId);
+                this.SetupGetUser(this.UserId.Value, this.User);
+            }
+
+            public Task<User> ResetPassword() =>
+                this.AuthenticationManager.ResetPassword(this.Token, this.NewPassword);
+        }
+
+        private class SendPasswordResetLinkContext : Context
+        {
+            public SendPasswordResetLinkContext() =>
+                this.MockUrlHelperFactory
+                    .Setup(x => x.GetUrlHelper(this.ActionContext))
+                    .Returns(this.MockUrlHelper.Object);
+
+            public Mock<IUrlHelper> MockUrlHelper { get; } = new Mock<IUrlHelper>();
+
+            public ActionContext ActionContext { get; } = new ActionContext();
+
+            public string Email { get; } = "sample@example.com";
+
+            public User User { get; private set; }
+
+            public string Token { get; private set; }
+
+            public string Link { get; private set; }
+
+            public void SetupSuccess()
+            {
+                this.User = new User { Id = 31, Email = "sample-x@example.com" };
+
+                this.SetupFindUserByEmail(this.Email, this.User);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate())
+                    .Returns(this.Token = "sample-token");
+
+                this.MockUrlHelper
+                    .Setup(x => x.Link(
+                        "ResetPassword",
+                        It.Is<object>(
+                            o => this.Token.Equals(new RouteValueDictionary(o)["token"]))))
+                    .Returns(this.Link = "https://example.com/reset-password/sample-token");
+            }
+
+            public void SetupUnrecognizedEmail() =>
+                this.SetupFindUserByEmail(this.Email, this.User = null);
+
+            public Task SendPasswordResetLink() =>
+                this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
         }
     }
 }

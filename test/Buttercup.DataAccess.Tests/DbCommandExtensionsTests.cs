@@ -1,6 +1,8 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -120,6 +122,51 @@ namespace Buttercup.DataAccess
                 "@alpha", "beta");
 
             Assert.Same(context.MockDbParameter.Object, parameter);
+        }
+
+        #endregion
+
+        #region ExecuteScalarAsync
+
+        [Fact]
+        public async Task ExecuteScalarAsyncReturnsValue()
+        {
+            var mockCommand = new Mock<DbCommand>();
+
+            mockCommand
+                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(54);
+
+            Assert.Equal(54, await mockCommand.Object.ExecuteScalarAsync<int>());
+            Assert.Equal(54, await mockCommand.Object.ExecuteScalarAsync<int?>());
+        }
+
+        [Fact]
+        public async Task ExecuteScalarAsyncReturnsDefaultValueWhenColumnContainsNull()
+        {
+            var mockCommand = new Mock<DbCommand>();
+
+            mockCommand
+                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(DBNull.Value);
+
+            Assert.Equal(0, await mockCommand.Object.ExecuteScalarAsync<long>());
+            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<long?>());
+            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<string>());
+        }
+
+        [Fact]
+        public async Task ExecuteScalarAsyncReturnsDefaultValueWhenResultSetIsEmpty()
+        {
+            var mockCommand = new Mock<DbCommand>();
+
+            mockCommand
+                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((object)null);
+
+            Assert.Equal(default(DateTime), await mockCommand.Object.ExecuteScalarAsync<DateTime>());
+            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<DateTime?>());
+            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<string>());
         }
 
         #endregion

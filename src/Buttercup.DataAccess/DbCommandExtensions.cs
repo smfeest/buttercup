@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace Buttercup.DataAccess
 {
@@ -70,6 +71,38 @@ namespace Buttercup.DataAccess
             }
 
             return command.AddParameterWithValue(name, value);
+        }
+
+        /// <summary>
+        /// Executes the command and gets the value in the first column of the first row in the
+        /// result set.
+        /// </summary>
+        /// <remarks>
+        /// Unlike <see cref="DbCommand.ExecuteScalarAsync()"/>, this method returns the same value
+        /// when the result set is empty as it does when the value in the first column of the first
+        /// row is <see cref="DBNull"/>.
+        /// </remarks>
+        /// <typeparam name="T">
+        /// The data type for the first column.
+        /// </typeparam>
+        /// <param name="command">
+        /// The command.
+        /// </param>
+        /// <returns>
+        /// A task for the operation. Result is the value in the first column of the first row in
+        /// the result set, or the default value of <typeparamref name="T"/> if the result set is
+        /// empty or the first column in the first row contains <see cref="DBNull"/>.
+        /// </returns>
+        public static async Task<T> ExecuteScalarAsync<T>(this DbCommand command)
+        {
+            var rawValue = await command.ExecuteScalarAsync();
+
+            if (rawValue == null || Convert.IsDBNull(rawValue))
+            {
+                return default(T);
+            }
+
+            return (T)rawValue;
         }
     }
 }

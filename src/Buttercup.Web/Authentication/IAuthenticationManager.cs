@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Buttercup.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Authentication
 {
@@ -23,6 +24,61 @@ namespace Buttercup.Web.Authentication
         /// null reference otherwise.
         /// </returns>
         Task<User> Authenticate(string email, string password);
+
+        /// <summary>
+        /// Validates a password reset token.
+        /// </summary>
+        /// <param name="token">
+        /// The password reset token.
+        /// </param>
+        /// <returns>
+        /// A task for the operation. The result is <b>true</b> if the token is valid, <b>false</b>
+        /// if it isn't.
+        /// </returns>
+        Task<bool> PasswordResetTokenIsValid(string token);
+
+        /// <summary>
+        /// Resets a user's password.
+        /// </summary>
+        /// <remarks>
+        /// All existing password reset tokens for the user are invalidated.
+        /// </remarks>
+        /// <param name="token">
+        /// The password reset token.
+        /// </param>
+        /// <param name="newPassword">
+        /// The new password.
+        /// </param>
+        /// <returns>
+        /// A task for the operation. The result is the updated user.
+        /// </returns>
+        /// <exception cref="InvalidTokenException">
+        /// The password reset token isn't valid.
+        /// </exception>
+        Task<User> ResetPassword(string token, string newPassword);
+
+        /// <summary>
+        /// Sends a password reset link to the user with a given email address.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// No email is sent if there is no user with the specified email address.
+        /// </para>
+        /// <para>
+        /// To reduce the risk of revealing the existence of a matching user, any exception raised
+        /// while sending the email is caught, logged and not rethrown.
+        /// </para>
+        /// </remarks>
+        /// <param name="actionContext">
+        /// The current action context.
+        /// </param>
+        /// <param name="email">
+        /// The email address.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task SendPasswordResetLink(ActionContext actionContext, string email);
 
         /// <summary>
         /// Signs in a user.

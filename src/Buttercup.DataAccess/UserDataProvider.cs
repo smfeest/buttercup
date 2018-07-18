@@ -10,6 +10,16 @@ namespace Buttercup.DataAccess
     /// </summary>
     internal sealed class UserDataProvider : IUserDataProvider
     {
+        private readonly IClock clock;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserDataProvider" /> class.
+        /// </summary>
+        /// <param name="clock">
+        /// The clock.
+        /// </param>
+        public UserDataProvider(IClock clock) => this.clock = clock;
+
         /// <inheritdoc />
         public async Task<User> FindUserByEmail(DbConnection connection, string email)
         {
@@ -26,6 +36,46 @@ namespace Buttercup.DataAccess
                     }
 
                     return ReadUser(reader);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<User> GetUser(DbConnection connection, long id)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM user WHERE id = @id";
+                command.AddParameterWithValue("@id", id);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (!await reader.ReadAsync())
+                    {
+                        throw new NotFoundException($"User {id} not found");
+                    }
+
+                    return ReadUser(reader);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task UpdatePassword(
+            DbConnection connection, long userId, string hashedPassword)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"UPDATE user
+SET hashed_password = @hashed_password, modified = @modified, revision = revision + 1
+WHERE id = @id";
+                command.AddParameterWithValue("@id", userId);
+                command.AddParameterWithValue("@hashed_password", hashedPassword);
+                command.AddParameterWithValue("@modified", this.clock.UtcNow);
+
+                if (await command.ExecuteNonQueryAsync() == 0)
+                {
+                    throw new NotFoundException($"User {userId} not found");
                 }
             }
         }

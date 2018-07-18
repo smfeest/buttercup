@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,57 @@ namespace Buttercup.Web.Controllers
         }
 
         public IAuthenticationManager AuthenticationManager { get; }
+
+        [HttpGet("reset-password")]
+        public IActionResult RequestPasswordReset() => this.View();
+
+        [HttpPost("reset-password")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetViewModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            await this.AuthenticationManager.SendPasswordResetLink(
+                this.ControllerContext, model.Email);
+
+            return this.View("RequestPasswordResetConfirmation", model);
+        }
+
+        [HttpGet("reset-password/{token}", Name = "ResetPassword")]
+        public async Task<IActionResult> ResetPassword(string token)
+        {
+            if (!await this.AuthenticationManager.PasswordResetTokenIsValid(token))
+            {
+                return this.View("ResetPasswordInvalidToken");
+            }
+
+            return this.View();
+        }
+
+        [HttpPost("reset-password/{token}")]
+        public async Task<IActionResult> ResetPassword(string token, ResetPasswordViewModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            try
+            {
+                var user = await this.AuthenticationManager.ResetPassword(token, model.Password);
+
+                await this.AuthenticationManager.SignIn(this.HttpContext, user);
+
+                return this.RedirectToHome();
+            }
+            catch (InvalidTokenException)
+            {
+                return this.View("ResetPasswordInvalidToken");
+            }
+        }
 
         [HttpGet("sign-in")]
         public async Task<IActionResult> SignIn()
@@ -48,8 +100,11 @@ namespace Buttercup.Web.Controllers
             }
             else
             {
-                return this.RedirectToAction(nameof(HomeController.Index), "Home");
+                return this.RedirectToHome();
             }
         }
+
+        private RedirectToActionResult RedirectToHome() =>
+            this.RedirectToAction(nameof(HomeController.Index), "Home");
     }
 }

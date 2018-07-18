@@ -13,6 +13,7 @@
   <div class="form-field">
     <label class="form-field__label" asp-for="Password"></label>
     <input class="form-field__input" asp-for="Password" required>
+    <a class="form-field__link" asp-action="RequestPasswordReset">Forgot your password?</a>
     <span asp-validation-for="Password"></span>
   </div>
   <button class="primary-push-button">Sign in</button>
