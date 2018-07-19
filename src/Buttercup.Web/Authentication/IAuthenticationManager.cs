@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Buttercup.Models;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,27 @@ namespace Buttercup.Web.Authentication
         /// null reference otherwise.
         /// </returns>
         Task<User> Authenticate(string email, string password);
+
+        /// <summary>
+        /// Changes a user's password.
+        /// </summary>
+        /// <param name="user">
+        /// The user.
+        /// </param>
+        /// <param name="currentPassword">
+        /// The current password for verification.
+        /// </param>
+        /// <param name="newPassword">
+        /// The new password.
+        /// </param>
+        /// <returns>
+        /// A task for the operation. The result is <b>true</b> if the password was changed
+        /// successfully, or <b>false</b> if the current password was incorrect.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// The user doesn't have a password.
+        /// </exception>
+        Task<bool> ChangePassword(User user, string currentPassword, string newPassword);
 
         /// <summary>
         /// Gets the current user for a request.

@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -133,6 +134,98 @@ namespace Buttercup.Web.Authentication
             var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
 
             Assert.Equal(expected, actual);
+        }
+
+        #endregion
+
+        #region ChangePassword
+
+        [Fact]
+        public async Task ChangePasswordThrowsIfUserHasNoPassword()
+        {
+            var context = new ChangePasswordContext();
+
+            context.User.HashedPassword = null;
+
+            await Assert.ThrowsAsync<InvalidOperationException>(context.ChangePassword);
+        }
+
+        [Fact]
+        public async Task ChangePasswordReturnsFalseIfCurrentPasswordDoesNotMatch()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+
+            Assert.False(await context.ChangePassword());
+        }
+
+        [Fact]
+        public async Task ChangePasswordDoesNotChangePasswordIfCurrentPasswordDoesNotMatch()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+
+            await context.ChangePassword();
+
+            context.MockPasswordHasher.Verify(
+                x => x.HashPassword(null, context.NewPassword), Times.Never);
+        }
+
+        [Fact]
+        public async Task ChangePasswordUpdatesPasswordIfCurrentPasswordMatches()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            context.MockPasswordHasher
+                .Setup(x => x.HashPassword(null, context.NewPassword))
+                .Returns("sample-hashed-password");
+
+            await context.ChangePassword();
+
+            context.MockUserDataProvider.Verify(x => x.UpdatePassword(
+                context.MockConnection.Object, context.UserId, "sample-hashed-password"));
+        }
+
+        [Fact]
+        public async Task ChangePasswordDeletesPasswordResetTokens()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            await context.ChangePassword();
+
+            context.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteTokensForUser(context.MockConnection.Object, context.UserId));
+        }
+
+        [Fact]
+        public async Task ChangePasswordSendsPasswordChangeNotification()
+        {
+            var context = new ChangePasswordContext();
+
+            context.User.Email = "user@example.com";
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            await context.ChangePassword();
+
+            context.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordChangeNotification("user@example.com"));
+        }
+
+        [Fact]
+        public async Task ChangePasswordReturnsTrueIfCurrentPasswordMatches()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            Assert.True(await context.ChangePassword());
         }
 
         #endregion
@@ -410,6 +503,36 @@ namespace Buttercup.Web.Authentication
                 this.MockPasswordResetTokenDataProvider
                     .Setup(x => x.GetUserIdForToken(this.MockConnection.Object, token))
                     .ReturnsAsync(userId);
+        }
+
+        private class ChangePasswordContext : Context
+        {
+            public ChangePasswordContext() => this.User = new User
+            {
+                Id = this.UserId,
+                HashedPassword = this.HashedCurrentPassword,
+            };
+
+            public User User { get; }
+
+            public long UserId { get; } = 43;
+
+            public string CurrentPassword { get; } = "current-password";
+
+            public string HashedCurrentPassword { get; } = "hashed-current-password";
+
+            public string NewPassword { get; } = "new-password";
+
+            public string HashedNewPassword { get; private set; }
+
+            public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>
+                this.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        this.User, this.HashedCurrentPassword, this.CurrentPassword))
+                    .Returns(result);
+
+            public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
+                this.User, this.CurrentPassword, this.NewPassword);
         }
 
         private class ResetPasswordContext : Context
