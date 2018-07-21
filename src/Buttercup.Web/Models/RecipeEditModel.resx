@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_OutOfRange">
+    <value>This field is limited to values between {1} and {2}</value>
+  </data>
+  <data name="Error_RequiredField">
+    <value>This field is required</value>
+  </data>
+  <data name="Error_TooManyCharacters">
+    <value>This field is limited to {1} characters</value>
+  </data>
+</root>

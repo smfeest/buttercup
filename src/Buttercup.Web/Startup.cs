@@ -61,6 +61,7 @@ namespace Buttercup.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc()
+                .AddDataAnnotationsLocalization()
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddViewOptions(options =>
                 {
