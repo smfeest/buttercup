@@ -66,8 +66,7 @@ namespace Buttercup.Web.Authentication
                 if (user == null)
                 {
                     this.Logger.LogInformation(
-                        "Authentication failure: No user with email {email}",
-                        email);
+                        "Authentication failed; no user with email {email}", email);
 
                     return null;
                 }
@@ -75,18 +74,17 @@ namespace Buttercup.Web.Authentication
                 if (user.HashedPassword == null)
                 {
                     this.Logger.LogInformation(
-                        "Authentication failure: No password set for user {userId} ({email})",
+                        "Authentication failed; no password set for user {userId} ({email})",
                         user.Id,
                         user.Email);
 
                     return null;
                 }
 
-                if (this.PasswordHasher.VerifyHashedPassword(user, user.HashedPassword, password) !=
-                    PasswordVerificationResult.Success)
+                if (!this.VerifyPassword(user, password))
                 {
                     this.Logger.LogInformation(
-                        "Authentication failure: Incorrect password for user {userId} ({email})",
+                        "Authentication failed; incorrect password for user {userId} ({email})",
                         user.Id,
                         user.Email);
 
@@ -94,12 +92,76 @@ namespace Buttercup.Web.Authentication
                 }
 
                 this.Logger.LogInformation(
-                    "User {userId} ({email}) successfully authenticated",
-                    user.Id,
-                    user.Email);
+                    "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
 
                 return user;
             }
+        }
+
+        public async Task<bool> ChangePassword(
+            User user, string currentPassword, string newPassword)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                if (user.HashedPassword == null)
+                {
+                    throw new InvalidOperationException(
+                        $"User {user.Id} ({user.Email}) does not have a password.");
+                }
+
+                if (!this.VerifyPassword(user, currentPassword))
+                {
+                    this.Logger.LogInformation(
+                        "Password change denied for user {userId} ({email}); current password is incorrect",
+                        user.Id,
+                        user.Email);
+
+                    return false;
+                }
+
+                await this.SetPassword(connection, user.Id, newPassword);
+
+                this.Logger.LogInformation(
+                    "Password successfully changed for user {userId} ({email})",
+                    user.Id,
+                    user.Email);
+
+                await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+
+                return true;
+            }
+        }
+
+        public async Task<User> GetCurrentUser(HttpContext httpContext)
+        {
+            object cachedUser;
+
+            if (httpContext.Items.TryGetValue(typeof(User), out cachedUser))
+            {
+                return (User)cachedUser;
+            }
+
+            User user;
+
+            if (httpContext.User.Identity.IsAuthenticated)
+            {
+                var userId = long.Parse(
+                    httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value,
+                    CultureInfo.InvariantCulture);
+
+                using (var connection = await this.DbConnectionSource.OpenConnection())
+                {
+                    user = await this.UserDataProvider.GetUser(connection, userId);
+                }
+            }
+            else
+            {
+                user = null;
+            }
+
+            httpContext.Items.Add(typeof(User), user);
+
+            return user;
         }
 
         public async Task<bool> PasswordResetTokenIsValid(string token)
@@ -140,13 +202,7 @@ namespace Buttercup.Web.Authentication
                     throw new InvalidTokenException("Password reset token is invalid");
                 }
 
-                var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
-
-                await this.UserDataProvider.UpdatePassword(
-                    connection, userId.Value, hashedPassword);
-
-                await this.PasswordResetTokenDataProvider.DeleteTokensForUser(
-                    connection, userId.Value);
+                await this.SetPassword(connection, userId.Value, newPassword);
 
                 this.Logger.LogInformation(
                     "Password reset for user {userId} using token {token}",
@@ -237,11 +293,24 @@ namespace Buttercup.Web.Authentication
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
 
+        private async Task SetPassword(DbConnection connection, long userId, string newPassword)
+        {
+            var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
+
+            await this.UserDataProvider.UpdatePassword(connection, userId, hashedPassword);
+
+            await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
+        }
+
         private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
         {
             await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
 
             return await this.PasswordResetTokenDataProvider.GetUserIdForToken(connection, token);
         }
+
+        private bool VerifyPassword(User user, string password) =>
+            this.PasswordHasher.VerifyHashedPassword(user, user.HashedPassword, password) ==
+                PasswordVerificationResult.Success;
     }
 }

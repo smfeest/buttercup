@@ -3,6 +3,7 @@ using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers
@@ -15,6 +16,36 @@ namespace Buttercup.Web.Controllers
         }
 
         public IAuthenticationManager AuthenticationManager { get; }
+
+        [Authorize]
+        [HttpGet("change-password")]
+        public IActionResult ChangePassword() => this.View();
+
+        [Authorize]
+        [HttpPost("change-password")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            var user = await this.AuthenticationManager.GetCurrentUser(this.HttpContext);
+
+            var passwordChanged = await this.AuthenticationManager.ChangePassword(
+                user, model.CurrentPassword, model.NewPassword);
+
+            if (!passwordChanged)
+            {
+                this.ModelState.AddModelError(
+                    nameof(ChangePasswordViewModel.CurrentPassword), "Wrong password");
+
+                return this.View(model);
+            }
+
+            return this.RedirectToHome();
+        }
 
         [HttpGet("reset-password")]
         public IActionResult RequestPasswordReset() => this.View();
