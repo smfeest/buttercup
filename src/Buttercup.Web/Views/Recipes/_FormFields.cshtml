@@ -3,7 +3,6 @@
 <div class="form-field">
   <label class="form-field__label" asp-for="Title">
     Title
-    <span class="form-field__required-label">required</span>
   </label>
   <input class="form-field__input" asp-for="Title" required autofocus>
   <span asp-validation-for="Title"></span>
@@ -32,7 +31,6 @@
 <div class="form-field">
   <label class="form-field__label" asp-for="Ingredients">
     Ingredients
-    <span class="form-field__required-label">required</span>
   </label>
   <textarea class="form-field__input form-field__input--tall" asp-for="Ingredients" required></textarea>
   <span asp-validation-for="Ingredients"></span>
@@ -40,7 +38,6 @@
 <div class="form-field">
   <label class="form-field__label" asp-for="Method">
     Method
-    <span class="form-field__required-label">required</span>
   </label>
   <textarea class="form-field__input form-field__input--tall" asp-for="Method" required></textarea>
   <span asp-validation-for="Method"></span>
