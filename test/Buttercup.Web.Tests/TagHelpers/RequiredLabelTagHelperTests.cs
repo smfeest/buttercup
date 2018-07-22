@@ -13,9 +13,14 @@ namespace Buttercup.Web.TagHelpers
     public class RequiredLabelTagHelperTests
     {
         [Theory]
-        [InlineData(false, "initial-content")]
-        [InlineData(true, "initial-content<span class=\"form-field__required-label\">required</span>")]
-        public void AddsRequiredLabelWhenModelValueIsRequired(bool isRequired, string expected)
+        [InlineData(null, false, false)]
+        [InlineData(null, true, true)]
+        [InlineData(false, false, false)]
+        [InlineData(false, true, false)]
+        [InlineData(true, false, true)]
+        [InlineData(true, true, true)]
+        public void AddsRequiredLabelWhenModelValueIsRequired(
+            bool? showRequiredLabel, bool isRequired, bool requiredLabelExpected)
         {
             var mockMetadata = new Mock<ModelMetadata>(
                 ModelMetadataIdentity.ForType(typeof(object)));
@@ -26,6 +31,7 @@ namespace Buttercup.Web.TagHelpers
             var tagHelper = new RequiredLabelTagHelper
             {
                 For = new ModelExpression("SampleProperty", modelExplorer),
+                ShowRequiredLabel = showRequiredLabel,
             };
 
             var context = new TagHelperContext(
@@ -37,6 +43,10 @@ namespace Buttercup.Web.TagHelpers
             output.Content.Append("initial-content");
 
             tagHelper.Process(context, output);
+
+            var expected = requiredLabelExpected ?
+                "initial-content<span class=\"form-field__required-label\">required</span>" :
+                "initial-content";
 
             Assert.Equal(expected, output.Content.GetContent());
         }
