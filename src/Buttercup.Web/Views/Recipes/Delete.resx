@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_DeleteRecipe">
+    <value>Delete - {0}</value>
+  </data>
+  <data name="Heading_DeleteRecipe">
+    <value>Delete recipe</value>
+  </data>
+  <data name="Message_DeleteConfirmation">
+    <value>Are you sure you wish to permanently delete '{0}'?</value>
+  </data>
+  <data name="Label_DeleteForever">
+    <value>Delete forever</value>
+  </data>
+  <data name="Label_Cancel">
+    <value>Cancel</value>
+  </data>
+</root>

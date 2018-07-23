@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_AllRecipes">
+    <value>Toutes recettes</value>
+  </data>
+  <data name="Label_Title">
+    <value>Titre</value>
+  </data>
+  <data name="Label_Added">
+    <value>Ajoutée</value>
+  </data>
+  <data name="Label_Updated">
+    <value>Modifié</value>
+  </data>
+</root>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_NewRecipe">
+    <value>Nouvelle recette</value>
+  </data>
+  <data name="Label_Save">
+    <value>Sauvegarder</value>
+  </data>
+</root>

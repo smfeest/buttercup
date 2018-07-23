@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_SignIn">
+    <value>Sign in</value>
+  </data>
+  <data name="Label_Email">
+    <value>Email</value>
+  </data>
+  <data name="Label_Password">
+    <value>Password</value>
+  </data>
+  <data name="Label_ForgotPassword">
+    <value>Forgot your password?</value>
+  </data>
+  <data name="Label_SignIn">
+    <value>Sign in</value>
+  </data>
+</root>

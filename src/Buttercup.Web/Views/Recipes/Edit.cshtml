@@ -1,13 +1,14 @@
-﻿@{
-  ViewData["Title"] = $"Edit - {Model.Title}";
-}
+﻿@inject IViewLocalizer Localizer
 @model RecipeEditModel
-<h1>Edit recipe</h1>
+@{
+  ViewData["Title"] = Localizer["Title_EditRecipe", Model.Title];
+}
+<h1>@Localizer["Heading_EditRecipe"]</h1>
 <form method="post">
   @await Html.PartialAsync("_FormFields", Model)
   <input type="hidden" asp-for="Revision">
   <div class="button-bar">
-    <button class="primary-push-button">Save</button>
-    <a class="push-button" asp-action="Show">Cancel</a>
+    <button class="primary-push-button">@Localizer["Label_Save"]</button>
+    <a class="push-button" asp-action="Show">@Localizer["Label_Cancel"]</a>
   </div>
 </form>

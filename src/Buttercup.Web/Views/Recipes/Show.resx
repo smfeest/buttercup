@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Label_PreparationTime">
+    <value>Preparation time</value>
+  </data>
+  <data name="Label_CookingTime">
+    <value>Cooking time</value>
+  </data>
+  <data name="Label_Servings">
+    <value>Servings</value>
+  </data>
+  <data name="Label_Source">
+    <value>Source</value>
+  </data>
+  <data name="Label_Added">
+    <value>Added</value>
+  </data>
+  <data name="Label_Updated">
+    <value>Updated</value>
+  </data>
+  <data name="Label_Ingredients">
+    <value>Ingredients</value>
+  </data>
+  <data name="Label_Method">
+    <value>Method</value>
+  </data>
+  <data name="Label_Suggestions">
+    <value>Suggestions</value>
+  </data>
+  <data name="Label_Remarks">
+    <value>Remarks</value>
+  </data>
+  <data name="Label_Edit">
+    <value>Edit</value>
+  </data>
+  <data name="Label_Delete">
+    <value>Delete</value>
+  </data>
+</root>

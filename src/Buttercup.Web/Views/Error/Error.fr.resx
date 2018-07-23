@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_Error">
+    <value>Erreur</value>
+  </data>
+  <data name="Message_GeneralError">
+    <value>Une erreur s'est produite lors du traitement de votre demande.</value>
+  </data>
+  <data name="Label_RequestId">
+    <value>Identifiant de demande</value>
+  </data>
+</root>
