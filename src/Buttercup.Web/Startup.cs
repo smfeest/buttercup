@@ -42,6 +42,11 @@ namespace Buttercup.Web
                     new CultureInfo("fr-FR"),
                     new CultureInfo("fr"),
                 },
+                SupportedUICultures = new[]
+                {
+                    new CultureInfo("en-GB"),
+                    new CultureInfo("fr"),
+                },
             });
 
             app.UseStaticFiles();
