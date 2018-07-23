@@ -39,6 +39,8 @@ namespace Buttercup.Web
                 {
                     new CultureInfo("en-GB"),
                     new CultureInfo("en"),
+                    new CultureInfo("fr-FR"),
+                    new CultureInfo("fr"),
                 },
             });
 
