@@ -90,7 +90,7 @@ gulp.task('lint:styles', () => gulp.src(`${paths.styles}/*.less`)
 function bundleStyles(stream) {
   return stream
     .pipe(sourcemaps.init())
-    .pipe(less())
+    .pipe(less({ math: 'parens-division' }))
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest(paths.styleAssets));
 }
