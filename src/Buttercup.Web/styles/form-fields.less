@@ -43,9 +43,10 @@
   }
 
   textarea& {
+    @vertical-midpoint: (@form-input-height / 2) - @form-input-border-width;
+
     height: auto;
-    padding: calc(((@form-input-height - (2 * @form-input-border-width)) / 2) ~' - 0.5em')
-      @form-input-input-padding;
+    padding: calc(@vertical-midpoint - 0.5em) @form-input-input-padding;
     resize: vertical;
 
     &.form-field__input--tall {
