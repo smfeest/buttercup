@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.TagHelpers
 {
@@ -17,6 +18,9 @@ namespace Buttercup.Web.TagHelpers
     {
         [SuppressMessage("Microsoft.Performance", "CA1823", Justification = "Used in attributes")]
         private const string ForAttributeName = "asp-for";
+
+        public RequiredLabelTagHelper(IStringLocalizer<RequiredLabelTagHelper> localizer) =>
+            this.Localizer = localizer;
 
         /// <summary>
         /// Gets or sets the model expression.
@@ -39,6 +43,8 @@ namespace Buttercup.Web.TagHelpers
         [HtmlAttributeName("show-required-label")]
         public bool? ShowRequiredLabel { get; set; }
 
+        private IStringLocalizer<RequiredLabelTagHelper> Localizer { get; }
+
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             if (this.ShowRequiredLabel.HasValue ?
@@ -47,7 +53,7 @@ namespace Buttercup.Web.TagHelpers
             {
                 var span = new TagBuilder("span");
                 span.AddCssClass("form-field__required-label");
-                span.InnerHtml.Append("required");
+                span.InnerHtml.Append(this.Localizer["Label_Required"]);
 
                 output.Content.AppendHtml(span);
             }
