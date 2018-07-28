@@ -1,4 +1,5 @@
-﻿@inject IViewLocalizer Localizer
+﻿@inject ITimeFormatter TimeFormatter
+@inject IViewLocalizer Localizer
 @model Recipe
 @{
   ViewData["Title"] = Model.Title;
@@ -10,14 +11,14 @@
   {
     <tr>
       <th>@Localizer["Label_PreparationTime"]</th>
-      <td>@Html.FormatAsHoursAndMinutes(Model.PreparationMinutes.Value)</td>
+      <td>@TimeFormatter.AsHoursAndMinutes(Model.PreparationMinutes.Value)</td>
     </tr>
   }
   @if (Model.CookingMinutes != null)
   {
     <tr>
       <th>@Localizer["Label_CookingTime"]</th>
-      <td>@Html.FormatAsHoursAndMinutes(Model.CookingMinutes.Value)</td>
+      <td>@TimeFormatter.AsHoursAndMinutes(Model.CookingMinutes.Value)</td>
     </tr>
   }
   @if (Model.Servings != null)

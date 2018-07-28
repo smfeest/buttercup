@@ -4,6 +4,7 @@ using Buttercup.Email;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
+using Buttercup.Web.Localization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -93,7 +94,8 @@ namespace Buttercup.Web
                 .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
                 .AddTransient<IAssetHelper, AssetHelper>()
                 .AddTransient<IAssetManifestReader, AssetManifestReader>()
-                .AddSingleton<IAssetManifestSource, AssetManifestSource>();
+                .AddSingleton<IAssetManifestSource, AssetManifestSource>()
+                .AddTransient<ITimeFormatter, TimeFormatter>();
         }
     }
 }
