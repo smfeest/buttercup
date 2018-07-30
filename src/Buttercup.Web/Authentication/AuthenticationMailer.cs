@@ -1,34 +1,32 @@
 using System.Threading.Tasks;
 using Buttercup.Email;
+using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Authentication
 {
     public class AuthenticationMailer : IAuthenticationMailer
     {
-        public AuthenticationMailer(IEmailSender emailSender) => this.EmailSender = emailSender;
+        public AuthenticationMailer(
+            IEmailSender emailSender, IStringLocalizer<AuthenticationMailer> localizer)
+        {
+            this.EmailSender = emailSender;
+            this.Localizer = localizer;
+        }
 
         public IEmailSender EmailSender { get; }
 
-        public async Task SendPasswordChangeNotification(string email)
-        {
-            var body = @"Your Buttercup password has been changed.
+        public IStringLocalizer<AuthenticationMailer> Localizer { get; }
 
-Please contact buttercup@doubliez.net if you did not request this change.";
+        public async Task SendPasswordChangeNotification(string email) =>
+            await this.EmailSender.Send(
+                email,
+                this.Localizer["Subject_PasswordChangeNotification"],
+                this.Localizer["Body_PasswordChangeNotification"]);
 
-            await this.EmailSender.Send(email, "Your password has been changed", body);
-        }
-
-        public async Task SendPasswordResetLink(string email, string resetLink)
-        {
-            var body = $@"Please use this link to reset your Buttercup password:
-
-{resetLink}
-
-If you no longer wish to reset your password you can safely ignore this
-email and your password will remaining unchanged. The link will expire
-in 24 hours.";
-
-            await this.EmailSender.Send(email, "Link to reset your password", body);
-        }
+        public async Task SendPasswordResetLink(string email, string resetLink) =>
+            await this.EmailSender.Send(
+                email,
+                this.Localizer["Subject_PasswordResetLink"],
+                this.Localizer["Body_PasswordResetLink", resetLink]);
     }
 }

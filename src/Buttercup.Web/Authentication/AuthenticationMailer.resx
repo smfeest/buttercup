@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Subject_PasswordChangeNotification">
+    <value>Your password has been changed</value>
+  </data>
+  <data name="Body_PasswordChangeNotification">
+    <value>Your Buttercup password has been changed.
+
+Please contact buttercup@doubliez.net if you did not request this
+change.</value>
+  </data>
+  <data name="Subject_PasswordResetLink">
+    <value>Your password reset link</value>
+  </data>
+  <data name="Body_PasswordResetLink">
+    <value>Please follow this link to reset your Buttercup password:
+
+{0}
+
+If you no longer wish to reset your password you can safely ignore this
+email and your password will remaining unchanged. The link will expire
+in 24 hours.</value>
+  </data>
+</root>
