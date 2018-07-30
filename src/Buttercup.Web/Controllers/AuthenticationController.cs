@@ -5,17 +5,23 @@ using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers
 {
     public class AuthenticationController : Controller
     {
-        public AuthenticationController(IAuthenticationManager authenticationManager)
+        public AuthenticationController(
+            IAuthenticationManager authenticationManager,
+            IStringLocalizer<AuthenticationController> localizer)
         {
             this.AuthenticationManager = authenticationManager;
+            this.Localizer = localizer;
         }
 
         public IAuthenticationManager AuthenticationManager { get; }
+
+        public IStringLocalizer<AuthenticationController> Localizer { get; }
 
         [Authorize]
         [HttpGet("change-password")]
@@ -39,7 +45,8 @@ namespace Buttercup.Web.Controllers
             if (!passwordChanged)
             {
                 this.ModelState.AddModelError(
-                    nameof(ChangePasswordViewModel.CurrentPassword), "Wrong password");
+                    nameof(ChangePasswordViewModel.CurrentPassword),
+                    this.Localizer["Error_WrongPassword"]);
 
                 return this.View(model);
             }
@@ -116,7 +123,8 @@ namespace Buttercup.Web.Controllers
 
             if (user == null)
             {
-                this.ModelState.AddModelError(string.Empty, "Wrong email address or password");
+                this.ModelState.AddModelError(
+                    string.Empty, this.Localizer["Error_WrongEmailOrPassword"]);
 
                 return this.View(model);
             }
