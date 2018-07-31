@@ -1,10 +1,10 @@
-﻿@{
-  ViewData["Title"] = "Add recipe";
-}
+﻿@inject IViewLocalizer Localizer
 @model RecipeEditModel
-<h1>Add recipe</h1>
+@{
+  ViewData["Title"] = Localizer["Title_NewRecipe"];
+}
+<h1>@Localizer["Title_NewRecipe"]</h1>
 <form method="post">
   @await Html.PartialAsync("_FormFields", Model)
-  <button class="primary-push-button">Save</button>
+  <button class="primary-push-button">@Localizer["Label_Save"]</button>
 </form>
-

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_WrongEmailOrPassword">
+    <value>Wrong email address or password</value>
+  </data>
+  <data name="Error_WrongPassword">
+    <value>Wrong password</value>
+  </data>
+</root>

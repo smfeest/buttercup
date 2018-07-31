@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Label_Home">
+    <value>Home</value>
+  </data>
+  <data name="Label_AllRecipes">
+    <value>All recipes</value>
+  </data>
+  <data name="Label_NewRecipe">
+    <value>New recipe</value>
+  </data>
+  <data name="Label_SignedInAs">
+    <value>Signed in as</value>
+  </data>
+  <data name="Label_ChangePassword">
+    <value>Change password</value>
+  </data>
+  <data name="Label_SignOut">
+    <value>Sign out</value>
+  </data>
+</root>

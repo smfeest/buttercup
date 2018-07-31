@@ -4,17 +4,17 @@ namespace Buttercup.Web.Models
 {
     public class ChangePasswordViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Error_RequiredField")]
         [DataType(DataType.Password)]
         public string CurrentPassword { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Error_RequiredField")]
         [DataType(DataType.Password)]
-        [StringLength(int.MaxValue, MinimumLength = 6, ErrorMessage = "Password is too short")]
+        [StringLength(int.MaxValue, MinimumLength = 6, ErrorMessage = "Error_PasswordTooShort")]
         public string NewPassword { get; set; }
 
         [DataType(DataType.Password)]
-        [Compare("NewPassword", ErrorMessage = "Passwords don't match")]
+        [Compare("NewPassword", ErrorMessage = "Error_PasswordsDoNotMatch")]
         public string ConfirmNewPassword { get; set; }
     }
 }

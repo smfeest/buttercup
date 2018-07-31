@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_Home">
+    <value>Accueil</value>
+  </data>
+  <data name="Heading_RecentlyAdded">
+    <value>Recettes récemment ajoutées</value>
+  </data>
+  <data name="Heading_RecentlyUpdated">
+    <value>Recettes récemment mises à jour</value>
+  </data>
+</root>

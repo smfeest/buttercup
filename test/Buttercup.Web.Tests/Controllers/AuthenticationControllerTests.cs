@@ -5,6 +5,7 @@ using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
@@ -58,7 +59,7 @@ namespace Buttercup.Web.Controllers
 
                 var error = Assert.Single(errors);
 
-                Assert.Equal("Wrong password", error.ErrorMessage);
+                Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
             }
         }
 
@@ -278,62 +279,57 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostReturnsViewResultWhenModelIsInvalid()
         {
-            using (var context = new Context())
+            using (var context = new SignInContext())
             {
                 context.AuthenticationController.ModelState.AddModelError("test", "test");
 
-                var viewModel = new SignInViewModel();
-                var result = await context.AuthenticationController.SignIn(viewModel);
+                var result = await context.SignInPost();
 
                 var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(viewModel, viewResult.Model);
+                Assert.Same(context.Model, viewResult.Model);
             }
         }
 
         [Fact]
         public async Task SignInPostAddsErrorWhenAuthenticationFails()
         {
-            using (var context = new Context())
+            using (var context = new SignInContext())
             {
                 context.SetupAuthenticate(null);
 
-                await context.AuthenticationController.SignIn(
-                    context.CreateSampleSignInViewModel());
+                await context.SignInPost();
 
                 var error = Assert.Single(
                     context.AuthenticationController.ModelState[string.Empty].Errors);
 
-                Assert.Equal("Wrong email address or password", error.ErrorMessage);
+                Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
             }
         }
 
         [Fact]
         public async Task SignInPostReturnsViewResultWhenAuthenticationFails()
         {
-            using (var context = new Context())
+            using (var context = new SignInContext())
             {
                 context.SetupAuthenticate(null);
 
-                var viewModel = context.CreateSampleSignInViewModel();
-
-                var result = await context.AuthenticationController.SignIn(viewModel);
+                var result = await context.SignInPost();
 
                 var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(viewModel, viewResult.Model);
+                Assert.Same(context.Model, viewResult.Model);
             }
         }
 
         [Fact]
         public async Task SignInSignsInUserWhenSuccessful()
         {
-            using (var context = new Context())
+            using (var context = new SignInContext())
             {
                 var user = new User();
 
                 context.SetupAuthenticate(user);
 
-                await context.AuthenticationController.SignIn(
-                    context.CreateSampleSignInViewModel());
+                await context.SignInPost();
 
                 context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
             }
@@ -342,14 +338,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostRedirectsToInternalUrl()
         {
-            using (var context = new Context())
+            using (var context = new SignInContext())
             {
                 context.SetupAuthenticate(new User());
 
                 context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
-                var result = await context.AuthenticationController.SignIn(
-                    context.CreateSampleSignInViewModel(), "/sample/redirect");
+                var result = await context.SignInPost("/sample/redirect");
 
                 var redirectResult = Assert.IsType<RedirectResult>(result);
                 Assert.Equal("/sample/redirect", redirectResult.Url);
@@ -359,14 +354,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostRedirectsDoesNotRedirectToExternalUrl()
         {
-            using (var context = new Context())
+            using (var context = new SignInContext())
             {
                 context.SetupAuthenticate(new User());
 
                 context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
-                var result = await context.AuthenticationController.SignIn(
-                    context.CreateSampleSignInViewModel(), "https://evil.com/");
+                var result = await context.SignInPost("https://evil.com/");
 
                 var redirectResult = Assert.IsType<RedirectToActionResult>(result);
                 Assert.Equal("Home", redirectResult.ControllerName);
@@ -430,7 +424,8 @@ namespace Buttercup.Web.Controllers
                 };
 
                 this.AuthenticationController = new AuthenticationController(
-                    this.MockAuthenticationManager.Object)
+                    this.MockAuthenticationManager.Object,
+                    this.MockLocalizer.Object)
                 {
                     ControllerContext = this.ControllerContext,
                     Url = this.MockUrlHelper.Object,
@@ -446,6 +441,9 @@ namespace Buttercup.Web.Controllers
             public Mock<IAuthenticationManager> MockAuthenticationManager { get; } =
                 new Mock<IAuthenticationManager>();
 
+            public Mock<IStringLocalizer<AuthenticationController>> MockLocalizer { get; } =
+                new Mock<IStringLocalizer<AuthenticationController>>();
+
             public Mock<IUrlHelper> MockUrlHelper { get; } = new Mock<IUrlHelper>();
 
             public void Dispose()
@@ -455,27 +453,21 @@ namespace Buttercup.Web.Controllers
                     this.AuthenticationController.Dispose();
                 }
             }
-
-            public SignInViewModel CreateSampleSignInViewModel() => new SignInViewModel
-            {
-                Email = "sample@example.com",
-                Password = "sample-password",
-            };
-
-            public void SetupAuthenticate(User user)
-            {
-                this.MockAuthenticationManager
-                    .Setup(x => x.Authenticate("sample@example.com", "sample-password"))
-                    .ReturnsAsync(user);
-            }
         }
 
         private class ChangePasswordContext : Context
         {
-            public ChangePasswordContext() =>
+            public ChangePasswordContext()
+            {
                 this.MockAuthenticationManager
                     .Setup(x => x.GetCurrentUser(this.HttpContext))
                     .ReturnsAsync(this.User);
+
+                this.MockLocalizer
+                    .SetupGet(x => x["Error_WrongPassword"])
+                    .Returns(new LocalizedString(
+                        "Error_WrongPassword", "translated-wrong-password-error"));
+            }
 
             public ChangePasswordViewModel Model { get; } = new ChangePasswordViewModel
             {
@@ -492,6 +484,31 @@ namespace Buttercup.Web.Controllers
 
             public Task<IActionResult> ChangePasswordPost() =>
                 this.AuthenticationController.ChangePassword(this.Model);
+        }
+
+        private class SignInContext : Context
+        {
+            public SignInContext() =>
+                this.MockLocalizer
+                    .SetupGet(x => x["Error_WrongEmailOrPassword"])
+                    .Returns(new LocalizedString(
+                        "Error_WrongPassword", "translated-wrong-email-or-password-error"));
+
+            public SignInViewModel Model { get; } = new SignInViewModel
+            {
+                Email = "sample@example.com",
+                Password = "sample-password",
+            };
+
+            public void SetupAuthenticate(User user)
+            {
+                this.MockAuthenticationManager
+                    .Setup(x => x.Authenticate("sample@example.com", "sample-password"))
+                    .ReturnsAsync(user);
+            }
+
+            public Task<IActionResult> SignInPost(string returnUrl = null) =>
+                this.AuthenticationController.SignIn(this.Model, returnUrl);
         }
     }
 }

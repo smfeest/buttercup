@@ -1,70 +1,72 @@
-﻿@{
+﻿@inject ITimeFormatter TimeFormatter
+@inject IViewLocalizer Localizer
+@model Recipe
+@{
   ViewData["Title"] = Model.Title;
 }
-@model Recipe
 <h1>@Model.Title</h1>
 
 <table class="recipe-header">
   @if (Model.PreparationMinutes != null)
   {
     <tr>
-      <th>Preparation Time</th>
-      <td>@Html.FormatAsHoursAndMinutes(Model.PreparationMinutes.Value)</td>
+      <th>@Localizer["Label_PreparationTime"]</th>
+      <td>@TimeFormatter.AsHoursAndMinutes(Model.PreparationMinutes.Value)</td>
     </tr>
   }
   @if (Model.CookingMinutes != null)
   {
     <tr>
-      <th>Cooking Time</th>
-      <td>@Html.FormatAsHoursAndMinutes(Model.CookingMinutes.Value)</td>
+      <th>@Localizer["Label_CookingTime"]</th>
+      <td>@TimeFormatter.AsHoursAndMinutes(Model.CookingMinutes.Value)</td>
     </tr>
   }
   @if (Model.Servings != null)
   {
     <tr>
-      <th>Servings</th>
+      <th>@Localizer["Label_Servings"]</th>
       <td>@Html.FormatValue(Model.Servings, "{0:d}")</td>
     </tr>
   }
   @if (Model.Source != null)
   {
     <tr>
-      <th>Source</th>
+      <th>@Localizer["Label_Source"]</th>
       <td>@Model.Source</td>
     </tr>
   }
   <tr>
-    <th>Added</th>
+    <th>@Localizer["Label_Added"]</th>
     <td>@Html.FormatValue(Model.Created, "{0:G}")</td>
   </tr>
   @if (Model.Modified > Model.Created)
   {
     <tr>
-      <th>Updated</th>
+      <th>@Localizer["Label_Updated"]</th>
       <td>@Html.FormatValue(Model.Modified, "{0:G}")</td>
     </tr>
   }
 </table>
 
-<h2>Ingredients</h2>
+<h2>@Localizer["Label_Ingredients"]</h2>
 <ul lines-in="@Model.Ingredients"></ul>
 
-<h2>Method</h2>
+<h2>@Localizer["Label_Method"]</h2>
 <ol lines-in="@Model.Method"></ol>
 
 @if (Model.Suggestions != null)
 {
-  <h2>Suggestions</h2>
+  <h2>@Localizer["Label_Suggestions"]</h2>
   <ul lines-in="@Model.Suggestions"></ul>
 }
 
 @if (Model.Remarks != null)
 {
-  <h2>Remarks</h2>
+  <h2>@Localizer["Label_Remarks"]</h2>
   <ul lines-in="@Model.Remarks"></ul>
 }
 
 <footer class="button-bar">
-  <a class="push-button" asp-action="Edit">Edit</a>
-  <a class="push-button" asp-action="Delete">Delete</a>
+  <a class="push-button" asp-action="Edit">@Localizer["Label_Edit"]</a>
+  <a class="push-button" asp-action="Delete">@Localizer["Label_Delete"]</a>
 </footer>

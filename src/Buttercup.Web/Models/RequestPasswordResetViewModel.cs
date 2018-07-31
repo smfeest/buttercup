@@ -4,9 +4,9 @@ namespace Buttercup.Web.Models
 {
     public class RequestPasswordResetViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Error_RequiredField")]
         [DataType(DataType.EmailAddress)]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Error_InvalidEmailAddress")]
         public string Email { get; set; }
     }
 }

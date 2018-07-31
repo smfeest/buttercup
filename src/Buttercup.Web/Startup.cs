@@ -4,12 +4,14 @@ using Buttercup.Email;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
+using Buttercup.Web.Localization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -39,6 +41,13 @@ namespace Buttercup.Web
                 {
                     new CultureInfo("en-GB"),
                     new CultureInfo("en"),
+                    new CultureInfo("fr-FR"),
+                    new CultureInfo("fr"),
+                },
+                SupportedUICultures = new[]
+                {
+                    new CultureInfo("en-GB"),
+                    new CultureInfo("fr"),
                 },
             });
 
@@ -52,6 +61,8 @@ namespace Buttercup.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc()
+                .AddDataAnnotationsLocalization()
+                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddViewOptions(options =>
                 {
                     options.HtmlHelperOptions.ClientValidationEnabled = false;
@@ -84,7 +95,8 @@ namespace Buttercup.Web
                 .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
                 .AddTransient<IAssetHelper, AssetHelper>()
                 .AddTransient<IAssetManifestReader, AssetManifestReader>()
-                .AddSingleton<IAssetManifestSource, AssetManifestSource>();
+                .AddSingleton<IAssetManifestSource, AssetManifestSource>()
+                .AddTransient<ITimeFormatter, TimeFormatter>();
         }
     }
 }

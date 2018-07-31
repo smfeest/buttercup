@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_EditRecipe">
+    <value>Modifier - {0}</value>
+  </data>
+  <data name="Heading_EditRecipe">
+    <value>Modifier cette recette</value>
+  </data>
+  <data name="Label_Save">
+    <value>Sauvegarder</value>
+  </data>
+  <data name="Label_Cancel">
+    <value>Annuler</value>
+  </data>
+</root>

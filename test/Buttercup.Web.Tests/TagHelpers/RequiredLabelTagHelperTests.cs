@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
@@ -22,13 +23,18 @@ namespace Buttercup.Web.TagHelpers
         public void AddsRequiredLabelWhenModelValueIsRequired(
             bool? showRequiredLabel, bool isRequired, bool requiredLabelExpected)
         {
+            var mockLocalizer = new Mock<IStringLocalizer<RequiredLabelTagHelper>>();
+            mockLocalizer
+                .SetupGet(x => x["Label_Required"])
+                .Returns(new LocalizedString(string.Empty, "required"));
+
             var mockMetadata = new Mock<ModelMetadata>(
                 ModelMetadataIdentity.ForType(typeof(object)));
             mockMetadata.SetupGet(x => x.IsRequired).Returns(isRequired);
 
             var modelExplorer = new ModelExplorer(mockMetadata.Object, mockMetadata.Object, null);
 
-            var tagHelper = new RequiredLabelTagHelper
+            var tagHelper = new RequiredLabelTagHelper(mockLocalizer.Object)
             {
                 For = new ModelExpression("SampleProperty", modelExplorer),
                 ShowRequiredLabel = showRequiredLabel,

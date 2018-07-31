@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Subject_PasswordChangeNotification">
+    <value>Votre mot de passe a été changé</value>
+  </data>
+  <data name="Body_PasswordChangeNotification">
+    <value>Votre mot de passe pour Buttercup a été changé.
+
+Veuillez contacter buttercup@doubliez.net si vous n'avez pas demandé ce
+changement.</value>
+  </data>
+  <data name="Subject_PasswordResetLink">
+    <value>Votre lien de réinitialisation</value>
+  </data>
+  <data name="Body_PasswordResetLink">
+    <value>Veuillez suivre ce lien pour réinitialiser votre mot de passe pour
+Buttercup:
+
+{0}
+
+Si vous ne souhaitez plus réinitialiser votre mot de passe, vous pouvez
+ignorer ce message et votre mot de passe restera inchangé. Le lien
+expirera dans 24 heures.</value>
+  </data>
+</root>

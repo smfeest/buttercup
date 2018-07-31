@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Format_Hour">
+    <value>{0:d} hour</value>
+  </data>
+  <data name="Format_Hours">
+    <value>{0:d} hours</value>
+  </data>
+  <data name="Format_Minute">
+    <value>{0:d} minute</value>
+  </data>
+  <data name="Format_Minutes">
+    <value>{0:d} minutes</value>
+  </data>
+</root>
