@@ -25,6 +25,7 @@ namespace Buttercup.DataAccess
             services
                 .AddTransient<IDbConnectionSource>(
                     serviceProvider => new DbConnectionSource(connectionString))
+                .AddTransient<IAuthenticationEventDataProvider, AuthenticationEventDataProvider>()
                 .AddTransient<IPasswordResetTokenDataProvider, PasswordResetTokenDataProvider>()
                 .AddTransient<IRecipeDataProvider, RecipeDataProvider>()
                 .AddTransient<IUserDataProvider, UserDataProvider>();
