@@ -2,6 +2,15 @@ DROP DATABASE IF EXISTS `{DatabaseName}`;
 CREATE DATABASE `{DatabaseName}` DEFAULT CHARACTER SET utf8;
 USE `{DatabaseName}`;
 
+CREATE TABLE authentication_event (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  time DATETIME NOT NULL,
+  event VARCHAR(50) NOT NULL,
+  user_id INT UNSIGNED,
+  email VARCHAR(250),
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
 CREATE TABLE password_reset_token (
   token CHAR(48) NOT NULL,
   user_id INT UNSIGNED NOT NULL,
@@ -36,6 +45,12 @@ CREATE TABLE user (
   PRIMARY KEY (id),
   UNIQUE KEY user_u1 (email)
 ) ENGINE=InnoDB;
+
+ALTER TABLE authentication_event
+  ADD FOREIGN KEY authentication_event_FK1 (user_id)
+    REFERENCES user (id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
 
 ALTER TABLE password_reset_token
   ADD FOREIGN KEY password_reset_token_FK1 (user_id)
