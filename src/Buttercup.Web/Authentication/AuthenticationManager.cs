@@ -18,6 +18,7 @@ namespace Buttercup.Web.Authentication
     public class AuthenticationManager : IAuthenticationManager
     {
         public AuthenticationManager(
+            IAuthenticationEventDataProvider authenticationEventDataProvider,
             IAuthenticationMailer authenticationMailer,
             IAuthenticationService authenticationService,
             IDbConnectionSource dbConnectionSource,
@@ -28,6 +29,7 @@ namespace Buttercup.Web.Authentication
             IUrlHelperFactory urlHelperFactory,
             IUserDataProvider userDataProvider)
         {
+            this.AuthenticationEventDataProvider = authenticationEventDataProvider;
             this.AuthenticationMailer = authenticationMailer;
             this.AuthenticationService = authenticationService;
             this.DbConnectionSource = dbConnectionSource;
@@ -38,6 +40,8 @@ namespace Buttercup.Web.Authentication
             this.UrlHelperFactory = urlHelperFactory;
             this.UserDataProvider = userDataProvider;
         }
+
+        public IAuthenticationEventDataProvider AuthenticationEventDataProvider { get; }
 
         public IAuthenticationMailer AuthenticationMailer { get; }
 
@@ -68,6 +72,9 @@ namespace Buttercup.Web.Authentication
                     this.Logger.LogInformation(
                         "Authentication failed; no user with email {email}", email);
 
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "authentication_failure:unrecognized_email", null, email);
+
                     return null;
                 }
 
@@ -77,6 +84,9 @@ namespace Buttercup.Web.Authentication
                         "Authentication failed; no password set for user {userId} ({email})",
                         user.Id,
                         user.Email);
+
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "authentication_failure:no_password_set", user.Id, email);
 
                     return null;
                 }
@@ -88,11 +98,17 @@ namespace Buttercup.Web.Authentication
                         user.Id,
                         user.Email);
 
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "authentication_failure:incorrect_password", user.Id, email);
+
                     return null;
                 }
 
                 this.Logger.LogInformation(
                     "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, "authentication_success", user.Id, email);
 
                 return user;
             }
