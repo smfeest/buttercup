@@ -112,6 +112,45 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region GetNullableInt64
+
+        [Fact]
+        public void GetNullableInt64ReturnsValueWhenNotDbNull()
+        {
+            var mockDbDataReader = new Mock<DbDataReader>();
+
+            mockDbDataReader
+                .Setup(x => x.GetOrdinal("alpha"))
+                .Returns(10);
+            mockDbDataReader
+                .Setup(x => x.IsDBNull(10))
+                .Returns(false);
+            mockDbDataReader
+                .Setup(x => x.GetInt64(10))
+                .Returns(long.MinValue);
+
+            Assert.Equal(long.MinValue, mockDbDataReader.Object.GetNullableInt64("alpha"));
+        }
+
+        [Fact]
+        public void GetNullableInt64ReturnsNullWhenValueIsDbNull()
+        {
+            var mockDbDataReader = new Mock<DbDataReader>();
+
+            mockDbDataReader
+                .Setup(x => x.GetOrdinal("alpha"))
+                .Returns(10);
+            mockDbDataReader
+                .Setup(x => x.IsDBNull(10))
+                .Returns(true);
+
+            Assert.Null(mockDbDataReader.Object.GetNullableInt64("alpha"));
+
+            mockDbDataReader.Verify(x => x.GetInt64(It.IsAny<int>()), Times.Never);
+        }
+
+        #endregion
+
         #region GetString
 
         [Fact]

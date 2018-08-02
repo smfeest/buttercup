@@ -101,6 +101,27 @@ namespace Buttercup.DataAccess
             reader.GetValue<int?>(ordinal => reader.GetInt32(ordinal), columnName, true);
 
         /// <summary>
+        /// Gets the value in a column as a nullable 64-bit signed integer.
+        /// </summary>
+        /// <param name="reader">
+        /// The data reader.
+        /// </param>
+        /// <param name="columnName">
+        /// The column name.
+        /// </param>
+        /// <returns>
+        /// The value.
+        /// </returns>
+        /// <exception cref="IndexOutOfRangeException">
+        /// No column with the specified name was found.
+        /// </exception>
+        /// <exception cref="InvalidCastException">
+        /// The specified cast is not valid.
+        /// </exception>
+        public static long? GetNullableInt64(this DbDataReader reader, string columnName) =>
+            reader.GetValue<long?>(ordinal => reader.GetInt64(ordinal), columnName, true);
+
+        /// <summary>
         /// Gets the value in a column as a string.
         /// </summary>
         /// <param name="reader">
