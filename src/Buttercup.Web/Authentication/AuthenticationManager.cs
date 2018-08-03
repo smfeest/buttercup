@@ -291,6 +291,12 @@ namespace Buttercup.Web.Authentication
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
 
             this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
+
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, "sign_in", user.Id);
+            }
         }
 
         public async Task SignOut(HttpContext httpContext)

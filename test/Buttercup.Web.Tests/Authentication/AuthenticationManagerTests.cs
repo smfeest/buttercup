@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
@@ -437,15 +438,13 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignInSignsInUser()
         {
-            var context = new Context();
-
-            var httpContext = new DefaultHttpContext();
+            var context = new SignInContext();
 
             ClaimsPrincipal principal = null;
 
             context.MockAuthenticationService
                 .Setup(x => x.SignInAsync(
-                    httpContext,
+                    context.HttpContext,
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     It.IsAny<ClaimsPrincipal>(),
                     null))
@@ -453,11 +452,24 @@ namespace Buttercup.Web.Authentication
                    (contextArg, scheme, principalArg, properties) => principal = principalArg)
                 .Returns(Task.CompletedTask);
 
-            await context.AuthenticationManager.SignIn(
-                httpContext, new User { Id = 6, Email = "sample@example.com" });
+            await context.SignIn();
 
-            Assert.Equal("6", principal.FindFirstValue(ClaimTypes.NameIdentifier));
-            Assert.Equal("sample@example.com", principal.Identity.Name);
+            Assert.Equal(
+                context.UserId.ToString(CultureInfo.InvariantCulture),
+                principal.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            Assert.Equal(context.Email, principal.Identity.Name);
+        }
+
+        [Fact]
+        public async Task SignInLogsEvent()
+        {
+            var context = new SignInContext();
+
+            await context.SignIn();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "sign_in", context.UserId, null));
         }
 
         #endregion
@@ -702,6 +714,21 @@ namespace Buttercup.Web.Authentication
                 this.MockUserDataProvider
                     .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
                     .ReturnsAsync(user);
+        }
+
+        private class SignInContext : Context
+        {
+            public SignInContext() => this.User = new User { Id = this.UserId, Email = this.Email };
+
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public User User { get; }
+
+            public long UserId { get; } = 6;
+
+            public string Email { get; } = "sample@example.com";
+
+            public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
         }
     }
 }
