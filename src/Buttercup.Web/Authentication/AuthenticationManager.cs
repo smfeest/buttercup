@@ -121,6 +121,9 @@ namespace Buttercup.Web.Authentication
             {
                 if (user.HashedPassword == null)
                 {
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "password_change_failure:no_password_set", user.Id);
+
                     throw new InvalidOperationException(
                         $"User {user.Id} ({user.Email}) does not have a password.");
                 }
@@ -132,6 +135,9 @@ namespace Buttercup.Web.Authentication
                         user.Id,
                         user.Email);
 
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "password_change_failure:incorrect_password", user.Id);
+
                     return false;
                 }
 
@@ -141,6 +147,9 @@ namespace Buttercup.Web.Authentication
                     "Password successfully changed for user {userId} ({email})",
                     user.Id,
                     user.Email);
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, "password_change_success", user.Id);
 
                 await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
 

@@ -182,6 +182,28 @@ namespace Buttercup.Web.Authentication
         #region ChangePassword
 
         [Fact]
+        public async Task ChangePasswordLogsEventIfUserHasNoPassword()
+        {
+            var context = new ChangePasswordContext();
+
+            context.User.HashedPassword = null;
+
+            try
+            {
+                await context.ChangePassword();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "password_change_failure:no_password_set",
+                context.UserId,
+                null));
+        }
+
+        [Fact]
         public async Task ChangePasswordThrowsIfUserHasNoPassword()
         {
             var context = new ChangePasswordContext();
@@ -189,6 +211,22 @@ namespace Buttercup.Web.Authentication
             context.User.HashedPassword = null;
 
             await Assert.ThrowsAsync<InvalidOperationException>(context.ChangePassword);
+        }
+
+        [Fact]
+        public async Task ChangePasswordLogsEventIfCurrentPasswordDoesNotMatch()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+
+            await context.ChangePassword();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "password_change_failure:incorrect_password",
+                context.UserId,
+                null));
         }
 
         [Fact]
@@ -215,7 +253,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordUpdatesPasswordIfCurrentPasswordMatches()
+        public async Task ChangePasswordUpdatesPasswordOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -232,7 +270,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordDeletesPasswordResetTokens()
+        public async Task ChangePasswordDeletesPasswordResetTokensOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -245,7 +283,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordSendsPasswordChangeNotification()
+        public async Task ChangePasswordSendsPasswordChangeNotificationOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -260,7 +298,20 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordReturnsTrueIfCurrentPasswordMatches()
+        public async Task ChangePasswordLogsEventOnSuccess()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            await context.ChangePassword();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "password_change_success", context.UserId, null));
+        }
+
+        [Fact]
+        public async Task ChangePasswordReturnsTrueOnSuccess()
         {
             var context = new ChangePasswordContext();
 
