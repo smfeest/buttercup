@@ -479,13 +479,37 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignOutSignsOutUser()
         {
-            var context = new Context();
+            var context = new SignOutContext();
 
-            var httpContext = new DefaultHttpContext();
+            await context.SignOut();
 
-            await context.AuthenticationManager.SignOut(httpContext);
+            context.MockAuthenticationService.Verify(
+                x => x.SignOutAsync(context.HttpContext, null, null));
+        }
 
-            context.MockAuthenticationService.Verify(x => x.SignOutAsync(httpContext, null, null));
+        [Fact]
+        public async Task SignOutLogsEventIfUserPreviouslySignedIn()
+        {
+            var context = new SignOutContext();
+
+            context.SetupUserSignedIn();
+
+            await context.SignOut();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "sign_out", context.UserId, null));
+        }
+
+        [Fact]
+        public async Task SignOutDoesNotLogsEventIfUserPreviouslySignedOut()
+        {
+            var context = new SignOutContext();
+
+            await context.SignOut();
+
+            context.MockAuthenticationEventDataProvider.Verify(
+                x => x.LogEvent(
+                    context.MockConnection.Object, "sign_out", null, null), Times.Never);
         }
 
         #endregion
@@ -729,6 +753,29 @@ namespace Buttercup.Web.Authentication
             public string Email { get; } = "sample@example.com";
 
             public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
+        }
+
+        private class SignOutContext : Context
+        {
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public long? UserId { get; private set; }
+
+            public void SetupUserSignedIn()
+            {
+                this.UserId = 76;
+
+                var claim = new Claim(
+                    ClaimTypes.NameIdentifier,
+                    this.UserId.Value.ToString(CultureInfo.InvariantCulture));
+
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                   new Claim[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
+
+                this.HttpContext.User = principal;
+            }
+
+            public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
         }
     }
 }

@@ -159,15 +159,13 @@ namespace Buttercup.Web.Authentication
 
             User user;
 
-            if (httpContext.User.Identity.IsAuthenticated)
-            {
-                var userId = long.Parse(
-                    httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value,
-                    CultureInfo.InvariantCulture);
+            var userId = GetCurrentUserId(httpContext);
 
+            if (userId.HasValue)
+            {
                 using (var connection = await this.DbConnectionSource.OpenConnection())
                 {
-                    user = await this.UserDataProvider.GetUser(connection, userId);
+                    user = await this.UserDataProvider.GetUser(connection, userId.Value);
                 }
             }
             else
@@ -301,16 +299,39 @@ namespace Buttercup.Web.Authentication
 
         public async Task SignOut(HttpContext httpContext)
         {
-            var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = GetCurrentUserId(httpContext);
 
             await this.AuthenticationService.SignOutAsync(httpContext, null, null);
 
-            if (userId != null)
+            if (userId.HasValue)
             {
                 var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
                 this.Logger.LogInformation("User {userId} ({email}) signed out", userId, email);
+
+                using (var connection = await this.DbConnectionSource.OpenConnection())
+                {
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "sign_out", userId);
+                }
             }
+        }
+
+        private static long? GetCurrentUserId(HttpContext httpContext)
+        {
+            if (!httpContext.User.Identity.IsAuthenticated)
+            {
+                return null;
+            }
+
+            var claimValue = httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (string.IsNullOrEmpty(claimValue))
+            {
+                return null;
+            }
+
+            return long.Parse(claimValue, CultureInfo.InvariantCulture);
         }
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
