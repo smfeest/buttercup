@@ -204,6 +204,9 @@ namespace Buttercup.Web.Authentication
                 {
                     this.Logger.LogDebug(
                         "Password reset token '{token}' is no longer valid", RedactToken(token));
+
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "password_reset_failure:invalid_token");
                 }
 
                 return userId.HasValue;
@@ -222,6 +225,9 @@ namespace Buttercup.Web.Authentication
                         "Unable to reset password; password reset token {token} is invalid",
                         RedactToken(token));
 
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "password_reset_failure:invalid_token");
+
                     throw new InvalidTokenException("Password reset token is invalid");
                 }
 
@@ -231,6 +237,9 @@ namespace Buttercup.Web.Authentication
                     "Password reset for user {userId} using token {token}",
                     userId,
                     RedactToken(token));
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, "password_reset_success", userId.Value);
 
                 var user = await this.UserDataProvider.GetUser(connection, userId.Value);
 
@@ -250,6 +259,10 @@ namespace Buttercup.Web.Authentication
                 {
                     this.Logger.LogInformation(
                         "Unable to send password reset link; No user with email {email}", email);
+
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "password_reset_failure:unrecognized_email", null, email);
+
                     return;
                 }
 
@@ -270,6 +283,9 @@ namespace Buttercup.Web.Authentication
                         "Password reset link sent to user {userId} ({email})",
                         user.Id,
                         email);
+
+                    await this.AuthenticationEventDataProvider.LogEvent(
+                        connection, "password_reset_link_sent", user.Id, email);
                 }
                 catch (Exception e)
                 {
