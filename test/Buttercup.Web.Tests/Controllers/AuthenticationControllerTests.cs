@@ -384,6 +384,20 @@ namespace Buttercup.Web.Controllers
         }
 
         [Fact]
+        public void SignOutSetsCacheControlHeader()
+        {
+            using (var context = new Context())
+            {
+                var result = context.AuthenticationController.SignOut();
+
+                var cacheControlHeader = context.HttpContext.Response.GetTypedHeaders().CacheControl;
+
+                Assert.True(cacheControlHeader.NoCache);
+                Assert.True(cacheControlHeader.NoStore);
+            }
+        }
+
+        [Fact]
         public async Task SignOutRedirectsToInternalUrls()
         {
             using (var context = new Context())

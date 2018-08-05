@@ -21,7 +21,7 @@ namespace Buttercup.Web.Filters
         {
             var context = new Context();
 
-            context.EnsureSignedOutAttribute.OnActionExecuting(context.ActionExecutingContext);
+            context.Execute();
 
             Assert.Null(context.ActionExecutingContext.Result);
         }
@@ -38,7 +38,7 @@ namespace Buttercup.Web.Filters
             context.HttpContext.User = new ClaimsPrincipal(
                 new ClaimsIdentity(Array.Empty<Claim>(), "sample-authentication-type"));
 
-            context.EnsureSignedOutAttribute.OnActionExecuting(context.ActionExecutingContext);
+            context.Execute();
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(
                 context.ActionExecutingContext.Result);
@@ -46,6 +46,19 @@ namespace Buttercup.Web.Filters
             Assert.Equal(nameof(AuthenticationController.SignOut), redirectResult.ActionName);
             Assert.Equal(
                 new PathString("/path/to/action"), redirectResult.RouteValues["returnUrl"]);
+        }
+
+        [Fact]
+        public void OnActionExecutingSetsCacheControlHeader()
+        {
+            var context = new Context();
+
+            context.Execute();
+
+            var cacheControlHeader = context.HttpContext.Response.GetTypedHeaders().CacheControl;
+
+            Assert.True(cacheControlHeader.NoCache);
+            Assert.True(cacheControlHeader.NoStore);
         }
 
         #endregion
@@ -71,6 +84,9 @@ namespace Buttercup.Web.Filters
             public ActionExecutingContext ActionExecutingContext { get; }
 
             public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public void Execute() =>
+                this.EnsureSignedOutAttribute.OnActionExecuting(this.ActionExecutingContext);
         }
     }
 }
