@@ -34,6 +34,19 @@ namespace Buttercup.DataAccess
         }
 
         [Fact]
+        public void AddDataAccessServicesAddsAuthenticationEventDataProvider()
+        {
+            var mockServiceCollection = new Mock<IServiceCollection>();
+
+            mockServiceCollection.Object.AddDataAccessServices("sample-connection-string");
+
+            mockServiceCollection.Verify(x => x.Add(It.Is<ServiceDescriptor>(serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IAuthenticationEventDataProvider) &&
+                serviceDescriptor.ImplementationType == typeof(AuthenticationEventDataProvider) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient)));
+        }
+
+        [Fact]
         public void AddDataAccessServicesAddsPasswordResetTokenDataProvider()
         {
             var mockServiceCollection = new Mock<IServiceCollection>();

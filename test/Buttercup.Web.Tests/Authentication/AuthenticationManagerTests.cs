@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
@@ -22,69 +23,109 @@ namespace Buttercup.Web.Authentication
         #region Authenticate
 
         [Fact]
+        public async Task AuthenticateLogsEventOnSuccess()
+        {
+            var context = new AuthenticateContext();
+
+            context.SetupSuccess();
+
+            await context.Authenticate();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "authentication_success",
+                context.UserId,
+                "sample@example.com"));
+        }
+
+        [Fact]
         public async Task AuthenticateReturnsUserOnSuccess()
         {
-            var context = new Context();
+            var context = new AuthenticateContext();
 
-            var expected = new User
-            {
-                HashedPassword = "sample-hashed-password",
-            };
+            context.SetupSuccess();
 
-            context.SetupFindUserByEmail("sample@example.com", expected);
+            var actual = await context.Authenticate();
 
-            context.MockPasswordHasher
-                .Setup(x => x.VerifyHashedPassword(
-                    expected, "sample-hashed-password", "sample-password"))
-                .Returns(PasswordVerificationResult.Success);
-
-            var actual = await context.AuthenticationManager.Authenticate(
-                "sample@example.com", "sample-password");
-
-            Assert.Equal(expected, actual);
+            Assert.Equal(context.User, actual);
         }
 
         [Fact]
-        public async Task AuthenticateReturnsNullWhenEmailIsUnrecognized()
+        public async Task AuthenticateLogsEventIfEmailIsUnrecognized()
         {
-            var context = new Context();
+            var context = new AuthenticateContext();
 
-            context.SetupFindUserByEmail("sample@example.com", null);
+            context.SetupEmailNotFound();
 
-            Assert.Null(await context.AuthenticationManager.Authenticate(
-                "sample@example.com", "sample-password"));
+            await context.Authenticate();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "authentication_failure:unrecognized_email",
+                null,
+                "sample@example.com"));
         }
 
         [Fact]
-        public async Task AuthenticateReturnsNullWhenNoPasswordSet()
+        public async Task AuthenticateReturnsNullIfEmailIsUnrecognized()
         {
-            var context = new Context();
+            var context = new AuthenticateContext();
 
-            context.SetupFindUserByEmail("sample@example.com", new User { HashedPassword = null });
+            context.SetupEmailNotFound();
 
-            Assert.Null(await context.AuthenticationManager.Authenticate(
-                "sample@example.com", "sample-password"));
+            Assert.Null(await context.Authenticate());
         }
 
         [Fact]
-        public async Task AuthenticateReturnsNullWhenPasswordIsIncorrect()
+        public async Task AuthenticateLogsEventIfUserHasNoPassword()
         {
-            var context = new Context();
+            var context = new AuthenticateContext();
 
-            var user = new User
-            {
-                HashedPassword = "sample-hashed-password",
-            };
+            context.SetupUserHasNoPassword();
 
-            context.SetupFindUserByEmail("sample@example.com", user);
+            await context.Authenticate();
 
-            context.MockPasswordHasher
-                .Setup(x => x.VerifyHashedPassword(
-                    user, "sample-hashed-password", "sample-password"))
-                .Returns(PasswordVerificationResult.Failed);
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "authentication_failure:no_password_set",
+                context.UserId,
+                "sample@example.com"));
+        }
 
-            Assert.Null(await context.AuthenticationManager.Authenticate(
-                "sample@example.com", "sample-password"));
+        [Fact]
+        public async Task AuthenticateReturnsNullIfUserHasNoPassword()
+        {
+            var context = new AuthenticateContext();
+
+            context.SetupUserHasNoPassword();
+
+            Assert.Null(await context.Authenticate());
+        }
+
+        [Fact]
+        public async Task AuthenticateLogsEventIfPasswordIsIncorrect()
+        {
+            var context = new AuthenticateContext();
+
+            context.SetupPasswordIncorrect();
+
+            await context.Authenticate();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "authentication_failure:incorrect_password",
+                context.UserId,
+                "sample@example.com"));
+        }
+
+        [Fact]
+        public async Task AuthenticateReturnsNullIfPasswordIsIncorrect()
+        {
+            var context = new AuthenticateContext();
+
+            context.SetupPasswordIncorrect();
+
+            Assert.Null(await context.Authenticate());
         }
 
         #endregion
@@ -141,6 +182,28 @@ namespace Buttercup.Web.Authentication
         #region ChangePassword
 
         [Fact]
+        public async Task ChangePasswordLogsEventIfUserHasNoPassword()
+        {
+            var context = new ChangePasswordContext();
+
+            context.User.HashedPassword = null;
+
+            try
+            {
+                await context.ChangePassword();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "password_change_failure:no_password_set",
+                context.UserId,
+                null));
+        }
+
+        [Fact]
         public async Task ChangePasswordThrowsIfUserHasNoPassword()
         {
             var context = new ChangePasswordContext();
@@ -148,6 +211,22 @@ namespace Buttercup.Web.Authentication
             context.User.HashedPassword = null;
 
             await Assert.ThrowsAsync<InvalidOperationException>(context.ChangePassword);
+        }
+
+        [Fact]
+        public async Task ChangePasswordLogsEventIfCurrentPasswordDoesNotMatch()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+
+            await context.ChangePassword();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "password_change_failure:incorrect_password",
+                context.UserId,
+                null));
         }
 
         [Fact]
@@ -174,7 +253,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordUpdatesPasswordIfCurrentPasswordMatches()
+        public async Task ChangePasswordUpdatesPasswordOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -191,7 +270,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordDeletesPasswordResetTokens()
+        public async Task ChangePasswordDeletesPasswordResetTokensOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -204,7 +283,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordSendsPasswordChangeNotification()
+        public async Task ChangePasswordSendsPasswordChangeNotificationOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -219,7 +298,20 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordReturnsTrueIfCurrentPasswordMatches()
+        public async Task ChangePasswordLogsEventOnSuccess()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            await context.ChangePassword();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "password_change_success", context.UserId, null));
+        }
+
+        [Fact]
+        public async Task ChangePasswordReturnsTrueOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -235,34 +327,65 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
         {
-            var context = new Context();
+            var context = new PasswordResetTokenIsValidContext();
 
-            await context.AuthenticationManager.PasswordResetTokenIsValid("sample-token");
+            await context.PasswordResetTokenIsValid();
 
             context.MockPasswordResetTokenDataProvider.Verify(
                 x => x.DeleteExpiredTokens(context.MockConnection.Object));
         }
 
         [Fact]
+        public async Task PasswordResetTokenIsValidDoesNotLogEventIfValid()
+        {
+            var context = new PasswordResetTokenIsValidContext();
+
+            context.SetupValidToken();
+
+            await context.PasswordResetTokenIsValid();
+
+            context.MockAuthenticationEventDataProvider.Verify(
+                x => x.LogEvent(
+                    context.MockConnection.Object,
+                    "password_reset_failure:invalid_token",
+                    null,
+                    null),
+                Times.Never);
+        }
+
+        [Fact]
         public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
         {
-            var context = new Context();
+            var context = new PasswordResetTokenIsValidContext();
 
-            context.SetupGetUserIdForToken("sample-token", 43);
+            context.SetupValidToken();
 
-            Assert.True(
-                await context.AuthenticationManager.PasswordResetTokenIsValid("sample-token"));
+            Assert.True(await context.PasswordResetTokenIsValid());
+        }
+
+        [Fact]
+        public async Task PasswordResetTokenIsValidLogsEventIfInvalid()
+        {
+            var context = new PasswordResetTokenIsValidContext();
+
+            context.SetupInvalidToken();
+
+            await context.PasswordResetTokenIsValid();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "password_reset_failure:invalid_token", null, null));
         }
 
         [Fact]
         public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
         {
-            var context = new Context();
+            var context = new PasswordResetTokenIsValidContext();
 
-            context.SetupGetUserIdForToken("sample-token", null);
+            context.SetupInvalidToken();
 
-            Assert.False(
-                await context.AuthenticationManager.PasswordResetTokenIsValid("sample-token"));
+            await context.PasswordResetTokenIsValid();
+
+            Assert.False(await context.PasswordResetTokenIsValid());
         }
 
         #endregion
@@ -283,6 +406,25 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
+        public async Task ResetPasswordLogsEventIfTokenIsInvalid()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupInvalidToken();
+
+            try
+            {
+                await context.ResetPassword();
+            }
+            catch (InvalidTokenException)
+            {
+            }
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "password_reset_failure:invalid_token", null, null));
+        }
+
+        [Fact]
         public async Task ResetPasswordThrowsIfTokenIsInvalid()
         {
             var context = new ResetPasswordContext();
@@ -293,7 +435,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordUpdatesPassword()
+        public async Task ResetPasswordUpdatesPasswordOnSuccess()
         {
             var context = new ResetPasswordContext();
 
@@ -310,7 +452,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordDeletesPasswordResetTokens()
+        public async Task ResetPasswordDeletesPasswordResetTokensOnSuccess()
         {
             var context = new ResetPasswordContext();
 
@@ -323,7 +465,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordSendsPasswordChangeNotification()
+        public async Task ResetPasswordSendsPasswordChangeNotificationOnSuccess()
         {
             var context = new ResetPasswordContext();
 
@@ -336,7 +478,20 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordReturnsUser()
+        public async Task ResetPasswordLogsEventOnSuccess()
+        {
+            var context = new ResetPasswordContext();
+
+            context.SetupSuccess();
+
+            await context.ResetPassword();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "password_reset_success", context.UserId, null));
+        }
+
+        [Fact]
+        public async Task ResetPasswordReturnsUserOnSuccess()
         {
             var context = new ResetPasswordContext();
 
@@ -352,7 +507,7 @@ namespace Buttercup.Web.Authentication
         #region SendPasswordResetLink
 
         [Fact]
-        public async Task SendPasswordResetLinkInsertsPasswordResetToken()
+        public async Task SendPasswordResetLinkInsertsPasswordResetTokenOnSuccess()
         {
             var context = new SendPasswordResetLinkContext();
 
@@ -365,7 +520,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task SendPasswordResetLinkSendsLinkToUser()
+        public async Task SendPasswordResetLinkSendsLinkToUserOnSuccess()
         {
             var context = new SendPasswordResetLinkContext();
 
@@ -378,7 +533,23 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task SendPasswordResetLinkDoesNotSendLinkWhenEmailIsUnrecognized()
+        public async Task SendPasswordResetLinkLogsEventOnSuccess()
+        {
+            var context = new SendPasswordResetLinkContext();
+
+            context.SetupSuccess();
+
+            await context.SendPasswordResetLink();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "password_reset_link_sent",
+                context.UserId,
+                context.User.Email));
+        }
+
+        [Fact]
+        public async Task SendPasswordResetLinkDoesNotSendLinkIfEmailIsUnrecognized()
         {
             var context = new SendPasswordResetLinkContext();
 
@@ -390,6 +561,22 @@ namespace Buttercup.Web.Authentication
                 x => x.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
+        [Fact]
+        public async Task SendPasswordResetLinkLogsEventIfEmailIsUnrecognized()
+        {
+            var context = new SendPasswordResetLinkContext();
+
+            context.SetupUnrecognizedEmail();
+
+            await context.SendPasswordResetLink();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object,
+                "password_reset_failure:unrecognized_email",
+                null,
+                context.Email));
+        }
+
         #endregion
 
         #region SignIn
@@ -397,15 +584,13 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignInSignsInUser()
         {
-            var context = new Context();
-
-            var httpContext = new DefaultHttpContext();
+            var context = new SignInContext();
 
             ClaimsPrincipal principal = null;
 
             context.MockAuthenticationService
                 .Setup(x => x.SignInAsync(
-                    httpContext,
+                    context.HttpContext,
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     It.IsAny<ClaimsPrincipal>(),
                     null))
@@ -413,11 +598,24 @@ namespace Buttercup.Web.Authentication
                    (contextArg, scheme, principalArg, properties) => principal = principalArg)
                 .Returns(Task.CompletedTask);
 
-            await context.AuthenticationManager.SignIn(
-                httpContext, new User { Id = 6, Email = "sample@example.com" });
+            await context.SignIn();
 
-            Assert.Equal("6", principal.FindFirstValue(ClaimTypes.NameIdentifier));
-            Assert.Equal("sample@example.com", principal.Identity.Name);
+            Assert.Equal(
+                context.UserId.ToString(CultureInfo.InvariantCulture),
+                principal.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            Assert.Equal(context.Email, principal.Identity.Name);
+        }
+
+        [Fact]
+        public async Task SignInLogsEvent()
+        {
+            var context = new SignInContext();
+
+            await context.SignIn();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "sign_in", context.UserId, null));
         }
 
         #endregion
@@ -427,13 +625,37 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignOutSignsOutUser()
         {
-            var context = new Context();
+            var context = new SignOutContext();
 
-            var httpContext = new DefaultHttpContext();
+            await context.SignOut();
 
-            await context.AuthenticationManager.SignOut(httpContext);
+            context.MockAuthenticationService.Verify(
+                x => x.SignOutAsync(context.HttpContext, null, null));
+        }
 
-            context.MockAuthenticationService.Verify(x => x.SignOutAsync(httpContext, null, null));
+        [Fact]
+        public async Task SignOutLogsEventIfUserPreviouslySignedIn()
+        {
+            var context = new SignOutContext();
+
+            context.SetupUserSignedIn();
+
+            await context.SignOut();
+
+            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                context.MockConnection.Object, "sign_out", context.UserId, null));
+        }
+
+        [Fact]
+        public async Task SignOutDoesNotLogsEventIfUserPreviouslySignedOut()
+        {
+            var context = new SignOutContext();
+
+            await context.SignOut();
+
+            context.MockAuthenticationEventDataProvider.Verify(
+                x => x.LogEvent(
+                    context.MockConnection.Object, "sign_out", null, null), Times.Never);
         }
 
         #endregion
@@ -443,6 +665,7 @@ namespace Buttercup.Web.Authentication
             public Context()
             {
                 this.AuthenticationManager = new AuthenticationManager(
+                    this.MockAuthenticationEventDataProvider.Object,
                     this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
                     this.MockDbConnectionSource.Object,
@@ -457,6 +680,9 @@ namespace Buttercup.Web.Authentication
                     .Setup(x => x.OpenConnection())
                     .ReturnsAsync(this.MockConnection.Object);
             }
+
+            public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider
+            { get; } = new Mock<IAuthenticationEventDataProvider>();
 
             public AuthenticationManager AuthenticationManager { get; }
 
@@ -489,11 +715,6 @@ namespace Buttercup.Web.Authentication
             public Mock<IUserDataProvider> MockUserDataProvider { get; } =
                 new Mock<IUserDataProvider>();
 
-            public void SetupFindUserByEmail(string email, User user) =>
-                this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
-                    .ReturnsAsync(user);
-
             public void SetupGetUser(long id, User user) =>
                 this.MockUserDataProvider
                     .Setup(x => x.GetUser(this.MockConnection.Object, id))
@@ -503,6 +724,59 @@ namespace Buttercup.Web.Authentication
                 this.MockPasswordResetTokenDataProvider
                     .Setup(x => x.GetUserIdForToken(this.MockConnection.Object, token))
                     .ReturnsAsync(userId);
+        }
+
+        private class AuthenticateContext : Context
+        {
+            public AuthenticateContext() =>
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, this.Email))
+                    .ReturnsAsync(() => this.User);
+
+            public string Email { get; } = "sample@example.com";
+
+            public User User { get; private set; }
+
+            public long UserId { get; private set; }
+
+            public void SetupEmailNotFound() => this.User = null;
+
+            public void SetupUserHasNoPassword() => this.User = new User
+            {
+                Id = this.UserId = 29,
+                HashedPassword = null
+            };
+
+            public void SetupPasswordIncorrect()
+            {
+                this.User = new User
+                {
+                    Id = this.UserId = 45,
+                    HashedPassword = "sample-hashed-password",
+                };
+
+                this.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        this.User, "sample-hashed-password", "sample-password"))
+                    .Returns(PasswordVerificationResult.Failed);
+            }
+
+            public void SetupSuccess()
+            {
+                this.User = new User
+                {
+                    Id = this.UserId = 52,
+                    HashedPassword = "sample-hashed-password",
+                };
+
+                this.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        this.User, "sample-hashed-password", "sample-password"))
+                    .Returns(PasswordVerificationResult.Success);
+            }
+
+            public Task<User> Authenticate() =>
+                this.AuthenticationManager.Authenticate("sample@example.com", "sample-password");
         }
 
         private class ChangePasswordContext : Context
@@ -533,6 +807,18 @@ namespace Buttercup.Web.Authentication
 
             public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
                 this.User, this.CurrentPassword, this.NewPassword);
+        }
+
+        private class PasswordResetTokenIsValidContext : Context
+        {
+            public string Token { get; } = "sample-token";
+
+            public void SetupValidToken() => this.SetupGetUserIdForToken(this.Token, 43);
+
+            public void SetupInvalidToken() => this.SetupGetUserIdForToken(this.Token, null);
+
+            public Task<bool> PasswordResetTokenIsValid() =>
+                this.AuthenticationManager.PasswordResetTokenIsValid(this.Token);
         }
 
         private class ResetPasswordContext : Context
@@ -578,13 +864,15 @@ namespace Buttercup.Web.Authentication
 
             public User User { get; private set; }
 
+            public long UserId { get; private set; }
+
             public string Token { get; private set; }
 
             public string Link { get; private set; }
 
             public void SetupSuccess()
             {
-                this.User = new User { Id = 31, Email = "sample-x@example.com" };
+                this.User = new User { Id = this.UserId = 31, Email = "sample-x@example.com" };
 
                 this.SetupFindUserByEmail(this.Email, this.User);
 
@@ -605,6 +893,49 @@ namespace Buttercup.Web.Authentication
 
             public Task SendPasswordResetLink() =>
                 this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
+
+            private void SetupFindUserByEmail(string email, User user) =>
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
+                    .ReturnsAsync(user);
+        }
+
+        private class SignInContext : Context
+        {
+            public SignInContext() => this.User = new User { Id = this.UserId, Email = this.Email };
+
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public User User { get; }
+
+            public long UserId { get; } = 6;
+
+            public string Email { get; } = "sample@example.com";
+
+            public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
+        }
+
+        private class SignOutContext : Context
+        {
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public long? UserId { get; private set; }
+
+            public void SetupUserSignedIn()
+            {
+                this.UserId = 76;
+
+                var claim = new Claim(
+                    ClaimTypes.NameIdentifier,
+                    this.UserId.Value.ToString(CultureInfo.InvariantCulture));
+
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                   new Claim[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
+
+                this.HttpContext.User = principal;
+            }
+
+            public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
         }
     }
 }
