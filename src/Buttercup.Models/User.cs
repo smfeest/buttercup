@@ -44,6 +44,14 @@ namespace Buttercup.Models
         public string SecurityStamp { get; set; }
 
         /// <summary>
+        /// Gets or sets the TZ ID of the user's time zone.
+        /// </summary>
+        /// <value>
+        /// The TZ ID of the user's time zone.
+        /// </value>
+        public string TimeZone { get; set; }
+
+        /// <summary>
         /// Gets or sets the date and time at which the record was created.
         /// </summary>
         /// <value>
