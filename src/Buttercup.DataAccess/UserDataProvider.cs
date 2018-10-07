@@ -62,15 +62,19 @@ namespace Buttercup.DataAccess
 
         /// <inheritdoc />
         public async Task UpdatePassword(
-            DbConnection connection, long userId, string hashedPassword)
+            DbConnection connection, long userId, string hashedPassword, string securityStamp)
         {
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"UPDATE user
-SET hashed_password = @hashed_password, modified = @modified, revision = revision + 1
-WHERE id = @id";
+                    SET hashed_password = @hashed_password,
+                        security_stamp = @security_stamp,
+                        modified = @modified,
+                        revision = revision + 1
+                    WHERE id = @id";
                 command.AddParameterWithValue("@id", userId);
                 command.AddParameterWithValue("@hashed_password", hashedPassword);
+                command.AddParameterWithValue("@security_stamp", securityStamp);
                 command.AddParameterWithValue("@modified", this.clock.UtcNow);
 
                 if (await command.ExecuteNonQueryAsync() == 0)

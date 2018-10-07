@@ -88,11 +88,13 @@ namespace Buttercup.DataAccess
             var utcNow = new DateTime(2003, 4, 5, 6, 7, 8);
             context.SetupUtcNow(utcNow);
 
-            await context.UserDataProvider.UpdatePassword(connection, 41, "new-hashed-password");
+            await context.UserDataProvider.UpdatePassword(
+                connection, 41, "new-hashed-password", "newstamp");
 
             var actual = await context.UserDataProvider.GetUser(connection, 41);
 
             Assert.Equal("new-hashed-password", actual.HashedPassword);
+            Assert.Equal("newstamp", actual.SecurityStamp);
             Assert.Equal(utcNow, actual.Modified);
             Assert.Equal(6, actual.Revision);
         });
@@ -105,7 +107,7 @@ namespace Buttercup.DataAccess
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => new Context().UserDataProvider.UpdatePassword(
-                    connection, 4, "new-hashed-password"));
+                    connection, 4, "new-hashed-password", "newstamp"));
 
             Assert.Equal("User 4 not found", exception.Message);
         });

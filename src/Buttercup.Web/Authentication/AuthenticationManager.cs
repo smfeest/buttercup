@@ -373,7 +373,10 @@ namespace Buttercup.Web.Authentication
         {
             var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
 
-            await this.UserDataProvider.UpdatePassword(connection, userId, hashedPassword);
+            var securityToken = this.RandomTokenGenerator.Generate(2);
+
+            await this.UserDataProvider.UpdatePassword(
+                connection, userId, hashedPassword, securityToken);
 
             await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
         }

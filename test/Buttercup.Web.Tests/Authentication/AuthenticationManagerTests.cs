@@ -204,7 +204,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordUpdatesPasswordOnSuccess()
+        public async Task ChangePasswordUpdatesUserOnSuccess()
         {
             var context = new ChangePasswordContext();
 
@@ -214,10 +214,17 @@ namespace Buttercup.Web.Authentication
                 .Setup(x => x.HashPassword(null, context.NewPassword))
                 .Returns("sample-hashed-password");
 
+            context.MockRandomTokenGenerator
+                .Setup(x => x.Generate(2))
+                .Returns("sample-security-stamp");
+
             await context.ChangePassword();
 
             context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.MockConnection.Object, context.UserId, "sample-hashed-password"));
+                context.MockConnection.Object,
+                context.UserId,
+                "sample-hashed-password",
+                "sample-security-stamp"));
         }
 
         [Fact]
@@ -386,7 +393,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordUpdatesPasswordOnSuccess()
+        public async Task ResetPasswordUpdatesUserOnSuccess()
         {
             var context = new ResetPasswordContext();
 
@@ -396,10 +403,17 @@ namespace Buttercup.Web.Authentication
                 .Setup(x => x.HashPassword(null, context.NewPassword))
                 .Returns("sample-hashed-password");
 
+            context.MockRandomTokenGenerator
+                .Setup(x => x.Generate(2))
+                .Returns("sample-security-stamp");
+
             await context.ResetPassword();
 
             context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.MockConnection.Object, context.UserId.Value, "sample-hashed-password"));
+                context.MockConnection.Object,
+                context.UserId.Value,
+                "sample-hashed-password",
+                "sample-security-stamp"));
         }
 
         [Fact]
