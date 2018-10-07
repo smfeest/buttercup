@@ -115,10 +115,12 @@ namespace Buttercup.Web.Authentication
         }
 
         public async Task<bool> ChangePassword(
-            User user, string currentPassword, string newPassword)
+            HttpContext httpContext, string currentPassword, string newPassword)
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
+                var user = httpContext.GetCurrentUser();
+
                 if (user.HashedPassword == null)
                 {
                     await this.AuthenticationEventDataProvider.LogEvent(
@@ -141,7 +143,7 @@ namespace Buttercup.Web.Authentication
                     return false;
                 }
 
-                await this.SetPassword(connection, user.Id, newPassword);
+                user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
                 this.Logger.LogInformation(
                     "Password successfully changed for user {userId} ({email})",
@@ -152,6 +154,8 @@ namespace Buttercup.Web.Authentication
                     connection, "password_change_success", user.Id);
 
                 await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+
+                await this.SignInUser(httpContext, user);
 
                 return true;
             }
@@ -270,19 +274,7 @@ namespace Buttercup.Web.Authentication
 
         public async Task SignIn(HttpContext httpContext, User user)
         {
-            var claims = new Claim[]
-            {
-                new Claim(
-                    ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
-            };
-
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
-
-            await this.AuthenticationService.SignInAsync(
-                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
+            await this.SignInUser(httpContext, user);
 
             httpContext.SetCurrentUser(user);
 
@@ -369,7 +361,8 @@ namespace Buttercup.Web.Authentication
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
 
-        private async Task SetPassword(DbConnection connection, long userId, string newPassword)
+        private async Task<string> SetPassword(
+            DbConnection connection, long userId, string newPassword)
         {
             var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
 
@@ -379,6 +372,25 @@ namespace Buttercup.Web.Authentication
                 connection, userId, hashedPassword, securityToken);
 
             await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
+
+            return securityToken;
+        }
+
+        private async Task SignInUser(HttpContext httpContext, User user)
+        {
+            var claims = new Claim[]
+            {
+                new Claim(
+                    ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+            };
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
+
+            await this.AuthenticationService.SignInAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
         }
 
         private Task SignOutCurrentUser(HttpContext httpContext) =>

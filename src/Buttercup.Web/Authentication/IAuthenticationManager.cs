@@ -30,8 +30,8 @@ namespace Buttercup.Web.Authentication
         /// <summary>
         /// Changes a user's password.
         /// </summary>
-        /// <param name="user">
-        /// The user.
+        /// <param name="httpContext">
+        /// The HTTP context for the current request.
         /// </param>
         /// <param name="currentPassword">
         /// The current password for verification.
@@ -46,7 +46,8 @@ namespace Buttercup.Web.Authentication
         /// <exception cref="InvalidOperationException">
         /// The user doesn't have a password.
         /// </exception>
-        Task<bool> ChangePassword(User user, string currentPassword, string newPassword);
+        Task<bool> ChangePassword(
+            HttpContext httpContext, string currentPassword, string newPassword);
 
         /// <summary>
         /// Validates a password reset token.
