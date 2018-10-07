@@ -603,6 +603,12 @@ namespace Buttercup.Web.Authentication
             Assert.Equal(
                 context.UserId.ToString(CultureInfo.InvariantCulture),
                 principal.FindFirstValue(ClaimTypes.NameIdentifier));
+            Assert.Equal(
+                context.Email,
+                principal.FindFirstValue(ClaimTypes.Email));
+            Assert.Equal(
+                context.SecurityStamp,
+                principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
             Assert.Equal(context.Email, principal.Identity.Name);
         }
@@ -902,7 +908,12 @@ namespace Buttercup.Web.Authentication
 
         private class SignInContext : Context
         {
-            public SignInContext() => this.User = new User { Id = this.UserId, Email = this.Email };
+            public SignInContext() => this.User = new User
+            {
+                Id = this.UserId,
+                Email = this.Email,
+                SecurityStamp = this.SecurityStamp,
+            };
 
             public HttpContext HttpContext { get; } = new DefaultHttpContext();
 
@@ -911,6 +922,8 @@ namespace Buttercup.Web.Authentication
             public long UserId { get; } = 6;
 
             public string Email { get; } = "sample@example.com";
+
+            public string SecurityStamp { get; } = "sample-security-stamp";
 
             public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
         }

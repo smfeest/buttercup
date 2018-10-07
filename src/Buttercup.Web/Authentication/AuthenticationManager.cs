@@ -305,6 +305,7 @@ namespace Buttercup.Web.Authentication
                 new Claim(
                     ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
             };
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(
