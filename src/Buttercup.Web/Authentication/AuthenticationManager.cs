@@ -268,7 +268,7 @@ namespace Buttercup.Web.Authentication
 
                 email = user.Email;
 
-                var token = this.RandomTokenGenerator.Generate();
+                var token = this.RandomTokenGenerator.Generate(12);
 
                 await this.PasswordResetTokenDataProvider.InsertToken(connection, user.Id, token);
 

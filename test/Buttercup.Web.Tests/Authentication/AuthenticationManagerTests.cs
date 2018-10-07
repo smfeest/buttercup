@@ -877,7 +877,7 @@ namespace Buttercup.Web.Authentication
                 this.SetupFindUserByEmail(this.Email, this.User);
 
                 this.MockRandomTokenGenerator
-                    .Setup(x => x.Generate())
+                    .Setup(x => x.Generate(12))
                     .Returns(this.Token = "sample-token");
 
                 this.MockUrlHelper
