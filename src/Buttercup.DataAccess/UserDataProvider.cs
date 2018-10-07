@@ -86,6 +86,7 @@ WHERE id = @id";
                 Id = reader.GetInt64("id"),
                 Email = reader.GetString("email"),
                 HashedPassword = reader.GetString("hashed_password"),
+                SecurityStamp = reader.GetString("security_stamp"),
                 Created = reader.GetDateTime("created", DateTimeKind.Utc),
                 Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
                 Revision = reader.GetInt32("revision"),

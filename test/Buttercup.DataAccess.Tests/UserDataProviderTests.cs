@@ -127,6 +127,7 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Email, actual.Email);
             Assert.Equal(expected.HashedPassword, actual.HashedPassword);
+            Assert.Equal(expected.SecurityStamp, actual.SecurityStamp);
             Assert.Equal(expected.Created, actual.Created);
             Assert.Equal(DateTimeKind.Utc, actual.Created.Kind);
             Assert.Equal(expected.Modified, actual.Modified);

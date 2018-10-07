@@ -32,6 +32,18 @@ namespace Buttercup.Models
         public string HashedPassword { get; set; }
 
         /// <summary>
+        /// Gets or sets the security stamp.
+        /// </summary>
+        /// <remarks>
+        /// This property contains an opaque string that changes whenever the user's existing
+        /// sessions need to be invalidate.
+        /// </remarks>
+        /// <value>
+        /// The security stamp.
+        /// </value>
+        public string SecurityStamp { get; set; }
+
+        /// <summary>
         /// Gets or sets the date and time at which the record was created.
         /// </summary>
         /// <value>
