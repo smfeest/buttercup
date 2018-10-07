@@ -92,6 +92,7 @@ namespace Buttercup.Web
                         HttpOnly = true,
                         SameSite = SameSiteMode.Strict
                     };
+                    options.EventsType = typeof(CookieAuthenticationEventsHandler);
                     options.LoginPath = "/sign-in";
                 });
 
@@ -99,6 +100,7 @@ namespace Buttercup.Web
                 .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
                 .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
                 .AddTransient<IAuthenticationManager, AuthenticationManager>()
+                .AddTransient<CookieAuthenticationEventsHandler>()
                 .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
                 .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
                 .AddTransient<IAssetHelper, AssetHelper>()

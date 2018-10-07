@@ -635,8 +635,8 @@ namespace Buttercup.Web.Authentication
 
             await context.SignOut();
 
-            context.MockAuthenticationService.Verify(
-                x => x.SignOutAsync(context.HttpContext, null, null));
+            context.MockAuthenticationService.Verify(x => x.SignOutAsync(
+                context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
         }
 
         [Fact]
@@ -662,6 +662,87 @@ namespace Buttercup.Web.Authentication
             context.MockAuthenticationEventDataProvider.Verify(
                 x => x.LogEvent(
                     context.MockConnection.Object, "sign_out", null, null), Times.Never);
+        }
+
+        #endregion
+
+        #region ValidatePrincipal
+
+        [Fact]
+        public async Task ValidatePrincipalDoesNotGetUserWhenUnauthenticated()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupUnauthenticated();
+
+            await context.ValidatePrincipal();
+
+            context.MockUserDataProvider.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalDoesNotRejectPrincipalWhenUnauthenticated()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupUnauthenticated();
+
+            await context.ValidatePrincipal();
+
+            Assert.Same(context.Principal, context.CookieContext.Principal);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupCorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            Assert.Same(context.Principal, context.CookieContext.Principal);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalDoesNotSignUserOutWhenStampIsCorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupCorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            context.MockAuthenticationService.Verify(
+                x => x.SignOutAsync(
+                    context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupIncorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            Assert.Null(context.CookieContext.Principal);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalSignsUserOutWhenStampIsIncorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupIncorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            context.MockAuthenticationService.Verify(
+                x => x.SignOutAsync(
+                    context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
         }
 
         #endregion
@@ -949,6 +1030,49 @@ namespace Buttercup.Web.Authentication
             }
 
             public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
+        }
+
+        private class ValidatePrincipalContext : Context
+        {
+            public CookieValidatePrincipalContext CookieContext { get; private set; }
+
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public ClaimsPrincipal Principal { get; private set; }
+
+            public void SetupUnauthenticated() => this.SetupCookieContext();
+
+            public void SetupCorrectStamp() =>
+                this.SetupAuthenticated("sample-security-stamp", "sample-security-stamp");
+
+            public void SetupIncorrectStamp() =>
+                this.SetupAuthenticated("principal-security-stamp", "user-security-stamp");
+
+            public Task ValidatePrincipal() =>
+                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
+
+            private void SetupCookieContext(params Claim[] claims)
+            {
+                this.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+                var scheme = new AuthenticationScheme(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null,
+                    typeof(CookieAuthenticationHandler));
+                var ticket = new AuthenticationTicket(this.Principal, null);
+
+                this.CookieContext = new CookieValidatePrincipalContext(
+                    this.HttpContext, scheme, new CookieAuthenticationOptions(), ticket);
+            }
+
+            private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
+            {
+                this.SetupCookieContext(
+                    new Claim(ClaimTypes.NameIdentifier, "34"),
+                    new Claim(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
+
+                this.SetupGetUser(34, new User { SecurityStamp = userSecurityStamp });
+            }
         }
     }
 }

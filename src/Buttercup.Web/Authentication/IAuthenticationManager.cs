@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -137,5 +138,16 @@ namespace Buttercup.Web.Authentication
         /// A task for the operation.
         /// </returns>
         Task SignOut(HttpContext httpContext);
+
+        /// <summary>
+        /// Validates a principal from an authentication cookie.
+        /// </summary>
+        /// <param name="context">
+        /// The validation context.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task ValidatePrincipal(CookieValidatePrincipalContext context);
     }
 }

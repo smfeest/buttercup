@@ -168,7 +168,7 @@ namespace Buttercup.Web.Authentication
 
             User user;
 
-            var userId = GetCurrentUserId(httpContext);
+            var userId = GetUserId(httpContext.User);
 
             if (userId.HasValue)
             {
@@ -325,9 +325,9 @@ namespace Buttercup.Web.Authentication
 
         public async Task SignOut(HttpContext httpContext)
         {
-            var userId = GetCurrentUserId(httpContext);
+            await this.SignOutCurrentUser(httpContext);
 
-            await this.AuthenticationService.SignOutAsync(httpContext, null, null);
+            var userId = GetUserId(httpContext.User);
 
             if (userId.HasValue)
             {
@@ -343,16 +343,49 @@ namespace Buttercup.Web.Authentication
             }
         }
 
-        private static long? GetCurrentUserId(HttpContext httpContext)
+        public async Task ValidatePrincipal(CookieValidatePrincipalContext context)
         {
-            if (!httpContext.User.Identity.IsAuthenticated)
+            var principal = context.Principal;
+
+            var userId = GetUserId(principal);
+
+            if (userId.HasValue)
             {
-                return null;
+                User user;
+
+                using (var connection = await this.DbConnectionSource.OpenConnection())
+                {
+                    user = await this.UserDataProvider.GetUser(connection, userId.Value);
+                }
+
+                var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
+
+                if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
+                {
+                    this.Logger.LogDebug(
+                        "Principal successfully validated for user {userId} ({email})",
+                        user.Id,
+                        user.Email);
+                }
+                else
+                {
+                    this.Logger.LogInformation(
+                        "Incorrect security stamp for user {userId} ({email})",
+                        user.Id,
+                        user.Email);
+
+                    context.RejectPrincipal();
+
+                    await this.SignOutCurrentUser(context.HttpContext);
+                }
             }
+        }
 
-            var claimValue = httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        private static long? GetUserId(ClaimsPrincipal principal)
+        {
+            var claimValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(claimValue))
+            if (claimValue == null)
             {
                 return null;
             }
@@ -370,6 +403,10 @@ namespace Buttercup.Web.Authentication
 
             await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
         }
+
+        private Task SignOutCurrentUser(HttpContext httpContext) =>
+            this.AuthenticationService.SignOutAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
         private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
         {
