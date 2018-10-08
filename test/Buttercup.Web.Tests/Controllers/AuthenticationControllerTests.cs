@@ -473,10 +473,6 @@ namespace Buttercup.Web.Controllers
         {
             public ChangePasswordContext()
             {
-                this.MockAuthenticationManager
-                    .Setup(x => x.GetCurrentUser(this.HttpContext))
-                    .ReturnsAsync(this.User);
-
                 this.MockLocalizer
                     .SetupGet(x => x["Error_WrongPassword"])
                     .Returns(new LocalizedString(
@@ -489,11 +485,10 @@ namespace Buttercup.Web.Controllers
                 NewPassword = "new-password",
             };
 
-            public User User { get; } = new User();
-
             public void SetupChangePassword(bool result) =>
                 this.MockAuthenticationManager
-                    .Setup(x => x.ChangePassword(this.User, "current-password", "new-password"))
+                    .Setup(x => x.ChangePassword(
+                        this.HttpContext, "current-password", "new-password"))
                     .ReturnsAsync(result);
 
             public Task<IActionResult> ChangePasswordPost() =>

@@ -130,55 +130,6 @@ namespace Buttercup.Web.Authentication
 
         #endregion
 
-        #region GetCurrentUser
-
-        [Fact]
-        public async Task GetCurrentUserReturnsAndCachesUserIfAuthenticated()
-        {
-            var context = new Context();
-
-            var expected = new User();
-
-            context.SetupGetUser(12, expected);
-
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                new Claim[] { new Claim(ClaimTypes.NameIdentifier, "12") },
-                CookieAuthenticationDefaults.AuthenticationScheme));
-
-            var httpContext = new DefaultHttpContext { User = principal };
-
-            var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
-
-            Assert.Equal(expected, actual);
-            Assert.Equal(expected, httpContext.Items[typeof(User)]);
-        }
-
-        [Fact]
-        public async Task GetCurrentUserReturnsAndCachesNullIfUnauthenticated()
-        {
-            var httpContext = new DefaultHttpContext();
-
-            Assert.Null(await new Context().AuthenticationManager.GetCurrentUser(httpContext));
-            Assert.Null(httpContext.Items[typeof(User)]);
-        }
-
-        [Fact]
-        public async Task GetCurrentUserReturnsUserFromRequestItemsOnceCached()
-        {
-            var context = new Context();
-
-            var expected = new User();
-
-            var httpContext = new DefaultHttpContext();
-            httpContext.Items[typeof(User)] = expected;
-
-            var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
-
-            Assert.Equal(expected, actual);
-        }
-
-        #endregion
-
         #region ChangePassword
 
         [Fact]
@@ -253,7 +204,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordUpdatesPasswordOnSuccess()
+        public async Task ChangePasswordUpdatesUser()
         {
             var context = new ChangePasswordContext();
 
@@ -266,11 +217,14 @@ namespace Buttercup.Web.Authentication
             await context.ChangePassword();
 
             context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.MockConnection.Object, context.UserId, "sample-hashed-password"));
+                context.MockConnection.Object,
+                context.UserId,
+                "sample-hashed-password",
+                "sample-security-stamp"));
         }
 
         [Fact]
-        public async Task ChangePasswordDeletesPasswordResetTokensOnSuccess()
+        public async Task ChangePasswordDeletesPasswordResetTokens()
         {
             var context = new ChangePasswordContext();
 
@@ -283,7 +237,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordSendsPasswordChangeNotificationOnSuccess()
+        public async Task ChangePasswordSendsPasswordChangeNotification()
         {
             var context = new ChangePasswordContext();
 
@@ -298,7 +252,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordLogsEventOnSuccess()
+        public async Task ChangePasswordLogsEvent()
         {
             var context = new ChangePasswordContext();
 
@@ -311,7 +265,43 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordReturnsTrueOnSuccess()
+        public async Task ChangePasswordSignsInUpdatedPrincipal()
+        {
+            var context = new ChangePasswordContext();
+
+            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+
+            context.MockAuthenticationService
+                .Setup(x => x.SignInAsync(
+                    context.HttpContext,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    It.IsAny<ClaimsPrincipal>(),
+                    null))
+                .Callback<HttpContext, string, ClaimsPrincipal, AuthenticationProperties>(
+                    (contextArg, scheme, principal, properties) =>
+                    {
+                        Assert.Equal(
+                            context.UserId.ToString(CultureInfo.InvariantCulture),
+                            principal.FindFirstValue(ClaimTypes.NameIdentifier));
+                        Assert.Equal(
+                            context.Email,
+                            principal.FindFirstValue(ClaimTypes.Email));
+                        Assert.Equal(
+                            context.SecurityStamp,
+                            principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
+
+                        Assert.Equal(context.Email, principal.Identity.Name);
+                    })
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            await context.ChangePassword();
+
+            context.MockAuthenticationService.Verify();
+        }
+
+        [Fact]
+        public async Task ChangePasswordReturnsTrue()
         {
             var context = new ChangePasswordContext();
 
@@ -435,7 +425,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordUpdatesPasswordOnSuccess()
+        public async Task ResetPasswordUpdatesUserOnSuccess()
         {
             var context = new ResetPasswordContext();
 
@@ -445,10 +435,17 @@ namespace Buttercup.Web.Authentication
                 .Setup(x => x.HashPassword(null, context.NewPassword))
                 .Returns("sample-hashed-password");
 
+            context.MockRandomTokenGenerator
+                .Setup(x => x.Generate(2))
+                .Returns("sample-security-stamp");
+
             await context.ResetPassword();
 
             context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.MockConnection.Object, context.UserId.Value, "sample-hashed-password"));
+                context.MockConnection.Object,
+                context.UserId.Value,
+                "sample-hashed-password",
+                "sample-security-stamp"));
         }
 
         [Fact]
@@ -582,11 +579,9 @@ namespace Buttercup.Web.Authentication
         #region SignIn
 
         [Fact]
-        public async Task SignInSignsInUser()
+        public async Task SignInSignsInPrincipal()
         {
             var context = new SignInContext();
-
-            ClaimsPrincipal principal = null;
 
             context.MockAuthenticationService
                 .Setup(x => x.SignInAsync(
@@ -595,16 +590,36 @@ namespace Buttercup.Web.Authentication
                     It.IsAny<ClaimsPrincipal>(),
                     null))
                 .Callback<HttpContext, string, ClaimsPrincipal, AuthenticationProperties>(
-                   (contextArg, scheme, principalArg, properties) => principal = principalArg)
-                .Returns(Task.CompletedTask);
+                    (contextArg, scheme, principal, properties) =>
+                    {
+                        Assert.Equal(
+                            context.UserId.ToString(CultureInfo.InvariantCulture),
+                            principal.FindFirstValue(ClaimTypes.NameIdentifier));
+                        Assert.Equal(
+                            context.Email,
+                            principal.FindFirstValue(ClaimTypes.Email));
+                        Assert.Equal(
+                            context.SecurityStamp,
+                            principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
+
+                        Assert.Equal(context.Email, principal.Identity.Name);
+                    })
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
             await context.SignIn();
 
-            Assert.Equal(
-                context.UserId.ToString(CultureInfo.InvariantCulture),
-                principal.FindFirstValue(ClaimTypes.NameIdentifier));
+            context.MockAuthenticationService.Verify();
+        }
 
-            Assert.Equal(context.Email, principal.Identity.Name);
+        [Fact]
+        public async Task SignInSetsCurrentUser()
+        {
+            var context = new SignInContext();
+
+            await context.SignIn();
+
+            Assert.Equal(context.User, context.HttpContext.GetCurrentUser());
         }
 
         [Fact]
@@ -629,8 +644,8 @@ namespace Buttercup.Web.Authentication
 
             await context.SignOut();
 
-            context.MockAuthenticationService.Verify(
-                x => x.SignOutAsync(context.HttpContext, null, null));
+            context.MockAuthenticationService.Verify(x => x.SignOutAsync(
+                context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
         }
 
         [Fact]
@@ -656,6 +671,72 @@ namespace Buttercup.Web.Authentication
             context.MockAuthenticationEventDataProvider.Verify(
                 x => x.LogEvent(
                     context.MockConnection.Object, "sign_out", null, null), Times.Never);
+        }
+
+        #endregion
+
+        #region ValidatePrincipal
+
+        [Fact]
+        public async Task ValidatePrincipalDoesNotRejectPrincipalWhenUnauthenticated()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupUnauthenticated();
+
+            await context.ValidatePrincipal();
+
+            Assert.Same(context.Principal, context.CookieContext.Principal);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupCorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            Assert.Equal(context.User, context.HttpContext.GetCurrentUser());
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupCorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            Assert.Same(context.Principal, context.CookieContext.Principal);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupIncorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            Assert.Null(context.CookieContext.Principal);
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalSignsUserOutWhenStampIsIncorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupIncorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            context.MockAuthenticationService.Verify(
+                x => x.SignOutAsync(
+                    context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
         }
 
         #endregion
@@ -781,15 +862,29 @@ namespace Buttercup.Web.Authentication
 
         private class ChangePasswordContext : Context
         {
-            public ChangePasswordContext() => this.User = new User
+            public ChangePasswordContext()
             {
-                Id = this.UserId,
-                HashedPassword = this.HashedCurrentPassword,
-            };
+                this.User = new User
+                {
+                    Id = this.UserId,
+                    Email = this.Email,
+                    HashedPassword = this.HashedCurrentPassword,
+                };
+
+                this.HttpContext.SetCurrentUser(this.User);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(2))
+                    .Returns(this.SecurityStamp);
+            }
+
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
 
             public User User { get; }
 
             public long UserId { get; } = 43;
+
+            public string Email { get; } = "sample@example.com";
 
             public string CurrentPassword { get; } = "current-password";
 
@@ -799,6 +894,8 @@ namespace Buttercup.Web.Authentication
 
             public string HashedNewPassword { get; private set; }
 
+            public string SecurityStamp { get; } = "sample-security-stamp";
+
             public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>
                 this.MockPasswordHasher
                     .Setup(x => x.VerifyHashedPassword(
@@ -806,7 +903,7 @@ namespace Buttercup.Web.Authentication
                     .Returns(result);
 
             public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
-                this.User, this.CurrentPassword, this.NewPassword);
+                this.HttpContext, this.CurrentPassword, this.NewPassword);
         }
 
         private class PasswordResetTokenIsValidContext : Context
@@ -877,7 +974,7 @@ namespace Buttercup.Web.Authentication
                 this.SetupFindUserByEmail(this.Email, this.User);
 
                 this.MockRandomTokenGenerator
-                    .Setup(x => x.Generate())
+                    .Setup(x => x.Generate(12))
                     .Returns(this.Token = "sample-token");
 
                 this.MockUrlHelper
@@ -902,7 +999,12 @@ namespace Buttercup.Web.Authentication
 
         private class SignInContext : Context
         {
-            public SignInContext() => this.User = new User { Id = this.UserId, Email = this.Email };
+            public SignInContext() => this.User = new User
+            {
+                Id = this.UserId,
+                Email = this.Email,
+                SecurityStamp = this.SecurityStamp,
+            };
 
             public HttpContext HttpContext { get; } = new DefaultHttpContext();
 
@@ -911,6 +1013,8 @@ namespace Buttercup.Web.Authentication
             public long UserId { get; } = 6;
 
             public string Email { get; } = "sample@example.com";
+
+            public string SecurityStamp { get; } = "sample-security-stamp";
 
             public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
         }
@@ -936,6 +1040,53 @@ namespace Buttercup.Web.Authentication
             }
 
             public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
+        }
+
+        private class ValidatePrincipalContext : Context
+        {
+            public CookieValidatePrincipalContext CookieContext { get; private set; }
+
+            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public ClaimsPrincipal Principal { get; private set; }
+
+            public User User { get; private set; }
+
+            public void SetupUnauthenticated() => this.SetupCookieContext();
+
+            public void SetupCorrectStamp() =>
+                this.SetupAuthenticated("sample-security-stamp", "sample-security-stamp");
+
+            public void SetupIncorrectStamp() =>
+                this.SetupAuthenticated("principal-security-stamp", "user-security-stamp");
+
+            public Task ValidatePrincipal() =>
+                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
+
+            private void SetupCookieContext(params Claim[] claims)
+            {
+                this.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+                var scheme = new AuthenticationScheme(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null,
+                    typeof(CookieAuthenticationHandler));
+                var ticket = new AuthenticationTicket(this.Principal, null);
+
+                this.CookieContext = new CookieValidatePrincipalContext(
+                    this.HttpContext, scheme, new CookieAuthenticationOptions(), ticket);
+            }
+
+            private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
+            {
+                this.SetupCookieContext(
+                    new Claim(ClaimTypes.NameIdentifier, "34"),
+                    new Claim(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
+
+                this.User = new User { SecurityStamp = userSecurityStamp };
+
+                this.SetupGetUser(34, this.User);
+            }
         }
     }
 }

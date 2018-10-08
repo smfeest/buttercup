@@ -53,12 +53,16 @@ namespace Buttercup.DataAccess
         /// <param name="hashedPassword">
         /// The hashed password.
         /// </param>
+        /// <param name="securityStamp">
+        /// The new security stamp.
+        /// </param>
         /// <returns>
         /// A task for the operation.
         /// </returns>
         /// <exception cref="NotFoundException">
         /// No matching user was found.
         /// </exception>
-        Task UpdatePassword(DbConnection connection, long userId, string hashedPassword);
+        Task UpdatePassword(
+            DbConnection connection, long userId, string hashedPassword, string securityStamp);
     }
 }

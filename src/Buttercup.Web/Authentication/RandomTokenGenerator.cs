@@ -9,11 +9,11 @@ namespace Buttercup.Web.Authentication
 
         public IRandomNumberGeneratorFactory RandomNumberGeneratorFactory { get; }
 
-        public string Generate()
+        public string Generate(int n)
         {
             using (var rng = this.RandomNumberGeneratorFactory.Create())
             {
-                var bytes = new byte[36];
+                var bytes = new byte[n * 3];
                 rng.GetBytes(bytes);
                 return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_');
             }

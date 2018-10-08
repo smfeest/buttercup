@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,8 +30,8 @@ namespace Buttercup.Web.Authentication
         /// <summary>
         /// Changes a user's password.
         /// </summary>
-        /// <param name="user">
-        /// The user.
+        /// <param name="httpContext">
+        /// The HTTP context for the current request.
         /// </param>
         /// <param name="currentPassword">
         /// The current password for verification.
@@ -45,18 +46,8 @@ namespace Buttercup.Web.Authentication
         /// <exception cref="InvalidOperationException">
         /// The user doesn't have a password.
         /// </exception>
-        Task<bool> ChangePassword(User user, string currentPassword, string newPassword);
-
-        /// <summary>
-        /// Gets the current user for a request.
-        /// </summary>
-        /// <param name="httpContext">
-        /// The HTTP context for the request.
-        /// </param>
-        /// <returns>
-        /// A task for the operation.
-        /// </returns>
-        Task<User> GetCurrentUser(HttpContext httpContext);
+        Task<bool> ChangePassword(
+            HttpContext httpContext, string currentPassword, string newPassword);
 
         /// <summary>
         /// Validates a password reset token.
@@ -137,5 +128,16 @@ namespace Buttercup.Web.Authentication
         /// A task for the operation.
         /// </returns>
         Task SignOut(HttpContext httpContext);
+
+        /// <summary>
+        /// Validates a principal from an authentication cookie.
+        /// </summary>
+        /// <param name="context">
+        /// The validation context.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        Task ValidatePrincipal(CookieValidatePrincipalContext context);
     }
 }

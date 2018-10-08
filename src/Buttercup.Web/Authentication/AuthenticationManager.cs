@@ -115,10 +115,12 @@ namespace Buttercup.Web.Authentication
         }
 
         public async Task<bool> ChangePassword(
-            User user, string currentPassword, string newPassword)
+            HttpContext httpContext, string currentPassword, string newPassword)
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
+                var user = httpContext.GetCurrentUser();
+
                 if (user.HashedPassword == null)
                 {
                     await this.AuthenticationEventDataProvider.LogEvent(
@@ -141,7 +143,7 @@ namespace Buttercup.Web.Authentication
                     return false;
                 }
 
-                await this.SetPassword(connection, user.Id, newPassword);
+                user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
                 this.Logger.LogInformation(
                     "Password successfully changed for user {userId} ({email})",
@@ -153,38 +155,10 @@ namespace Buttercup.Web.Authentication
 
                 await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
 
+                await this.SignInUser(httpContext, user);
+
                 return true;
             }
-        }
-
-        public async Task<User> GetCurrentUser(HttpContext httpContext)
-        {
-            object cachedUser;
-
-            if (httpContext.Items.TryGetValue(typeof(User), out cachedUser))
-            {
-                return (User)cachedUser;
-            }
-
-            User user;
-
-            var userId = GetCurrentUserId(httpContext);
-
-            if (userId.HasValue)
-            {
-                using (var connection = await this.DbConnectionSource.OpenConnection())
-                {
-                    user = await this.UserDataProvider.GetUser(connection, userId.Value);
-                }
-            }
-            else
-            {
-                user = null;
-            }
-
-            httpContext.Items.Add(typeof(User), user);
-
-            return user;
         }
 
         public async Task<bool> PasswordResetTokenIsValid(string token)
@@ -268,7 +242,7 @@ namespace Buttercup.Web.Authentication
 
                 email = user.Email;
 
-                var token = this.RandomTokenGenerator.Generate();
+                var token = this.RandomTokenGenerator.Generate(12);
 
                 await this.PasswordResetTokenDataProvider.InsertToken(connection, user.Id, token);
 
@@ -300,18 +274,9 @@ namespace Buttercup.Web.Authentication
 
         public async Task SignIn(HttpContext httpContext, User user)
         {
-            var claims = new Claim[]
-            {
-                new Claim(
-                    ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.Email, user.Email),
-            };
+            await this.SignInUser(httpContext, user);
 
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
-
-            await this.AuthenticationService.SignInAsync(
-                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
+            httpContext.SetCurrentUser(user);
 
             this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
 
@@ -324,9 +289,9 @@ namespace Buttercup.Web.Authentication
 
         public async Task SignOut(HttpContext httpContext)
         {
-            var userId = GetCurrentUserId(httpContext);
+            await this.SignOutCurrentUser(httpContext);
 
-            await this.AuthenticationService.SignOutAsync(httpContext, null, null);
+            var userId = GetUserId(httpContext.User);
 
             if (userId.HasValue)
             {
@@ -342,16 +307,51 @@ namespace Buttercup.Web.Authentication
             }
         }
 
-        private static long? GetCurrentUserId(HttpContext httpContext)
+        public async Task ValidatePrincipal(CookieValidatePrincipalContext context)
         {
-            if (!httpContext.User.Identity.IsAuthenticated)
+            var principal = context.Principal;
+
+            var userId = GetUserId(principal);
+
+            if (userId.HasValue)
             {
-                return null;
+                User user;
+
+                using (var connection = await this.DbConnectionSource.OpenConnection())
+                {
+                    user = await this.UserDataProvider.GetUser(connection, userId.Value);
+                }
+
+                var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
+
+                if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
+                {
+                    context.HttpContext.SetCurrentUser(user);
+
+                    this.Logger.LogDebug(
+                        "Principal successfully validated for user {userId} ({email})",
+                        user.Id,
+                        user.Email);
+                }
+                else
+                {
+                    this.Logger.LogInformation(
+                        "Incorrect security stamp for user {userId} ({email})",
+                        user.Id,
+                        user.Email);
+
+                    context.RejectPrincipal();
+
+                    await this.SignOutCurrentUser(context.HttpContext);
+                }
             }
+        }
 
-            var claimValue = httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        private static long? GetUserId(ClaimsPrincipal principal)
+        {
+            var claimValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(claimValue))
+            if (claimValue == null)
             {
                 return null;
             }
@@ -361,14 +361,41 @@ namespace Buttercup.Web.Authentication
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
 
-        private async Task SetPassword(DbConnection connection, long userId, string newPassword)
+        private async Task<string> SetPassword(
+            DbConnection connection, long userId, string newPassword)
         {
             var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
 
-            await this.UserDataProvider.UpdatePassword(connection, userId, hashedPassword);
+            var securityToken = this.RandomTokenGenerator.Generate(2);
+
+            await this.UserDataProvider.UpdatePassword(
+                connection, userId, hashedPassword, securityToken);
 
             await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
+
+            return securityToken;
         }
+
+        private async Task SignInUser(HttpContext httpContext, User user)
+        {
+            var claims = new Claim[]
+            {
+                new Claim(
+                    ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+            };
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
+
+            await this.AuthenticationService.SignInAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
+        }
+
+        private Task SignOutCurrentUser(HttpContext httpContext) =>
+            this.AuthenticationService.SignOutAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
         private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
         {

@@ -10,39 +10,61 @@ namespace Buttercup.Web.Authentication
     {
         #region Generate
 
-        [Fact]
-        public void GenerateReturns36BytesAsUrlSafeBase64()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        public void GenerateUses3nRandomBytes(int n)
         {
-            var mockRandomNumberGeneratorFactory = new MockRandomNumberGeneratorFactory();
+            var context = new Context();
 
-            mockRandomNumberGeneratorFactory
+            context.RandomTokenGenerator.Generate(n);
+
+            context
+                .MockRandomNumberGeneratorFactory
                 .MockRandomNumberGenerator
-                .Setup(x => x.GetBytes(It.Is<byte[]>(bytes => bytes.Length == 36)))
+                .Verify(x => x.GetBytes(It.Is<byte[]>(bytes => bytes.Length == (3 * n))));
+        }
+
+        [Fact]
+        public void GenerateReturnsUrlSafeBase64()
+        {
+            var context = new Context();
+
+            context.MockRandomNumberGeneratorFactory
+                .MockRandomNumberGenerator
+                .Setup(x => x.GetBytes(It.IsAny<byte[]>()))
                 .Callback((byte[] bytes) =>
                 {
 #pragma warning disable SA1117
                     var generatedBytes = new byte[]
                     {
-                        0x00, 0x10, 0x83, 0x10, 0x51, 0x87,
-                        0x20, 0x92, 0x8b, 0x30, 0xd3, 0x8f,
-                        0x41, 0x14, 0x93, 0x51, 0x55, 0x97,
-                        0x61, 0x9f, 0xb4, 0xd7, 0x6d, 0xf8,
-                        0xe7, 0xae, 0xfc, 0xf7, 0xf6, 0x9b,
-                        0x71, 0xd7, 0x9f, 0x82, 0x18, 0xa3,
+                        0xd1, 0xa0, 0x7e,
+                        0xd5, 0xc0, 0xde,
+                        0xff, 0x61, 0x60,
                     };
 #pragma warning restore SA1117
 
-                    Array.Copy(generatedBytes, bytes, 36);
+                    Array.Copy(generatedBytes, bytes, 9);
                 });
 
-            var randomTokenGenerator = new RandomTokenGenerator(mockRandomNumberGeneratorFactory);
-
-            Assert.Equal(
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ-0123456789_abcdefghij",
-                randomTokenGenerator.Generate());
+            Assert.Equal("0aB-1cDe_2Fg", context.RandomTokenGenerator.Generate(3));
         }
 
         #endregion
+
+        private class Context
+        {
+            public Context()
+            {
+                this.RandomTokenGenerator =
+                    new RandomTokenGenerator(this.MockRandomNumberGeneratorFactory);
+            }
+
+            public RandomTokenGenerator RandomTokenGenerator { get; }
+
+            public MockRandomNumberGeneratorFactory MockRandomNumberGeneratorFactory { get; } =
+                new MockRandomNumberGeneratorFactory();
+        }
 
         private class MockRandomNumberGeneratorFactory : IRandomNumberGeneratorFactory
         {
