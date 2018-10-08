@@ -130,55 +130,6 @@ namespace Buttercup.Web.Authentication
 
         #endregion
 
-        #region GetCurrentUser
-
-        [Fact]
-        public async Task GetCurrentUserReturnsAndCachesUserIfAuthenticated()
-        {
-            var context = new Context();
-
-            var expected = new User();
-
-            context.SetupGetUser(12, expected);
-
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                new Claim[] { new Claim(ClaimTypes.NameIdentifier, "12") },
-                CookieAuthenticationDefaults.AuthenticationScheme));
-
-            var httpContext = new DefaultHttpContext { User = principal };
-
-            var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
-
-            Assert.Equal(expected, actual);
-            Assert.Equal(expected, httpContext.Items[typeof(User)]);
-        }
-
-        [Fact]
-        public async Task GetCurrentUserReturnsAndCachesNullIfUnauthenticated()
-        {
-            var httpContext = new DefaultHttpContext();
-
-            Assert.Null(await new Context().AuthenticationManager.GetCurrentUser(httpContext));
-            Assert.Null(httpContext.Items[typeof(User)]);
-        }
-
-        [Fact]
-        public async Task GetCurrentUserReturnsUserFromRequestItemsOnceCached()
-        {
-            var context = new Context();
-
-            var expected = new User();
-
-            var httpContext = new DefaultHttpContext();
-            httpContext.Items[typeof(User)] = expected;
-
-            var actual = await context.AuthenticationManager.GetCurrentUser(httpContext);
-
-            Assert.Equal(expected, actual);
-        }
-
-        #endregion
-
         #region ChangePassword
 
         [Fact]
@@ -582,7 +533,7 @@ namespace Buttercup.Web.Authentication
         #region SignIn
 
         [Fact]
-        public async Task SignInSignsInUser()
+        public async Task SignInSignsInPrincipal()
         {
             var context = new SignInContext();
 
@@ -611,6 +562,16 @@ namespace Buttercup.Web.Authentication
                 principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
             Assert.Equal(context.Email, principal.Identity.Name);
+        }
+
+        [Fact]
+        public async Task SignInSetsCurrentUser()
+        {
+            var context = new SignInContext();
+
+            await context.SignIn();
+
+            Assert.Equal(context.User, context.HttpContext.GetCurrentUser());
         }
 
         [Fact]
@@ -669,18 +630,6 @@ namespace Buttercup.Web.Authentication
         #region ValidatePrincipal
 
         [Fact]
-        public async Task ValidatePrincipalDoesNotGetUserWhenUnauthenticated()
-        {
-            var context = new ValidatePrincipalContext();
-
-            context.SetupUnauthenticated();
-
-            await context.ValidatePrincipal();
-
-            context.MockUserDataProvider.VerifyNoOtherCalls();
-        }
-
-        [Fact]
         public async Task ValidatePrincipalDoesNotRejectPrincipalWhenUnauthenticated()
         {
             var context = new ValidatePrincipalContext();
@@ -693,6 +642,18 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
+        public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
+        {
+            var context = new ValidatePrincipalContext();
+
+            context.SetupCorrectStamp();
+
+            await context.ValidatePrincipal();
+
+            Assert.Equal(context.User, context.HttpContext.GetCurrentUser());
+        }
+
+        [Fact]
         public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
         {
             var context = new ValidatePrincipalContext();
@@ -702,21 +663,6 @@ namespace Buttercup.Web.Authentication
             await context.ValidatePrincipal();
 
             Assert.Same(context.Principal, context.CookieContext.Principal);
-        }
-
-        [Fact]
-        public async Task ValidatePrincipalDoesNotSignUserOutWhenStampIsCorrect()
-        {
-            var context = new ValidatePrincipalContext();
-
-            context.SetupCorrectStamp();
-
-            await context.ValidatePrincipal();
-
-            context.MockAuthenticationService.Verify(
-                x => x.SignOutAsync(
-                    context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null),
-                Times.Never);
         }
 
         [Fact]
@@ -1040,6 +986,8 @@ namespace Buttercup.Web.Authentication
 
             public ClaimsPrincipal Principal { get; private set; }
 
+            public User User { get; private set; }
+
             public void SetupUnauthenticated() => this.SetupCookieContext();
 
             public void SetupCorrectStamp() =>
@@ -1071,7 +1019,9 @@ namespace Buttercup.Web.Authentication
                     new Claim(ClaimTypes.NameIdentifier, "34"),
                     new Claim(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
 
-                this.SetupGetUser(34, new User { SecurityStamp = userSecurityStamp });
+                this.User = new User { SecurityStamp = userSecurityStamp };
+
+                this.SetupGetUser(34, this.User);
             }
         }
     }

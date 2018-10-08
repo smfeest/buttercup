@@ -157,36 +157,6 @@ namespace Buttercup.Web.Authentication
             }
         }
 
-        public async Task<User> GetCurrentUser(HttpContext httpContext)
-        {
-            object cachedUser;
-
-            if (httpContext.Items.TryGetValue(typeof(User), out cachedUser))
-            {
-                return (User)cachedUser;
-            }
-
-            User user;
-
-            var userId = GetUserId(httpContext.User);
-
-            if (userId.HasValue)
-            {
-                using (var connection = await this.DbConnectionSource.OpenConnection())
-                {
-                    user = await this.UserDataProvider.GetUser(connection, userId.Value);
-                }
-            }
-            else
-            {
-                user = null;
-            }
-
-            httpContext.Items.Add(typeof(User), user);
-
-            return user;
-        }
-
         public async Task<bool> PasswordResetTokenIsValid(string token)
         {
             using (var connection = await this.DbConnectionSource.OpenConnection())
@@ -314,6 +284,8 @@ namespace Buttercup.Web.Authentication
             await this.AuthenticationService.SignInAsync(
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
 
+            httpContext.SetCurrentUser(user);
+
             this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
 
             using (var connection = await this.DbConnectionSource.OpenConnection())
@@ -362,6 +334,8 @@ namespace Buttercup.Web.Authentication
 
                 if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
                 {
+                    context.HttpContext.SetCurrentUser(user);
+
                     this.Logger.LogDebug(
                         "Principal successfully validated for user {userId} ({email})",
                         user.Id,

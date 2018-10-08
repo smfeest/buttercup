@@ -39,7 +39,7 @@ namespace Buttercup.Web.Controllers
                 return this.View(model);
             }
 
-            var user = await this.AuthenticationManager.GetCurrentUser(this.HttpContext);
+            var user = this.HttpContext.GetCurrentUser();
 
             var passwordChanged = await this.AuthenticationManager.ChangePassword(
                 user, model.CurrentPassword, model.NewPassword);

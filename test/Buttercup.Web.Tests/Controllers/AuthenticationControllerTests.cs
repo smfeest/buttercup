@@ -473,9 +473,7 @@ namespace Buttercup.Web.Controllers
         {
             public ChangePasswordContext()
             {
-                this.MockAuthenticationManager
-                    .Setup(x => x.GetCurrentUser(this.HttpContext))
-                    .ReturnsAsync(this.User);
+                this.HttpContext.SetCurrentUser(this.User);
 
                 this.MockLocalizer
                     .SetupGet(x => x["Error_WrongPassword"])

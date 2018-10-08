@@ -49,17 +49,6 @@ namespace Buttercup.Web.Authentication
         Task<bool> ChangePassword(User user, string currentPassword, string newPassword);
 
         /// <summary>
-        /// Gets the current user for a request.
-        /// </summary>
-        /// <param name="httpContext">
-        /// The HTTP context for the request.
-        /// </param>
-        /// <returns>
-        /// A task for the operation.
-        /// </returns>
-        Task<User> GetCurrentUser(HttpContext httpContext);
-
-        /// <summary>
         /// Validates a password reset token.
         /// </summary>
         /// <param name="token">
