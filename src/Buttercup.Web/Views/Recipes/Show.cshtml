@@ -37,13 +37,13 @@
   }
   <tr>
     <th>@Localizer["Label_Added"]</th>
-    <td>@Html.FormatValue(Model.Created, "{0:G}")</td>
+    <td><user-date-time date-time="@Model.Created"></user-date-time></td>
   </tr>
   @if (Model.Modified > Model.Created)
   {
     <tr>
       <th>@Localizer["Label_Updated"]</th>
-      <td>@Html.FormatValue(Model.Modified, "{0:G}")</td>
+      <td><user-date-time date-time="@Model.Modified"></user-date-time></td>
     </tr>
   }
 </table>

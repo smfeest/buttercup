@@ -40,6 +40,7 @@ CREATE TABLE user (
   email VARCHAR(250) NOT NULL,
   hashed_password CHAR(84),
   security_stamp CHAR(8) NOT NULL,
+  time_zone VARCHAR(50) NOT NULL,
   created DATETIME NOT NULL,
   modified DATETIME NOT NULL,
   revision SMALLINT UNSIGNED NOT NULL DEFAULT 0,
