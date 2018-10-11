@@ -110,6 +110,7 @@ namespace Buttercup.DataAccess
             new User
             {
                 Id = reader.GetInt64("id"),
+                Name = reader.GetString("name"),
                 Email = reader.GetString("email"),
                 HashedPassword = reader.GetString("hashed_password"),
                 PasswordCreated = reader.GetNullableDateTime("password_created", DateTimeKind.Utc),
