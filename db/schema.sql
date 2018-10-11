@@ -37,6 +37,7 @@ CREATE TABLE recipe (
 
 CREATE TABLE user (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(250) NOT NULL,
   email VARCHAR(250) NOT NULL,
   hashed_password CHAR(84),
   password_created DATETIME,
