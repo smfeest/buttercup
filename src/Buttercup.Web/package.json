@@ -22,8 +22,8 @@
     "karma-jasmine-html-reporter": "^1.2.0",
     "karma-webpack": "^3.0.0",
     "ts-loader": "^4.4.2",
-    "tslint": "^5.10.0",
-    "typescript": "^2.9.2",
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2",
     "webpack": "^4.15.1",
     "webpack-stream": "^4.0.3"
   },
