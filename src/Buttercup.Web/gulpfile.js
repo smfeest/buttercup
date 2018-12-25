@@ -1,7 +1,7 @@
 
 const cleanCss = require('gulp-clean-css');
 const del = require('del');
-const gulp = require('gulp');
+const { dest, parallel, series, src, watch } = require('gulp');
 const karma = require('karma');
 const less = require('gulp-less');
 const lesshint = require('gulp-lesshint');
@@ -9,93 +9,77 @@ const rev = require('gulp-rev');
 const revReplace = require('gulp-rev-replace');
 const sourcemaps = require('gulp-sourcemaps');
 const tslint = require('gulp-tslint');
-const watchLess = require('gulp-watch-less');
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 
 const paths = {};
 paths.scripts = `${__dirname}/scripts`;
 paths.styles = `${__dirname}/styles`;
-paths.lessEntryPoint = `${paths.styles}/{main,print}.less`;
 paths.assets = `${__dirname}/wwwroot/assets`;
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
 paths.prodAssets = `${__dirname}/wwwroot/prod-assets`;
 paths.prodAssetManifest = `${paths.prodAssets}/manifest.json`;
 
-gulp.task('default', ['build']);
+function bundleAndRevisionProductionScripts() {
+  return revisionAssetsInStream(webpackScripts({ mode: 'production' }));
+}
 
-gulp.task('build', ['build:scripts', 'build:staticAssets', 'build:styles']);
+function bundleDevelopmentScripts() {
+  return webpackDevScripts().pipe(dest(paths.assets));
+}
 
-gulp.task('build:scripts', ['build:scripts:dev', 'build:scripts:prod', 'lint:scripts']);
-
-gulp.task('build:scripts:dev', () => webpackDevScripts().pipe(gulp.dest(paths.assets)));
-
-gulp.task('build:scripts:prod', ['build:staticAssets:prod'],
-  () => revAssets(webpackScripts({ mode: 'production' })));
-
-gulp.task('build:staticAssets', ['build:staticAssets:prod']);
-
-gulp.task('build:staticAssets:prod',
-  () => revAssets(gulp.src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets })));
-
-gulp.task('build:styles', ['build:styles:dev', 'build:styles:prod', 'lint:styles']);
-
-gulp.task('build:styles:dev', () => bundleStyles(gulp.src(paths.lessEntryPoint)));
-
-gulp.task('build:styles:prod', ['build:styles:dev', 'build:scripts:prod'],
-  () => revAssets(gulp.src(`${paths.styleAssets}/*.css`, { base: paths.assets })
-    .pipe(revReplace({ manifest: gulp.src(paths.prodAssetManifest) }))
-    .pipe(cleanCss())));
-
-gulp.task('clean', () => del([
-  `${paths.scriptAssets}/**/*`,
-  `${paths.styleAssets}/**/*`,
-  `${paths.prodAssets}/**/*`,
-]));
-
-gulp.task('lint', ['lint:scripts', 'lint:styles']);
-
-gulp.task('lint:scripts', () => gulp.src(`${paths.scripts}/**/*.ts`)
-  .pipe(tslint({ formatter: "verbose" }))
-  .pipe(tslint.report()));
-
-gulp.task('lint:styles', () => gulp.src(`${paths.styles}/*.less`)
-  .pipe(lesshint())
-  .pipe(lesshint.reporter())
-  .pipe(lesshint.failOnError()));
-
-gulp.task('test', ['test:headless']);
-
-gulp.task('test:headless', karmaTask('ChromeHeadless'));
-
-gulp.task('test:debug', karmaTask('Chrome'));
-
-gulp.task('watch', ['watch:scripts', 'watch:styles']);
-
-gulp.task('watch:scripts', () => webpackDevScripts({
-  watch: true,
-  watchOptions: {
-    ignored: /node_modules/,
-  },
-}).pipe(gulp.dest(paths.assets)));
-
-gulp.task('watch:styles', ['build:styles'], () => bundleStyles(watchLess(paths.lessEntryPoint)));
-
-gulp.task('lint:styles', () => gulp.src(`${paths.styles}/*.less`)
-  .pipe(lesshint())
-  .pipe(lesshint.reporter())
-  .pipe(lesshint.failOnError()));
-
-function bundleStyles(stream) {
-  return stream
+function bundleStyles() {
+  return src(`${paths.styles}/{main,print}.less`)
     .pipe(sourcemaps.init())
     .pipe(less({ math: 'parens-division' }))
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest(paths.styleAssets));
+    .pipe(dest(paths.styleAssets));
 }
 
-function karmaTask(browser) {
+function clean() {
+  return del([
+    `${paths.scriptAssets}/**/*`,
+    `${paths.styleAssets}/**/*`,
+    `${paths.prodAssets}/**/*`,
+  ]);
+}
+
+function lintScripts() {
+  return src(`${paths.scripts}/**/*.ts`)
+    .pipe(tslint({ formatter: "verbose" }))
+    .pipe(tslint.report());
+}
+
+function lintStyles() {
+  return src(`${paths.styles}/*.less`)
+    .pipe(lesshint())
+    .pipe(lesshint.reporter())
+    .pipe(lesshint.failOnError());
+}
+
+function revisionAssetsInStream(stream) {
+  return stream
+    .pipe(rev())
+    .pipe(dest(paths.prodAssets))
+    .pipe(rev.manifest(paths.prodAssetManifest, {
+      base: paths.assets,
+      merge: true,
+    }))
+    .pipe(dest(paths.prodAssets));
+}
+
+function revisionStaticAssets() {
+  return revisionAssetsInStream(src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets }));
+}
+
+function revisionStyles() {
+  return revisionAssetsInStream(src(`${paths.styleAssets}/*.css`, { base: paths.assets })
+    .pipe(revReplace({ manifest: src(paths.prodAssetManifest) }))
+    .pipe(cleanCss()));
+}
+
+function test(browser) {
   return doneCallback => {
     new karma.Server({
       browsers: [browser],
@@ -104,15 +88,17 @@ function karmaTask(browser) {
   };
 }
 
-function revAssets(stream) {
-  return stream
-    .pipe(rev())
-    .pipe(gulp.dest(paths.prodAssets))
-    .pipe(rev.manifest(paths.prodAssetManifest, {
-      base: paths.assets,
-      merge: true,
-    }))
-    .pipe(gulp.dest(paths.prodAssets));
+function watchScripts() {
+  return webpackDevScripts({
+    watch: true,
+    watchOptions: {
+      ignored: /node_modules/,
+    },
+  }).pipe(dest(paths.assets));
+}
+
+function watchStyles() {
+  return watch(`${paths.styles}/*.less`, bundleStyles);
 }
 
 function webpackDevScripts(config) {
@@ -124,7 +110,7 @@ function webpackDevScripts(config) {
 }
 
 function webpackScripts(config) {
-  return gulp.src(`${paths.scripts}/main.ts`).pipe(webpackStream({
+  return src(`${paths.scripts}/main.ts`).pipe(webpackStream({
     resolve: {
       extensions: ['.js', '.ts'],
     },
@@ -141,3 +127,22 @@ function webpackScripts(config) {
     ...config,
   }, webpack));
 }
+
+const lint = parallel(lintScripts, lintStyles);
+
+const build = parallel(
+  bundleDevelopmentScripts,
+  series(
+    parallel(bundleStyles, revisionStaticAssets),
+    bundleAndRevisionProductionScripts,
+    revisionStyles),
+  lint);
+
+exports.default = build;
+exports.build = build;
+exports.clean = clean;
+exports.lint = lint;
+exports.rebuild = series(clean, build);
+exports.test = test('ChromeHeadless');
+exports.testDebug = test('Chrome');
+exports.watch = parallel(bundleStyles, watchScripts, watchStyles);
