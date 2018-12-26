@@ -1,0 +1,33 @@
+﻿@inject IAssetHelper Asset
+@inject IViewLocalizer Localizer
+@inject ITimeZoneOptionsHelper TimeZoneOptions
+@model User
+@{
+  ViewData["Title"] = Localizer["Title_YourAccount"];
+}
+<h1>@Localizer["Title_YourAccount"]</h1>
+<section>
+  <h2 class="account-overview__section-heading">@Localizer["Heading_Security"]</h2>
+  <div class="account-overview__item">
+    <div class="account-overview__item-content">
+      <div class="account-overview__item-label">@Localizer["Label_EmailAddress"]</div>
+      <div class="account-overview__item-data">@Model.Email</div>
+    </div>
+  </div>
+  <a class="account-overview__item" asp-controller="Authentication" asp-action="ChangePassword" aria-label="@Localizer["Label_ChangePassword"]">
+    <div class="account-overview__item-content">
+      <div class="account-overview__item-label">@Localizer["Label_Password"]</div>
+      <div class="account-overview__item-data">@Localizer["Label_PasswordLastChanged", ViewContext.HttpContext.ToUserTime(Model.PasswordCreated.Value)]</div>
+    </div>
+    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" />
+  </a>
+</section>
+<section>
+  <h2 class="account-overview__section-heading">@Localizer["Heading_Preferences"]</h2>
+  <div class="account-overview__item">
+    <div class="account-overview__item-content">
+      <div class="account-overview__item-label">@Localizer["Label_TimeZone"]</div>
+      <div class="account-overview__item-data">@TimeZoneOptions.OptionForTimeZone(Model.TimeZone).Description</div>
+    </div>
+  </div>
+</section>
