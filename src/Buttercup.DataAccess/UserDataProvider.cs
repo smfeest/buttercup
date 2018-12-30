@@ -90,6 +90,7 @@ namespace Buttercup.DataAccess
                 Id = reader.GetInt64("id"),
                 Email = reader.GetString("email"),
                 HashedPassword = reader.GetString("hashed_password"),
+                PasswordCreated = reader.GetNullableDateTime("password_created", DateTimeKind.Utc),
                 SecurityStamp = reader.GetString("security_stamp"),
                 TimeZone = reader.GetString("time_zone"),
                 Created = reader.GetDateTime("created", DateTimeKind.Utc),
