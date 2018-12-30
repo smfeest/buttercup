@@ -32,6 +32,14 @@ namespace Buttercup.Models
         public string HashedPassword { get; set; }
 
         /// <summary>
+        /// Gets or sets the date and time at which the user last changed their password.
+        /// </summary>
+        /// <value>
+        /// The date and time at which the user last changed their password.
+        /// </value>
+        public DateTime? PasswordCreated { get; set; }
+
+        /// <summary>
         /// Gets or sets the security stamp.
         /// </summary>
         /// <remarks>

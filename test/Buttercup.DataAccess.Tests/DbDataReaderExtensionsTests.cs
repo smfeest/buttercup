@@ -73,6 +73,50 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region GetNullableDateTime
+
+        [Theory]
+        [InlineData(DateTimeKind.Local)]
+        [InlineData(DateTimeKind.Unspecified)]
+        [InlineData(DateTimeKind.Utc)]
+        public void GetNullableDateTimeReturnsValueWhenNotDbNull(DateTimeKind kind)
+        {
+            var mockDbDataReader = new Mock<DbDataReader>();
+
+            mockDbDataReader
+                .Setup(x => x.GetOrdinal("alpha"))
+                .Returns(10);
+            mockDbDataReader
+                .Setup(x => x.IsDBNull(10))
+                .Returns(false);
+            mockDbDataReader
+                .Setup(x => x.GetDateTime(10))
+                .Returns(new DateTime(2000, 1, 2, 3, 4, 5, 6, DateTimeKind.Unspecified));
+
+            Assert.Equal(
+                new DateTime(2000, 1, 2, 3, 4, 5, 6, kind),
+                mockDbDataReader.Object.GetNullableDateTime("alpha", kind));
+        }
+
+        [Fact]
+        public void GetNullableDateTimeReturnsNullWhenValueIsDbNull()
+        {
+            var mockDbDataReader = new Mock<DbDataReader>();
+
+            mockDbDataReader
+                .Setup(x => x.GetOrdinal("alpha"))
+                .Returns(10);
+            mockDbDataReader
+                .Setup(x => x.IsDBNull(10))
+                .Returns(true);
+
+            Assert.Null(mockDbDataReader.Object.GetNullableDateTime("alpha", DateTimeKind.Local));
+
+            mockDbDataReader.Verify(x => x.GetDateTime(It.IsAny<int>()), Times.Never);
+        }
+
+        #endregion
+
         #region GetNullableInt32
 
         [Fact]

@@ -69,13 +69,14 @@ namespace Buttercup.DataAccess
                 command.CommandText = @"UPDATE user
                     SET hashed_password = @hashed_password,
                         security_stamp = @security_stamp,
-                        modified = @modified,
+                        password_created = @time,
+                        modified = @time,
                         revision = revision + 1
                     WHERE id = @id";
                 command.AddParameterWithValue("@id", userId);
                 command.AddParameterWithValue("@hashed_password", hashedPassword);
                 command.AddParameterWithValue("@security_stamp", securityStamp);
-                command.AddParameterWithValue("@modified", this.clock.UtcNow);
+                command.AddParameterWithValue("@time", this.clock.UtcNow);
 
                 if (await command.ExecuteNonQueryAsync() == 0)
                 {
@@ -90,6 +91,7 @@ namespace Buttercup.DataAccess
                 Id = reader.GetInt64("id"),
                 Email = reader.GetString("email"),
                 HashedPassword = reader.GetString("hashed_password"),
+                PasswordCreated = reader.GetNullableDateTime("password_created", DateTimeKind.Utc),
                 SecurityStamp = reader.GetString("security_stamp"),
                 TimeZone = reader.GetString("time_zone"),
                 Created = reader.GetDateTime("created", DateTimeKind.Utc),
