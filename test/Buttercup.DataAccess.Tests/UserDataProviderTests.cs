@@ -94,6 +94,7 @@ namespace Buttercup.DataAccess
             var actual = await context.UserDataProvider.GetUser(connection, 41);
 
             Assert.Equal("new-hashed-password", actual.HashedPassword);
+            Assert.Equal(utcNow, actual.PasswordCreated);
             Assert.Equal("newstamp", actual.SecurityStamp);
             Assert.Equal(utcNow, actual.Modified);
             Assert.Equal(6, actual.Revision);
