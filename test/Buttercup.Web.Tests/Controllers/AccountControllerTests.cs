@@ -97,7 +97,7 @@ namespace Buttercup.Web.Controllers
         }
 
         [Fact]
-        public async Task ChangePasswordPostRedirectsToHomeIndexOnSuccess()
+        public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
         {
             using (var context = new ChangePasswordContext())
             {
@@ -106,8 +106,7 @@ namespace Buttercup.Web.Controllers
                 var result = await context.ChangePasswordPost();
 
                 var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal("Home", redirectResult.ControllerName);
-                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
+                Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
             }
         }
 

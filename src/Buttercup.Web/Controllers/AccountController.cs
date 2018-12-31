@@ -50,7 +50,7 @@ namespace Buttercup.Web.Controllers
                 return this.View(model);
             }
 
-            return this.RedirectToAction(nameof(HomeController.Index), "Home");
+            return this.RedirectToAction(nameof(this.Show));
         }
     }
 }
