@@ -25,35 +25,6 @@ namespace Buttercup.Web.Controllers
 
         public IStringLocalizer<AuthenticationController> Localizer { get; }
 
-        [Authorize]
-        [HttpGet("change-password")]
-        public IActionResult ChangePassword() => this.View();
-
-        [Authorize]
-        [HttpPost("change-password")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-        {
-            if (!this.ModelState.IsValid)
-            {
-                return this.View(model);
-            }
-
-            var passwordChanged = await this.AuthenticationManager.ChangePassword(
-                this.HttpContext, model.CurrentPassword, model.NewPassword);
-
-            if (!passwordChanged)
-            {
-                this.ModelState.AddModelError(
-                    nameof(ChangePasswordViewModel.CurrentPassword),
-                    this.Localizer["Error_WrongPassword"]);
-
-                return this.View(model);
-            }
-
-            return this.RedirectToHome();
-        }
-
         [HttpGet("reset-password")]
         public IActionResult RequestPasswordReset() => this.View();
 

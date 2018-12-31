@@ -14,7 +14,7 @@
       <div class="account-overview__item-data">@Model.Email</div>
     </div>
   </div>
-  <a class="account-overview__item" asp-controller="Authentication" asp-action="ChangePassword" aria-label="@Localizer["Label_ChangePassword"]">
+  <a class="account-overview__item" asp-action="ChangePassword" aria-label="@Localizer["Label_ChangePassword"]">
     <div class="account-overview__item-content">
       <div class="account-overview__item-label">@Localizer["Label_Password"]</div>
       <div class="account-overview__item-data">@Localizer["Label_PasswordLastChanged", ViewContext.HttpContext.ToUserTime(Model.PasswordCreated.Value)]</div>

@@ -13,87 +13,6 @@ namespace Buttercup.Web.Controllers
 {
     public class AuthenticationControllerTests
     {
-        #region ChangePassword (GET)
-
-        [Fact]
-        public void ChangePasswordGetReturnsViewResult()
-        {
-            using (var context = new Context())
-            {
-                var result = context.AuthenticationController.ChangePassword();
-                Assert.IsType<ViewResult>(result);
-            }
-        }
-
-        #endregion
-
-        #region ChangePassword (POST)
-
-        [Fact]
-        public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
-        {
-            using (var context = new ChangePasswordContext())
-            {
-                context.AuthenticationController.ModelState.AddModelError("test", "test");
-
-                var result = await context.ChangePasswordPost();
-
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.Model, viewResult.Model);
-            }
-        }
-
-        [Fact]
-        public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
-        {
-            using (var context = new ChangePasswordContext())
-            {
-                context.SetupChangePassword(false);
-
-                await context.ChangePasswordPost();
-
-                var errors = context
-                    .AuthenticationController
-                    .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]
-                    .Errors;
-
-                var error = Assert.Single(errors);
-
-                Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
-            }
-        }
-
-        [Fact]
-        public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
-        {
-            using (var context = new ChangePasswordContext())
-            {
-                context.SetupChangePassword(false);
-
-                var result = await context.ChangePasswordPost();
-
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.Model, viewResult.Model);
-            }
-        }
-
-        [Fact]
-        public async Task ChangePasswordPostRedirectsToHomeIndexOnSuccess()
-        {
-            using (var context = new ChangePasswordContext())
-            {
-                context.SetupChangePassword(true);
-
-                var result = await context.ChangePasswordPost();
-
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal("Home", redirectResult.ControllerName);
-                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
-            }
-        }
-
-        #endregion
-
         #region RequestPasswordReset (GET)
 
         [Fact]
@@ -467,32 +386,6 @@ namespace Buttercup.Web.Controllers
                     this.AuthenticationController.Dispose();
                 }
             }
-        }
-
-        private class ChangePasswordContext : Context
-        {
-            public ChangePasswordContext()
-            {
-                this.MockLocalizer
-                    .SetupGet(x => x["Error_WrongPassword"])
-                    .Returns(new LocalizedString(
-                        "Error_WrongPassword", "translated-wrong-password-error"));
-            }
-
-            public ChangePasswordViewModel Model { get; } = new ChangePasswordViewModel
-            {
-                CurrentPassword = "current-password",
-                NewPassword = "new-password",
-            };
-
-            public void SetupChangePassword(bool result) =>
-                this.MockAuthenticationManager
-                    .Setup(x => x.ChangePassword(
-                        this.HttpContext, "current-password", "new-password"))
-                    .ReturnsAsync(result);
-
-            public Task<IActionResult> ChangePasswordPost() =>
-                this.AuthenticationController.ChangePassword(this.Model);
         }
 
         private class SignInContext : Context
