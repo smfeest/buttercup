@@ -1,0 +1,1284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="City_Africa/Abidjan">
+    <value>Abidjan</value>
+  </data>
+  <data name="City_Africa/Accra">
+    <value>Accra</value>
+  </data>
+  <data name="City_Africa/Addis_Ababa">
+    <value>Addis-Abeba</value>
+  </data>
+  <data name="City_Africa/Algiers">
+    <value>Alger</value>
+  </data>
+  <data name="City_Africa/Asmara">
+    <value>Asmara</value>
+  </data>
+  <data name="City_Africa/Bamako">
+    <value>Bamako</value>
+  </data>
+  <data name="City_Africa/Bangui">
+    <value>Bangui</value>
+  </data>
+  <data name="City_Africa/Banjul">
+    <value>Banjul</value>
+  </data>
+  <data name="City_Africa/Bissau">
+    <value>Bissau</value>
+  </data>
+  <data name="City_Africa/Blantyre">
+    <value>Blantyre</value>
+  </data>
+  <data name="City_Africa/Brazzaville">
+    <value>Brazzaville</value>
+  </data>
+  <data name="City_Africa/Bujumbura">
+    <value>Bujumbura</value>
+  </data>
+  <data name="City_Africa/Cairo">
+    <value>Le Caire</value>
+  </data>
+  <data name="City_Africa/Casablanca">
+    <value>Casablanca</value>
+  </data>
+  <data name="City_Africa/Ceuta">
+    <value>Ceuta</value>
+  </data>
+  <data name="City_Africa/Conakry">
+    <value>Conakry</value>
+  </data>
+  <data name="City_Africa/Dakar">
+    <value>Dakar</value>
+  </data>
+  <data name="City_Africa/Dar_es_Salaam">
+    <value>Dar es Salaam</value>
+  </data>
+  <data name="City_Africa/Djibouti">
+    <value>Djibouti</value>
+  </data>
+  <data name="City_Africa/Douala">
+    <value>Douala</value>
+  </data>
+  <data name="City_Africa/El_Aaiun">
+    <value>Laâyoune</value>
+  </data>
+  <data name="City_Africa/Freetown">
+    <value>Freetown</value>
+  </data>
+  <data name="City_Africa/Gaborone">
+    <value>Gaborone</value>
+  </data>
+  <data name="City_Africa/Harare">
+    <value>Harare</value>
+  </data>
+  <data name="City_Africa/Johannesburg">
+    <value>Johannesburg</value>
+  </data>
+  <data name="City_Africa/Juba">
+    <value>Juba</value>
+  </data>
+  <data name="City_Africa/Kampala">
+    <value>Kampala</value>
+  </data>
+  <data name="City_Africa/Khartoum">
+    <value>Khartoum</value>
+  </data>
+  <data name="City_Africa/Kigali">
+    <value>Kigali</value>
+  </data>
+  <data name="City_Africa/Kinshasa">
+    <value>Kinshasa</value>
+  </data>
+  <data name="City_Africa/Lagos">
+    <value>Lagos</value>
+  </data>
+  <data name="City_Africa/Libreville">
+    <value>Libreville</value>
+  </data>
+  <data name="City_Africa/Lome">
+    <value>Lomé</value>
+  </data>
+  <data name="City_Africa/Luanda">
+    <value>Luanda</value>
+  </data>
+  <data name="City_Africa/Lubumbashi">
+    <value>Lubumbashi</value>
+  </data>
+  <data name="City_Africa/Lusaka">
+    <value>Lusaka</value>
+  </data>
+  <data name="City_Africa/Malabo">
+    <value>Malabo</value>
+  </data>
+  <data name="City_Africa/Maputo">
+    <value>Maputo</value>
+  </data>
+  <data name="City_Africa/Maseru">
+    <value>Maseru</value>
+  </data>
+  <data name="City_Africa/Mbabane">
+    <value>Mbabane</value>
+  </data>
+  <data name="City_Africa/Mogadishu">
+    <value>Mogadiscio</value>
+  </data>
+  <data name="City_Africa/Monrovia">
+    <value>Monrovia</value>
+  </data>
+  <data name="City_Africa/Nairobi">
+    <value>Nairobi</value>
+  </data>
+  <data name="City_Africa/Ndjamena">
+    <value>N’Djamena</value>
+  </data>
+  <data name="City_Africa/Niamey">
+    <value>Niamey</value>
+  </data>
+  <data name="City_Africa/Nouakchott">
+    <value>Nouakchott</value>
+  </data>
+  <data name="City_Africa/Ouagadougou">
+    <value>Ouagadougou</value>
+  </data>
+  <data name="City_Africa/Porto-Novo">
+    <value>Porto-Novo</value>
+  </data>
+  <data name="City_Africa/Sao_Tome">
+    <value>São Tomé</value>
+  </data>
+  <data name="City_Africa/Tripoli">
+    <value>Tripoli (Libye)</value>
+  </data>
+  <data name="City_Africa/Tunis">
+    <value>Tunis</value>
+  </data>
+  <data name="City_Africa/Windhoek">
+    <value>Windhoek</value>
+  </data>
+  <data name="City_America/Adak">
+    <value>Adak</value>
+  </data>
+  <data name="City_America/Anchorage">
+    <value>Anchorage</value>
+  </data>
+  <data name="City_America/Anguilla">
+    <value>Anguilla</value>
+  </data>
+  <data name="City_America/Antigua">
+    <value>Antigua</value>
+  </data>
+  <data name="City_America/Araguaina">
+    <value>Araguaína</value>
+  </data>
+  <data name="City_America/Argentina/Buenos_Aires">
+    <value>Buenos Aires</value>
+  </data>
+  <data name="City_America/Argentina/Catamarca">
+    <value>Catamarca</value>
+  </data>
+  <data name="City_America/Argentina/Cordoba">
+    <value>Córdoba</value>
+  </data>
+  <data name="City_America/Argentina/Jujuy">
+    <value>Jujuy</value>
+  </data>
+  <data name="City_America/Argentina/La_Rioja">
+    <value>La Rioja</value>
+  </data>
+  <data name="City_America/Argentina/Mendoza">
+    <value>Mendoza</value>
+  </data>
+  <data name="City_America/Argentina/Rio_Gallegos">
+    <value>Río Gallegos</value>
+  </data>
+  <data name="City_America/Argentina/Salta">
+    <value>Salta</value>
+  </data>
+  <data name="City_America/Argentina/San_Juan">
+    <value>San Juan</value>
+  </data>
+  <data name="City_America/Argentina/San_Luis">
+    <value>San Luis</value>
+  </data>
+  <data name="City_America/Argentina/Tucuman">
+    <value>Tucumán</value>
+  </data>
+  <data name="City_America/Argentina/Ushuaia">
+    <value>Ushuaïa</value>
+  </data>
+  <data name="City_America/Aruba">
+    <value>Aruba</value>
+  </data>
+  <data name="City_America/Asuncion">
+    <value>Asunción</value>
+  </data>
+  <data name="City_America/Atikokan">
+    <value>Atikokan</value>
+  </data>
+  <data name="City_America/Bahia">
+    <value>Bahia</value>
+  </data>
+  <data name="City_America/Bahia_Banderas">
+    <value>Bahia de Banderas</value>
+  </data>
+  <data name="City_America/Barbados">
+    <value>La Barbade</value>
+  </data>
+  <data name="City_America/Belem">
+    <value>Belém</value>
+  </data>
+  <data name="City_America/Belize">
+    <value>Belize</value>
+  </data>
+  <data name="City_America/Blanc-Sablon">
+    <value>Blanc-Sablon</value>
+  </data>
+  <data name="City_America/Boa_Vista">
+    <value>Boa Vista</value>
+  </data>
+  <data name="City_America/Bogota">
+    <value>Bogota</value>
+  </data>
+  <data name="City_America/Boise">
+    <value>Boise</value>
+  </data>
+  <data name="City_America/Cambridge_Bay">
+    <value>Cambridge Bay</value>
+  </data>
+  <data name="City_America/Campo_Grande">
+    <value>Campo Grande</value>
+  </data>
+  <data name="City_America/Cancun">
+    <value>Cancún</value>
+  </data>
+  <data name="City_America/Caracas">
+    <value>Caracas</value>
+  </data>
+  <data name="City_America/Cayenne">
+    <value>Cayenne</value>
+  </data>
+  <data name="City_America/Cayman">
+    <value>Caïmans</value>
+  </data>
+  <data name="City_America/Chicago">
+    <value>Chicago</value>
+  </data>
+  <data name="City_America/Chihuahua">
+    <value>Chihuahua</value>
+  </data>
+  <data name="City_America/Costa_Rica">
+    <value>Costa Rica</value>
+  </data>
+  <data name="City_America/Creston">
+    <value>Creston</value>
+  </data>
+  <data name="City_America/Cuiaba">
+    <value>Cuiabá</value>
+  </data>
+  <data name="City_America/Curacao">
+    <value>Curaçao</value>
+  </data>
+  <data name="City_America/Danmarkshavn">
+    <value>Danmarkshavn</value>
+  </data>
+  <data name="City_America/Dawson">
+    <value>Dawson</value>
+  </data>
+  <data name="City_America/Dawson_Creek">
+    <value>Dawson Creek</value>
+  </data>
+  <data name="City_America/Denver">
+    <value>Denver</value>
+  </data>
+  <data name="City_America/Detroit">
+    <value>Détroit</value>
+  </data>
+  <data name="City_America/Dominica">
+    <value>Dominique</value>
+  </data>
+  <data name="City_America/Edmonton">
+    <value>Edmonton</value>
+  </data>
+  <data name="City_America/Eirunepe">
+    <value>Eirunepé</value>
+  </data>
+  <data name="City_America/El_Salvador">
+    <value>El Salvador</value>
+  </data>
+  <data name="City_America/Fort_Nelson">
+    <value>Fort Nelson</value>
+  </data>
+  <data name="City_America/Fortaleza">
+    <value>Fortaleza</value>
+  </data>
+  <data name="City_America/Glace_Bay">
+    <value>Glace Bay</value>
+  </data>
+  <data name="City_America/Godthab">
+    <value>Nuuk</value>
+  </data>
+  <data name="City_America/Goose_Bay">
+    <value>Goose Bay</value>
+  </data>
+  <data name="City_America/Grand_Turk">
+    <value>Grand Turk</value>
+  </data>
+  <data name="City_America/Grenada">
+    <value>Grenade</value>
+  </data>
+  <data name="City_America/Guadeloupe">
+    <value>Guadeloupe</value>
+  </data>
+  <data name="City_America/Guatemala">
+    <value>Guatemala</value>
+  </data>
+  <data name="City_America/Guayaquil">
+    <value>Guayaquil</value>
+  </data>
+  <data name="City_America/Guyana">
+    <value>Guyana</value>
+  </data>
+  <data name="City_America/Halifax">
+    <value>Halifax</value>
+  </data>
+  <data name="City_America/Havana">
+    <value>La Havane</value>
+  </data>
+  <data name="City_America/Hermosillo">
+    <value>Hermosillo</value>
+  </data>
+  <data name="City_America/Indiana/Indianapolis">
+    <value>Indianapolis</value>
+  </data>
+  <data name="City_America/Indiana/Knox">
+    <value>Knox [Indiana]</value>
+  </data>
+  <data name="City_America/Indiana/Marengo">
+    <value>Marengo [Indiana]</value>
+  </data>
+  <data name="City_America/Indiana/Petersburg">
+    <value>Petersburg [Indiana]</value>
+  </data>
+  <data name="City_America/Indiana/Tell_City">
+    <value>Tell City [Indiana]</value>
+  </data>
+  <data name="City_America/Indiana/Vevay">
+    <value>Vevay [Indiana]</value>
+  </data>
+  <data name="City_America/Indiana/Vincennes">
+    <value>Vincennes [Indiana]</value>
+  </data>
+  <data name="City_America/Indiana/Winamac">
+    <value>Winamac [Indiana]</value>
+  </data>
+  <data name="City_America/Inuvik">
+    <value>Inuvik</value>
+  </data>
+  <data name="City_America/Iqaluit">
+    <value>Iqaluit</value>
+  </data>
+  <data name="City_America/Jamaica">
+    <value>Jamaïque</value>
+  </data>
+  <data name="City_America/Juneau">
+    <value>Juneau</value>
+  </data>
+  <data name="City_America/Kentucky/Louisville">
+    <value>Louisville</value>
+  </data>
+  <data name="City_America/Kentucky/Monticello">
+    <value>Monticello [Kentucky]</value>
+  </data>
+  <data name="City_America/Kralendijk">
+    <value>Kralendijk</value>
+  </data>
+  <data name="City_America/La_Paz">
+    <value>La Paz</value>
+  </data>
+  <data name="City_America/Lima">
+    <value>Lima</value>
+  </data>
+  <data name="City_America/Los_Angeles">
+    <value>Los Angeles</value>
+  </data>
+  <data name="City_America/Lower_Princes">
+    <value>Lower Prince’s Quarter</value>
+  </data>
+  <data name="City_America/Maceio">
+    <value>Maceió</value>
+  </data>
+  <data name="City_America/Managua">
+    <value>Managua</value>
+  </data>
+  <data name="City_America/Manaus">
+    <value>Manaos</value>
+  </data>
+  <data name="City_America/Marigot">
+    <value>Marigot</value>
+  </data>
+  <data name="City_America/Martinique">
+    <value>Martinique</value>
+  </data>
+  <data name="City_America/Matamoros">
+    <value>Matamoros</value>
+  </data>
+  <data name="City_America/Mazatlan">
+    <value>Mazatlán</value>
+  </data>
+  <data name="City_America/Menominee">
+    <value>Menominee</value>
+  </data>
+  <data name="City_America/Merida">
+    <value>Mérida</value>
+  </data>
+  <data name="City_America/Metlakatla">
+    <value>Metlakatla</value>
+  </data>
+  <data name="City_America/Mexico_City">
+    <value>Mexico</value>
+  </data>
+  <data name="City_America/Miquelon">
+    <value>Miquelon</value>
+  </data>
+  <data name="City_America/Moncton">
+    <value>Moncton</value>
+  </data>
+  <data name="City_America/Monterrey">
+    <value>Monterrey</value>
+  </data>
+  <data name="City_America/Montevideo">
+    <value>Montevideo</value>
+  </data>
+  <data name="City_America/Montserrat">
+    <value>Montserrat</value>
+  </data>
+  <data name="City_America/Nassau">
+    <value>Nassau</value>
+  </data>
+  <data name="City_America/New_York">
+    <value>New York</value>
+  </data>
+  <data name="City_America/Nipigon">
+    <value>Nipigon</value>
+  </data>
+  <data name="City_America/Nome">
+    <value>Nome</value>
+  </data>
+  <data name="City_America/Noronha">
+    <value>Noronha</value>
+  </data>
+  <data name="City_America/North_Dakota/Beulah">
+    <value>Beulah (Dakota du Nord)</value>
+  </data>
+  <data name="City_America/North_Dakota/Center">
+    <value>Center (Dakota du Nord)</value>
+  </data>
+  <data name="City_America/North_Dakota/New_Salem">
+    <value>New Salem (Dakota du Nord)</value>
+  </data>
+  <data name="City_America/Ojinaga">
+    <value>Ojinaga</value>
+  </data>
+  <data name="City_America/Panama">
+    <value>Panama</value>
+  </data>
+  <data name="City_America/Pangnirtung">
+    <value>Pangnirtung</value>
+  </data>
+  <data name="City_America/Paramaribo">
+    <value>Paramaribo</value>
+  </data>
+  <data name="City_America/Phoenix">
+    <value>Phoenix</value>
+  </data>
+  <data name="City_America/Port_of_Spain">
+    <value>Port-d’Espagne</value>
+  </data>
+  <data name="City_America/Port-au-Prince">
+    <value>Port-au-Prince</value>
+  </data>
+  <data name="City_America/Porto_Velho">
+    <value>Porto Velho</value>
+  </data>
+  <data name="City_America/Puerto_Rico">
+    <value>Porto Rico</value>
+  </data>
+  <data name="City_America/Punta_Arenas">
+    <value>Punta Arenas</value>
+  </data>
+  <data name="City_America/Rainy_River">
+    <value>Rainy River</value>
+  </data>
+  <data name="City_America/Rankin_Inlet">
+    <value>Rankin Inlet</value>
+  </data>
+  <data name="City_America/Recife">
+    <value>Recife</value>
+  </data>
+  <data name="City_America/Regina">
+    <value>Regina</value>
+  </data>
+  <data name="City_America/Resolute">
+    <value>Resolute</value>
+  </data>
+  <data name="City_America/Rio_Branco">
+    <value>Rio Branco</value>
+  </data>
+  <data name="City_America/Santarem">
+    <value>Santarém</value>
+  </data>
+  <data name="City_America/Santiago">
+    <value>Santiago</value>
+  </data>
+  <data name="City_America/Santo_Domingo">
+    <value>Saint-Domingue</value>
+  </data>
+  <data name="City_America/Sao_Paulo">
+    <value>São Paulo</value>
+  </data>
+  <data name="City_America/Scoresbysund">
+    <value>Ittoqqortoormiit</value>
+  </data>
+  <data name="City_America/Sitka">
+    <value>Sitka</value>
+  </data>
+  <data name="City_America/St_Barthelemy">
+    <value>Saint-Barthélemy</value>
+  </data>
+  <data name="City_America/St_Johns">
+    <value>Saint-Jean de Terre-Neuve</value>
+  </data>
+  <data name="City_America/St_Kitts">
+    <value>Saint-Christophe</value>
+  </data>
+  <data name="City_America/St_Lucia">
+    <value>Sainte-Lucie</value>
+  </data>
+  <data name="City_America/St_Thomas">
+    <value>Saint-Thomas</value>
+  </data>
+  <data name="City_America/St_Vincent">
+    <value>Saint-Vincent</value>
+  </data>
+  <data name="City_America/Swift_Current">
+    <value>Swift Current</value>
+  </data>
+  <data name="City_America/Tegucigalpa">
+    <value>Tégucigalpa</value>
+  </data>
+  <data name="City_America/Thule">
+    <value>Thulé</value>
+  </data>
+  <data name="City_America/Thunder_Bay">
+    <value>Thunder Bay</value>
+  </data>
+  <data name="City_America/Tijuana">
+    <value>Tijuana</value>
+  </data>
+  <data name="City_America/Toronto">
+    <value>Toronto</value>
+  </data>
+  <data name="City_America/Tortola">
+    <value>Tortola</value>
+  </data>
+  <data name="City_America/Vancouver">
+    <value>Vancouver</value>
+  </data>
+  <data name="City_America/Whitehorse">
+    <value>Whitehorse</value>
+  </data>
+  <data name="City_America/Winnipeg">
+    <value>Winnipeg</value>
+  </data>
+  <data name="City_America/Yakutat">
+    <value>Yakutat</value>
+  </data>
+  <data name="City_America/Yellowknife">
+    <value>Yellowknife</value>
+  </data>
+  <data name="City_Antarctica/Casey">
+    <value>Casey</value>
+  </data>
+  <data name="City_Antarctica/Davis">
+    <value>Davis</value>
+  </data>
+  <data name="City_Antarctica/DumontDUrville">
+    <value>Dumont d’Urville</value>
+  </data>
+  <data name="City_Antarctica/Macquarie">
+    <value>Macquarie</value>
+  </data>
+  <data name="City_Antarctica/Mawson">
+    <value>Mawson</value>
+  </data>
+  <data name="City_Antarctica/McMurdo">
+    <value>McMurdo</value>
+  </data>
+  <data name="City_Antarctica/Palmer">
+    <value>Palmer</value>
+  </data>
+  <data name="City_Antarctica/Rothera">
+    <value>Rothera</value>
+  </data>
+  <data name="City_Antarctica/Syowa">
+    <value>Showa</value>
+  </data>
+  <data name="City_Antarctica/Troll">
+    <value>Troll</value>
+  </data>
+  <data name="City_Antarctica/Vostok">
+    <value>Vostok</value>
+  </data>
+  <data name="City_Arctic/Longyearbyen">
+    <value>Longyearbyen</value>
+  </data>
+  <data name="City_Asia/Aden">
+    <value>Aden</value>
+  </data>
+  <data name="City_Asia/Almaty">
+    <value>Alma Ata</value>
+  </data>
+  <data name="City_Asia/Amman">
+    <value>Amman</value>
+  </data>
+  <data name="City_Asia/Anadyr">
+    <value>Anadyr</value>
+  </data>
+  <data name="City_Asia/Aqtau">
+    <value>Aktaou</value>
+  </data>
+  <data name="City_Asia/Aqtobe">
+    <value>Aktioubinsk</value>
+  </data>
+  <data name="City_Asia/Ashgabat">
+    <value>Achgabat</value>
+  </data>
+  <data name="City_Asia/Atyrau">
+    <value>Atyraou</value>
+  </data>
+  <data name="City_Asia/Baghdad">
+    <value>Bagdad</value>
+  </data>
+  <data name="City_Asia/Bahrain">
+    <value>Bahreïn</value>
+  </data>
+  <data name="City_Asia/Baku">
+    <value>Bakou</value>
+  </data>
+  <data name="City_Asia/Bangkok">
+    <value>Bangkok</value>
+  </data>
+  <data name="City_Asia/Barnaul">
+    <value>Barnaul</value>
+  </data>
+  <data name="City_Asia/Beirut">
+    <value>Beyrouth</value>
+  </data>
+  <data name="City_Asia/Bishkek">
+    <value>Bichkek</value>
+  </data>
+  <data name="City_Asia/Brunei">
+    <value>Brunei</value>
+  </data>
+  <data name="City_Asia/Chita">
+    <value>Tchita</value>
+  </data>
+  <data name="City_Asia/Choibalsan">
+    <value>Tchoïbalsan</value>
+  </data>
+  <data name="City_Asia/Colombo">
+    <value>Colombo</value>
+  </data>
+  <data name="City_Asia/Damascus">
+    <value>Damas</value>
+  </data>
+  <data name="City_Asia/Dhaka">
+    <value>Dhaka</value>
+  </data>
+  <data name="City_Asia/Dili">
+    <value>Dili</value>
+  </data>
+  <data name="City_Asia/Dubai">
+    <value>Dubaï</value>
+  </data>
+  <data name="City_Asia/Dushanbe">
+    <value>Douchanbé</value>
+  </data>
+  <data name="City_Asia/Famagusta">
+    <value>Famagouste</value>
+  </data>
+  <data name="City_Asia/Gaza">
+    <value>Gaza</value>
+  </data>
+  <data name="City_Asia/Hebron">
+    <value>Hébron</value>
+  </data>
+  <data name="City_Asia/Ho_Chi_Minh">
+    <value>Hô-Chi-Minh-Ville</value>
+  </data>
+  <data name="City_Asia/Hong_Kong">
+    <value>Hong Kong</value>
+  </data>
+  <data name="City_Asia/Hovd">
+    <value>Hovd</value>
+  </data>
+  <data name="City_Asia/Irkutsk">
+    <value>Irkoutsk</value>
+  </data>
+  <data name="City_Asia/Jakarta">
+    <value>Jakarta</value>
+  </data>
+  <data name="City_Asia/Jayapura">
+    <value>Jayapura</value>
+  </data>
+  <data name="City_Asia/Jerusalem">
+    <value>Jérusalem</value>
+  </data>
+  <data name="City_Asia/Kabul">
+    <value>Kaboul</value>
+  </data>
+  <data name="City_Asia/Kamchatka">
+    <value>Kamtchatka</value>
+  </data>
+  <data name="City_Asia/Karachi">
+    <value>Karachi</value>
+  </data>
+  <data name="City_Asia/Kathmandu">
+    <value>Katmandou</value>
+  </data>
+  <data name="City_Asia/Khandyga">
+    <value>Khandyga</value>
+  </data>
+  <data name="City_Asia/Kolkata">
+    <value>Calcutta</value>
+  </data>
+  <data name="City_Asia/Krasnoyarsk">
+    <value>Krasnoïarsk</value>
+  </data>
+  <data name="City_Asia/Kuala_Lumpur">
+    <value>Kuala Lumpur</value>
+  </data>
+  <data name="City_Asia/Kuching">
+    <value>Kuching</value>
+  </data>
+  <data name="City_Asia/Kuwait">
+    <value>Koweït</value>
+  </data>
+  <data name="City_Asia/Macau">
+    <value>Macao</value>
+  </data>
+  <data name="City_Asia/Magadan">
+    <value>Magadan</value>
+  </data>
+  <data name="City_Asia/Makassar">
+    <value>Macassar</value>
+  </data>
+  <data name="City_Asia/Manila">
+    <value>Manille</value>
+  </data>
+  <data name="City_Asia/Muscat">
+    <value>Mascate</value>
+  </data>
+  <data name="City_Asia/Nicosia">
+    <value>Nicosie</value>
+  </data>
+  <data name="City_Asia/Novokuznetsk">
+    <value>Novokuznetsk</value>
+  </data>
+  <data name="City_Asia/Novosibirsk">
+    <value>Novossibirsk</value>
+  </data>
+  <data name="City_Asia/Omsk">
+    <value>Omsk</value>
+  </data>
+  <data name="City_Asia/Oral">
+    <value>Ouralsk</value>
+  </data>
+  <data name="City_Asia/Phnom_Penh">
+    <value>Phnom Penh</value>
+  </data>
+  <data name="City_Asia/Pontianak">
+    <value>Pontianak</value>
+  </data>
+  <data name="City_Asia/Pyongyang">
+    <value>Pyongyang</value>
+  </data>
+  <data name="City_Asia/Qatar">
+    <value>Qatar</value>
+  </data>
+  <data name="City_Asia/Qostanay">
+    <value>Qostanay</value>
+  </data>
+  <data name="City_Asia/Qyzylorda">
+    <value>Kzyl Orda</value>
+  </data>
+  <data name="City_Asia/Riyadh">
+    <value>Riyad</value>
+  </data>
+  <data name="City_Asia/Sakhalin">
+    <value>Sakhaline</value>
+  </data>
+  <data name="City_Asia/Samarkand">
+    <value>Samarcande</value>
+  </data>
+  <data name="City_Asia/Seoul">
+    <value>Séoul</value>
+  </data>
+  <data name="City_Asia/Shanghai">
+    <value>Shanghai</value>
+  </data>
+  <data name="City_Asia/Singapore">
+    <value>Singapour</value>
+  </data>
+  <data name="City_Asia/Srednekolymsk">
+    <value>Srednekolymsk</value>
+  </data>
+  <data name="City_Asia/Taipei">
+    <value>Taipei</value>
+  </data>
+  <data name="City_Asia/Tashkent">
+    <value>Tachkent</value>
+  </data>
+  <data name="City_Asia/Tbilisi">
+    <value>Tbilissi</value>
+  </data>
+  <data name="City_Asia/Tehran">
+    <value>Téhéran</value>
+  </data>
+  <data name="City_Asia/Thimphu">
+    <value>Thimphu</value>
+  </data>
+  <data name="City_Asia/Tokyo">
+    <value>Tokyo</value>
+  </data>
+  <data name="City_Asia/Tomsk">
+    <value>Tomsk</value>
+  </data>
+  <data name="City_Asia/Ulaanbaatar">
+    <value>Oulan-Bator</value>
+  </data>
+  <data name="City_Asia/Urumqi">
+    <value>Ürümqi</value>
+  </data>
+  <data name="City_Asia/Ust-Nera">
+    <value>Ust-Nera</value>
+  </data>
+  <data name="City_Asia/Vientiane">
+    <value>Vientiane</value>
+  </data>
+  <data name="City_Asia/Vladivostok">
+    <value>Vladivostok</value>
+  </data>
+  <data name="City_Asia/Yakutsk">
+    <value>Iakoutsk</value>
+  </data>
+  <data name="City_Asia/Yangon">
+    <value>Rangoun</value>
+  </data>
+  <data name="City_Asia/Yekaterinburg">
+    <value>Ekaterinbourg</value>
+  </data>
+  <data name="City_Asia/Yerevan">
+    <value>Erevan</value>
+  </data>
+  <data name="City_Atlantic/Azores">
+    <value>Açores</value>
+  </data>
+  <data name="City_Atlantic/Bermuda">
+    <value>Bermudes</value>
+  </data>
+  <data name="City_Atlantic/Canary">
+    <value>Îles Canaries</value>
+  </data>
+  <data name="City_Atlantic/Cape_Verde">
+    <value>Cap-Vert</value>
+  </data>
+  <data name="City_Atlantic/Faroe">
+    <value>Féroé</value>
+  </data>
+  <data name="City_Atlantic/Madeira">
+    <value>Madère</value>
+  </data>
+  <data name="City_Atlantic/Reykjavik">
+    <value>Reykjavik</value>
+  </data>
+  <data name="City_Atlantic/South_Georgia">
+    <value>Géorgie du Sud</value>
+  </data>
+  <data name="City_Atlantic/St_Helena">
+    <value>Sainte-Hélène</value>
+  </data>
+  <data name="City_Atlantic/Stanley">
+    <value>Stanley</value>
+  </data>
+  <data name="City_Australia/Adelaide">
+    <value>Adélaïde</value>
+  </data>
+  <data name="City_Australia/Brisbane">
+    <value>Brisbane</value>
+  </data>
+  <data name="City_Australia/Broken_Hill">
+    <value>Broken Hill</value>
+  </data>
+  <data name="City_Australia/Currie">
+    <value>Currie</value>
+  </data>
+  <data name="City_Australia/Darwin">
+    <value>Darwin</value>
+  </data>
+  <data name="City_Australia/Eucla">
+    <value>Eucla</value>
+  </data>
+  <data name="City_Australia/Hobart">
+    <value>Hobart</value>
+  </data>
+  <data name="City_Australia/Lindeman">
+    <value>Lindeman</value>
+  </data>
+  <data name="City_Australia/Lord_Howe">
+    <value>Lord Howe</value>
+  </data>
+  <data name="City_Australia/Melbourne">
+    <value>Melbourne</value>
+  </data>
+  <data name="City_Australia/Perth">
+    <value>Perth</value>
+  </data>
+  <data name="City_Australia/Sydney">
+    <value>Sydney</value>
+  </data>
+  <data name="City_Europe/Amsterdam">
+    <value>Amsterdam</value>
+  </data>
+  <data name="City_Europe/Andorra">
+    <value>Andorre</value>
+  </data>
+  <data name="City_Europe/Astrakhan">
+    <value>Astrakhan</value>
+  </data>
+  <data name="City_Europe/Athens">
+    <value>Athènes</value>
+  </data>
+  <data name="City_Europe/Belgrade">
+    <value>Belgrade</value>
+  </data>
+  <data name="City_Europe/Berlin">
+    <value>Berlin</value>
+  </data>
+  <data name="City_Europe/Bratislava">
+    <value>Bratislava</value>
+  </data>
+  <data name="City_Europe/Brussels">
+    <value>Bruxelles</value>
+  </data>
+  <data name="City_Europe/Bucharest">
+    <value>Bucarest</value>
+  </data>
+  <data name="City_Europe/Budapest">
+    <value>Budapest</value>
+  </data>
+  <data name="City_Europe/Busingen">
+    <value>Büsingen</value>
+  </data>
+  <data name="City_Europe/Chisinau">
+    <value>Chisinau</value>
+  </data>
+  <data name="City_Europe/Copenhagen">
+    <value>Copenhague</value>
+  </data>
+  <data name="City_Europe/Dublin">
+    <value>Dublin</value>
+  </data>
+  <data name="City_Europe/Gibraltar">
+    <value>Gibraltar</value>
+  </data>
+  <data name="City_Europe/Guernsey">
+    <value>Guernesey</value>
+  </data>
+  <data name="City_Europe/Helsinki">
+    <value>Helsinki</value>
+  </data>
+  <data name="City_Europe/Isle_of_Man">
+    <value>Île de Man</value>
+  </data>
+  <data name="City_Europe/Istanbul">
+    <value>Istanbul</value>
+  </data>
+  <data name="City_Europe/Jersey">
+    <value>Jersey</value>
+  </data>
+  <data name="City_Europe/Kaliningrad">
+    <value>Kaliningrad</value>
+  </data>
+  <data name="City_Europe/Kiev">
+    <value>Kiev</value>
+  </data>
+  <data name="City_Europe/Kirov">
+    <value>Kirov</value>
+  </data>
+  <data name="City_Europe/Lisbon">
+    <value>Lisbonne</value>
+  </data>
+  <data name="City_Europe/Ljubljana">
+    <value>Ljubljana</value>
+  </data>
+  <data name="City_Europe/London">
+    <value>Londres</value>
+  </data>
+  <data name="City_Europe/Luxembourg">
+    <value>Luxembourg</value>
+  </data>
+  <data name="City_Europe/Madrid">
+    <value>Madrid</value>
+  </data>
+  <data name="City_Europe/Malta">
+    <value>Malte</value>
+  </data>
+  <data name="City_Europe/Mariehamn">
+    <value>Mariehamn</value>
+  </data>
+  <data name="City_Europe/Minsk">
+    <value>Minsk</value>
+  </data>
+  <data name="City_Europe/Monaco">
+    <value>Monaco</value>
+  </data>
+  <data name="City_Europe/Moscow">
+    <value>Moscou</value>
+  </data>
+  <data name="City_Europe/Oslo">
+    <value>Oslo</value>
+  </data>
+  <data name="City_Europe/Paris">
+    <value>Paris</value>
+  </data>
+  <data name="City_Europe/Podgorica">
+    <value>Podgorica</value>
+  </data>
+  <data name="City_Europe/Prague">
+    <value>Prague</value>
+  </data>
+  <data name="City_Europe/Riga">
+    <value>Riga</value>
+  </data>
+  <data name="City_Europe/Rome">
+    <value>Rome</value>
+  </data>
+  <data name="City_Europe/Samara">
+    <value>Samara</value>
+  </data>
+  <data name="City_Europe/San_Marino">
+    <value>Saint-Marin</value>
+  </data>
+  <data name="City_Europe/Sarajevo">
+    <value>Sarajevo</value>
+  </data>
+  <data name="City_Europe/Saratov">
+    <value>Saratov</value>
+  </data>
+  <data name="City_Europe/Simferopol">
+    <value>Simferopol</value>
+  </data>
+  <data name="City_Europe/Skopje">
+    <value>Skopje</value>
+  </data>
+  <data name="City_Europe/Sofia">
+    <value>Sofia</value>
+  </data>
+  <data name="City_Europe/Stockholm">
+    <value>Stockholm</value>
+  </data>
+  <data name="City_Europe/Tallinn">
+    <value>Tallinn</value>
+  </data>
+  <data name="City_Europe/Tirane">
+    <value>Tirana</value>
+  </data>
+  <data name="City_Europe/Ulyanovsk">
+    <value>Oulianovsk</value>
+  </data>
+  <data name="City_Europe/Uzhgorod">
+    <value>Oujgorod</value>
+  </data>
+  <data name="City_Europe/Vaduz">
+    <value>Vaduz</value>
+  </data>
+  <data name="City_Europe/Vatican">
+    <value>Le Vatican</value>
+  </data>
+  <data name="City_Europe/Vienna">
+    <value>Vienne</value>
+  </data>
+  <data name="City_Europe/Vilnius">
+    <value>Vilnius</value>
+  </data>
+  <data name="City_Europe/Volgograd">
+    <value>Volgograd</value>
+  </data>
+  <data name="City_Europe/Warsaw">
+    <value>Varsovie</value>
+  </data>
+  <data name="City_Europe/Zagreb">
+    <value>Zagreb</value>
+  </data>
+  <data name="City_Europe/Zaporozhye">
+    <value>Zaporojie</value>
+  </data>
+  <data name="City_Europe/Zurich">
+    <value>Zurich</value>
+  </data>
+  <data name="City_Indian/Antananarivo">
+    <value>Antananarivo</value>
+  </data>
+  <data name="City_Indian/Chagos">
+    <value>Chagos</value>
+  </data>
+  <data name="City_Indian/Christmas">
+    <value>Christmas</value>
+  </data>
+  <data name="City_Indian/Cocos">
+    <value>Cocos</value>
+  </data>
+  <data name="City_Indian/Comoro">
+    <value>Comores</value>
+  </data>
+  <data name="City_Indian/Kerguelen">
+    <value>Kerguelen</value>
+  </data>
+  <data name="City_Indian/Mahe">
+    <value>Mahé</value>
+  </data>
+  <data name="City_Indian/Maldives">
+    <value>Maldives</value>
+  </data>
+  <data name="City_Indian/Mauritius">
+    <value>Maurice</value>
+  </data>
+  <data name="City_Indian/Mayotte">
+    <value>Mayotte</value>
+  </data>
+  <data name="City_Indian/Reunion">
+    <value>La Réunion</value>
+  </data>
+  <data name="City_Pacific/Apia">
+    <value>Apia</value>
+  </data>
+  <data name="City_Pacific/Auckland">
+    <value>Auckland</value>
+  </data>
+  <data name="City_Pacific/Bougainville">
+    <value>Bougainville</value>
+  </data>
+  <data name="City_Pacific/Chatham">
+    <value>Chatham</value>
+  </data>
+  <data name="City_Pacific/Chuuk">
+    <value>Chuuk</value>
+  </data>
+  <data name="City_Pacific/Easter">
+    <value>Île de Pâques</value>
+  </data>
+  <data name="City_Pacific/Efate">
+    <value>Éfaté</value>
+  </data>
+  <data name="City_Pacific/Enderbury">
+    <value>Enderbury</value>
+  </data>
+  <data name="City_Pacific/Fakaofo">
+    <value>Fakaofo</value>
+  </data>
+  <data name="City_Pacific/Fiji">
+    <value>Fidji</value>
+  </data>
+  <data name="City_Pacific/Funafuti">
+    <value>Funafuti</value>
+  </data>
+  <data name="City_Pacific/Galapagos">
+    <value>Galápagos</value>
+  </data>
+  <data name="City_Pacific/Gambier">
+    <value>Gambier</value>
+  </data>
+  <data name="City_Pacific/Guadalcanal">
+    <value>Guadalcanal</value>
+  </data>
+  <data name="City_Pacific/Guam">
+    <value>Guam</value>
+  </data>
+  <data name="City_Pacific/Honolulu">
+    <value>Honolulu</value>
+  </data>
+  <data name="City_Pacific/Kiritimati">
+    <value>Kiritimati</value>
+  </data>
+  <data name="City_Pacific/Kosrae">
+    <value>Kosrae</value>
+  </data>
+  <data name="City_Pacific/Kwajalein">
+    <value>Kwajalein</value>
+  </data>
+  <data name="City_Pacific/Majuro">
+    <value>Majuro</value>
+  </data>
+  <data name="City_Pacific/Marquesas">
+    <value>Marquises</value>
+  </data>
+  <data name="City_Pacific/Midway">
+    <value>Midway</value>
+  </data>
+  <data name="City_Pacific/Nauru">
+    <value>Nauru</value>
+  </data>
+  <data name="City_Pacific/Niue">
+    <value>Niue</value>
+  </data>
+  <data name="City_Pacific/Norfolk">
+    <value>Norfolk</value>
+  </data>
+  <data name="City_Pacific/Noumea">
+    <value>Nouméa</value>
+  </data>
+  <data name="City_Pacific/Pago_Pago">
+    <value>Pago Pago</value>
+  </data>
+  <data name="City_Pacific/Palau">
+    <value>Palau</value>
+  </data>
+  <data name="City_Pacific/Pitcairn">
+    <value>Pitcairn</value>
+  </data>
+  <data name="City_Pacific/Pohnpei">
+    <value>Pohnpei</value>
+  </data>
+  <data name="City_Pacific/Port_Moresby">
+    <value>Port Moresby</value>
+  </data>
+  <data name="City_Pacific/Rarotonga">
+    <value>Rarotonga</value>
+  </data>
+  <data name="City_Pacific/Saipan">
+    <value>Saipan</value>
+  </data>
+  <data name="City_Pacific/Tahiti">
+    <value>Tahiti</value>
+  </data>
+  <data name="City_Pacific/Tarawa">
+    <value>Tarawa</value>
+  </data>
+  <data name="City_Pacific/Tongatapu">
+    <value>Tongatapu</value>
+  </data>
+  <data name="City_Pacific/Wake">
+    <value>Wake</value>
+  </data>
+  <data name="City_Pacific/Wallis">
+    <value>Wallis</value>
+  </data>
+  <data name="Format_NegativeOffset">
+    <value>UTC{0:'-'hh':'mm}</value>
+  </data>
+  <data name="Format_PositiveOffset">
+    <value>UTC{0:'+'hh':'mm}</value>
+  </data>
+</root>
