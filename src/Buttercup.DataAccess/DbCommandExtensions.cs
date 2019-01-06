@@ -14,7 +14,7 @@ namespace Buttercup.DataAccess
         /// Appends a new parameter to the command with a name and value.
         /// </summary>
         /// <param name="command">
-        /// The parameter collection.
+        /// The command.
         /// </param>
         /// <param name="name">
         /// The parameter name.
@@ -47,7 +47,7 @@ namespace Buttercup.DataAccess
         /// null.
         /// </remarks>
         /// <param name="command">
-        /// The parameter collection.
+        /// The command.
         /// </param>
         /// <param name="name">
         /// The parameter name.
