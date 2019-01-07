@@ -52,7 +52,7 @@ namespace Buttercup.DataAccess
                 {
                     if (!await reader.ReadAsync())
                     {
-                        throw new NotFoundException($"User {id} not found");
+                        throw UserNotFound(id);
                     }
 
                     return ReadUser(reader);
@@ -80,7 +80,28 @@ namespace Buttercup.DataAccess
 
                 if (await command.ExecuteNonQueryAsync() == 0)
                 {
-                    throw new NotFoundException($"User {userId} not found");
+                    throw UserNotFound(userId);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task UpdatePreferences(DbConnection connection, long userId, string timeZone)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"UPDATE user
+                    SET time_zone = @time_zone,
+                        modified = @time,
+                        revision = revision + 1
+                    WHERE id = @id";
+                command.AddParameterWithValue("@id", userId);
+                command.AddParameterWithValue("@time_zone", timeZone);
+                command.AddParameterWithValue("@time", this.clock.UtcNow);
+
+                if (await command.ExecuteNonQueryAsync() == 0)
+                {
+                    throw UserNotFound(userId);
                 }
             }
         }
@@ -98,5 +119,8 @@ namespace Buttercup.DataAccess
                 Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
                 Revision = reader.GetInt32("revision"),
             };
+
+        private static NotFoundException UserNotFound(long userId) =>
+            new NotFoundException($"User {userId} not found");
     }
 }
