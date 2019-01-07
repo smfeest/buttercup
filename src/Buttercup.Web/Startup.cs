@@ -106,7 +106,8 @@ namespace Buttercup.Web
                 .AddTransient<IAssetHelper, AssetHelper>()
                 .AddTransient<IAssetManifestReader, AssetManifestReader>()
                 .AddSingleton<IAssetManifestSource, AssetManifestSource>()
-                .AddTransient<ITimeFormatter, TimeFormatter>();
+                .AddTransient<ITimeFormatter, TimeFormatter>()
+                .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
         }
     }
 }
