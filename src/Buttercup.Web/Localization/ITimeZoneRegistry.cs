@@ -9,6 +9,14 @@ namespace Buttercup.Web.Localization
     public interface ITimeZoneRegistry
     {
         /// <summary>
+        /// Gets a list of all supported time zone.
+        /// </summary>
+        /// <returns>
+        /// The supported time zones.
+        /// </returns>
+        IList<TimeZoneInfo> GetSupportedTimeZones();
+
+        /// <summary>
         /// Gets a time zone.
         /// </summary>
         /// <param name="id">
