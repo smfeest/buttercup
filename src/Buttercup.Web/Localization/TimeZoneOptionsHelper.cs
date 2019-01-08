@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Localization
@@ -19,10 +21,34 @@ namespace Buttercup.Web.Localization
             this.timeZoneRegistry = timeZoneRegistry;
         }
 
-        public TimeZoneOption OptionForTimeZone(string timeZoneId)
+        public IList<TimeZoneOption> AllOptions()
         {
-            var timeZone = this.timeZoneRegistry.GetTimeZone(timeZoneId);
+            var timeZones = this.timeZoneRegistry.GetSupportedTimeZones();
 
+            var options = timeZones.Select(this.OptionForTimeZone).ToList();
+
+            options.Sort(CompareOptions);
+
+            return options;
+        }
+
+        public TimeZoneOption OptionForTimeZone(string timeZoneId) =>
+            this.OptionForTimeZone(this.timeZoneRegistry.GetTimeZone(timeZoneId));
+
+        private static int CompareOptions(TimeZoneOption x, TimeZoneOption y)
+        {
+            var result = x.CurrentOffset.CompareTo(y.CurrentOffset);
+
+            if (result != 0)
+            {
+                return result;
+            }
+
+            return StringComparer.CurrentCulture.Compare(x.City, y.City);
+        }
+
+        private TimeZoneOption OptionForTimeZone(TimeZoneInfo timeZone)
+        {
             var offset = timeZone.GetUtcOffset(this.clock.UtcNow);
             var offsetFormat = offset < TimeSpan.Zero ?
                 "Format_NegativeOffset" : "Format_PositiveOffset";
