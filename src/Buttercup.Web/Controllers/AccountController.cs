@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Buttercup.DataAccess;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,12 +13,20 @@ namespace Buttercup.Web.Controllers
     public class AccountController : Controller
     {
         public AccountController(
+            IDbConnectionSource dbConnectionSource,
+            IUserDataProvider userDataProvider,
             IAuthenticationManager authenticationManager,
             IStringLocalizer<AccountController> localizer)
         {
+            this.DbConnectionSource = dbConnectionSource;
+            this.UserDataProvider = userDataProvider;
             this.AuthenticationManager = authenticationManager;
             this.Localizer = localizer;
         }
+
+        public IDbConnectionSource DbConnectionSource { get; }
+
+        public IUserDataProvider UserDataProvider { get; }
 
         public IAuthenticationManager AuthenticationManager { get; }
 
@@ -51,6 +60,24 @@ namespace Buttercup.Web.Controllers
             }
 
             return this.RedirectToAction(nameof(this.Show));
+        }
+
+        [HttpGet("preferences")]
+        public IActionResult Preferences() =>
+            this.View(new PreferencesViewModel(this.HttpContext.GetCurrentUser()));
+
+        [HttpPost("preferences")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Preferences(PreferencesViewModel model)
+        {
+            using (var connection = await this.DbConnectionSource.OpenConnection())
+            {
+                var user = this.HttpContext.GetCurrentUser();
+
+                await this.UserDataProvider.UpdatePreferences(connection, user.Id, model.TimeZone);
+
+                return this.RedirectToAction(nameof(this.Show));
+            }
         }
     }
 }

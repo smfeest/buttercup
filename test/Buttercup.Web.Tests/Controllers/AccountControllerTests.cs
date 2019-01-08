@@ -1,5 +1,7 @@
 using System;
+using System.Data.Common;
 using System.Threading.Tasks;
+using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
@@ -112,6 +114,54 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
+        #region Preferences (GET)
+
+        [Fact]
+        public void PreferencesGetReturnsViewResultWithViewModel()
+        {
+            using (var context = new Context())
+            {
+                var user = new User { TimeZone = "time-zone" };
+
+                context.HttpContext.SetCurrentUser(user);
+
+                var result = context.AccountController.Preferences();
+
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
+                Assert.Equal(user.TimeZone, viewModel.TimeZone);
+            }
+        }
+
+        #endregion
+
+        #region Preferences (POST)
+
+        [Fact]
+        public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
+        {
+            using (var context = new Context())
+            {
+                context.HttpContext.SetCurrentUser(new User { Id = 21 });
+
+                var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
+
+                context.MockUserDataProvider
+                    .Setup(x => x.UpdatePreferences(context.DbConnection, 21, viewModel.TimeZone))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var result = await context.AccountController.Preferences(viewModel);
+
+                context.MockUserDataProvider.Verify();
+
+                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+                Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
+            }
+        }
+
+        #endregion
+
         private class Context : IDisposable
         {
             public Context()
@@ -122,11 +172,17 @@ namespace Buttercup.Web.Controllers
                 };
 
                 this.AccountController = new AccountController(
+                    this.MockDbConnectionSource.Object,
+                    this.MockUserDataProvider.Object,
                     this.MockAuthenticationManager.Object,
                     this.MockLocalizer.Object)
                 {
                     ControllerContext = this.ControllerContext,
                 };
+
+                this.MockDbConnectionSource
+                    .Setup(x => x.OpenConnection())
+                    .ReturnsAsync(this.DbConnection);
             }
 
             public AccountController AccountController { get; }
@@ -134,6 +190,14 @@ namespace Buttercup.Web.Controllers
             public ControllerContext ControllerContext { get; }
 
             public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+
+            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
+                new Mock<IDbConnectionSource>();
+
+            public Mock<IUserDataProvider> MockUserDataProvider { get; } =
+                new Mock<IUserDataProvider>();
 
             public Mock<IAuthenticationManager> MockAuthenticationManager { get; } =
                 new Mock<IAuthenticationManager>();

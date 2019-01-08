@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_YourPreferences">
+    <value>Vos préférences</value>
+  </data>
+  <data name="Label_TimeZone">
+    <value>Fuseau horaire</value>
+  </data>
+  <data name="Label_Save">
+    <value>Sauvegarder</value>
+  </data>
+  <data name="Label_Cancel">
+    <value>Annuler</value>
+  </data>
+</root>
