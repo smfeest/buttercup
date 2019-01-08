@@ -12,4 +12,5 @@
 *.sh eol=lf
 *.sln eol=lf
 *.sql eol=lf
+*.svg eol=lf
 *.ts eol=lf

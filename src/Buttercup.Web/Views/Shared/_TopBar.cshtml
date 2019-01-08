@@ -19,7 +19,7 @@
           <div>@ViewContext.HttpContext.User.Identity.Name</div>
         </div>
       </li>
-      <li><a class="popover-menu__item" asp-controller="Authentication" asp-action="ChangePassword">@Localizer["Label_ChangePassword"]</a></li>
+      <li><a class="popover-menu__item" asp-controller="Account" asp-action="Show">@Localizer["Label_YourAccount"]</a></li>
       <li><a class="popover-menu__item" asp-controller="Authentication" asp-action="SignOut">@Localizer["Label_SignOut"]</a></li>
     </ul>
 }

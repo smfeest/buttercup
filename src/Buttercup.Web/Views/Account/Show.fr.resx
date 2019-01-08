@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_YourAccount">
+    <value>Votre compte</value>
+  </data>
+  <data name="Heading_Security">
+    <value>Sécurité</value>
+  </data>
+  <data name="Label_EmailAddress">
+    <value>Adresse e-mail</value>
+  </data>
+  <data name="Label_Password">
+    <value>Mot de passe</value>
+  </data>
+  <data name="Label_PasswordLastChanged">
+    <value>Dernière modification le {0:D}</value>
+  </data>
+  <data name="Label_ChangePassword">
+    <value>Modifier mot de passe</value>
+  </data>
+  <data name="Heading_Preferences">
+    <value>Préférences</value>
+  </data>
+  <data name="Label_TimeZone">
+    <value>Fuseau horaire</value>
+  </data>
+</root>

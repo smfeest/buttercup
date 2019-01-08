@@ -1,0 +1,51 @@
+.account-overview__section-heading {
+  margin-bottom: 0;
+  padding-bottom: 0.25em;
+}
+
+.account-overview__item {
+  align-items: center;
+  border-bottom: 1px solid @color-grey;
+  display: flex;
+  justify-content: space-between;
+
+  a& {
+    color: @color-black;
+
+    &:active,
+    &:hover {
+      background-color: darken(@color-white, 5%);
+    }
+  }
+
+  &:last-child {
+    border-bottom-width: 0;
+  }
+}
+
+.account-overview__item-content {
+  flex-grow: 1;
+  padding: @padding 0;
+}
+
+.account-overview__item-label {
+  flex-basis: 10em;
+  font-size: 0.9em;
+  margin-bottom: @small-padding;
+}
+
+.account-overview__item-disclosure {
+  flex-shrink: 0;
+  margin: 0 @small-padding 0 @padding;
+}
+
+@media (min-width : 600px) {
+  .account-overview__item-content {
+    align-items: baseline;
+    display: flex;
+  }
+
+  .account-overview__item-label {
+    margin-bottom: 0;
+  }
+}
