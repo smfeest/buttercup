@@ -1,0 +1,18 @@
+﻿@inject IViewLocalizer Localizer
+@inject ITimeZoneOptionsHelper TimeZoneOptions
+@model PreferencesViewModel
+@{
+  ViewData["Title"] = Localizer["Title_YourPreferences"];
+}
+<h1>@Localizer["Title_YourPreferences"]</h1>
+<form method="post">
+  <div class="form-field">
+    <label class="form-field__label" asp-for="TimeZone" show-required-label="true">@Localizer["Label_TimeZone"]</label>
+    <select class="form-field__input" asp-for="TimeZone" asp-items="TimeZoneOptions.AllOptions().AsSelectListItems()" required autofocus>
+    </select>
+  </div>
+  <div class="button-bar">
+    <button class="primary-push-button">@Localizer["Label_Save"]</button>
+    <a class="push-button" asp-action="Show">@Localizer["Label_Cancel"]</a>
+  </div>
+</form>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Buttercup.Web.Localization
 {
@@ -7,6 +8,17 @@ namespace Buttercup.Web.Localization
     /// </summary>
     public interface ITimeZoneOptionsHelper
     {
+        /// <summary>
+        /// Creates an ordered list of all supported time zone options.
+        /// </summary>
+        /// <remarks>
+        /// Options are ordered by offset then exemplar city name.
+        /// </remarks>
+        /// <returns>
+        /// The list of time zone options.
+        /// </returns>
+        IList<TimeZoneOption> AllOptions();
+
         /// <summary>
         /// Creates a time zone option representing a time zone.
         /// </summary>

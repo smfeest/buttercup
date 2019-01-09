@@ -64,5 +64,25 @@ namespace Buttercup.DataAccess
         /// </exception>
         Task UpdatePassword(
             DbConnection connection, long userId, string hashedPassword, string securityStamp);
+
+        /// <summary>
+        /// Updates a user's preferences.
+        /// </summary>
+        /// <param name="connection">
+        /// The database connection.
+        /// </param>
+        /// <param name="userId">
+        /// The user ID.
+        /// </param>
+        /// <param name="timeZone">
+        /// The TZ ID of the time zone.
+        /// </param>
+        /// <returns>
+        /// A task for the operation.
+        /// </returns>
+        /// <exception cref="NotFoundException">
+        /// No matching user was found.
+        /// </exception>
+        Task UpdatePreferences(DbConnection connection, long userId, string timeZone);
     }
 }

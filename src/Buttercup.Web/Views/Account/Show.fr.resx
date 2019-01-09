@@ -24,4 +24,7 @@
   <data name="Label_TimeZone">
     <value>Fuseau horaire</value>
   </data>
+  <data name="Label_ChangeTimeZone">
+    <value>Modifier fuseau horaire</value>
+  </data>
 </root>

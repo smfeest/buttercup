@@ -115,6 +115,44 @@ namespace Buttercup.DataAccess
 
         #endregion
 
+        #region UpdatePreferences
+
+        [Fact]
+        public Task UpdatePreferencesUpdatesHashedPassword() =>
+            this.databaseFixture.WithRollback(async connection =>
+        {
+            var context = new Context();
+
+            await SampleUsers.InsertSampleUser(
+                connection, SampleUsers.CreateSampleUser(id: 32, revision: 2));
+
+            var utcNow = new DateTime(2003, 4, 5, 6, 7, 8);
+            context.SetupUtcNow(utcNow);
+
+            await context.UserDataProvider.UpdatePreferences(connection, 32, "new-time-zone");
+
+            var actual = await context.UserDataProvider.GetUser(connection, 32);
+
+            Assert.Equal("new-time-zone", actual.TimeZone);
+            Assert.Equal(utcNow, actual.Modified);
+            Assert.Equal(3, actual.Revision);
+        });
+
+        [Fact]
+        public async Task UpdatePreferencesThrowsIfRecordNotFound() =>
+            await this.databaseFixture.WithRollback(async connection =>
+        {
+            await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
+
+            var exception = await Assert.ThrowsAsync<NotFoundException>(
+                () => new Context().UserDataProvider.UpdatePreferences(
+                    connection, 9, "new-time-zone"));
+
+            Assert.Equal("User 9 not found", exception.Message);
+        });
+
+        #endregion
+
         #region ReadUser
 
         [Fact]

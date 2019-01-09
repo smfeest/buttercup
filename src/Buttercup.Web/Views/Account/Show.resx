@@ -24,4 +24,7 @@
   <data name="Label_TimeZone">
     <value>Time zone</value>
   </data>
+  <data name="Label_ChangeTimeZone">
+    <value>Change time zone</value>
+  </data>
 </root>

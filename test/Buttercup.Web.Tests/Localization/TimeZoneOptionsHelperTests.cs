@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
@@ -7,12 +9,50 @@ namespace Buttercup.Web.Localization
 {
     public class TimeZoneOptionsHelperTests
     {
+        #region AllOptions
+
+        [Fact]
+        public void AllOptionsReturnsOrderedListOfOptions()
+        {
+            var context = new AllOptionsContext();
+
+            context
+                .AddFakeTimeZone("tz1/+3B", 3, "city-b")
+                .AddFakeTimeZone("tz2/-2", -2)
+                .AddFakeTimeZone("tz3/+0", 0)
+                .AddFakeTimeZone("tz4/+5", 5)
+                .AddFakeTimeZone("tz5/+3A", 3, "city-a")
+                .AddFakeTimeZone("tz6/-1", -1)
+                .AddFakeTimeZone("tz7/+3C", 3, "city-c")
+                .AddFakeTimeZone("tz8/-6", -6)
+                .AddFakeTimeZone("tz9/+1", 1);
+
+            var expectedIds = new string[]
+            {
+                "tz8/-6",
+                "tz2/-2",
+                "tz6/-1",
+                "tz3/+0",
+                "tz9/+1",
+                "tz5/+3A",
+                "tz1/+3B",
+                "tz7/+3C",
+                "tz4/+5",
+            };
+
+            var actualIds = context.TimeZoneOptionsHelper.AllOptions().Select(o => o.Id);
+
+            Assert.Equal(expectedIds, actualIds);
+        }
+
+        #endregion
+
         #region OptionForTimeZone
 
         [Fact]
         public void OptionForTimeZoneProvidesTimeZoneId()
         {
-            var context = new Context();
+            var context = new OptionForTimeZoneContext();
 
             context.StubGetTimeZone();
 
@@ -24,7 +64,7 @@ namespace Buttercup.Web.Localization
         [InlineData(4, -2)]
         public void OptionForTimeZoneProvidesCurrentOffset(int month, int expectedOffsetHours)
         {
-            var context = new Context();
+            var context = new OptionForTimeZoneContext();
 
             var adjustmentRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
                 DateTime.MinValue,
@@ -48,7 +88,7 @@ namespace Buttercup.Web.Localization
         [InlineData(1, "Format_PositiveOffset")]
         public void OptionForTimeZoneProvidesFormattedOffset(int offsetHours, string expectedFormat)
         {
-            var context = new Context();
+            var context = new OptionForTimeZoneContext();
 
             var offset = new TimeSpan(offsetHours, 0, 0);
 
@@ -64,7 +104,7 @@ namespace Buttercup.Web.Localization
         [Fact]
         public void OptionForTimeZoneProvidesCity()
         {
-            var context = new Context();
+            var context = new OptionForTimeZoneContext();
 
             context.StubGetTimeZone();
 
@@ -82,8 +122,6 @@ namespace Buttercup.Web.Localization
             public Context() => this.TimeZoneOptionsHelper = new TimeZoneOptionsHelper(
                 this.MockClock.Object, this.MockLocalizer.Object, this.MockTimeZoneRegistry.Object);
 
-            public string TimeZoneId { get; } = "Sample/Time_Zone";
-
             public Mock<IClock> MockClock { get; } = new Mock<IClock>();
 
             public Mock<IStringLocalizer<TimeZoneOptionsHelper>> MockLocalizer { get; } =
@@ -93,6 +131,39 @@ namespace Buttercup.Web.Localization
                 new Mock<ITimeZoneRegistry>();
 
             public TimeZoneOptionsHelper TimeZoneOptionsHelper { get; }
+        }
+
+        private class AllOptionsContext : Context
+        {
+            private readonly List<TimeZoneInfo> timeZones = new List<TimeZoneInfo>();
+
+            public AllOptionsContext()
+            {
+                this.MockTimeZoneRegistry
+                    .Setup(x => x.GetSupportedTimeZones())
+                    .Returns(this.timeZones);
+            }
+
+            public AllOptionsContext AddFakeTimeZone(string timeZoneId, int offsetHours) =>
+                this.AddFakeTimeZone(timeZoneId, offsetHours, string.Empty);
+
+            public AllOptionsContext AddFakeTimeZone(
+                string timeZoneId, int offsetHours, string city)
+            {
+                this.timeZones.Add(TimeZoneInfo.CreateCustomTimeZone(
+                    timeZoneId, new TimeSpan(offsetHours, 0, 0), string.Empty, string.Empty));
+
+                this.MockLocalizer
+                    .SetupGet(x => x[$"City_{timeZoneId}"])
+                    .Returns(new LocalizedString(string.Empty, city));
+
+                return this;
+            }
+        }
+
+        private class OptionForTimeZoneContext : Context
+        {
+            public string TimeZoneId { get; } = "Sample/Time_Zone";
 
             public void StubGetTimeZone() => this.StubGetTimeZone(TimeSpan.Zero);
 
