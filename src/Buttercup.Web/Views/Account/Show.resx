@@ -3,8 +3,11 @@
   <data name="Title_YourAccount">
     <value>Your account</value>
   </data>
-  <data name="Heading_Security">
-    <value>Security</value>
+  <data name="Heading_Profile">
+    <value>Profile</value>
+  </data>
+  <data name="Label_Name">
+    <value>Name</value>
   </data>
   <data name="Label_EmailAddress">
     <value>Email address</value>

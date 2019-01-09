@@ -17,6 +17,7 @@ namespace Buttercup.DataAccess
             return new User
             {
                 Id = id ?? i,
+                Name = $"user-{i}-name",
                 Email = email ?? $"user-{i}@example.com",
                 HashedPassword = $"user-{i}-password",
                 PasswordCreated = new DateTime(2000, 1, 2, 3, 4, 5),
@@ -32,10 +33,11 @@ namespace Buttercup.DataAccess
         {
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"INSERT user(id, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
-                VALUES (@id, @email, @hashed_password, @password_created, @security_stamp, @time_zone, @created, @modified, @revision);";
+                command.CommandText = @"INSERT user(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
+                VALUES (@id, @name, @email, @hashed_password, @password_created, @security_stamp, @time_zone, @created, @modified, @revision);";
 
                 command.AddParameterWithValue("@id", user.Id);
+                command.AddParameterWithValue("@name", user.Name);
                 command.AddParameterWithValue("@email", user.Email);
                 command.AddParameterWithValue("@hashed_password", user.HashedPassword);
                 command.AddParameterWithValue("@password_created", user.PasswordCreated);

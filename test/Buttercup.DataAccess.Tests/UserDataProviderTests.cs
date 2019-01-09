@@ -166,6 +166,7 @@ namespace Buttercup.DataAccess
             var actual = await new Context().UserDataProvider.GetUser(connection, expected.Id);
 
             Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.Email, actual.Email);
             Assert.Equal(expected.HashedPassword, actual.HashedPassword);
             Assert.Equal(expected.PasswordCreated, actual.PasswordCreated);
