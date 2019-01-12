@@ -181,7 +181,9 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
                 Remarks = reader.GetString("remarks"),
                 Source = reader.GetString("source"),
                 Created = reader.GetDateTime("created", DateTimeKind.Utc),
+                CreatedByUserId = reader.GetNullableInt64("created_by_user_id"),
                 Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
+                ModifiedByUserId = reader.GetNullableInt64("modified_by_user_id"),
                 Revision = reader.GetInt32("revision"),
             };
     }

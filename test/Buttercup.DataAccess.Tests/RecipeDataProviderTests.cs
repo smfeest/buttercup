@@ -302,7 +302,8 @@ namespace Buttercup.DataAccess
             await SampleRecipes.InsertSampleRecipe(
                 connection,
                 SampleRecipes.CreateSampleRecipe(
-                    includeOptionalAttributes: true, id: 7, revision: 3));
+                    includeOptionalAttributes: true, id: 7, revision: 3),
+                insertRelatedRecords: true);
 
             await recipeDataProvider.UpdateRecipe(
                 connection,
@@ -385,7 +386,8 @@ namespace Buttercup.DataAccess
         {
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
 
-            await SampleRecipes.InsertSampleRecipe(connection, expected);
+            await SampleRecipes.InsertSampleRecipe(
+                connection, expected, insertRelatedRecords: true);
 
             var actual = await new RecipeDataProvider().GetRecipe(connection, expected.Id);
 
@@ -401,8 +403,10 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Source, actual.Source);
             Assert.Equal(expected.Created, actual.Created);
             Assert.Equal(DateTimeKind.Utc, actual.Created.Kind);
+            Assert.Equal(expected.CreatedByUserId, actual.CreatedByUserId);
             Assert.Equal(expected.Modified, actual.Modified);
             Assert.Equal(DateTimeKind.Utc, actual.Modified.Kind);
+            Assert.Equal(expected.ModifiedByUserId, actual.ModifiedByUserId);
             Assert.Equal(expected.Revision, actual.Revision);
         });
 
@@ -422,6 +426,8 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Suggestions);
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
+            Assert.Null(actual.CreatedByUserId);
+            Assert.Null(actual.ModifiedByUserId);
         });
 
         #endregion
