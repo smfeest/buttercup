@@ -17,11 +17,12 @@ namespace Buttercup.DataAccess
         {
             using (var command = (MySqlCommand)connection.CreateCommand())
             {
-                command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, modified)
-VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created)";
+                command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
+VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
 
                 AddInsertUpdateParameters(command, recipe);
                 command.AddParameterWithValue("@created", recipe.Created);
+                command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
 
                 await command.ExecuteNonQueryAsync();
 
@@ -96,12 +97,13 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
                         cooking_minutes = @cooking_minutes, servings = @servings,
                         ingredients = @ingredients, method = @method, suggestions = @suggestions,
                         remarks = @remarks, source = @source, modified = @modified,
-                        revision = revision + 1
+                        modified_by_user_id = @modified_by_user_id, revision = revision + 1
                     WHERE id = @id AND revision = @revision";
 
                 AddInsertUpdateParameters(command, recipe);
                 command.AddParameterWithValue("@id", recipe.Id);
                 command.AddParameterWithValue("@modified", recipe.Modified);
+                command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
                 command.AddParameterWithValue("@revision", recipe.Revision);
 
                 if (await command.ExecuteNonQueryAsync() == 0)
@@ -181,7 +183,9 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
                 Remarks = reader.GetString("remarks"),
                 Source = reader.GetString("source"),
                 Created = reader.GetDateTime("created", DateTimeKind.Utc),
+                CreatedByUserId = reader.GetNullableInt64("created_by_user_id"),
                 Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
+                ModifiedByUserId = reader.GetNullableInt64("modified_by_user_id"),
                 Revision = reader.GetInt32("revision"),
             };
     }

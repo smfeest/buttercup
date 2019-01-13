@@ -30,7 +30,9 @@ CREATE TABLE recipe (
   remarks TEXT,
   source VARCHAR(255),
   created DATETIME NOT NULL,
+  created_by_user_id INT UNSIGNED,
   modified DATETIME NOT NULL,
+  modified_by_user_id INT UNSIGNED,
   revision SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
@@ -60,4 +62,14 @@ ALTER TABLE password_reset_token
   ADD FOREIGN KEY password_reset_token_FK1 (user_id)
     REFERENCES user (id)
     ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+ALTER TABLE recipe
+  ADD FOREIGN KEY recipe_FK1 (created_by_user_id)
+    REFERENCES user (id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  ADD FOREIGN KEY recipe_FK2 (modified_by_user_id)
+    REFERENCES user (id)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION;

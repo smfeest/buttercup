@@ -96,12 +96,28 @@ namespace Buttercup.Models
         public DateTime Created { get; set; }
 
         /// <summary>
+        /// Gets or sets the user ID of the user who created the record.
+        /// </summary>
+        /// <value>
+        /// The user ID of the user who created the record.
+        /// </value>
+        public long? CreatedByUserId { get; set; }
+
+        /// <summary>
         /// Gets or sets the date and time at which the record was last modified.
         /// </summary>
         /// <value>
         /// The date and time at which the record was last modified.
         /// </value>
         public DateTime Modified { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user ID of the user who last modified the record.
+        /// </summary>
+        /// <value>
+        /// The user ID of the user who last modified the record.
+        /// </value>
+        public long? ModifiedByUserId { get; set; }
 
         /// <summary>
         /// Gets or sets the revision number.

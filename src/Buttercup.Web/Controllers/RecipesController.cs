@@ -2,6 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
+using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -59,7 +60,9 @@ namespace Buttercup.Web.Controllers
             }
 
             var recipe = model.ToRecipe();
+
             recipe.Created = this.Clock.UtcNow;
+            recipe.CreatedByUserId = this.HttpContext.GetCurrentUser().Id;
 
             long id;
 
@@ -91,8 +94,10 @@ namespace Buttercup.Web.Controllers
             }
 
             var recipe = model.ToRecipe();
+
             recipe.Id = id;
             recipe.Modified = this.Clock.UtcNow;
+            recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser().Id;
 
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
