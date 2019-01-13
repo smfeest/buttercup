@@ -21,6 +21,7 @@ namespace Buttercup.Web.Authentication
             IAuthenticationEventDataProvider authenticationEventDataProvider,
             IAuthenticationMailer authenticationMailer,
             IAuthenticationService authenticationService,
+            IClock clock,
             IDbConnectionSource dbConnectionSource,
             ILogger<AuthenticationManager> logger,
             IPasswordHasher<User> passwordHasher,
@@ -32,6 +33,7 @@ namespace Buttercup.Web.Authentication
             this.AuthenticationEventDataProvider = authenticationEventDataProvider;
             this.AuthenticationMailer = authenticationMailer;
             this.AuthenticationService = authenticationService;
+            this.Clock = clock;
             this.DbConnectionSource = dbConnectionSource;
             this.Logger = logger;
             this.PasswordHasher = passwordHasher;
@@ -46,6 +48,8 @@ namespace Buttercup.Web.Authentication
         public IAuthenticationMailer AuthenticationMailer { get; }
 
         public IAuthenticationService AuthenticationService { get; }
+
+        public IClock Clock { get; }
 
         public IDbConnectionSource DbConnectionSource { get; }
 
@@ -73,7 +77,11 @@ namespace Buttercup.Web.Authentication
                         "Authentication failed; no user with email {email}", email);
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "authentication_failure:unrecognized_email", null, email);
+                        connection,
+                        this.Clock.UtcNow,
+                        "authentication_failure:unrecognized_email",
+                        null,
+                        email);
 
                     return null;
                 }
@@ -86,7 +94,11 @@ namespace Buttercup.Web.Authentication
                         user.Email);
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "authentication_failure:no_password_set", user.Id, email);
+                        connection,
+                        this.Clock.UtcNow,
+                        "authentication_failure:no_password_set",
+                        user.Id,
+                        email);
 
                     return null;
                 }
@@ -99,7 +111,11 @@ namespace Buttercup.Web.Authentication
                         user.Email);
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "authentication_failure:incorrect_password", user.Id, email);
+                        connection,
+                        this.Clock.UtcNow,
+                        "authentication_failure:incorrect_password",
+                        user.Id,
+                        email);
 
                     return null;
                 }
@@ -108,7 +124,7 @@ namespace Buttercup.Web.Authentication
                     "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
 
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, "authentication_success", user.Id, email);
+                    connection, this.Clock.UtcNow, "authentication_success", user.Id, email);
 
                 return user;
             }
@@ -124,7 +140,10 @@ namespace Buttercup.Web.Authentication
                 if (user.HashedPassword == null)
                 {
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "password_change_failure:no_password_set", user.Id);
+                        connection,
+                        this.Clock.UtcNow,
+                        "password_change_failure:no_password_set",
+                        user.Id);
 
                     throw new InvalidOperationException(
                         $"User {user.Id} ({user.Email}) does not have a password.");
@@ -138,7 +157,10 @@ namespace Buttercup.Web.Authentication
                         user.Email);
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "password_change_failure:incorrect_password", user.Id);
+                        connection,
+                        this.Clock.UtcNow,
+                        "password_change_failure:incorrect_password",
+                        user.Id);
 
                     return false;
                 }
@@ -151,7 +173,7 @@ namespace Buttercup.Web.Authentication
                     user.Email);
 
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, "password_change_success", user.Id);
+                    connection, this.Clock.UtcNow, "password_change_success", user.Id);
 
                 await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -180,7 +202,7 @@ namespace Buttercup.Web.Authentication
                         "Password reset token '{token}' is no longer valid", RedactToken(token));
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "password_reset_failure:invalid_token");
+                        connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
                 }
 
                 return userId.HasValue;
@@ -200,7 +222,7 @@ namespace Buttercup.Web.Authentication
                         RedactToken(token));
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "password_reset_failure:invalid_token");
+                        connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
 
                     throw new InvalidTokenException("Password reset token is invalid");
                 }
@@ -213,7 +235,7 @@ namespace Buttercup.Web.Authentication
                     RedactToken(token));
 
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, "password_reset_success", userId.Value);
+                    connection, this.Clock.UtcNow, "password_reset_success", userId.Value);
 
                 var user = await this.UserDataProvider.GetUser(connection, userId.Value);
 
@@ -235,7 +257,11 @@ namespace Buttercup.Web.Authentication
                         "Unable to send password reset link; No user with email {email}", email);
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "password_reset_failure:unrecognized_email", null, email);
+                        connection,
+                        this.Clock.UtcNow,
+                        "password_reset_failure:unrecognized_email",
+                        null,
+                        email);
 
                     return;
                 }
@@ -259,7 +285,7 @@ namespace Buttercup.Web.Authentication
                         email);
 
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "password_reset_link_sent", user.Id, email);
+                        connection, this.Clock.UtcNow, "password_reset_link_sent", user.Id, email);
                 }
                 catch (Exception e)
                 {
@@ -283,7 +309,7 @@ namespace Buttercup.Web.Authentication
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, "sign_in", user.Id);
+                    connection, this.Clock.UtcNow, "sign_in", user.Id);
             }
         }
 
@@ -302,7 +328,7 @@ namespace Buttercup.Web.Authentication
                 using (var connection = await this.DbConnectionSource.OpenConnection())
                 {
                     await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, "sign_out", userId);
+                        connection, this.Clock.UtcNow, "sign_out", userId);
                 }
             }
         }
