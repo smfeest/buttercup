@@ -97,12 +97,13 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
                         cooking_minutes = @cooking_minutes, servings = @servings,
                         ingredients = @ingredients, method = @method, suggestions = @suggestions,
                         remarks = @remarks, source = @source, modified = @modified,
-                        revision = revision + 1
+                        modified_by_user_id = @modified_by_user_id, revision = revision + 1
                     WHERE id = @id AND revision = @revision";
 
                 AddInsertUpdateParameters(command, recipe);
                 command.AddParameterWithValue("@id", recipe.Id);
                 command.AddParameterWithValue("@modified", recipe.Modified);
+                command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
                 command.AddParameterWithValue("@revision", recipe.Revision);
 
                 if (await command.ExecuteNonQueryAsync() == 0)

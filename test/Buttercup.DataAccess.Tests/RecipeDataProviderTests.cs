@@ -281,6 +281,9 @@ namespace Buttercup.DataAccess
             var expected = SampleRecipes.CreateSampleRecipe(
                 includeOptionalAttributes: true, id: 3, revision: 0);
 
+            await SampleUsers.InsertSampleUser(
+                connection, SampleUsers.CreateSampleUser(id: expected.ModifiedByUserId));
+
             await recipeDataProvider.UpdateRecipe(connection, expected);
             var actual = await recipeDataProvider.GetRecipe(connection, 3);
 
@@ -294,8 +297,10 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Remarks, actual.Remarks);
             Assert.Equal(expected.Source, actual.Source);
             Assert.Equal(expected.Modified, actual.Modified);
+            Assert.Equal(expected.ModifiedByUserId, actual.ModifiedByUserId);
 
             Assert.Equal(original.Created, actual.Created);
+            Assert.Equal(original.CreatedByUserId, actual.CreatedByUserId);
         });
 
         [Fact]
@@ -323,6 +328,7 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Suggestions);
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
+            Assert.Null(actual.ModifiedByUserId);
         });
 
         [Fact]

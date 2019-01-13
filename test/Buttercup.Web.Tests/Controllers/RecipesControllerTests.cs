@@ -151,10 +151,14 @@ namespace Buttercup.Web.Controllers
             using (var context = new NewEditContext())
             {
                 context.MockRecipeDataProvider
-                    .Setup(x => x.UpdateRecipe(context.DbConnection, It.Is<Recipe>(
-                        r => r.Id == 3 &&
-                        r.Title == context.EditModel.Title &&
-                        r.Modified == context.UtcNow)))
+                    .Setup(x => x.UpdateRecipe(context.DbConnection, It.IsAny<Recipe>()))
+                    .Callback((DbConnection connection, Recipe recipe) =>
+                    {
+                        Assert.Equal(3, recipe.Id);
+                        Assert.Equal(context.EditModel.Title, recipe.Title);
+                        Assert.Equal(context.UtcNow, recipe.Modified);
+                        Assert.Equal(context.User.Id, recipe.ModifiedByUserId);
+                    })
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 

@@ -94,8 +94,10 @@ namespace Buttercup.Web.Controllers
             }
 
             var recipe = model.ToRecipe();
+
             recipe.Id = id;
             recipe.Modified = this.Clock.UtcNow;
+            recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser().Id;
 
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
