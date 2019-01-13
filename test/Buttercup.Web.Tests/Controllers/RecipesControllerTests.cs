@@ -4,7 +4,9 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -76,20 +78,20 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task NewPostAddsRecipeAndRedirectsToShowPage()
         {
-            using (var context = new Context())
+            using (var context = new NewEditContext())
             {
-                var editModel = new RecipeEditModel
-                {
-                    Title = "recipe-title",
-                };
-
                 context.MockRecipeDataProvider
-                    .Setup(x => x.AddRecipe(context.DbConnection, It.Is<Recipe>(
-                        r => r.Title == editModel.Title && r.Created == context.UtcNow)))
+                    .Setup(x => x.AddRecipe(context.DbConnection, It.IsAny<Recipe>()))
+                    .Callback((DbConnection connection, Recipe recipe) =>
+                    {
+                        Assert.Equal(context.EditModel.Title, recipe.Title);
+                        Assert.Equal(context.UtcNow, recipe.Created);
+                        Assert.Equal(context.User.Id, recipe.CreatedByUserId);
+                    })
                     .ReturnsAsync(5)
                     .Verifiable();
 
-                var result = await context.RecipesController.New(editModel);
+                var result = await context.RecipesController.New(context.EditModel);
 
                 context.MockRecipeDataProvider.Verify();
 
@@ -102,15 +104,14 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
         {
-            using (var context = new Context())
+            using (var context = new NewEditContext())
             {
                 context.RecipesController.ModelState.AddModelError("test", "test");
 
-                var editModel = new RecipeEditModel();
-                var result = await context.RecipesController.New(editModel);
+                var result = await context.RecipesController.New(context.EditModel);
 
                 var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(editModel, viewResult.Model);
+                Assert.Same(context.EditModel, viewResult.Model);
             }
         }
 
@@ -147,22 +148,17 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
         {
-            using (var context = new Context())
+            using (var context = new NewEditContext())
             {
-                var editModel = new RecipeEditModel
-                {
-                    Title = "recipe-title",
-                };
-
                 context.MockRecipeDataProvider
                     .Setup(x => x.UpdateRecipe(context.DbConnection, It.Is<Recipe>(
                         r => r.Id == 3 &&
-                        r.Title == editModel.Title &&
+                        r.Title == context.EditModel.Title &&
                         r.Modified == context.UtcNow)))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
-                var result = await context.RecipesController.Edit(3, editModel);
+                var result = await context.RecipesController.Edit(3, context.EditModel);
 
                 context.MockRecipeDataProvider.Verify();
 
@@ -175,16 +171,14 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
         {
-            using (var context = new Context())
+            using (var context = new NewEditContext())
             {
                 context.RecipesController.ModelState.AddModelError("test", "test");
 
-                var editModel = new RecipeEditModel();
-
-                var result = await context.RecipesController.Edit(3, editModel);
+                var result = await context.RecipesController.Edit(3, context.EditModel);
 
                 var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(editModel, viewResult.Model);
+                Assert.Same(context.EditModel, viewResult.Model);
             }
         }
 
@@ -244,8 +238,6 @@ namespace Buttercup.Web.Controllers
                     this.MockDbConnectionSource.Object,
                     this.MockRecipeDataProvider.Object);
 
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
-
                 this.MockDbConnectionSource
                     .Setup(x => x.OpenConnection())
                     .ReturnsAsync(this.DbConnection);
@@ -263,8 +255,6 @@ namespace Buttercup.Web.Controllers
             public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } =
                 new Mock<IRecipeDataProvider>();
 
-            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
-
             public void Dispose()
             {
                 if (this.RecipesController != null)
@@ -272,6 +262,32 @@ namespace Buttercup.Web.Controllers
                     this.RecipesController.Dispose();
                 }
             }
+        }
+
+        private class NewEditContext : Context
+        {
+            public NewEditContext()
+            {
+                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
+
+                this.HttpContext.SetCurrentUser(this.User);
+
+                this.RecipesController.ControllerContext = new ControllerContext()
+                {
+                    HttpContext = this.HttpContext,
+                };
+            }
+
+            public ControllerContext ControllerContext { get; }
+
+            public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+
+            public RecipeEditModel EditModel { get; } =
+                new RecipeEditModel { Title = "recipe-title" };
+
+            public User User { get; } = new User { Id = 8 };
+
+            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         }
     }
 }

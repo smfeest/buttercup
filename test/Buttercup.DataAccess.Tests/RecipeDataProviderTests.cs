@@ -23,6 +23,9 @@ namespace Buttercup.DataAccess
 
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
 
+            await SampleUsers.InsertSampleUser(
+                connection, SampleUsers.CreateSampleUser(id: expected.CreatedByUserId));
+
             var id = await recipeDataProvider.AddRecipe(connection, expected);
             var actual = await recipeDataProvider.GetRecipe(connection, id);
 
@@ -36,10 +39,10 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Remarks, actual.Remarks);
             Assert.Equal(expected.Source, actual.Source);
 
-            var created = expected.Created;
-
-            Assert.Equal(created, actual.Created);
-            Assert.Equal(created, actual.Modified);
+            Assert.Equal(expected.Created, actual.Created);
+            Assert.Equal(expected.Created, actual.Modified);
+            Assert.Equal(expected.CreatedByUserId, actual.CreatedByUserId);
+            Assert.Equal(expected.CreatedByUserId, actual.ModifiedByUserId);
         });
 
         [Fact]
@@ -59,6 +62,8 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Suggestions);
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
+            Assert.Null(actual.CreatedByUserId);
+            Assert.Null(actual.ModifiedByUserId);
         });
 
         [Fact]

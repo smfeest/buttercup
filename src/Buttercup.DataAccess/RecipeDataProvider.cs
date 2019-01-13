@@ -17,11 +17,12 @@ namespace Buttercup.DataAccess
         {
             using (var command = (MySqlCommand)connection.CreateCommand())
             {
-                command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, modified)
-VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created)";
+                command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
+VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
 
                 AddInsertUpdateParameters(command, recipe);
                 command.AddParameterWithValue("@created", recipe.Created);
+                command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
 
                 await command.ExecuteNonQueryAsync();
 
