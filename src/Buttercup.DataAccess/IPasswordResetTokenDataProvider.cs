@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
@@ -10,15 +11,18 @@ namespace Buttercup.DataAccess
     public interface IPasswordResetTokenDataProvider
     {
         /// <summary>
-        /// Deletes all password reset tokens that are more than 24 hours old.
+        /// Deletes all password reset tokens that were created before a specific date and time.
         /// </summary>
         /// <param name="connection">
         /// The database connection.
         /// </param>
+        /// <param name="cutOff">
+        /// The cut off date and time.
+        /// </param>
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task DeleteExpiredTokens(DbConnection connection);
+        Task DeleteExpiredTokens(DbConnection connection, DateTime cutOff);
 
         /// <summary>
         /// Deletes all password reset tokens belonging to a user.
@@ -61,9 +65,12 @@ namespace Buttercup.DataAccess
         /// <param name="token">
         /// The token.
         /// </param>
+        /// <param name="created">
+        /// The date and time at which the token was created.
+        /// </param>
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task InsertToken(DbConnection connection, long userId, string token);
+        Task InsertToken(DbConnection connection, long userId, string token, DateTime created);
     }
 }

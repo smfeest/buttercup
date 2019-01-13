@@ -270,7 +270,8 @@ namespace Buttercup.Web.Authentication
 
                 var token = this.RandomTokenGenerator.Generate(12);
 
-                await this.PasswordResetTokenDataProvider.InsertToken(connection, user.Id, token);
+                await this.PasswordResetTokenDataProvider.InsertToken(
+                    connection, user.Id, token, this.Clock.UtcNow);
 
                 var urlHelper = this.UrlHelperFactory.GetUrlHelper(actionContext);
                 var link = urlHelper.Link("ResetPassword", new { token = token });
@@ -425,7 +426,8 @@ namespace Buttercup.Web.Authentication
 
         private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
         {
-            await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
+            await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(
+                connection, this.Clock.UtcNow.AddDays(-1));
 
             return await this.PasswordResetTokenDataProvider.GetUserIdForToken(connection, token);
         }

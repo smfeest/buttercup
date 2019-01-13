@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 
@@ -8,23 +9,13 @@ namespace Buttercup.DataAccess
     /// </summary>
     internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataProvider
     {
-        private readonly IClock clock;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PasswordResetTokenDataProvider" /> class.
-        /// </summary>
-        /// <param name="clock">
-        /// The clock.
-        /// </param>
-        public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
-
         /// <inheritdoc />
-        public async Task DeleteExpiredTokens(DbConnection connection)
+        public async Task DeleteExpiredTokens(DbConnection connection, DateTime cutOff)
         {
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"DELETE FROM password_reset_token WHERE created < @cut_off";
-                command.AddParameterWithValue("@cut_off", this.clock.UtcNow.AddDays(-1));
+                command.AddParameterWithValue("@cut_off", cutOff);
 
                 await command.ExecuteNonQueryAsync();
             }
@@ -43,8 +34,7 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task<long?> GetUserIdForToken(
-            DbConnection connection, string token)
+        public async Task<long?> GetUserIdForToken(DbConnection connection, string token)
         {
             using (var command = connection.CreateCommand())
             {
@@ -57,7 +47,8 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task InsertToken(DbConnection connection, long userId, string token)
+        public async Task InsertToken(
+            DbConnection connection, long userId, string token, DateTime created)
         {
             using (var command = connection.CreateCommand())
             {
@@ -65,7 +56,7 @@ namespace Buttercup.DataAccess
 VALUES(@token, @user_id, @created)";
                 command.AddParameterWithValue("@token", token);
                 command.AddParameterWithValue("@user_id", userId);
-                command.AddParameterWithValue("@created", this.clock.UtcNow);
+                command.AddParameterWithValue("@created", created);
 
                 await command.ExecuteNonQueryAsync();
             }

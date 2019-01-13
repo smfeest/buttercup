@@ -301,7 +301,7 @@ namespace Buttercup.Web.Authentication
             await context.PasswordResetTokenIsValid();
 
             context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(context.DbConnection));
+                x => x.DeleteExpiredTokens(context.DbConnection, context.UtcNow.AddDays(-1)));
         }
 
         [Fact]
@@ -371,7 +371,7 @@ namespace Buttercup.Web.Authentication
             await context.ResetPassword();
 
             context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(context.DbConnection));
+                x => x.DeleteExpiredTokens(context.DbConnection, context.UtcNow.AddDays(-1)));
         }
 
         [Fact]
@@ -489,8 +489,8 @@ namespace Buttercup.Web.Authentication
 
             await context.SendPasswordResetLink();
 
-            context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.InsertToken(context.DbConnection, context.User.Id, context.Token));
+            context.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
+                context.DbConnection, context.User.Id, context.Token, context.UtcNow));
         }
 
         [Fact]
