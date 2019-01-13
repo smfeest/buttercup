@@ -396,7 +396,7 @@ namespace Buttercup.Web.Authentication
             var securityToken = this.RandomTokenGenerator.Generate(2);
 
             await this.UserDataProvider.UpdatePassword(
-                connection, userId, hashedPassword, securityToken);
+                connection, userId, hashedPassword, securityToken, this.Clock.UtcNow);
 
             await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
 

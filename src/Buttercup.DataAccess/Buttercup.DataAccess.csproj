@@ -9,6 +9,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Buttercup.Models\Buttercup.Models.csproj" />
-    <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
   </ItemGroup>
 </Project>

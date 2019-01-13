@@ -200,7 +200,8 @@ namespace Buttercup.Web.Authentication
                 context.DbConnection,
                 context.UserId,
                 "sample-hashed-password",
-                "sample-security-stamp"));
+                "sample-security-stamp",
+                context.UtcNow));
         }
 
         [Fact]
@@ -423,7 +424,8 @@ namespace Buttercup.Web.Authentication
                 context.DbConnection,
                 context.UserId.Value,
                 "sample-hashed-password",
-                "sample-security-stamp"));
+                "sample-security-stamp",
+                context.UtcNow));
         }
 
         [Fact]
