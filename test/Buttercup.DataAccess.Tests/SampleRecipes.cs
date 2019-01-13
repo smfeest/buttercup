@@ -23,8 +23,8 @@ namespace Buttercup.DataAccess
                 Title = title ?? $"recipe-{i}-title",
                 Ingredients = $"recipe-{i}-ingredients",
                 Method = $"recipe-{i}-method",
-                Created = new DateTime(2001, 2, 3, 4, 5, 6),
-                Modified = new DateTime(2002, 3, 4, 5, 6, 7),
+                Created = new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
+                Modified = new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
                 Revision = revision ?? (i + 4),
             };
 

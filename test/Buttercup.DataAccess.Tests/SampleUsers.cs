@@ -20,11 +20,11 @@ namespace Buttercup.DataAccess
                 Name = $"user-{i}-name",
                 Email = email ?? $"user-{i}@example.com",
                 HashedPassword = $"user-{i}-password",
-                PasswordCreated = new DateTime(2000, 1, 2, 3, 4, 5),
+                PasswordCreated = new DateTime(2000, 1, 2, 3, 4, 5).AddSeconds(i),
                 SecurityStamp = "secstamp",
                 TimeZone = $"user-{i}-time-zone",
-                Created = new DateTime(2001, 2, 3, 4, 5, 6),
-                Modified = new DateTime(2002, 3, 4, 5, 6, 7),
+                Created = new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
+                Modified = new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
                 Revision = revision ?? (i + 1),
             };
         }
