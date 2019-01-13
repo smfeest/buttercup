@@ -13,11 +13,16 @@ namespace Buttercup.Web.Controllers
     public class RecipesController : Controller
     {
         public RecipesController(
-            IDbConnectionSource dbConnectionSource, IRecipeDataProvider recipeDataProvider)
+            IClock clock,
+            IDbConnectionSource dbConnectionSource,
+            IRecipeDataProvider recipeDataProvider)
         {
+            this.Clock = clock;
             this.DbConnectionSource = dbConnectionSource;
             this.RecipeDataProvider = recipeDataProvider;
         }
+
+        public IClock Clock { get; }
 
         public IDbConnectionSource DbConnectionSource { get; }
 
@@ -53,11 +58,14 @@ namespace Buttercup.Web.Controllers
                 return this.View(model);
             }
 
+            var recipe = model.ToRecipe();
+            recipe.Created = this.Clock.UtcNow;
+
             long id;
 
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
-                id = await this.RecipeDataProvider.AddRecipe(connection, model.ToRecipe());
+                id = await this.RecipeDataProvider.AddRecipe(connection, recipe);
             }
 
             return this.RedirectToAction(nameof(this.Show), new { id = id });
@@ -84,6 +92,7 @@ namespace Buttercup.Web.Controllers
 
             var recipe = model.ToRecipe();
             recipe.Id = id;
+            recipe.Modified = this.Clock.UtcNow;
 
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {
