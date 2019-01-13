@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 
@@ -14,6 +15,9 @@ namespace Buttercup.DataAccess
         /// <param name="connection">
         /// The database connection.
         /// </param>
+        /// <param name="time">
+        /// The time.
+        /// </param>
         /// <param name="eventName">
         /// The event name.
         /// </param>
@@ -27,6 +31,10 @@ namespace Buttercup.DataAccess
         /// A task for the operation. The result is the event ID.
         /// </returns>
         Task<long> LogEvent(
-            DbConnection connection, string eventName, long? userId = null, string email = null);
+            DbConnection connection,
+            DateTime time,
+            string eventName,
+            long? userId = null,
+            string email = null);
     }
 }

@@ -22,7 +22,7 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
 
-            var actual = await new Context().UserDataProvider.FindUserByEmail(
+            var actual = await new UserDataProvider().FindUserByEmail(
                 connection, "alpha@example.com");
 
             Assert.Equal(4, actual.Id);
@@ -36,7 +36,7 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(email: "alpha@example.com"));
 
-            var actual = await new Context().UserDataProvider.FindUserByEmail(
+            var actual = await new UserDataProvider().FindUserByEmail(
                 connection, "beta@example.com");
 
             Assert.Null(actual);
@@ -54,7 +54,7 @@ namespace Buttercup.DataAccess
 
             await SampleUsers.InsertSampleUser(connection, expected);
 
-            var actual = await new Context().UserDataProvider.GetUser(connection, 76);
+            var actual = await new UserDataProvider().GetUser(connection, 76);
 
             Assert.Equal(76, actual.Id);
             Assert.Equal(expected.Email, actual.Email);
@@ -67,7 +67,7 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
-                () => new Context().UserDataProvider.GetUser(connection, 7));
+                () => new UserDataProvider().GetUser(connection, 7));
 
             Assert.Equal("User 7 not found", exception.Message);
         });
@@ -80,23 +80,22 @@ namespace Buttercup.DataAccess
         public Task UpdatePasswordUpdatesHashedPassword() =>
             this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
+            var userDataProvider = new UserDataProvider();
 
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(id: 41, revision: 5));
 
-            var utcNow = new DateTime(2003, 4, 5, 6, 7, 8);
-            context.SetupUtcNow(utcNow);
+            var time = new DateTime(2003, 4, 5, 6, 7, 8);
 
-            await context.UserDataProvider.UpdatePassword(
-                connection, 41, "new-hashed-password", "newstamp");
+            await userDataProvider.UpdatePassword(
+                connection, 41, "new-hashed-password", "newstamp", time);
 
-            var actual = await context.UserDataProvider.GetUser(connection, 41);
+            var actual = await userDataProvider.GetUser(connection, 41);
 
             Assert.Equal("new-hashed-password", actual.HashedPassword);
-            Assert.Equal(utcNow, actual.PasswordCreated);
+            Assert.Equal(time, actual.PasswordCreated);
             Assert.Equal("newstamp", actual.SecurityStamp);
-            Assert.Equal(utcNow, actual.Modified);
+            Assert.Equal(time, actual.Modified);
             Assert.Equal(6, actual.Revision);
         });
 
@@ -107,8 +106,8 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 23));
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
-                () => new Context().UserDataProvider.UpdatePassword(
-                    connection, 4, "new-hashed-password", "newstamp"));
+                () => new UserDataProvider().UpdatePassword(
+                    connection, 4, "new-hashed-password", "newstamp", DateTime.UtcNow));
 
             Assert.Equal("User 4 not found", exception.Message);
         });
@@ -118,23 +117,22 @@ namespace Buttercup.DataAccess
         #region UpdatePreferences
 
         [Fact]
-        public Task UpdatePreferencesUpdatesHashedPassword() =>
+        public Task UpdatePreferencesUpdatesPreferences() =>
             this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
+            var userDataProvider = new UserDataProvider();
 
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(id: 32, revision: 2));
 
-            var utcNow = new DateTime(2003, 4, 5, 6, 7, 8);
-            context.SetupUtcNow(utcNow);
+            var time = new DateTime(2003, 4, 5, 6, 7, 8);
 
-            await context.UserDataProvider.UpdatePreferences(connection, 32, "new-time-zone");
+            await userDataProvider.UpdatePreferences(connection, 32, "new-time-zone", time);
 
-            var actual = await context.UserDataProvider.GetUser(connection, 32);
+            var actual = await userDataProvider.GetUser(connection, 32);
 
             Assert.Equal("new-time-zone", actual.TimeZone);
-            Assert.Equal(utcNow, actual.Modified);
+            Assert.Equal(time, actual.Modified);
             Assert.Equal(3, actual.Revision);
         });
 
@@ -145,8 +143,8 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
-                () => new Context().UserDataProvider.UpdatePreferences(
-                    connection, 9, "new-time-zone"));
+                () => new UserDataProvider().UpdatePreferences(
+                    connection, 9, "new-time-zone", DateTime.UtcNow));
 
             Assert.Equal("User 9 not found", exception.Message);
         });
@@ -163,7 +161,7 @@ namespace Buttercup.DataAccess
 
             await SampleUsers.InsertSampleUser(connection, expected);
 
-            var actual = await new Context().UserDataProvider.GetUser(connection, expected.Id);
+            var actual = await new UserDataProvider().GetUser(connection, expected.Id);
 
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Name, actual.Name);
@@ -181,18 +179,5 @@ namespace Buttercup.DataAccess
         });
 
         #endregion
-
-        private class Context
-        {
-            public Context() =>
-                this.UserDataProvider = new UserDataProvider(this.MockClock.Object);
-
-            public UserDataProvider UserDataProvider { get; }
-
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
-
-            public void SetupUtcNow(DateTime utcNow) =>
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(utcNow);
-        }
     }
 }

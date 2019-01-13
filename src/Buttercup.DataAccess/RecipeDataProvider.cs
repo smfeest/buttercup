@@ -12,16 +12,6 @@ namespace Buttercup.DataAccess
     /// </summary>
     internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
-        private readonly IClock clock;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RecipeDataProvider" /> class.
-        /// </summary>
-        /// <param name="clock">
-        /// The clock.
-        /// </param>
-        public RecipeDataProvider(IClock clock) => this.clock = clock;
-
         /// <inheritdoc />
         public async Task<long> AddRecipe(DbConnection connection, Recipe recipe)
         {
@@ -31,7 +21,7 @@ namespace Buttercup.DataAccess
 VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created)";
 
                 AddInsertUpdateParameters(command, recipe);
-                command.AddParameterWithValue("@created", this.clock.UtcNow);
+                command.AddParameterWithValue("@created", recipe.Created);
 
                 await command.ExecuteNonQueryAsync();
 
@@ -111,7 +101,7 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
 
                 AddInsertUpdateParameters(command, recipe);
                 command.AddParameterWithValue("@id", recipe.Id);
-                command.AddParameterWithValue("@modified", this.clock.UtcNow);
+                command.AddParameterWithValue("@modified", recipe.Modified);
                 command.AddParameterWithValue("@revision", recipe.Revision);
 
                 if (await command.ExecuteNonQueryAsync() == 0)

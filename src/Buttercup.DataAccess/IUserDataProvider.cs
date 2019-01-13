@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
@@ -56,6 +57,9 @@ namespace Buttercup.DataAccess
         /// <param name="securityStamp">
         /// The new security stamp.
         /// </param>
+        /// <param name="time">
+        /// The date and time of the update.
+        /// </param>
         /// <returns>
         /// A task for the operation.
         /// </returns>
@@ -63,7 +67,11 @@ namespace Buttercup.DataAccess
         /// No matching user was found.
         /// </exception>
         Task UpdatePassword(
-            DbConnection connection, long userId, string hashedPassword, string securityStamp);
+            DbConnection connection,
+            long userId,
+            string hashedPassword,
+            string securityStamp,
+            DateTime time);
 
         /// <summary>
         /// Updates a user's preferences.
@@ -77,12 +85,16 @@ namespace Buttercup.DataAccess
         /// <param name="timeZone">
         /// The TZ ID of the time zone.
         /// </param>
+        /// <param name="time">
+        /// The date and time of the update.
+        /// </param>
         /// <returns>
         /// A task for the operation.
         /// </returns>
         /// <exception cref="NotFoundException">
         /// No matching user was found.
         /// </exception>
-        Task UpdatePreferences(DbConnection connection, long userId, string timeZone);
+        Task UpdatePreferences(
+            DbConnection connection, long userId, string timeZone, DateTime time);
     }
 }

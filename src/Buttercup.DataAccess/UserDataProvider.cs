@@ -10,16 +10,6 @@ namespace Buttercup.DataAccess
     /// </summary>
     internal sealed class UserDataProvider : IUserDataProvider
     {
-        private readonly IClock clock;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UserDataProvider" /> class.
-        /// </summary>
-        /// <param name="clock">
-        /// The clock.
-        /// </param>
-        public UserDataProvider(IClock clock) => this.clock = clock;
-
         /// <inheritdoc />
         public async Task<User> FindUserByEmail(DbConnection connection, string email)
         {
@@ -62,7 +52,11 @@ namespace Buttercup.DataAccess
 
         /// <inheritdoc />
         public async Task UpdatePassword(
-            DbConnection connection, long userId, string hashedPassword, string securityStamp)
+            DbConnection connection,
+            long userId,
+            string hashedPassword,
+            string securityStamp,
+            DateTime time)
         {
             using (var command = connection.CreateCommand())
             {
@@ -76,7 +70,7 @@ namespace Buttercup.DataAccess
                 command.AddParameterWithValue("@id", userId);
                 command.AddParameterWithValue("@hashed_password", hashedPassword);
                 command.AddParameterWithValue("@security_stamp", securityStamp);
-                command.AddParameterWithValue("@time", this.clock.UtcNow);
+                command.AddParameterWithValue("@time", time);
 
                 if (await command.ExecuteNonQueryAsync() == 0)
                 {
@@ -86,7 +80,8 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task UpdatePreferences(DbConnection connection, long userId, string timeZone)
+        public async Task UpdatePreferences(
+            DbConnection connection, long userId, string timeZone, DateTime time)
         {
             using (var command = connection.CreateCommand())
             {
@@ -97,7 +92,7 @@ namespace Buttercup.DataAccess
                     WHERE id = @id";
                 command.AddParameterWithValue("@id", userId);
                 command.AddParameterWithValue("@time_zone", timeZone);
-                command.AddParameterWithValue("@time", this.clock.UtcNow);
+                command.AddParameterWithValue("@time", time);
 
                 if (await command.ExecuteNonQueryAsync() == 0)
                 {

@@ -23,7 +23,7 @@ namespace Buttercup.Web.Controllers
                 IList<Recipe> recipes = Array.Empty<Recipe>();
 
                 context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipes(context.MockConnection.Object))
+                    .Setup(x => x.GetRecipes(context.DbConnection))
                     .ReturnsAsync(recipes);
 
                 var result = await context.RecipesController.Index();
@@ -45,7 +45,7 @@ namespace Buttercup.Web.Controllers
                 var recipe = new Recipe();
 
                 context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipe(context.MockConnection.Object, 3))
+                    .Setup(x => x.GetRecipe(context.DbConnection, 3))
                     .ReturnsAsync(recipe);
 
                 var result = await context.RecipesController.Show(3);
@@ -84,9 +84,8 @@ namespace Buttercup.Web.Controllers
                 };
 
                 context.MockRecipeDataProvider
-                    .Setup(x => x.AddRecipe(
-                        context.MockConnection.Object,
-                        It.Is<Recipe>(r => r.Title == editModel.Title)))
+                    .Setup(x => x.AddRecipe(context.DbConnection, It.Is<Recipe>(
+                        r => r.Title == editModel.Title && r.Created == context.UtcNow)))
                     .ReturnsAsync(5)
                     .Verifiable();
 
@@ -130,7 +129,7 @@ namespace Buttercup.Web.Controllers
                 };
 
                 context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipe(context.MockConnection.Object, 5))
+                    .Setup(x => x.GetRecipe(context.DbConnection, 5))
                     .ReturnsAsync(recipe);
 
                 var result = await context.RecipesController.Edit(5);
@@ -156,9 +155,10 @@ namespace Buttercup.Web.Controllers
                 };
 
                 context.MockRecipeDataProvider
-                    .Setup(x => x.UpdateRecipe(
-                        context.MockConnection.Object,
-                        It.Is<Recipe>(r => r.Id == 3 && r.Title == editModel.Title)))
+                    .Setup(x => x.UpdateRecipe(context.DbConnection, It.Is<Recipe>(
+                        r => r.Id == 3 &&
+                        r.Title == editModel.Title &&
+                        r.Modified == context.UtcNow)))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -200,7 +200,7 @@ namespace Buttercup.Web.Controllers
                 var recipe = new Recipe();
 
                 context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipe(context.MockConnection.Object, 8))
+                    .Setup(x => x.GetRecipe(context.DbConnection, 8))
                     .ReturnsAsync(recipe);
 
                 var result = await context.RecipesController.Delete(8);
@@ -220,7 +220,7 @@ namespace Buttercup.Web.Controllers
             using (var context = new Context())
             {
                 context.MockRecipeDataProvider
-                    .Setup(x => x.DeleteRecipe(context.MockConnection.Object, 6, 12))
+                    .Setup(x => x.DeleteRecipe(context.DbConnection, 6, 12))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -240,22 +240,30 @@ namespace Buttercup.Web.Controllers
             public Context()
             {
                 this.RecipesController = new RecipesController(
-                    this.MockDbConnectionSource.Object, this.MockRecipeDataProvider.Object);
+                    this.MockClock.Object,
+                    this.MockDbConnectionSource.Object,
+                    this.MockRecipeDataProvider.Object);
+
+                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
 
                 this.MockDbConnectionSource
                     .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.MockConnection.Object);
+                    .ReturnsAsync(this.DbConnection);
             }
 
             public RecipesController RecipesController { get; }
 
-            public Mock<DbConnection> MockConnection { get; } = new Mock<DbConnection>();
+            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+
+            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
 
             public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
                 new Mock<IDbConnectionSource>();
 
             public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } =
                 new Mock<IRecipeDataProvider>();
+
+            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
             public void Dispose()
             {

@@ -31,11 +31,8 @@ namespace Buttercup.Web.Authentication
 
             await context.Authenticate();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "authentication_success",
-                context.UserId,
-                "sample@example.com"));
+            context.VerifyEventLogged(
+                "authentication_success", context.UserId, "sample@example.com");
         }
 
         [Fact]
@@ -59,11 +56,8 @@ namespace Buttercup.Web.Authentication
 
             await context.Authenticate();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "authentication_failure:unrecognized_email",
-                null,
-                "sample@example.com"));
+            context.VerifyEventLogged(
+                "authentication_failure:unrecognized_email", null, "sample@example.com");
         }
 
         [Fact]
@@ -85,11 +79,8 @@ namespace Buttercup.Web.Authentication
 
             await context.Authenticate();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "authentication_failure:no_password_set",
-                context.UserId,
-                "sample@example.com"));
+            context.VerifyEventLogged(
+                "authentication_failure:no_password_set", context.UserId, "sample@example.com");
         }
 
         [Fact]
@@ -111,11 +102,8 @@ namespace Buttercup.Web.Authentication
 
             await context.Authenticate();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "authentication_failure:incorrect_password",
-                context.UserId,
-                "sample@example.com"));
+            context.VerifyEventLogged(
+                "authentication_failure:incorrect_password", context.UserId, "sample@example.com");
         }
 
         [Fact]
@@ -147,11 +135,7 @@ namespace Buttercup.Web.Authentication
             {
             }
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "password_change_failure:no_password_set",
-                context.UserId,
-                null));
+            context.VerifyEventLogged("password_change_failure:no_password_set", context.UserId);
         }
 
         [Fact]
@@ -173,11 +157,7 @@ namespace Buttercup.Web.Authentication
 
             await context.ChangePassword();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "password_change_failure:incorrect_password",
-                context.UserId,
-                null));
+            context.VerifyEventLogged("password_change_failure:incorrect_password", context.UserId);
         }
 
         [Fact]
@@ -217,10 +197,11 @@ namespace Buttercup.Web.Authentication
             await context.ChangePassword();
 
             context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.MockConnection.Object,
+                context.DbConnection,
                 context.UserId,
                 "sample-hashed-password",
-                "sample-security-stamp"));
+                "sample-security-stamp",
+                context.UtcNow));
         }
 
         [Fact]
@@ -233,7 +214,7 @@ namespace Buttercup.Web.Authentication
             await context.ChangePassword();
 
             context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(context.MockConnection.Object, context.UserId));
+                x => x.DeleteTokensForUser(context.DbConnection, context.UserId));
         }
 
         [Fact]
@@ -260,8 +241,7 @@ namespace Buttercup.Web.Authentication
 
             await context.ChangePassword();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object, "password_change_success", context.UserId, null));
+            context.VerifyEventLogged("password_change_success", context.UserId);
         }
 
         [Fact]
@@ -322,7 +302,7 @@ namespace Buttercup.Web.Authentication
             await context.PasswordResetTokenIsValid();
 
             context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(context.MockConnection.Object));
+                x => x.DeleteExpiredTokens(context.DbConnection, context.UtcNow.AddDays(-1)));
         }
 
         [Fact]
@@ -336,7 +316,8 @@ namespace Buttercup.Web.Authentication
 
             context.MockAuthenticationEventDataProvider.Verify(
                 x => x.LogEvent(
-                    context.MockConnection.Object,
+                    context.DbConnection,
+                    context.UtcNow,
                     "password_reset_failure:invalid_token",
                     null,
                     null),
@@ -362,8 +343,7 @@ namespace Buttercup.Web.Authentication
 
             await context.PasswordResetTokenIsValid();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object, "password_reset_failure:invalid_token", null, null));
+            context.VerifyEventLogged("password_reset_failure:invalid_token");
         }
 
         [Fact]
@@ -392,7 +372,7 @@ namespace Buttercup.Web.Authentication
             await context.ResetPassword();
 
             context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(context.MockConnection.Object));
+                x => x.DeleteExpiredTokens(context.DbConnection, context.UtcNow.AddDays(-1)));
         }
 
         [Fact]
@@ -410,8 +390,7 @@ namespace Buttercup.Web.Authentication
             {
             }
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object, "password_reset_failure:invalid_token", null, null));
+            context.VerifyEventLogged("password_reset_failure:invalid_token");
         }
 
         [Fact]
@@ -442,10 +421,11 @@ namespace Buttercup.Web.Authentication
             await context.ResetPassword();
 
             context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.MockConnection.Object,
+                context.DbConnection,
                 context.UserId.Value,
                 "sample-hashed-password",
-                "sample-security-stamp"));
+                "sample-security-stamp",
+                context.UtcNow));
         }
 
         [Fact]
@@ -458,7 +438,7 @@ namespace Buttercup.Web.Authentication
             await context.ResetPassword();
 
             context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(context.MockConnection.Object, context.UserId.Value));
+                x => x.DeleteTokensForUser(context.DbConnection, context.UserId.Value));
         }
 
         [Fact]
@@ -483,8 +463,7 @@ namespace Buttercup.Web.Authentication
 
             await context.ResetPassword();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object, "password_reset_success", context.UserId, null));
+            context.VerifyEventLogged("password_reset_success", context.UserId);
         }
 
         [Fact]
@@ -512,8 +491,8 @@ namespace Buttercup.Web.Authentication
 
             await context.SendPasswordResetLink();
 
-            context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.InsertToken(context.MockConnection.Object, context.User.Id, context.Token));
+            context.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
+                context.DbConnection, context.User.Id, context.Token, context.UtcNow));
         }
 
         [Fact]
@@ -538,11 +517,8 @@ namespace Buttercup.Web.Authentication
 
             await context.SendPasswordResetLink();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "password_reset_link_sent",
-                context.UserId,
-                context.User.Email));
+            context.VerifyEventLogged(
+                "password_reset_link_sent", context.UserId, context.User.Email);
         }
 
         [Fact]
@@ -567,11 +543,8 @@ namespace Buttercup.Web.Authentication
 
             await context.SendPasswordResetLink();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object,
-                "password_reset_failure:unrecognized_email",
-                null,
-                context.Email));
+            context.VerifyEventLogged(
+                "password_reset_failure:unrecognized_email", null, context.Email);
         }
 
         #endregion
@@ -629,8 +602,7 @@ namespace Buttercup.Web.Authentication
 
             await context.SignIn();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object, "sign_in", context.UserId, null));
+            context.VerifyEventLogged("sign_in", context.UserId);
         }
 
         #endregion
@@ -657,8 +629,7 @@ namespace Buttercup.Web.Authentication
 
             await context.SignOut();
 
-            context.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                context.MockConnection.Object, "sign_out", context.UserId, null));
+            context.VerifyEventLogged("sign_out", context.UserId);
         }
 
         [Fact]
@@ -669,8 +640,8 @@ namespace Buttercup.Web.Authentication
             await context.SignOut();
 
             context.MockAuthenticationEventDataProvider.Verify(
-                x => x.LogEvent(
-                    context.MockConnection.Object, "sign_out", null, null), Times.Never);
+                x => x.LogEvent(context.DbConnection, context.UtcNow, "sign_out", null, null),
+                Times.Never);
         }
 
         #endregion
@@ -749,6 +720,7 @@ namespace Buttercup.Web.Authentication
                     this.MockAuthenticationEventDataProvider.Object,
                     this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
+                    this.MockClock.Object,
                     this.MockDbConnectionSource.Object,
                     this.MockLogger.Object,
                     this.MockPasswordHasher.Object,
@@ -757,9 +729,11 @@ namespace Buttercup.Web.Authentication
                     this.MockUrlHelperFactory.Object,
                     this.MockUserDataProvider.Object);
 
+                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
+
                 this.MockDbConnectionSource
                     .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.MockConnection.Object);
+                    .ReturnsAsync(this.DbConnection);
             }
 
             public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider
@@ -767,13 +741,15 @@ namespace Buttercup.Web.Authentication
 
             public AuthenticationManager AuthenticationManager { get; }
 
+            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+
             public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } =
                 new Mock<IAuthenticationMailer>();
 
             public Mock<IAuthenticationService> MockAuthenticationService { get; } =
                 new Mock<IAuthenticationService>();
 
-            public Mock<DbConnection> MockConnection { get; } = new Mock<DbConnection>();
+            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
 
             public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
                 new Mock<IDbConnectionSource>();
@@ -796,22 +772,29 @@ namespace Buttercup.Web.Authentication
             public Mock<IUserDataProvider> MockUserDataProvider { get; } =
                 new Mock<IUserDataProvider>();
 
+            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+
             public void SetupGetUser(long id, User user) =>
                 this.MockUserDataProvider
-                    .Setup(x => x.GetUser(this.MockConnection.Object, id))
+                    .Setup(x => x.GetUser(this.DbConnection, id))
                     .ReturnsAsync(user);
 
             public void SetupGetUserIdForToken(string token, long? userId) =>
                 this.MockPasswordResetTokenDataProvider
-                    .Setup(x => x.GetUserIdForToken(this.MockConnection.Object, token))
+                    .Setup(x => x.GetUserIdForToken(this.DbConnection, token))
                     .ReturnsAsync(userId);
+
+            public void VerifyEventLogged(
+                string eventName, long? userId = null, string email = null) =>
+                this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
+                    this.DbConnection, this.UtcNow, eventName, userId, email));
         }
 
         private class AuthenticateContext : Context
         {
             public AuthenticateContext() =>
                 this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, this.Email))
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
                     .ReturnsAsync(() => this.User);
 
             public string Email { get; } = "sample@example.com";
@@ -993,7 +976,7 @@ namespace Buttercup.Web.Authentication
 
             private void SetupFindUserByEmail(string email, User user) =>
                 this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.MockConnection.Object, email))
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, email))
                     .ReturnsAsync(user);
         }
 

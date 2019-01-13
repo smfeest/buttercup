@@ -147,7 +147,8 @@ namespace Buttercup.Web.Controllers
                 var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
                 context.MockUserDataProvider
-                    .Setup(x => x.UpdatePreferences(context.DbConnection, 21, viewModel.TimeZone))
+                    .Setup(x => x.UpdatePreferences(
+                        context.DbConnection, 21, viewModel.TimeZone, context.UtcNow))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -172,6 +173,7 @@ namespace Buttercup.Web.Controllers
                 };
 
                 this.AccountController = new AccountController(
+                    this.MockClock.Object,
                     this.MockDbConnectionSource.Object,
                     this.MockUserDataProvider.Object,
                     this.MockAuthenticationManager.Object,
@@ -179,6 +181,8 @@ namespace Buttercup.Web.Controllers
                 {
                     ControllerContext = this.ControllerContext,
                 };
+
+                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
 
                 this.MockDbConnectionSource
                     .Setup(x => x.OpenConnection())
@@ -193,6 +197,8 @@ namespace Buttercup.Web.Controllers
 
             public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
 
+            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
+
             public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
                 new Mock<IDbConnectionSource>();
 
@@ -204,6 +210,8 @@ namespace Buttercup.Web.Controllers
 
             public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } =
                 new Mock<IStringLocalizer<AccountController>>();
+
+            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
             public void Dispose()
             {

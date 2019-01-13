@@ -19,21 +19,21 @@ namespace Buttercup.DataAccess
         public Task DeleteExpiredTokensDeletesExpiredTokens() =>
             this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
+            var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
 
-            context.SetupUtcNow(new DateTime(2000, 1, 2, 11, 59, 59));
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 3, "token-a");
+            await passwordResetTokenDataProvider.InsertToken(
+                connection, 3, "token-a", new DateTime(2000, 1, 2, 11, 59, 59));
 
-            context.SetupUtcNow(new DateTime(2000, 1, 2, 12, 00, 00));
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 3, "token-b");
+            await passwordResetTokenDataProvider.InsertToken(
+                connection, 3, "token-b", new DateTime(2000, 1, 2, 12, 00, 00));
 
-            context.SetupUtcNow(new DateTime(2000, 1, 2, 12, 00, 01));
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 3, "token-c");
+            await passwordResetTokenDataProvider.InsertToken(
+                connection, 3, "token-c", new DateTime(2000, 1, 2, 12, 00, 01));
 
-            context.SetupUtcNow(new DateTime(2000, 1, 3, 12, 00, 00));
-            await context.PasswordResetTokenDataProvider.DeleteExpiredTokens(connection);
+            await passwordResetTokenDataProvider.DeleteExpiredTokens(
+                connection, new DateTime(2000, 1, 2, 12, 00, 00));
 
             string survivingTokens;
 
@@ -54,16 +54,18 @@ namespace Buttercup.DataAccess
         public Task DeleteTokensForUserDeletesTokensBelongingToUser() =>
             this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
+            var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 7));
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 11));
 
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 7, "token-a");
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 11, "token-b");
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 7, "token-c");
+            var time = DateTime.UtcNow;
 
-            await context.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
+            await passwordResetTokenDataProvider.InsertToken(connection, 7, "token-a", time);
+            await passwordResetTokenDataProvider.InsertToken(connection, 11, "token-b", time);
+            await passwordResetTokenDataProvider.InsertToken(connection, 7, "token-c", time);
+
+            await passwordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
 
             string survivingTokens;
 
@@ -84,12 +86,13 @@ namespace Buttercup.DataAccess
         public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists() =>
             await this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
+            var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 5));
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 5, "sample-token");
+            await passwordResetTokenDataProvider.InsertToken(
+                connection, 5, "sample-token", DateTime.UtcNow);
 
-            var actual = await context.PasswordResetTokenDataProvider.GetUserIdForToken(
+            var actual = await passwordResetTokenDataProvider.GetUserIdForToken(
                 connection, "sample-token");
 
             Assert.Equal(5, actual);
@@ -99,7 +102,7 @@ namespace Buttercup.DataAccess
         public async Task GetUserIdForTokenReturnsNullIfNoMatchFound() =>
             await this.databaseFixture.WithRollback(async connection =>
         {
-            var actual = await new Context().PasswordResetTokenDataProvider.GetUserIdForToken(
+            var actual = await new PasswordResetTokenDataProvider().GetUserIdForToken(
                 connection, "sample-token");
 
             Assert.Null(actual);
@@ -113,14 +116,12 @@ namespace Buttercup.DataAccess
         public Task InsertTokenInsertsToken() =>
             this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
-
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
 
-            var utcNow = new DateTime(2000, 1, 2, 3, 4, 5);
-            context.SetupUtcNow(utcNow);
+            var time = new DateTime(2000, 1, 2, 3, 4, 5);
 
-            await context.PasswordResetTokenDataProvider.InsertToken(connection, 6, "sample-token");
+            await new PasswordResetTokenDataProvider().InsertToken(
+                connection, 6, "sample-token", time);
 
             using (var command = connection.CreateCommand())
             {
@@ -132,25 +133,11 @@ namespace Buttercup.DataAccess
                     await reader.ReadAsync();
 
                     Assert.Equal(6, reader.GetInt64("user_id"));
-                    Assert.Equal(utcNow, reader.GetDateTime("created", DateTimeKind.Utc));
+                    Assert.Equal(time, reader.GetDateTime("created", DateTimeKind.Utc));
                 }
             }
         });
 
         #endregion
-
-        private class Context
-        {
-            public Context() =>
-                this.PasswordResetTokenDataProvider = new PasswordResetTokenDataProvider(
-                    this.MockClock.Object);
-
-            public PasswordResetTokenDataProvider PasswordResetTokenDataProvider { get; }
-
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
-
-            public void SetupUtcNow(DateTime utcNow) =>
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(utcNow);
-        }
     }
 }

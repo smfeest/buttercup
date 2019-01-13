@@ -18,15 +18,14 @@ namespace Buttercup.DataAccess
         [Fact]
         public Task LogEventInsertsEvent() => this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
-
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 8));
 
-            var utcNow = new DateTime(2000, 1, 2, 3, 4, 5);
-            context.MockClock.SetupGet(x => x.UtcNow).Returns(utcNow);
-
-            var id = await context.AuthenticationEventDataProvider.LogEvent(
-                connection, "sample-event", 8, "sample@example.com");
+            var id = await new AuthenticationEventDataProvider().LogEvent(
+                connection,
+                new DateTime(2000, 1, 2, 3, 4, 5),
+                "sample-event",
+                8,
+                "sample@example.com");
 
             using (var command = connection.CreateCommand())
             {
@@ -37,7 +36,9 @@ namespace Buttercup.DataAccess
                 {
                     await reader.ReadAsync();
 
-                    Assert.Equal(utcNow, reader.GetDateTime("time", DateTimeKind.Utc));
+                    Assert.Equal(
+                        new DateTime(2000, 1, 2, 3, 4, 5),
+                        reader.GetDateTime("time", DateTimeKind.Utc));
                     Assert.Equal("sample-event", reader.GetString("event"));
                     Assert.Equal(8, reader.GetInt64("user_id"));
                     Assert.Equal("sample@example.com", reader.GetString("email"));
@@ -49,10 +50,8 @@ namespace Buttercup.DataAccess
         public Task LogEventAcceptsNullUserIdAndEmail() =>
             this.databaseFixture.WithRollback(async connection =>
         {
-            var context = new Context();
-
-            var id = await context.AuthenticationEventDataProvider.LogEvent(
-                connection, "sample-event");
+            var id = await new AuthenticationEventDataProvider().LogEvent(
+                connection, DateTime.UtcNow, "sample-event");
 
             using (var command = connection.CreateCommand())
             {
@@ -70,15 +69,5 @@ namespace Buttercup.DataAccess
         });
 
         #endregion
-
-        private class Context
-        {
-            public Context() =>
-                this.AuthenticationEventDataProvider = new AuthenticationEventDataProvider(this.MockClock.Object);
-
-            public AuthenticationEventDataProvider AuthenticationEventDataProvider { get; }
-
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
-        }
     }
 }
