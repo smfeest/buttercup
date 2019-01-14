@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Label_YourAccount">
+    <value>Votre compte</value>
+  </data>
+  <data name="Label_SignOut">
+    <value>Déconnexion</value>
+  </data>
+</root>

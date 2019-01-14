@@ -1,0 +1,23 @@
+.footer-nav {
+  border-top: 1px solid @color-light-grey;
+  margin-top: @large-padding;
+}
+
+.footer-nav__items {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  text-align: center;
+}
+
+.footer-nav__item {
+  display: inline-block;
+
+  & + & {
+    ::before {
+      content: '|';
+      margin: 0 0.7em;
+    }
+  }
+}
