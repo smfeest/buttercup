@@ -1,4 +1,4 @@
-@inject IViewLocalizer Localizer
+﻿@inject IViewLocalizer Localizer
 @model IList<Recipe>
 @{
   ViewData["Title"] = Localizer["Title_AllRecipes"];
@@ -9,11 +9,11 @@
     <col>
     <col class="recipes-index--date" span="2">
   </colgroup>
-  <thead>
+  <thead class="recipes-index--collapsible">
     <tr>
       <th>@Localizer["Label_Title"]</th>
-      <th class="data-table--right-aligned">@Localizer["Label_Added"]</th>
-      <th class="data-table--right-aligned">@Localizer["Label_Updated"]</th>
+      <th class="data-table--right-aligned recipes-index--collapsible">@Localizer["Label_Added"]</th>
+      <th class="data-table--right-aligned recipes-index--collapsible">@Localizer["Label_Updated"]</th>
     </tr>
   </thead>
   <tbody>
@@ -21,8 +21,8 @@
     {
       <tr>
         <td><a asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></td>
-        <td class="data-table--right-aligned"><user-date-time date-time="@recipe.Created" format="d"></user-date-time></td>
-        <td class="data-table--right-aligned"><user-date-time date-time="@recipe.Modified" format="d"></user-date-time></td>
+        <td class="data-table--right-aligned recipes-index--collapsible"><user-date-time date-time="@recipe.Created" format="d"></user-date-time></td>
+        <td class="data-table--right-aligned recipes-index--collapsible"><user-date-time date-time="@recipe.Modified" format="d"></user-date-time></td>
       </tr>
     }
   </tbody>
