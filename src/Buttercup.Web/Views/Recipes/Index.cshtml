@@ -1,10 +1,14 @@
-﻿@inject IViewLocalizer Localizer
+@inject IViewLocalizer Localizer
 @model IList<Recipe>
 @{
   ViewData["Title"] = Localizer["Title_AllRecipes"];
 }
 <h1>@Localizer["Title_AllRecipes"]</h1>
 <table class="data-table">
+  <colgroup>
+    <col>
+    <col class="recipes-index--date" span="2">
+  </colgroup>
   <thead>
     <tr>
       <th>@Localizer["Label_Title"]</th>
