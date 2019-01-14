@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Web.Authentication;
+using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Buttercup.Web.Controllers
 {
     [Authorize]
+    [HandleNotFoundExceptionAttribute]
     [Route("recipes")]
     public class RecipesController : Controller
     {
