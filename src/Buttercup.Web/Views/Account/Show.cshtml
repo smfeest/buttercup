@@ -25,7 +25,7 @@
       <div class="account-overview__item-label">@Localizer["Label_Password"]</div>
       <div class="account-overview__item-data">@Localizer["Label_PasswordLastChanged", ViewContext.HttpContext.ToUserTime(Model.PasswordCreated.Value)]</div>
     </div>
-    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" />
+    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" alt="" />
   </a>
 </section>
 <section>
@@ -35,6 +35,6 @@
       <div class="account-overview__item-label">@Localizer["Label_TimeZone"]</div>
       <div class="account-overview__item-data">@TimeZoneOptions.OptionForTimeZone(Model.TimeZone).Description</div>
     </div>
-    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" />
+    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" alt="" />
   </a>
 </section>
