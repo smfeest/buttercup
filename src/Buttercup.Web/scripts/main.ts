@@ -1,5 +1,7 @@
 import PopoverMenu from './popover-menu';
 
+document.body.classList.add('js-enabled');
+
 initializeTopBar();
 
 function initializeTopBar() {
