@@ -3,6 +3,9 @@
   <data name="Title_AllRecipes">
     <value>Toutes recettes</value>
   </data>
+  <data name="Label_FindRecipe">
+    <value>Trouver une recette</value>
+  </data>
   <data name="Label_Title">
     <value>Titre</value>
   </data>

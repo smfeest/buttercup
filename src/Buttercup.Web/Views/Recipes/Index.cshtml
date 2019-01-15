@@ -3,8 +3,11 @@
 @{
   ViewData["Title"] = Localizer["Title_AllRecipes"];
 }
-<h1>@Localizer["Title_AllRecipes"]</h1>
-<table class="data-table">
+<div class="recipes-index__header">
+  <h1>@Localizer["Title_AllRecipes"]</h1>
+  <input id="recipe-index__filter" class="form-field__input" placeholder="@Localizer["Label_FindRecipe"]" aria-label="@Localizer["Label_FindRecipe"]" />
+</div>
+<table id="recipes-index__table" class="data-table">
   <colgroup>
     <col>
     <col class="recipes-index--date" span="2">

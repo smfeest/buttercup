@@ -1,11 +1,40 @@
+.recipes-index__header {
+  display: flex;
+  flex-direction: column;
+  margin-top: -@padding;
+}
+
+#recipe-index__filter {
+  display: none;
+  margin-bottom: @small-padding;
+
+  .js-enabled & {
+    display: block;
+  }
+}
+
 .recipes-index--date {
   width: 10em;
 }
 
-.recipes-index--collapsible {
+.recipes-index--collapsible,
+.recipes-index--hidden {
   display: none;
+}
 
-  @media (min-width : 720px) {
+@media (min-width : 720px) {
+  .recipes-index__header {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  #recipe-index__filter {
+    margin-bottom: 0;
+    width: 50%;
+  }
+
+  .recipes-index--collapsible {
     thead& {
       display: table-header-group;
     }
