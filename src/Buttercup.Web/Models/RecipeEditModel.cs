@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Buttercup.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Buttercup.Web.Models
 {
@@ -11,6 +12,7 @@ namespace Buttercup.Web.Models
 
         public RecipeEditModel(Recipe recipe)
         {
+            this.Id = recipe.Id;
             this.Title = recipe.Title;
             this.PreparationMinutes = recipe.PreparationMinutes;
             this.CookingMinutes = recipe.CookingMinutes;
@@ -22,6 +24,9 @@ namespace Buttercup.Web.Models
             this.Source = recipe.Source;
             this.Revision = recipe.Revision;
         }
+
+        [BindNever]
+        public long Id { get; set; }
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
@@ -57,6 +62,7 @@ namespace Buttercup.Web.Models
 
         public Recipe ToRecipe() => new Recipe
         {
+            Id = this.Id,
             Title = this.Title,
             PreparationMinutes = this.PreparationMinutes,
             CookingMinutes = this.CookingMinutes,
