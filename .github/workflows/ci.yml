@@ -48,6 +48,9 @@ jobs:
       - name: Lint scripts and styles
         run: yarn gulp lint
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Build assets
+        run: yarn gulp build
+        working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Publish
         run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
         working-directory: ${{env.WEB_PROJECT_PATH}}
