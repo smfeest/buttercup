@@ -1,0 +1,58 @@
+name: Web API / CI
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-20.04
+    env:
+      WEB_PROJECT_PATH: src/Buttercup.Web
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 2.2.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set SHORT_COMMIT_SHA
+        run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Restore .NET dependencies
+        run: dotnet restore
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Restore Yarn cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - name: Restore Node.js dependencies
+        run: yarn install
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Start MySQL Server
+        run: sudo systemctl start mysql.service
+      - name: Create MySQL users
+        run: mysql -uroot -proot < db/dev-user.sql
+      - name: Run .NET tests
+        run: dotnet test --no-build --verbosity normal --configuration Release
+      - name: Run Karma tests
+        run: yarn karma start --single-run
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Lint scripts and styles
+        run: yarn gulp lint
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Publish
+        run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
+          path: ${{env.WEB_PROJECT_PATH}}/publish-output

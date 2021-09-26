@@ -16,7 +16,7 @@
   </ItemGroup>
   <Target Name="PublishRunGulp" AfterTargets="ComputeFilesToPublish">
     <Exec Command="yarn" />
-    <Exec Command="gulp rebuild" />
+    <Exec Command="yarn gulp rebuild" />
     <ItemGroup>
       <DistFiles Include="wwwroot\**" />
       <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
