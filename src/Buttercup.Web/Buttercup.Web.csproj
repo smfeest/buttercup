@@ -11,18 +11,4 @@
     <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
     <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Remove="wwwroot\**" />
-  </ItemGroup>
-  <Target Name="PublishRunGulp" AfterTargets="ComputeFilesToPublish">
-    <Exec Command="yarn" />
-    <Exec Command="yarn gulp rebuild" />
-    <ItemGroup>
-      <DistFiles Include="wwwroot\**" />
-      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
-        <RelativePath>%(DistFiles.Identity)</RelativePath>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </ResolvedFileToPublish>
-    </ItemGroup>
-  </Target>
 </Project>
