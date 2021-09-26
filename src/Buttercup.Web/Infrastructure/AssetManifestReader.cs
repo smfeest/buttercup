@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Buttercup.Web.Infrastructure
 {
@@ -8,11 +8,9 @@ namespace Buttercup.Web.Infrastructure
     {
         public IDictionary<string, string> ReadManifest(Stream stream)
         {
-            using (var streamReader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(streamReader))
-            {
-                return new JsonSerializer().Deserialize<Dictionary<string, string>>(jsonReader);
-            }
+            using var streamReader = new StreamReader(stream);
+
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(streamReader.ReadToEnd());
         }
     }
 }
