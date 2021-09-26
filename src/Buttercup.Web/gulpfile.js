@@ -135,8 +135,7 @@ const build = parallel(
   series(
     parallel(bundleStyles, revisionStaticAssets),
     bundleAndRevisionProductionScripts,
-    revisionStyles),
-  lint);
+    revisionStyles));
 
 exports.default = build;
 exports.build = build;
