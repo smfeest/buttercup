@@ -9,7 +9,7 @@ namespace Buttercup.Web.Controllers
         [Route("/error")]
         public IActionResult Error() => this.View(new ErrorViewModel
         {
-            RequestId = Activity.Current?.Id ?? this.HttpContext.TraceIdentifier
+            RequestId = Activity.Current?.Id ?? this.HttpContext.TraceIdentifier,
         });
     }
 }

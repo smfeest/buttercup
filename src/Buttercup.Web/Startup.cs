@@ -93,7 +93,7 @@ namespace Buttercup.Web
                     {
                         Name = "buttercup.auth",
                         HttpOnly = true,
-                        SameSite = SameSiteMode.Strict
+                        SameSite = SameSiteMode.Strict,
                     };
                     options.EventsType = typeof(CookieAuthenticationEventsHandler);
                     options.LoginPath = "/sign-in";
