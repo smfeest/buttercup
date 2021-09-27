@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
