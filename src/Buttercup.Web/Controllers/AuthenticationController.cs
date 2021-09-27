@@ -29,7 +29,6 @@ namespace Buttercup.Web.Controllers
         public IActionResult RequestPasswordReset() => this.View();
 
         [HttpPost("reset-password")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetViewModel model)
         {
             if (!this.ModelState.IsValid)
@@ -82,7 +81,6 @@ namespace Buttercup.Web.Controllers
         public IActionResult SignIn() => this.View();
 
         [HttpPost("sign-in")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SignIn(SignInViewModel model, string returnUrl = null)
         {
             if (!this.ModelState.IsValid)

@@ -43,7 +43,6 @@ namespace Buttercup.Web.Controllers
         public IActionResult ChangePassword() => this.View();
 
         [HttpPost("change-password")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
             if (!this.ModelState.IsValid)
@@ -71,7 +70,6 @@ namespace Buttercup.Web.Controllers
             this.View(new PreferencesViewModel(this.HttpContext.GetCurrentUser()));
 
         [HttpPost("preferences")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Preferences(PreferencesViewModel model)
         {
             using var connection = await this.DbConnectionSource.OpenConnection();

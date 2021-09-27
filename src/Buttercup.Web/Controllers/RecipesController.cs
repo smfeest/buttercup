@@ -51,7 +51,6 @@ namespace Buttercup.Web.Controllers
         public IActionResult New() => this.View();
 
         [HttpPost("new")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> New(RecipeEditModel model)
         {
             if (!this.ModelState.IsValid)
@@ -84,7 +83,6 @@ namespace Buttercup.Web.Controllers
         }
 
         [HttpPost("{id}/edit")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(long id, RecipeEditModel model)
         {
             if (!this.ModelState.IsValid)
@@ -115,7 +113,6 @@ namespace Buttercup.Web.Controllers
         }
 
         [HttpPost("{id}/delete")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id, int revision)
         {
             using var connection = await this.DbConnectionSource.OpenConnection();
