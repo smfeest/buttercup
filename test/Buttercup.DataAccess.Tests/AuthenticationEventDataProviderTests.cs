@@ -62,8 +62,8 @@ namespace Buttercup.DataAccess
                 {
                     await reader.ReadAsync();
 
-                    Assert.Null(reader.GetNullableInt64("user_id"));
-                    Assert.Null(reader.GetString("email"));
+                    Assert.True(reader.IsDBNull(reader.GetOrdinal("user_id")));
+                    Assert.True(reader.IsDBNull(reader.GetOrdinal("email")));
                 }
             }
         });
