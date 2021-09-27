@@ -18,8 +18,10 @@ namespace Buttercup.Web.TagHelpers
     {
         private const string ForAttributeName = "asp-for";
 
+        private readonly IStringLocalizer<RequiredLabelTagHelper> localizer;
+
         public RequiredLabelTagHelper(IStringLocalizer<RequiredLabelTagHelper> localizer) =>
-            this.Localizer = localizer;
+            this.localizer = localizer;
 
         /// <summary>
         /// Gets or sets the model expression.
@@ -42,8 +44,6 @@ namespace Buttercup.Web.TagHelpers
         [HtmlAttributeName("show-required-label")]
         public bool? ShowRequiredLabel { get; set; }
 
-        private IStringLocalizer<RequiredLabelTagHelper> Localizer { get; }
-
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             if (this.ShowRequiredLabel.HasValue ?
@@ -52,7 +52,7 @@ namespace Buttercup.Web.TagHelpers
             {
                 var span = new TagBuilder("span");
                 span.AddCssClass("form-field__required-label");
-                span.InnerHtml.Append(this.Localizer["Label_Required"]!);
+                span.InnerHtml.Append(this.localizer["Label_Required"]!);
 
                 output.Content.AppendHtml(span);
             }

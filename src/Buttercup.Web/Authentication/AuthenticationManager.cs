@@ -17,6 +17,18 @@ namespace Buttercup.Web.Authentication
 {
     public class AuthenticationManager : IAuthenticationManager
     {
+        private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;
+        private readonly IAuthenticationMailer authenticationMailer;
+        private readonly IAuthenticationService authenticationService;
+        private readonly IClock clock;
+        private readonly IDbConnectionSource dbConnectionSource;
+        private readonly ILogger<AuthenticationManager> logger;
+        private readonly IPasswordHasher<User?> passwordHasher;
+        private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
+        private readonly IRandomTokenGenerator randomTokenGenerator;
+        private readonly IUrlHelperFactory urlHelperFactory;
+        private readonly IUserDataProvider userDataProvider;
+
         public AuthenticationManager(
             IAuthenticationEventDataProvider authenticationEventDataProvider,
             IAuthenticationMailer authenticationMailer,
@@ -30,55 +42,33 @@ namespace Buttercup.Web.Authentication
             IUrlHelperFactory urlHelperFactory,
             IUserDataProvider userDataProvider)
         {
-            this.AuthenticationEventDataProvider = authenticationEventDataProvider;
-            this.AuthenticationMailer = authenticationMailer;
-            this.AuthenticationService = authenticationService;
-            this.Clock = clock;
-            this.DbConnectionSource = dbConnectionSource;
-            this.Logger = logger;
-            this.PasswordHasher = passwordHasher;
-            this.PasswordResetTokenDataProvider = passwordResetTokenDataProvider;
-            this.RandomTokenGenerator = randomTokenGenerator;
-            this.UrlHelperFactory = urlHelperFactory;
-            this.UserDataProvider = userDataProvider;
+            this.authenticationEventDataProvider = authenticationEventDataProvider;
+            this.authenticationMailer = authenticationMailer;
+            this.authenticationService = authenticationService;
+            this.clock = clock;
+            this.dbConnectionSource = dbConnectionSource;
+            this.logger = logger;
+            this.passwordHasher = passwordHasher;
+            this.passwordResetTokenDataProvider = passwordResetTokenDataProvider;
+            this.randomTokenGenerator = randomTokenGenerator;
+            this.urlHelperFactory = urlHelperFactory;
+            this.userDataProvider = userDataProvider;
         }
-
-        public IAuthenticationEventDataProvider AuthenticationEventDataProvider { get; }
-
-        public IAuthenticationMailer AuthenticationMailer { get; }
-
-        public IAuthenticationService AuthenticationService { get; }
-
-        public IClock Clock { get; }
-
-        public IDbConnectionSource DbConnectionSource { get; }
-
-        public ILogger<AuthenticationManager> Logger { get; }
-
-        public IPasswordHasher<User?> PasswordHasher { get; }
-
-        public IPasswordResetTokenDataProvider PasswordResetTokenDataProvider { get; }
-
-        public IRandomTokenGenerator RandomTokenGenerator { get; }
-
-        public IUrlHelperFactory UrlHelperFactory { get; }
-
-        public IUserDataProvider UserDataProvider { get; }
 
         public async Task<User?> Authenticate(string email, string password)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            var user = await this.UserDataProvider.FindUserByEmail(connection, email);
+            var user = await this.userDataProvider.FindUserByEmail(connection, email);
 
             if (user == null)
             {
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Authentication failed; no user with email {email}", email);
 
-                await this.AuthenticationEventDataProvider.LogEvent(
+                await this.authenticationEventDataProvider.LogEvent(
                     connection,
-                    this.Clock.UtcNow,
+                    this.clock.UtcNow,
                     "authentication_failure:unrecognized_email",
                     null,
                     email);
@@ -88,14 +78,14 @@ namespace Buttercup.Web.Authentication
 
             if (user.HashedPassword == null)
             {
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Authentication failed; no password set for user {userId} ({email})",
                     user.Id,
                     user.Email);
 
-                await this.AuthenticationEventDataProvider.LogEvent(
+                await this.authenticationEventDataProvider.LogEvent(
                     connection,
-                    this.Clock.UtcNow,
+                    this.clock.UtcNow,
                     "authentication_failure:no_password_set",
                     user.Id,
                     email);
@@ -105,14 +95,14 @@ namespace Buttercup.Web.Authentication
 
             if (!this.VerifyPassword(user, password))
             {
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Authentication failed; incorrect password for user {userId} ({email})",
                     user.Id,
                     user.Email);
 
-                await this.AuthenticationEventDataProvider.LogEvent(
+                await this.authenticationEventDataProvider.LogEvent(
                     connection,
-                    this.Clock.UtcNow,
+                    this.clock.UtcNow,
                     "authentication_failure:incorrect_password",
                     user.Id,
                     email);
@@ -120,11 +110,11 @@ namespace Buttercup.Web.Authentication
                 return null;
             }
 
-            this.Logger.LogInformation(
+            this.logger.LogInformation(
                 "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
 
-            await this.AuthenticationEventDataProvider.LogEvent(
-                connection, this.Clock.UtcNow, "authentication_success", user.Id, email);
+            await this.authenticationEventDataProvider.LogEvent(
+                connection, this.clock.UtcNow, "authentication_success", user.Id, email);
 
             return user;
         }
@@ -132,15 +122,15 @@ namespace Buttercup.Web.Authentication
         public async Task<bool> ChangePassword(
             HttpContext httpContext, string currentPassword, string newPassword)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
             var user = httpContext.GetCurrentUser()!;
 
             if (user.HashedPassword == null)
             {
-                await this.AuthenticationEventDataProvider.LogEvent(
+                await this.authenticationEventDataProvider.LogEvent(
                     connection,
-                    this.Clock.UtcNow,
+                    this.clock.UtcNow,
                     "password_change_failure:no_password_set",
                     user.Id);
 
@@ -150,14 +140,14 @@ namespace Buttercup.Web.Authentication
 
             if (!this.VerifyPassword(user, currentPassword))
             {
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Password change denied for user {userId} ({email}); current password is incorrect",
                     user.Id,
                     user.Email);
 
-                await this.AuthenticationEventDataProvider.LogEvent(
+                await this.authenticationEventDataProvider.LogEvent(
                     connection,
-                    this.Clock.UtcNow,
+                    this.clock.UtcNow,
                     "password_change_failure:incorrect_password",
                     user.Id);
 
@@ -166,15 +156,15 @@ namespace Buttercup.Web.Authentication
 
             user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
-            this.Logger.LogInformation(
+            this.logger.LogInformation(
                 "Password successfully changed for user {userId} ({email})",
                 user.Id,
                 user.Email);
 
-            await this.AuthenticationEventDataProvider.LogEvent(
-                connection, this.Clock.UtcNow, "password_change_success", user.Id);
+            await this.authenticationEventDataProvider.LogEvent(
+                connection, this.clock.UtcNow, "password_change_success", user.Id);
 
-            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email!);
+            await this.authenticationMailer.SendPasswordChangeNotification(user.Email!);
 
             await this.SignInUser(httpContext, user);
 
@@ -183,24 +173,24 @@ namespace Buttercup.Web.Authentication
 
         public async Task<bool> PasswordResetTokenIsValid(string token)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
             var userId = await this.ValidatePasswordResetToken(connection, token);
 
             if (userId.HasValue)
             {
-                this.Logger.LogDebug(
+                this.logger.LogDebug(
                     "Password reset token '{token}' is valid and belongs to user {userId}",
                     RedactToken(token),
                     userId);
             }
             else
             {
-                this.Logger.LogDebug(
+                this.logger.LogDebug(
                     "Password reset token '{token}' is no longer valid", RedactToken(token));
 
-                await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
+                await this.authenticationEventDataProvider.LogEvent(
+                    connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
             }
 
             return userId.HasValue;
@@ -208,53 +198,53 @@ namespace Buttercup.Web.Authentication
 
         public async Task<User> ResetPassword(string token, string newPassword)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
             var userId = await this.ValidatePasswordResetToken(connection, token);
 
             if (!userId.HasValue)
             {
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Unable to reset password; password reset token {token} is invalid",
                     RedactToken(token));
 
-                await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
+                await this.authenticationEventDataProvider.LogEvent(
+                    connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
 
                 throw new InvalidTokenException("Password reset token is invalid");
             }
 
             await this.SetPassword(connection, userId.Value, newPassword);
 
-            this.Logger.LogInformation(
+            this.logger.LogInformation(
                 "Password reset for user {userId} using token {token}",
                 userId,
                 RedactToken(token));
 
-            await this.AuthenticationEventDataProvider.LogEvent(
-                connection, this.Clock.UtcNow, "password_reset_success", userId.Value);
+            await this.authenticationEventDataProvider.LogEvent(
+                connection, this.clock.UtcNow, "password_reset_success", userId.Value);
 
-            var user = await this.UserDataProvider.GetUser(connection, userId.Value);
+            var user = await this.userDataProvider.GetUser(connection, userId.Value);
 
-            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email!);
+            await this.authenticationMailer.SendPasswordChangeNotification(user.Email!);
 
             return user;
         }
 
         public async Task SendPasswordResetLink(ActionContext actionContext, string email)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            var user = await this.UserDataProvider.FindUserByEmail(connection, email);
+            var user = await this.userDataProvider.FindUserByEmail(connection, email);
 
             if (user == null)
             {
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Unable to send password reset link; No user with email {email}", email);
 
-                await this.AuthenticationEventDataProvider.LogEvent(
+                await this.authenticationEventDataProvider.LogEvent(
                     connection,
-                    this.Clock.UtcNow,
+                    this.clock.UtcNow,
                     "password_reset_failure:unrecognized_email",
                     null,
                     email);
@@ -264,29 +254,29 @@ namespace Buttercup.Web.Authentication
 
             email = user.Email!;
 
-            var token = this.RandomTokenGenerator.Generate(12);
+            var token = this.randomTokenGenerator.Generate(12);
 
-            await this.PasswordResetTokenDataProvider.InsertToken(
-                connection, user.Id, token, this.Clock.UtcNow);
+            await this.passwordResetTokenDataProvider.InsertToken(
+                connection, user.Id, token, this.clock.UtcNow);
 
-            var urlHelper = this.UrlHelperFactory.GetUrlHelper(actionContext);
+            var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
             var link = urlHelper.Link("ResetPassword", new { token = token })!;
 
             try
             {
-                await this.AuthenticationMailer.SendPasswordResetLink(email, link);
+                await this.authenticationMailer.SendPasswordResetLink(email, link);
 
-                this.Logger.LogInformation(
+                this.logger.LogInformation(
                     "Password reset link sent to user {userId} ({email})",
                     user.Id,
                     email);
 
-                await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "password_reset_link_sent", user.Id, email);
+                await this.authenticationEventDataProvider.LogEvent(
+                    connection, this.clock.UtcNow, "password_reset_link_sent", user.Id, email);
             }
             catch (Exception e)
             {
-                this.Logger.LogError(
+                this.logger.LogError(
                     e,
                     "Error sending password reset link to user {userId} ({email})",
                     user.Id,
@@ -300,12 +290,12 @@ namespace Buttercup.Web.Authentication
 
             httpContext.SetCurrentUser(user);
 
-            this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
+            this.logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
 
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            await this.AuthenticationEventDataProvider.LogEvent(
-                connection, this.Clock.UtcNow, "sign_in", user.Id);
+            await this.authenticationEventDataProvider.LogEvent(
+                connection, this.clock.UtcNow, "sign_in", user.Id);
         }
 
         public async Task SignOut(HttpContext httpContext)
@@ -318,12 +308,12 @@ namespace Buttercup.Web.Authentication
             {
                 var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
-                this.Logger.LogInformation("User {userId} ({email}) signed out", userId, email);
+                this.logger.LogInformation("User {userId} ({email}) signed out", userId, email);
 
-                using var connection = await this.DbConnectionSource.OpenConnection();
+                using var connection = await this.dbConnectionSource.OpenConnection();
 
-                await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "sign_out", userId);
+                await this.authenticationEventDataProvider.LogEvent(
+                    connection, this.clock.UtcNow, "sign_out", userId);
             }
         }
 
@@ -337,9 +327,9 @@ namespace Buttercup.Web.Authentication
             {
                 User user;
 
-                using (var connection = await this.DbConnectionSource.OpenConnection())
+                using (var connection = await this.dbConnectionSource.OpenConnection())
                 {
-                    user = await this.UserDataProvider.GetUser(connection, userId.Value);
+                    user = await this.userDataProvider.GetUser(connection, userId.Value);
                 }
 
                 var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
@@ -348,14 +338,14 @@ namespace Buttercup.Web.Authentication
                 {
                     context.HttpContext.SetCurrentUser(user);
 
-                    this.Logger.LogDebug(
+                    this.logger.LogDebug(
                         "Principal successfully validated for user {userId} ({email})",
                         user.Id,
                         user.Email);
                 }
                 else
                 {
-                    this.Logger.LogInformation(
+                    this.logger.LogInformation(
                         "Incorrect security stamp for user {userId} ({email})",
                         user.Id,
                         user.Email);
@@ -384,14 +374,14 @@ namespace Buttercup.Web.Authentication
         private async Task<string> SetPassword(
             DbConnection connection, long userId, string newPassword)
         {
-            var hashedPassword = this.PasswordHasher.HashPassword(null, newPassword);
+            var hashedPassword = this.passwordHasher.HashPassword(null, newPassword);
 
-            var securityToken = this.RandomTokenGenerator.Generate(2);
+            var securityToken = this.randomTokenGenerator.Generate(2);
 
-            await this.UserDataProvider.UpdatePassword(
-                connection, userId, hashedPassword, securityToken, this.Clock.UtcNow);
+            await this.userDataProvider.UpdatePassword(
+                connection, userId, hashedPassword, securityToken, this.clock.UtcNow);
 
-            await this.PasswordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
+            await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
 
             return securityToken;
         }
@@ -408,24 +398,24 @@ namespace Buttercup.Web.Authentication
             var principal = new ClaimsPrincipal(new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
 
-            await this.AuthenticationService.SignInAsync(
+            await this.authenticationService.SignInAsync(
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
         }
 
         private Task SignOutCurrentUser(HttpContext httpContext) =>
-            this.AuthenticationService.SignOutAsync(
+            this.authenticationService.SignOutAsync(
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
         private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
         {
-            await this.PasswordResetTokenDataProvider.DeleteExpiredTokens(
-                connection, this.Clock.UtcNow.AddDays(-1));
+            await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
+                connection, this.clock.UtcNow.AddDays(-1));
 
-            return await this.PasswordResetTokenDataProvider.GetUserIdForToken(connection, token);
+            return await this.passwordResetTokenDataProvider.GetUserIdForToken(connection, token);
         }
 
         private bool VerifyPassword(User user, string password) =>
-            this.PasswordHasher.VerifyHashedPassword(user, user.HashedPassword, password) ==
+            this.passwordHasher.VerifyHashedPassword(user, user.HashedPassword, password) ==
                 PasswordVerificationResult.Success;
     }
 }

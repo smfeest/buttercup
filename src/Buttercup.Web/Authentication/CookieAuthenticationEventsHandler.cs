@@ -5,12 +5,12 @@ namespace Buttercup.Web.Authentication
 {
     public class CookieAuthenticationEventsHandler : CookieAuthenticationEvents
     {
-        public CookieAuthenticationEventsHandler(IAuthenticationManager authenticationManager) =>
-            this.AuthenticationManager = authenticationManager;
+        private readonly IAuthenticationManager authenticationManager;
 
-        public IAuthenticationManager AuthenticationManager { get; }
+        public CookieAuthenticationEventsHandler(IAuthenticationManager authenticationManager) =>
+            this.authenticationManager = authenticationManager;
 
         public override Task ValidatePrincipal(CookieValidatePrincipalContext context) =>
-            this.AuthenticationManager.ValidatePrincipal(context);
+            this.authenticationManager.ValidatePrincipal(context);
     }
 }
