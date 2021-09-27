@@ -1,6 +1,6 @@
 using System.Data.Common;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
