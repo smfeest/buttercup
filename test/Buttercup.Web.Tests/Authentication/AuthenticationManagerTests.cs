@@ -808,7 +808,7 @@ namespace Buttercup.Web.Authentication
             public void SetupUserHasNoPassword() => this.User = new User
             {
                 Id = this.UserId = 29,
-                HashedPassword = null
+                HashedPassword = null,
             };
 
             public void SetupPasswordIncorrect()
