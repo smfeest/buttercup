@@ -274,6 +274,7 @@ namespace Buttercup.Web.Authentication
                 await this.authenticationEventDataProvider.LogEvent(
                     connection, this.clock.UtcNow, "password_reset_link_sent", user.Id, email);
             }
+#pragma warning disable CA1031
             catch (Exception e)
             {
                 this.logger.LogError(
@@ -282,6 +283,7 @@ namespace Buttercup.Web.Authentication
                     user.Id,
                     email);
             }
+#pragma warning restore CA1031
         }
 
         public async Task SignIn(HttpContext httpContext, User user)

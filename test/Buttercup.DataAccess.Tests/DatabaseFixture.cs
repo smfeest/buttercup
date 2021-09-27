@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -74,6 +75,10 @@ namespace Buttercup.DataAccess
                 Database = this.DatabaseName,
             }.ToString();
 
+        [SuppressMessage(
+            "Security",
+            "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
+            Justification = "Command text does not contain user input")]
         private async Task RecreateDatabase()
         {
             using var connection = new MySqlConnection(this.ConnectionString);

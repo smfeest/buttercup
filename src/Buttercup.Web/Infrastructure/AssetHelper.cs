@@ -24,7 +24,7 @@ namespace Buttercup.Web.Infrastructure
         }
 
         [SuppressMessage(
-            "Microsoft.Design",
+            "Design",
             "CA1055:UriReturnValuesShouldNotBeStrings",
             Justification = "IUrlHelper.Content uses strings for paths")]
         public string Url(ActionContext context, string path)
