@@ -67,6 +67,6 @@
 }
 
 <footer class="button-bar">
-  <a class="push-button" asp-action="Edit">@Localizer["Label_Edit"]</a>
-  <a class="push-button" asp-action="Delete">@Localizer["Label_Delete"]</a>
+  <a class="push-button" asp-action="Edit" asp-route-id="@Model.Id">@Localizer["Label_Edit"]</a>
+  <a class="push-button" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
 </footer>

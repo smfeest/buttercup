@@ -16,11 +16,11 @@ namespace Buttercup.Web.Infrastructure
         private IDictionary<string, string> productionManifest;
 
         public AssetManifestSource(
-            IHostingEnvironment hostingEnvironment,
+            IWebHostEnvironment hostEnvironment,
             ILogger<AssetManifestSource> logger,
             IAssetManifestReader manifestReader)
         {
-            this.fileProvider = hostingEnvironment.WebRootFileProvider;
+            this.fileProvider = hostEnvironment.WebRootFileProvider;
             this.logger = logger;
             this.manifestReader = manifestReader;
         }

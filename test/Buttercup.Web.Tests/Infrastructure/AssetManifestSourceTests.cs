@@ -51,8 +51,8 @@ namespace Buttercup.Web.Infrastructure
                 var path = Path.Combine("prod-assets", "manifest.json");
                 mockFileProvider.Setup(x => x.GetFileInfo(path)).Returns(mockFileInfo.Object);
 
-                var mockHostingEnvironment = new Mock<IHostingEnvironment>();
-                mockHostingEnvironment
+                var mockHostEnvironment = new Mock<IWebHostEnvironment>();
+                mockHostEnvironment
                     .SetupGet(x => x.WebRootFileProvider)
                     .Returns(mockFileProvider.Object);
 
@@ -63,7 +63,7 @@ namespace Buttercup.Web.Infrastructure
                     .Returns(this.ExpectedManifest);
 
                 this.ManifestSource = new AssetManifestSource(
-                    mockHostingEnvironment.Object,
+                    mockHostEnvironment.Object,
                     mockLogger.Object,
                     this.MockManifestReader.Object);
             }

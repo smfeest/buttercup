@@ -2,24 +2,24 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.Hosting;
 
 namespace Buttercup.Web.Infrastructure
 {
     public class AssetHelper : IAssetHelper
     {
         private readonly IAssetManifestSource assetManifestSource;
-        private readonly IHostingEnvironment hostingEnvironment;
+        private readonly IWebHostEnvironment hostEnvironment;
         private readonly IUrlHelperFactory urlHelperFactory;
 
         public AssetHelper(
             IAssetManifestSource assetManifestSource,
-            IHostingEnvironment hostingEnvironment,
+            IWebHostEnvironment hostEnvironment,
             IUrlHelperFactory urlHelperFactory)
         {
             this.assetManifestSource = assetManifestSource;
-            this.hostingEnvironment = hostingEnvironment;
+            this.hostEnvironment = hostEnvironment;
             this.urlHelperFactory = urlHelperFactory;
         }
 
@@ -41,7 +41,7 @@ namespace Buttercup.Web.Infrastructure
 
             string contentPath;
 
-            if (this.hostingEnvironment.IsDevelopment())
+            if (this.hostEnvironment.IsDevelopment())
             {
                 contentPath = $"~/assets/{path}";
             }

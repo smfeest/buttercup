@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Moq;
 using Xunit;
@@ -28,7 +27,7 @@ namespace Buttercup.Web.Infrastructure
                     { "gamma/delta.png", "gamma/delta-82fb493637.png" },
                 });
 
-            var mockHostingEnvironment = new Mock<IHostingEnvironment>();
+            var mockHostingEnvironment = new Mock<IWebHostEnvironment>();
             mockHostingEnvironment.SetupGet(x => x.EnvironmentName).Returns(environment);
 
             var mockUrlHelper = new Mock<IUrlHelper>();
