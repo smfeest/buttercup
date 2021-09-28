@@ -138,7 +138,7 @@ namespace Buttercup.Web.Controllers
                     .ThrowsAsync(new InvalidTokenException());
 
                 var result = await context.AuthenticationController.ResetPassword(
-                    "sample-token", new ResetPasswordViewModel { Password = "sample-password" });
+                    "sample-token", new() { Password = "sample-password" });
 
                 var viewResult = Assert.IsType<ViewResult>(result);
                 Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
@@ -157,7 +157,7 @@ namespace Buttercup.Web.Controllers
                     .ReturnsAsync(user);
 
                 await context.AuthenticationController.ResetPassword(
-                    "sample-token", new ResetPasswordViewModel { Password = "sample-password" });
+                    "sample-token", new() { Password = "sample-password" });
 
                 context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
             }
@@ -169,7 +169,7 @@ namespace Buttercup.Web.Controllers
             using (var context = new Context())
             {
                 var result = await context.AuthenticationController.ResetPassword(
-                    "sample-token", new ResetPasswordViewModel());
+                    "sample-token", new());
 
                 var redirectResult = Assert.IsType<RedirectToActionResult>(result);
                 Assert.Equal("Home", redirectResult.ControllerName);
@@ -259,7 +259,7 @@ namespace Buttercup.Web.Controllers
         {
             using (var context = new SignInContext())
             {
-                context.SetupAuthenticate(new User());
+                context.SetupAuthenticate(new());
 
                 context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
@@ -275,7 +275,7 @@ namespace Buttercup.Web.Controllers
         {
             using (var context = new SignInContext())
             {
-                context.SetupAuthenticate(new User());
+                context.SetupAuthenticate(new());
 
                 context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
@@ -351,12 +351,12 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.ControllerContext = new ControllerContext()
+                this.ControllerContext = new()
                 {
                     HttpContext = this.HttpContext,
                 };
 
-                this.AuthenticationController = new AuthenticationController(
+                this.AuthenticationController = new(
                     this.MockAuthenticationManager.Object,
                     this.MockLocalizer.Object)
                 {
@@ -369,15 +369,13 @@ namespace Buttercup.Web.Controllers
 
             public ControllerContext ControllerContext { get; }
 
-            public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
-            public Mock<IAuthenticationManager> MockAuthenticationManager { get; } =
-                new Mock<IAuthenticationManager>();
+            public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
 
-            public Mock<IStringLocalizer<AuthenticationController>> MockLocalizer { get; } =
-                new Mock<IStringLocalizer<AuthenticationController>>();
+            public Mock<IStringLocalizer<AuthenticationController>> MockLocalizer { get; } = new();
 
-            public Mock<IUrlHelper> MockUrlHelper { get; } = new Mock<IUrlHelper>();
+            public Mock<IUrlHelper> MockUrlHelper { get; } = new();
 
             public void Dispose()
             {
@@ -396,7 +394,7 @@ namespace Buttercup.Web.Controllers
                     .Returns(new LocalizedString(
                         "Error_WrongPassword", "translated-wrong-email-or-password-error"));
 
-            public SignInViewModel Model { get; } = new SignInViewModel
+            public SignInViewModel Model { get; } = new()
             {
                 Email = "sample@example.com",
                 Password = "sample-password",

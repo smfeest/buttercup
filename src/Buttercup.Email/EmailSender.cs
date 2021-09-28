@@ -35,7 +35,7 @@ namespace Buttercup.Email
         {
             var message = new SendGridMessage()
             {
-                From = new EmailAddress(this.fromAddress),
+                From = new(this.fromAddress),
                 Subject = subject,
                 PlainTextContent = body,
             };

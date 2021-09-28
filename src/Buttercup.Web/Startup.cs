@@ -40,18 +40,18 @@ namespace Buttercup.Web
 
             app.UseRequestLocalization(new RequestLocalizationOptions
             {
-                DefaultRequestCulture = new RequestCulture("en-GB"),
-                SupportedCultures = new[]
+                DefaultRequestCulture = new("en-GB"),
+                SupportedCultures = new CultureInfo[]
                 {
-                    new CultureInfo("en-GB"),
-                    new CultureInfo("en"),
-                    new CultureInfo("fr-FR"),
-                    new CultureInfo("fr"),
+                    new("en-GB"),
+                    new("en"),
+                    new("fr-FR"),
+                    new("fr"),
                 },
-                SupportedUICultures = new[]
+                SupportedUICultures = new CultureInfo[]
                 {
-                    new CultureInfo("en-GB"),
-                    new CultureInfo("fr"),
+                    new("en-GB"),
+                    new("fr"),
                 },
             });
 
@@ -89,7 +89,7 @@ namespace Buttercup.Web
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.Cookie = new CookieBuilder()
+                    options.Cookie = new()
                     {
                         Name = "buttercup.auth",
                         HttpOnly = true,

@@ -102,7 +102,7 @@ namespace Buttercup.DataAccess
         }
 
         private static User ReadUser(DbDataReader reader) =>
-            new User
+            new()
             {
                 Id = reader.GetInt64("id"),
                 Name = reader.GetString("name"),
@@ -117,6 +117,6 @@ namespace Buttercup.DataAccess
             };
 
         private static NotFoundException UserNotFound(long userId) =>
-            new NotFoundException($"User {userId} not found");
+            new($"User {userId} not found");
     }
 }

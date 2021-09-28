@@ -40,22 +40,14 @@ namespace Buttercup.Web.TagHelpers
 
         private class Context
         {
-            public Context()
-            {
-                this.Output = new TagHelperOutput(
-                    "ul", new TagHelperAttributeList(), GetChildContent);
+            public TagHelperOutput Output { get; } = new("ul", new(), GetChildContent);
 
-                this.TagHelper = new ListFromLinesTagHelper();
-            }
-
-            public TagHelperOutput Output { get; }
-
-            public ListFromLinesTagHelper TagHelper { get; }
+            public ListFromLinesTagHelper TagHelper { get; } = new();
 
             public void Process()
             {
                 var context = new TagHelperContext(
-                    "ul", new TagHelperAttributeList(), new Dictionary<object, object>(), "test");
+                    "ul", new(), new Dictionary<object, object>(), "test");
 
                 this.TagHelper.Process(context, this.Output);
             }

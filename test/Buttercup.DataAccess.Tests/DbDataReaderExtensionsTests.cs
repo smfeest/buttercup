@@ -25,7 +25,7 @@ namespace Buttercup.DataAccess
                 .Returns(new DateTime(2000, 1, 2, 3, 4, 5, 6, DateTimeKind.Unspecified));
 
             Assert.Equal(
-                new DateTime(2000, 1, 2, 3, 4, 5, 6, kind),
+                new(2000, 1, 2, 3, 4, 5, 6, kind),
                 mockDbDataReader.Object.GetDateTime("alpha", kind));
         }
 
@@ -94,7 +94,7 @@ namespace Buttercup.DataAccess
                 .Returns(new DateTime(2000, 1, 2, 3, 4, 5, 6, DateTimeKind.Unspecified));
 
             Assert.Equal(
-                new DateTime(2000, 1, 2, 3, 4, 5, 6, kind),
+                new(2000, 1, 2, 3, 4, 5, 6, kind),
                 mockDbDataReader.Object.GetNullableDateTime("alpha", kind));
         }
 

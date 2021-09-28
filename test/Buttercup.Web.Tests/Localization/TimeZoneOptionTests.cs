@@ -11,10 +11,10 @@ namespace Buttercup.Web.Localization
         public void ConstructorSetsProperties()
         {
             var timeZoneOption = new TimeZoneOption(
-                "sample-id", new TimeSpan(1, 2, 3), "sample-offset", "sample-city");
+                "sample-id", new(1, 2, 3), "sample-offset", "sample-city");
 
             Assert.Equal("sample-id", timeZoneOption.Id);
-            Assert.Equal(new TimeSpan(1, 2, 3), timeZoneOption.CurrentOffset);
+            Assert.Equal(new(1, 2, 3), timeZoneOption.CurrentOffset);
             Assert.Equal("sample-offset", timeZoneOption.FormattedOffset);
             Assert.Equal("sample-city", timeZoneOption.City);
         }

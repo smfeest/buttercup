@@ -56,20 +56,18 @@ namespace Buttercup.Web.Authentication
         {
             public Context()
             {
-                this.RandomTokenGenerator =
-                    new RandomTokenGenerator(this.MockRandomNumberGeneratorFactory);
+                this.RandomTokenGenerator = new(this.MockRandomNumberGeneratorFactory);
             }
 
             public RandomTokenGenerator RandomTokenGenerator { get; }
 
             public MockRandomNumberGeneratorFactory MockRandomNumberGeneratorFactory { get; } =
-                new MockRandomNumberGeneratorFactory();
+                new();
         }
 
         private class MockRandomNumberGeneratorFactory : IRandomNumberGeneratorFactory
         {
-            public Mock<RandomNumberGenerator> MockRandomNumberGenerator { get; } =
-                new Mock<RandomNumberGenerator>();
+            public Mock<RandomNumberGenerator> MockRandomNumberGenerator { get; } = new();
 
             public RandomNumberGenerator Create() => this.MockRandomNumberGenerator.Object;
         }

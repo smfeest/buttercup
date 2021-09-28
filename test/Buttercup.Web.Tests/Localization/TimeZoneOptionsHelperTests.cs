@@ -69,17 +69,16 @@ namespace Buttercup.Web.Localization
             var adjustmentRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
                 DateTime.MinValue,
                 DateTime.MaxValue,
-                new TimeSpan(1, 0, 0),
-                TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(0), 3, 1),
-                TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(0), 5, 1));
+                new(1, 0, 0),
+                TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 3, 1),
+                TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 5, 1));
 
-            context.StubGetTimeZone(new TimeSpan(-3, 0, 0), new[] { adjustmentRule });
+            context.StubGetTimeZone(new(-3, 0, 0), new[] { adjustmentRule });
 
             context.MockClock.SetupGet(x => x.UtcNow).Returns(
                 new DateTime(2000, month, 15, 0, 0, 0, DateTimeKind.Utc));
 
-            Assert.Equal(
-                new TimeSpan(expectedOffsetHours, 0, 0), context.OptionForTimeZone().CurrentOffset);
+            Assert.Equal(new(expectedOffsetHours, 0, 0), context.OptionForTimeZone().CurrentOffset);
         }
 
         [Theory]
@@ -119,23 +118,21 @@ namespace Buttercup.Web.Localization
 
         private class Context
         {
-            public Context() => this.TimeZoneOptionsHelper = new TimeZoneOptionsHelper(
+            public Context() => this.TimeZoneOptionsHelper = new(
                 this.MockClock.Object, this.MockLocalizer.Object, this.MockTimeZoneRegistry.Object);
 
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
+            public Mock<IClock> MockClock { get; } = new();
 
-            public Mock<IStringLocalizer<TimeZoneOptionsHelper>> MockLocalizer { get; } =
-                new Mock<IStringLocalizer<TimeZoneOptionsHelper>>();
+            public Mock<IStringLocalizer<TimeZoneOptionsHelper>> MockLocalizer { get; } = new();
 
-            public Mock<ITimeZoneRegistry> MockTimeZoneRegistry { get; } =
-                new Mock<ITimeZoneRegistry>();
+            public Mock<ITimeZoneRegistry> MockTimeZoneRegistry { get; } = new();
 
             public TimeZoneOptionsHelper TimeZoneOptionsHelper { get; }
         }
 
         private class AllOptionsContext : Context
         {
-            private readonly List<TimeZoneInfo> timeZones = new List<TimeZoneInfo>();
+            private readonly List<TimeZoneInfo> timeZones = new();
 
             public AllOptionsContext()
             {
@@ -151,7 +148,7 @@ namespace Buttercup.Web.Localization
                 string timeZoneId, int offsetHours, string city)
             {
                 this.timeZones.Add(TimeZoneInfo.CreateCustomTimeZone(
-                    timeZoneId, new TimeSpan(offsetHours, 0, 0), string.Empty, string.Empty));
+                    timeZoneId, new(offsetHours, 0, 0), string.Empty, string.Empty));
 
                 this.MockLocalizer
                     .SetupGet(x => x[$"City_{timeZoneId}"])

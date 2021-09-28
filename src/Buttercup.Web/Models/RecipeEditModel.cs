@@ -60,7 +60,7 @@ namespace Buttercup.Web.Models
 
         public int Revision { get; set; }
 
-        public Recipe ToRecipe() => new Recipe
+        public Recipe ToRecipe() => new()
         {
             Id = this.Id,
             Title = this.Title,

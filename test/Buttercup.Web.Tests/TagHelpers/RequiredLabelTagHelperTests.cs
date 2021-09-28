@@ -36,15 +36,14 @@ namespace Buttercup.Web.TagHelpers
 
             var tagHelper = new RequiredLabelTagHelper(mockLocalizer.Object)
             {
-                For = new ModelExpression("SampleProperty", modelExplorer),
+                For = new("SampleProperty", modelExplorer),
                 ShowRequiredLabel = showRequiredLabel,
             };
 
             var context = new TagHelperContext(
-                "label", new TagHelperAttributeList(), new Dictionary<object, object>(), "test");
+                "label", new(), new Dictionary<object, object>(), "test");
 
-            var output = new TagHelperOutput(
-                "label", new TagHelperAttributeList(), GetChildContent);
+            var output = new TagHelperOutput("label", new(), GetChildContent);
 
             output.Content.Append("initial-content");
 

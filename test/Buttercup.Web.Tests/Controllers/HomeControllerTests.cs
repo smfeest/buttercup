@@ -46,7 +46,7 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.HomeController = new HomeController(
+                this.HomeController = new(
                     this.MockDbConnectionSource.Object, this.MockRecipeDataProvider.Object);
 
                 this.MockDbConnectionSource
@@ -56,13 +56,11 @@ namespace Buttercup.Web.Controllers
 
             public HomeController HomeController { get; }
 
-            public Mock<DbConnection> MockConnection { get; } = new Mock<DbConnection>();
+            public Mock<DbConnection> MockConnection { get; } = new();
 
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
-                new Mock<IDbConnectionSource>();
+            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
 
-            public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } =
-                new Mock<IRecipeDataProvider>();
+            public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
             public void Dispose()
             {

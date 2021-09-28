@@ -184,12 +184,11 @@ namespace Buttercup.DataAccess
                     .Returns(this.MockDbParameterCollection.Object);
             }
 
-            public Mock<DbCommand> MockDbCommand { get; } = new Mock<DbCommand>();
+            public Mock<DbCommand> MockDbCommand { get; } = new();
 
-            public Mock<DbParameter> MockDbParameter { get; } = new Mock<DbParameter>();
+            public Mock<DbParameter> MockDbParameter { get; } = new();
 
-            public Mock<DbParameterCollection> MockDbParameterCollection { get; } =
-                new Mock<DbParameterCollection>();
+            public Mock<DbParameterCollection> MockDbParameterCollection { get; } = new();
         }
     }
 }

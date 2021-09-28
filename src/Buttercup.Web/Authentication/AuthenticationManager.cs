@@ -407,10 +407,9 @@ namespace Buttercup.Web.Authentication
         {
             var claims = new Claim[]
             {
-                new Claim(
-                    ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+                new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+                new(ClaimTypes.Email, user.Email),
+                new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
             };
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(

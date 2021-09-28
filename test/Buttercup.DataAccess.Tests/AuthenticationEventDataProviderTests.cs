@@ -22,7 +22,7 @@ namespace Buttercup.DataAccess
 
             var id = await new AuthenticationEventDataProvider().LogEvent(
                 connection,
-                new DateTime(2000, 1, 2, 3, 4, 5),
+                new(2000, 1, 2, 3, 4, 5),
                 "sample-event",
                 8,
                 "sample@example.com");
@@ -37,7 +37,7 @@ namespace Buttercup.DataAccess
                     await reader.ReadAsync();
 
                     Assert.Equal(
-                        new DateTime(2000, 1, 2, 3, 4, 5),
+                        new(2000, 1, 2, 3, 4, 5),
                         reader.GetDateTime("time", DateTimeKind.Utc));
                     Assert.Equal("sample-event", reader.GetString("event"));
                     Assert.Equal(8, reader.GetInt64("user_id"));

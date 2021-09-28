@@ -716,7 +716,7 @@ namespace Buttercup.Web.Authentication
         {
             public Context()
             {
-                this.AuthenticationManager = new AuthenticationManager(
+                this.AuthenticationManager = new(
                     this.MockAuthenticationEventDataProvider.Object,
                     this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
@@ -736,43 +736,33 @@ namespace Buttercup.Web.Authentication
                     .ReturnsAsync(this.DbConnection);
             }
 
-            public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider
-            { get; } = new Mock<IAuthenticationEventDataProvider>();
+            public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
 
             public AuthenticationManager AuthenticationManager { get; }
 
             public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
 
-            public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } =
-                new Mock<IAuthenticationMailer>();
+            public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
 
-            public Mock<IAuthenticationService> MockAuthenticationService { get; } =
-                new Mock<IAuthenticationService>();
+            public Mock<IAuthenticationService> MockAuthenticationService { get; } = new();
 
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
+            public Mock<IClock> MockClock { get; } = new();
 
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
-                new Mock<IDbConnectionSource>();
+            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
 
-            public Mock<ILogger<AuthenticationManager>> MockLogger { get; } =
-                new Mock<ILogger<AuthenticationManager>>();
+            public Mock<ILogger<AuthenticationManager>> MockLogger { get; } = new();
 
-            public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } =
-                new Mock<IPasswordHasher<User>>();
+            public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
 
-            public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } =
-                new Mock<IPasswordResetTokenDataProvider>();
+            public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } = new();
 
-            public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } =
-                new Mock<IRandomTokenGenerator>();
+            public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } = new();
 
-            public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } =
-                new Mock<IUrlHelperFactory>();
+            public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } = new();
 
-            public Mock<IUserDataProvider> MockUserDataProvider { get; } =
-                new Mock<IUserDataProvider>();
+            public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 
-            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+            public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
             public void SetupGetUser(long id, User user) =>
                 this.MockUserDataProvider
@@ -805,7 +795,7 @@ namespace Buttercup.Web.Authentication
 
             public void SetupEmailNotFound() => this.User = null;
 
-            public void SetupUserHasNoPassword() => this.User = new User
+            public void SetupUserHasNoPassword() => this.User = new()
             {
                 Id = this.UserId = 29,
                 HashedPassword = null,
@@ -813,7 +803,7 @@ namespace Buttercup.Web.Authentication
 
             public void SetupPasswordIncorrect()
             {
-                this.User = new User
+                this.User = new()
                 {
                     Id = this.UserId = 45,
                     HashedPassword = "sample-hashed-password",
@@ -827,7 +817,7 @@ namespace Buttercup.Web.Authentication
 
             public void SetupSuccess()
             {
-                this.User = new User
+                this.User = new()
                 {
                     Id = this.UserId = 52,
                     HashedPassword = "sample-hashed-password",
@@ -847,7 +837,7 @@ namespace Buttercup.Web.Authentication
         {
             public ChangePasswordContext()
             {
-                this.User = new User
+                this.User = new()
                 {
                     Id = this.UserId,
                     Email = this.Email,
@@ -861,7 +851,7 @@ namespace Buttercup.Web.Authentication
                     .Returns(this.SecurityStamp);
             }
 
-            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
             public User User { get; }
 
@@ -919,7 +909,7 @@ namespace Buttercup.Web.Authentication
             public void SetupSuccess()
             {
                 this.UserId = 23;
-                this.User = new User { Email = this.Email = "user@example.com" };
+                this.User = new() { Email = this.Email = "user@example.com" };
 
                 this.SetupGetUserIdForToken(this.Token, this.UserId);
                 this.SetupGetUser(this.UserId.Value, this.User);
@@ -936,9 +926,9 @@ namespace Buttercup.Web.Authentication
                     .Setup(x => x.GetUrlHelper(this.ActionContext))
                     .Returns(this.MockUrlHelper.Object);
 
-            public Mock<IUrlHelper> MockUrlHelper { get; } = new Mock<IUrlHelper>();
+            public Mock<IUrlHelper> MockUrlHelper { get; } = new();
 
-            public ActionContext ActionContext { get; } = new ActionContext();
+            public ActionContext ActionContext { get; } = new();
 
             public string Email { get; } = "sample@example.com";
 
@@ -952,7 +942,7 @@ namespace Buttercup.Web.Authentication
 
             public void SetupSuccess()
             {
-                this.User = new User { Id = this.UserId = 31, Email = "sample-x@example.com" };
+                this.User = new() { Id = this.UserId = 31, Email = "sample-x@example.com" };
 
                 this.SetupFindUserByEmail(this.Email, this.User);
 
@@ -982,14 +972,14 @@ namespace Buttercup.Web.Authentication
 
         private class SignInContext : Context
         {
-            public SignInContext() => this.User = new User
+            public SignInContext() => this.User = new()
             {
                 Id = this.UserId,
                 Email = this.Email,
                 SecurityStamp = this.SecurityStamp,
             };
 
-            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
             public User User { get; }
 
@@ -1004,7 +994,7 @@ namespace Buttercup.Web.Authentication
 
         private class SignOutContext : Context
         {
-            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
             public long? UserId { get; private set; }
 
@@ -1017,7 +1007,7 @@ namespace Buttercup.Web.Authentication
                     this.UserId.Value.ToString(CultureInfo.InvariantCulture));
 
                 var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                   new Claim[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
+                   new[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
 
                 this.HttpContext.User = principal;
             }
@@ -1029,7 +1019,7 @@ namespace Buttercup.Web.Authentication
         {
             public CookieValidatePrincipalContext CookieContext { get; private set; }
 
-            public HttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
             public ClaimsPrincipal Principal { get; private set; }
 
@@ -1048,7 +1038,7 @@ namespace Buttercup.Web.Authentication
 
             private void SetupCookieContext(params Claim[] claims)
             {
-                this.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+                this.Principal = new(new ClaimsIdentity(claims));
 
                 var scheme = new AuthenticationScheme(
                     CookieAuthenticationDefaults.AuthenticationScheme,
@@ -1056,17 +1046,16 @@ namespace Buttercup.Web.Authentication
                     typeof(CookieAuthenticationHandler));
                 var ticket = new AuthenticationTicket(this.Principal, null);
 
-                this.CookieContext = new CookieValidatePrincipalContext(
-                    this.HttpContext, scheme, new CookieAuthenticationOptions(), ticket);
+                this.CookieContext = new(this.HttpContext, scheme, new(), ticket);
             }
 
             private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
             {
                 this.SetupCookieContext(
-                    new Claim(ClaimTypes.NameIdentifier, "34"),
-                    new Claim(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
+                    new(ClaimTypes.NameIdentifier, "34"),
+                    new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
 
-                this.User = new User { SecurityStamp = userSecurityStamp };
+                this.User = new() { SecurityStamp = userSecurityStamp };
 
                 this.SetupGetUser(34, this.User);
             }
