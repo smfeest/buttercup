@@ -61,7 +61,7 @@ namespace Buttercup.Web.Controllers
             var recipe = model.ToRecipe();
 
             recipe.Created = this.Clock.UtcNow;
-            recipe.CreatedByUserId = this.HttpContext.GetCurrentUser().Id;
+            recipe.CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id;
 
             long id;
 
@@ -94,7 +94,7 @@ namespace Buttercup.Web.Controllers
 
             recipe.Id = id;
             recipe.Modified = this.Clock.UtcNow;
-            recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser().Id;
+            recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id;
 
             using (var connection = await this.DbConnectionSource.OpenConnection())
             {

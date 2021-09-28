@@ -7,10 +7,10 @@ namespace Buttercup.Web.Models
         [Required(ErrorMessage = "Error_RequiredField")]
         [DataType(DataType.EmailAddress)]
         [EmailAddress(ErrorMessage = "Error_InvalidEmailAddress")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
     }
 }

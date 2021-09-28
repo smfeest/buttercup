@@ -13,7 +13,7 @@ namespace Buttercup.Web.Infrastructure
         private readonly IAssetManifestReader manifestReader;
         private readonly object loadLock = new();
         private readonly ILogger logger;
-        private IDictionary<string, string> productionManifest;
+        private IDictionary<string, string>? productionManifest;
 
         public AssetManifestSource(
             IWebHostEnvironment hostEnvironment,

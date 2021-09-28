@@ -58,7 +58,7 @@ namespace Buttercup.Email
             var options = Options.Create(new EmailOptions { FromAddress = FromAddress });
             var emailSender = new EmailSender(clientAccessor, options);
 
-            SendGridMessage sentMessage = null;
+            SendGridMessage? sentMessage = null;
 
             mockClient
                 .Setup(x => x.SendEmailAsync(It.IsAny<SendGridMessage>(), CancellationToken.None))
@@ -66,7 +66,7 @@ namespace Buttercup.Email
 
             await emailSender.Send(ToAddress, Subject, Body);
 
-            return sentMessage;
+            return sentMessage!;
         }
 
         #endregion

@@ -30,9 +30,9 @@ namespace Buttercup.Web.Localization
         }
 
         private string FormatHours(int hours) =>
-            this.localizer[hours == 1 ? "Format_Hour" : "Format_Hours", hours];
+            this.localizer[hours == 1 ? "Format_Hour" : "Format_Hours", hours]!;
 
         private string FormatMinutes(int minutes) =>
-            this.localizer[minutes == 1 ? "Format_Minute" : "Format_Minutes", minutes];
+            this.localizer[minutes == 1 ? "Format_Minute" : "Format_Minutes", minutes]!;
     }
 }

@@ -21,7 +21,7 @@ namespace Buttercup.Models
         /// <value>
         /// The title.
         /// </value>
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         /// <summary>
         /// Gets or sets the preparation time in minutes.
@@ -53,7 +53,7 @@ namespace Buttercup.Models
         /// <value>
         /// The ingredients.
         /// </value>
-        public string Ingredients { get; set; }
+        public string? Ingredients { get; set; }
 
         /// <summary>
         /// Gets or sets the method.
@@ -61,7 +61,7 @@ namespace Buttercup.Models
         /// <value>
         /// The method.
         /// </value>
-        public string Method { get; set; }
+        public string? Method { get; set; }
 
         /// <summary>
         /// Gets or sets the suggestions.
@@ -69,7 +69,7 @@ namespace Buttercup.Models
         /// <value>
         /// The suggestions.
         /// </value>
-        public string Suggestions { get; set; }
+        public string? Suggestions { get; set; }
 
         /// <summary>
         /// Gets or sets the remarks.
@@ -77,7 +77,7 @@ namespace Buttercup.Models
         /// <value>
         /// The remarks.
         /// </value>
-        public string Remarks { get; set; }
+        public string? Remarks { get; set; }
 
         /// <summary>
         /// Gets or sets the source.
@@ -85,7 +85,7 @@ namespace Buttercup.Models
         /// <value>
         /// The source.
         /// </value>
-        public string Source { get; set; }
+        public string? Source { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time at which the record was created.

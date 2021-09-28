@@ -24,7 +24,7 @@ namespace Buttercup.Web.Authentication
             IClock clock,
             IDbConnectionSource dbConnectionSource,
             ILogger<AuthenticationManager> logger,
-            IPasswordHasher<User> passwordHasher,
+            IPasswordHasher<User?> passwordHasher,
             IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
             IRandomTokenGenerator randomTokenGenerator,
             IUrlHelperFactory urlHelperFactory,
@@ -55,7 +55,7 @@ namespace Buttercup.Web.Authentication
 
         public ILogger<AuthenticationManager> Logger { get; }
 
-        public IPasswordHasher<User> PasswordHasher { get; }
+        public IPasswordHasher<User?> PasswordHasher { get; }
 
         public IPasswordResetTokenDataProvider PasswordResetTokenDataProvider { get; }
 
@@ -65,7 +65,7 @@ namespace Buttercup.Web.Authentication
 
         public IUserDataProvider UserDataProvider { get; }
 
-        public async Task<User> Authenticate(string email, string password)
+        public async Task<User?> Authenticate(string email, string password)
         {
             using var connection = await this.DbConnectionSource.OpenConnection();
 
@@ -134,7 +134,7 @@ namespace Buttercup.Web.Authentication
         {
             using var connection = await this.DbConnectionSource.OpenConnection();
 
-            var user = httpContext.GetCurrentUser();
+            var user = httpContext.GetCurrentUser()!;
 
             if (user.HashedPassword == null)
             {
@@ -174,7 +174,7 @@ namespace Buttercup.Web.Authentication
             await this.AuthenticationEventDataProvider.LogEvent(
                 connection, this.Clock.UtcNow, "password_change_success", user.Id);
 
-            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email!);
 
             await this.SignInUser(httpContext, user);
 
@@ -236,7 +236,7 @@ namespace Buttercup.Web.Authentication
 
             var user = await this.UserDataProvider.GetUser(connection, userId.Value);
 
-            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email!);
 
             return user;
         }
@@ -262,7 +262,7 @@ namespace Buttercup.Web.Authentication
                 return;
             }
 
-            email = user.Email;
+            email = user.Email!;
 
             var token = this.RandomTokenGenerator.Generate(12);
 
@@ -270,7 +270,7 @@ namespace Buttercup.Web.Authentication
                 connection, user.Id, token, this.Clock.UtcNow);
 
             var urlHelper = this.UrlHelperFactory.GetUrlHelper(actionContext);
-            var link = urlHelper.Link("ResetPassword", new { token = token });
+            var link = urlHelper.Link("ResetPassword", new { token = token })!;
 
             try
             {
@@ -367,7 +367,7 @@ namespace Buttercup.Web.Authentication
             }
         }
 
-        private static long? GetUserId(ClaimsPrincipal principal)
+        private static long? GetUserId(ClaimsPrincipal? principal)
         {
             var claimValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -401,8 +401,8 @@ namespace Buttercup.Web.Authentication
             var claims = new Claim[]
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-                new(ClaimTypes.Email, user.Email),
-                new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+                new(ClaimTypes.Email, user.Email!),
+                new(CustomClaimTypes.SecurityStamp, user.SecurityStamp!),
             };
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity(

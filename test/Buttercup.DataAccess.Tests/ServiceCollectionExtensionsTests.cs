@@ -21,7 +21,7 @@ namespace Buttercup.DataAccess
             Assert.Equal(ServiceLifetime.Transient, serviceDescriptor.Lifetime);
 
             var connectionSource = Assert.IsType<DbConnectionSource>(
-                serviceDescriptor.ImplementationFactory(Mock.Of<IServiceProvider>()));
+                serviceDescriptor.ImplementationFactory!(Mock.Of<IServiceProvider>()));
 
             Assert.Equal(ConnectionString, connectionSource.ConnectionString);
         }

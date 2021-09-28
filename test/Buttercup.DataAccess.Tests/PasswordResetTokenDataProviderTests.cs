@@ -35,12 +35,12 @@ namespace Buttercup.DataAccess
             await passwordResetTokenDataProvider.DeleteExpiredTokens(
                 connection, new(2000, 1, 2, 12, 00, 00));
 
-            string survivingTokens;
+            string? survivingTokens;
 
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_token";
-                survivingTokens = (string)await command.ExecuteScalarAsync();
+                survivingTokens = (string?)await command.ExecuteScalarAsync();
             }
 
             Assert.Equal("token-b,token-c", survivingTokens);
@@ -67,12 +67,12 @@ namespace Buttercup.DataAccess
 
             await passwordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
 
-            string survivingTokens;
+            string? survivingTokens;
 
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_token";
-                survivingTokens = (string)await command.ExecuteScalarAsync();
+                survivingTokens = (string?)await command.ExecuteScalarAsync();
             }
 
             Assert.Equal("token-b", survivingTokens);

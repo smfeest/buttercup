@@ -29,7 +29,7 @@ namespace Buttercup.Web.TagHelpers
         /// The model expression.
         /// </value>
         [HtmlAttributeName(ForAttributeName)]
-        public ModelExpression For { get; set; }
+        public ModelExpression? For { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the required suffix should be added to the field
@@ -49,11 +49,11 @@ namespace Buttercup.Web.TagHelpers
         {
             if (this.ShowRequiredLabel.HasValue ?
                 this.ShowRequiredLabel.Value :
-                this.For.Metadata.IsRequired)
+                this.For!.Metadata.IsRequired)
             {
                 var span = new TagBuilder("span");
                 span.AddCssClass("form-field__required-label");
-                span.InnerHtml.Append(this.Localizer["Label_Required"]);
+                span.InnerHtml.Append(this.Localizer["Label_Required"]!);
 
                 output.Content.AppendHtml(span);
             }

@@ -105,7 +105,7 @@ namespace Buttercup.Web
                 });
 
             services
-                .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
+                .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
                 .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
                 .AddTransient<IAuthenticationManager, AuthenticationManager>()
                 .AddTransient<CookieAuthenticationEventsHandler>()

@@ -37,7 +37,7 @@ namespace Buttercup.Web.Controllers
             }
 
             await this.AuthenticationManager.SendPasswordResetLink(
-                this.ControllerContext, model.Email);
+                this.ControllerContext, model.Email!);
 
             return this.View("RequestPasswordResetConfirmation", model);
         }
@@ -64,7 +64,7 @@ namespace Buttercup.Web.Controllers
 
             try
             {
-                var user = await this.AuthenticationManager.ResetPassword(token, model.Password);
+                var user = await this.AuthenticationManager.ResetPassword(token, model.Password!);
 
                 await this.AuthenticationManager.SignIn(this.HttpContext, user);
 
@@ -81,19 +81,19 @@ namespace Buttercup.Web.Controllers
         public IActionResult SignIn() => this.View();
 
         [HttpPost("sign-in")]
-        public async Task<IActionResult> SignIn(SignInViewModel model, string returnUrl = null)
+        public async Task<IActionResult> SignIn(SignInViewModel model, string? returnUrl = null)
         {
             if (!this.ModelState.IsValid)
             {
                 return this.View(model);
             }
 
-            var user = await this.AuthenticationManager.Authenticate(model.Email, model.Password);
+            var user = await this.AuthenticationManager.Authenticate(model.Email!, model.Password!);
 
             if (user == null)
             {
                 this.ModelState.AddModelError(
-                    string.Empty, this.Localizer["Error_WrongEmailOrPassword"]);
+                    string.Empty, this.Localizer["Error_WrongEmailOrPassword"]!);
 
                 return this.View(model);
             }
@@ -111,7 +111,7 @@ namespace Buttercup.Web.Controllers
         }
 
         [HttpGet("sign-out")]
-        public async Task<IActionResult> SignOut(string returnUrl = null)
+        public async Task<IActionResult> SignOut(string? returnUrl = null)
         {
             await this.AuthenticationManager.SignOut(this.HttpContext);
 

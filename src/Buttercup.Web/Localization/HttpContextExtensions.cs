@@ -44,7 +44,7 @@ namespace Buttercup.Web.Localization
                 return utc;
             }
 
-            return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone);
+            return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone!);
         }
     }
 }

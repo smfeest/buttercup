@@ -54,7 +54,7 @@ namespace Buttercup.Web.Infrastructure
 
             var urlHelper = this.urlHelperFactory.GetUrlHelper(context);
 
-            return urlHelper.Content(contentPath);
+            return urlHelper.Content(contentPath)!;
         }
     }
 }

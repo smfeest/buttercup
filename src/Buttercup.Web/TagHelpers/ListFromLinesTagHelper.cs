@@ -20,7 +20,7 @@ namespace Buttercup.Web.TagHelpers
         /// The input string.
         /// </value>
         [HtmlAttributeName(InputAttributeName)]
-        public string Input { get; set; }
+        public string? Input { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {

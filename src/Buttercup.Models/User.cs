@@ -21,7 +21,7 @@ namespace Buttercup.Models
         /// <value>
         /// The name.
         /// </value>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Gets or sets the email address.
@@ -29,7 +29,7 @@ namespace Buttercup.Models
         /// <value>
         /// The email address.
         /// </value>
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         /// <summary>
         /// Gets or sets the hashed password.
@@ -37,7 +37,7 @@ namespace Buttercup.Models
         /// <value>
         /// The hashed password.
         /// </value>
-        public string HashedPassword { get; set; }
+        public string? HashedPassword { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time at which the user last changed their password.
@@ -57,7 +57,7 @@ namespace Buttercup.Models
         /// <value>
         /// The security stamp.
         /// </value>
-        public string SecurityStamp { get; set; }
+        public string? SecurityStamp { get; set; }
 
         /// <summary>
         /// Gets or sets the TZ ID of the user's time zone.
@@ -65,7 +65,7 @@ namespace Buttercup.Models
         /// <value>
         /// The TZ ID of the user's time zone.
         /// </value>
-        public string TimeZone { get; set; }
+        public string? TimeZone { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time at which the record was created.

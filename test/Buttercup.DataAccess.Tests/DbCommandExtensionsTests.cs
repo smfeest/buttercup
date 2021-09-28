@@ -157,7 +157,7 @@ namespace Buttercup.DataAccess
             Assert.Null(await command.ExecuteScalarAsync<string>());
         }
 
-        private static DbCommand MockCommandWithScalarResult(object result) =>
+        private static DbCommand MockCommandWithScalarResult(object? result) =>
             Mock.Of<DbCommand>(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()) ==
                 Task.FromResult(result));
 

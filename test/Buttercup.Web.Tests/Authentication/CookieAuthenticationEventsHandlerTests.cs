@@ -19,7 +19,7 @@ namespace Buttercup.Web.Authentication
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 null,
                 typeof(CookieAuthenticationHandler));
-            var ticket = new AuthenticationTicket(new(), null);
+            var ticket = new AuthenticationTicket(new(), string.Empty);
             var context = new CookieValidatePrincipalContext(
                 new DefaultHttpContext(), scheme, new(), ticket);
             var expectedResult = Task.FromResult(new object());

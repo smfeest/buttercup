@@ -32,11 +32,11 @@ namespace Buttercup.DataAccess
         /// A task for the operation. The value is the statement, or a null reference if all of the
         /// statements have been read.
         /// </returns>
-        public async Task<string> ReadStatement()
+        public async Task<string?> ReadStatement()
         {
             var builder = new StringBuilder();
 
-            string line;
+            string? line;
 
             while ((line = await this.Reader.ReadLineAsync()) != null)
             {

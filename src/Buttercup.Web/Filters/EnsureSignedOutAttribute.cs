@@ -16,7 +16,7 @@ namespace Buttercup.Web.Filters
             context.HttpContext.Response.GetTypedHeaders().CacheControl =
                 new() { NoCache = true, NoStore = true };
 
-            if (context.HttpContext.User.Identity.IsAuthenticated)
+            if (context.HttpContext.User.Identity!.IsAuthenticated)
             {
                 context.Result = new RedirectToActionResult(
                     nameof(AuthenticationController.SignOut),

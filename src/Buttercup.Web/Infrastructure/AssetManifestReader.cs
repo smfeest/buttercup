@@ -10,7 +10,8 @@ namespace Buttercup.Web.Infrastructure
         {
             using var streamReader = new StreamReader(stream);
 
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(streamReader.ReadToEnd());
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(
+                streamReader.ReadToEnd())!;
         }
     }
 }

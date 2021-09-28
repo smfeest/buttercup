@@ -84,7 +84,7 @@ namespace Buttercup.DataAccess
 
             var scriptReader = new MySqlScriptReader(textReader);
 
-            string commandText;
+            string? commandText;
 
             while ((commandText = await scriptReader.ReadStatement()) != null)
             {

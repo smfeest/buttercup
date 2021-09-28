@@ -7,7 +7,7 @@
   <section class="home-page__recipe-list">
     <h1>@Localizer["Heading_RecentlyAdded"]</h1>
     <ul>
-      @foreach (var recipe in Model.RecentlyAddedRecipes)
+      @foreach (var recipe in Model.RecentlyAddedRecipes!)
       {
         <li><a asp-controller="Recipes" asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></li>
       }
@@ -16,7 +16,7 @@
   <section class="home-page__recipe-list">
     <h1>@Localizer["Heading_RecentlyUpdated"]</h1>
     <ul>
-      @foreach (var recipe in Model.RecentlyUpdatedRecipes)
+      @foreach (var recipe in Model.RecentlyUpdatedRecipes!)
       {
         <li><a asp-controller="Recipes" asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></li>
       }

@@ -53,7 +53,7 @@ namespace Buttercup.Web.Filters
 
         #endregion
 
-        private static ActionExecutingContext CallOnActionExecuting(string authenticationType)
+        private static ActionExecutingContext CallOnActionExecuting(string? authenticationType)
         {
             var user = new ClaimsPrincipal(
                 new ClaimsIdentity(Array.Empty<Claim>(), authenticationType));

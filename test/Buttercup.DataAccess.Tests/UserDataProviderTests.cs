@@ -25,7 +25,7 @@ namespace Buttercup.DataAccess
             var actual = await new UserDataProvider().FindUserByEmail(
                 connection, "alpha@example.com");
 
-            Assert.Equal(4, actual.Id);
+            Assert.Equal(4, actual!.Id);
             Assert.Equal("alpha@example.com", actual.Email);
         });
 
@@ -168,7 +168,7 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Email, actual.Email);
             Assert.Equal(expected.HashedPassword, actual.HashedPassword);
             Assert.Equal(expected.PasswordCreated, actual.PasswordCreated);
-            Assert.Equal(DateTimeKind.Utc, actual.PasswordCreated.Value.Kind);
+            Assert.Equal(DateTimeKind.Utc, actual.PasswordCreated!.Value.Kind);
             Assert.Equal(expected.SecurityStamp, actual.SecurityStamp);
             Assert.Equal(expected.TimeZone, actual.TimeZone);
             Assert.Equal(expected.Created, actual.Created);

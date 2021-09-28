@@ -23,7 +23,7 @@ namespace Buttercup.DataAccess
         /// A task for the operation. The result is the user, or a null reference if no matching
         /// user is found.
         /// </returns>
-        Task<User> FindUserByEmail(DbConnection connection, string email);
+        Task<User?> FindUserByEmail(DbConnection connection, string email);
 
         /// <summary>
         /// Gets a user.

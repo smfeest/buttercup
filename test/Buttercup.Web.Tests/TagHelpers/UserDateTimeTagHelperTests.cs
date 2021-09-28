@@ -85,7 +85,7 @@ namespace Buttercup.Web.TagHelpers
 
                 this.TagHelper = new()
                 {
-                    DateTime = new(2001, 2, 3, 21, 22, 23, DateTimeKind.Utc),
+                    DateTime = this.UtcDateTime,
                     ViewContext = new() { HttpContext = httpContext },
                 };
             }
@@ -94,8 +94,10 @@ namespace Buttercup.Web.TagHelpers
 
             public UserDateTimeTagHelper TagHelper { get; }
 
+            public DateTime UtcDateTime { get; } = new(2001, 2, 3, 21, 22, 23, DateTimeKind.Utc);
+
             public DateTimeOffset UserDateTime =>
-                new DateTimeOffset(this.TagHelper.DateTime.Value).ToOffset(new(5, 0, 0));
+                new DateTimeOffset(this.UtcDateTime).ToOffset(new(5, 0, 0));
 
             public void Process()
             {

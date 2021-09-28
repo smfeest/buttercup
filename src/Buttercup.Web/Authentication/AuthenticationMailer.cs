@@ -20,13 +20,13 @@ namespace Buttercup.Web.Authentication
         public async Task SendPasswordChangeNotification(string email) =>
             await this.EmailSender.Send(
                 email,
-                this.Localizer["Subject_PasswordChangeNotification"],
-                this.Localizer["Body_PasswordChangeNotification"]);
+                this.Localizer["Subject_PasswordChangeNotification"]!,
+                this.Localizer["Body_PasswordChangeNotification"]!);
 
         public async Task SendPasswordResetLink(string email, string resetLink) =>
             await this.EmailSender.Send(
                 email,
-                this.Localizer["Subject_PasswordResetLink"],
-                this.Localizer["Body_PasswordResetLink", resetLink]);
+                this.Localizer["Subject_PasswordResetLink"]!,
+                this.Localizer["Body_PasswordResetLink", resetLink]!);
     }
 }

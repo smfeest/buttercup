@@ -168,10 +168,10 @@ namespace Buttercup.DataAccess
         /// <exception cref="InvalidCastException">
         /// The specified cast is not valid.
         /// </exception>
-        public static string GetString(this DbDataReader reader, string columnName) =>
+        public static string? GetString(this DbDataReader reader, string columnName) =>
             reader.GetValue(reader.GetString, columnName, true);
 
-        private static T GetValue<T>(
+        private static T? GetValue<T>(
             this DbDataReader reader, ReadValue<T> readValue, string columnName, bool canBeNull)
         {
             var ordinal = reader.GetOrdinal(columnName);

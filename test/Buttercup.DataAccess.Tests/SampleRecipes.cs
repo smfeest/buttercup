@@ -12,7 +12,7 @@ namespace Buttercup.DataAccess
         public static Recipe CreateSampleRecipe(
             bool includeOptionalAttributes = false,
             long? id = null,
-            string title = null,
+            string? title = null,
             int? revision = null)
         {
             var i = ++sampleRecipeCount;

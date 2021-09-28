@@ -51,13 +51,13 @@ namespace Buttercup.Web.Controllers
             }
 
             var passwordChanged = await this.AuthenticationManager.ChangePassword(
-                this.HttpContext, model.CurrentPassword, model.NewPassword);
+                this.HttpContext, model.CurrentPassword!, model.NewPassword!);
 
             if (!passwordChanged)
             {
                 this.ModelState.AddModelError(
                     nameof(ChangePasswordViewModel.CurrentPassword),
-                    this.Localizer["Error_WrongPassword"]);
+                    this.Localizer["Error_WrongPassword"]!);
 
                 return this.View(model);
             }
@@ -67,17 +67,17 @@ namespace Buttercup.Web.Controllers
 
         [HttpGet("preferences")]
         public IActionResult Preferences() =>
-            this.View(new PreferencesViewModel(this.HttpContext.GetCurrentUser()));
+            this.View(new PreferencesViewModel(this.HttpContext.GetCurrentUser()!));
 
         [HttpPost("preferences")]
         public async Task<IActionResult> Preferences(PreferencesViewModel model)
         {
             using var connection = await this.DbConnectionSource.OpenConnection();
 
-            var user = this.HttpContext.GetCurrentUser();
+            var user = this.HttpContext.GetCurrentUser()!;
 
             await this.UserDataProvider.UpdatePreferences(
-                connection, user.Id, model.TimeZone, this.Clock.UtcNow);
+                connection, user.Id, model.TimeZone!, this.Clock.UtcNow);
 
             return this.RedirectToAction(nameof(this.Show));
         }

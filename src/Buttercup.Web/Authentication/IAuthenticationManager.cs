@@ -25,7 +25,7 @@ namespace Buttercup.Web.Authentication
         /// A task for the operation. The result is the user if successfully authenticated, or a
         /// null reference otherwise.
         /// </returns>
-        Task<User> Authenticate(string email, string password);
+        Task<User?> Authenticate(string email, string password);
 
         /// <summary>
         /// Changes a user's password.

@@ -10,7 +10,7 @@ namespace Buttercup.DataAccess
         private static int sampleUserCount;
 
         public static User CreateSampleUser(
-            long? id = null, string email = null, int? revision = null)
+            long? id = null, string? email = null, int? revision = null)
         {
             var i = ++sampleUserCount;
 

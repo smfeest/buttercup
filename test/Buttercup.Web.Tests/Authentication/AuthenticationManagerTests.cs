@@ -30,7 +30,7 @@ namespace Buttercup.Web.Authentication
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_success", fixture.User.Id, fixture.Email);
+                "authentication_success", fixture.User!.Id, fixture.Email);
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace Buttercup.Web.Authentication
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_failure:no_password_set", fixture.User.Id, fixture.Email);
+                "authentication_failure:no_password_set", fixture.User!.Id, fixture.Email);
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace Buttercup.Web.Authentication
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_failure:incorrect_password", fixture.User.Id, fixture.Email);
+                "authentication_failure:incorrect_password", fixture.User!.Id, fixture.Email);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace Buttercup.Web.Authentication
             private const string Password = "user-password";
             private const string HashedPassword = "hashed-password";
 
-            private AuthenticateFixture(User user)
+            private AuthenticateFixture(User? user)
             {
                 this.User = user;
 
@@ -117,7 +117,7 @@ namespace Buttercup.Web.Authentication
 
             public string Email { get; } = "user@example.com";
 
-            public User User { get; }
+            public User? User { get; }
 
             public static AuthenticateFixture ForSuccess() =>
                 ForPasswordVerificationResult(PasswordVerificationResult.Success);
@@ -130,7 +130,7 @@ namespace Buttercup.Web.Authentication
             public static AuthenticateFixture ForPasswordIncorrect() =>
                 ForPasswordVerificationResult(PasswordVerificationResult.Failed);
 
-            public Task<User> Authenticate() =>
+            public Task<User?> Authenticate() =>
                 this.AuthenticationManager.Authenticate(this.Email, Password);
 
             private static AuthenticateFixture ForPasswordVerificationResult(
@@ -239,7 +239,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ChangePassword();
 
             fixture.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordChangeNotification(fixture.User.Email));
+                x => x.SendPasswordChangeNotification(fixture.User.Email!));
         }
 
         [Fact]
@@ -276,7 +276,7 @@ namespace Buttercup.Web.Authentication
                             fixture.NewSecurityStamp,
                             principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
-                        Assert.Equal(fixture.User.Email, principal.Identity.Name);
+                        Assert.Equal(fixture.User.Email, principal.Identity!.Name);
                     })
                 .Returns(Task.CompletedTask)
                 .Verifiable();
@@ -299,7 +299,7 @@ namespace Buttercup.Web.Authentication
             private const string CurrentPassword = "current-password";
             private const string HashedCurrentPassword = "hashed-current-password";
 
-            private ChangePasswordFixture(string hashedPassword)
+            private ChangePasswordFixture(string? hashedPassword)
             {
                 this.User = new()
                 {
@@ -477,7 +477,7 @@ namespace Buttercup.Web.Authentication
 
             fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
                 fixture.DbConnection,
-                fixture.UserId.Value,
+                fixture.UserId!.Value,
                 fixture.NewHashedPassword,
                 fixture.NewSecurityStamp,
                 fixture.UtcNow));
@@ -491,7 +491,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ResetPassword();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.UserId.Value));
+                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.UserId!.Value));
         }
 
         [Fact]
@@ -502,7 +502,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ResetPassword();
 
             fixture.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordChangeNotification(fixture.User.Email));
+                x => x.SendPasswordChangeNotification(fixture.User!.Email!));
         }
 
         [Fact]
@@ -555,7 +555,7 @@ namespace Buttercup.Web.Authentication
 
             public long? UserId { get; }
 
-            public User User { get; }
+            public User? User { get; }
 
             public string NewHashedPassword { get; } = "new-hashed-password";
 
@@ -582,7 +582,7 @@ namespace Buttercup.Web.Authentication
             await fixture.SendPasswordResetLink();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-                fixture.DbConnection, fixture.User.Id, fixture.Token, fixture.UtcNow));
+                fixture.DbConnection, fixture.User!.Id, fixture.Token, fixture.UtcNow));
         }
 
         [Fact]
@@ -593,7 +593,7 @@ namespace Buttercup.Web.Authentication
             await fixture.SendPasswordResetLink();
 
             fixture.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordResetLink(fixture.User.Email, fixture.Link));
+                x => x.SendPasswordResetLink(fixture.User!.Email!, fixture.Link));
         }
 
         [Fact]
@@ -604,7 +604,7 @@ namespace Buttercup.Web.Authentication
             await fixture.SendPasswordResetLink();
 
             fixture.VerifyEventLogged(
-                "password_reset_link_sent", fixture.User.Id, fixture.User.Email);
+                "password_reset_link_sent", fixture.User!.Id, fixture.User.Email);
         }
 
         [Fact]
@@ -631,7 +631,7 @@ namespace Buttercup.Web.Authentication
 
         private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
         {
-            private SendPasswordResetLinkFixture(User user)
+            private SendPasswordResetLinkFixture(User? user)
             {
                 this.User = user;
 
@@ -650,7 +650,7 @@ namespace Buttercup.Web.Authentication
 
             public string SuppliedEmail { get; } = "supplied-email@example.com";
 
-            public User User { get; }
+            public User? User { get; }
 
             public string Token { get; } = "password-reset-token";
 
@@ -710,7 +710,7 @@ namespace Buttercup.Web.Authentication
                             fixture.SecurityStamp,
                             principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
-                        Assert.Equal(fixture.Email, principal.Identity.Name);
+                        Assert.Equal(fixture.Email, principal.Identity!.Name);
                     })
                 .Returns(Task.CompletedTask)
                 .Verifiable();
@@ -964,7 +964,7 @@ namespace Buttercup.Web.Authentication
 
             public Mock<IAuthenticationService> MockAuthenticationService { get; } = new();
 
-            public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
+            public Mock<IPasswordHasher<User?>> MockPasswordHasher { get; } = new();
 
             public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } = new();
 
@@ -987,7 +987,7 @@ namespace Buttercup.Web.Authentication
                     .ReturnsAsync(userId);
 
             public void VerifyEventLogged(
-                string eventName, long? userId = null, string email = null) =>
+                string eventName, long? userId = null, string? email = null) =>
                 this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
                     this.DbConnection, this.UtcNow, eventName, userId, email));
         }

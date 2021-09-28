@@ -11,7 +11,7 @@ namespace Buttercup.Email
         /// <value>
         /// The SendGrid API key.
         /// </value>
-        public string ApiKey { get; set; }
+        public string? ApiKey { get; set; }
 
         /// <summary>
         /// Gets or sets the from address.
@@ -19,6 +19,6 @@ namespace Buttercup.Email
         /// <value>
         /// The from address.
         /// </value>
-        public string FromAddress { get; set; }
+        public string? FromAddress { get; set; }
     }
 }

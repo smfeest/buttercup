@@ -26,7 +26,7 @@ namespace Buttercup.DataAccess
         /// The new parameter.
         /// </returns>
         public static DbParameter AddParameterWithValue(
-            this DbCommand command, string name, object value)
+            this DbCommand command, string name, object? value)
         {
             var parameter = command.CreateParameter();
 
@@ -59,7 +59,7 @@ namespace Buttercup.DataAccess
         /// The new parameter.
         /// </returns>
         public static DbParameter AddParameterWithStringValue(
-            this DbCommand command, string name, string value)
+            this DbCommand command, string name, string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -93,7 +93,7 @@ namespace Buttercup.DataAccess
         /// the result set, or the default value of <typeparamref name="T"/> if the result set is
         /// empty or the first column in the first row contains <see cref="DBNull"/>.
         /// </returns>
-        public static async Task<T> ExecuteScalarAsync<T>(this DbCommand command)
+        public static async Task<T?> ExecuteScalarAsync<T>(this DbCommand command)
         {
             var rawValue = await command.ExecuteScalarAsync();
 

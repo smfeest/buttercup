@@ -30,7 +30,7 @@ namespace Buttercup.Web.Models
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
         public int? PreparationMinutes { get; set; }
@@ -43,20 +43,20 @@ namespace Buttercup.Web.Models
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string Ingredients { get; set; }
+        public string? Ingredients { get; set; }
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string Method { get; set; }
+        public string? Method { get; set; }
 
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string Suggestions { get; set; }
+        public string? Suggestions { get; set; }
 
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string Remarks { get; set; }
+        public string? Remarks { get; set; }
 
         [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
-        public string Source { get; set; }
+        public string? Source { get; set; }
 
         public int Revision { get; set; }
 

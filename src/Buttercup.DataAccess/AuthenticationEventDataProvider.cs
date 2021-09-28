@@ -16,7 +16,7 @@ namespace Buttercup.DataAccess
             DateTime time,
             string eventName,
             long? userId = null,
-            string email = null)
+            string? email = null)
         {
             using var command = (MySqlCommand)connection.CreateCommand();
 

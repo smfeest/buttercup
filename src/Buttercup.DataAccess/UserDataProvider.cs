@@ -11,7 +11,7 @@ namespace Buttercup.DataAccess
     internal sealed class UserDataProvider : IUserDataProvider
     {
         /// <inheritdoc />
-        public async Task<User> FindUserByEmail(DbConnection connection, string email)
+        public async Task<User?> FindUserByEmail(DbConnection connection, string email)
         {
             using var command = connection.CreateCommand();
 

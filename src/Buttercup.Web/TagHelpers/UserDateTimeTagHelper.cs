@@ -27,7 +27,7 @@ namespace Buttercup.Web.TagHelpers
         /// <value>
         /// The format string.
         /// </value>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// Gets or sets the view context.
@@ -36,7 +36,7 @@ namespace Buttercup.Web.TagHelpers
         /// The view context.
         /// </value>
         [ViewContext]
-        public ViewContext ViewContext { get; set; }
+        public ViewContext? ViewContext { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
@@ -46,7 +46,7 @@ namespace Buttercup.Web.TagHelpers
                 return;
             }
 
-            var userDateTime = this.ViewContext.HttpContext.ToUserTime(this.DateTime.Value);
+            var userDateTime = this.ViewContext!.HttpContext.ToUserTime(this.DateTime.Value);
 
             output.TagName = "span";
             output.Content.SetContent(
