@@ -237,7 +237,7 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.RecipesController = new RecipesController(
+                this.RecipesController = new(
                     this.MockClock.Object,
                     this.MockDbConnectionSource.Object,
                     this.MockRecipeDataProvider.Object);
@@ -251,13 +251,11 @@ namespace Buttercup.Web.Controllers
 
             public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
 
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
+            public Mock<IClock> MockClock { get; } = new();
 
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
-                new Mock<IDbConnectionSource>();
+            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
 
-            public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } =
-                new Mock<IRecipeDataProvider>();
+            public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
             public void Dispose()
             {
@@ -276,7 +274,7 @@ namespace Buttercup.Web.Controllers
 
                 this.HttpContext.SetCurrentUser(this.User);
 
-                this.RecipesController.ControllerContext = new ControllerContext()
+                this.RecipesController.ControllerContext = new()
                 {
                     HttpContext = this.HttpContext,
                 };
@@ -284,14 +282,13 @@ namespace Buttercup.Web.Controllers
 
             public ControllerContext ControllerContext { get; }
 
-            public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
-            public RecipeEditModel EditModel { get; } =
-                new RecipeEditModel { Title = "recipe-title" };
+            public RecipeEditModel EditModel { get; } = new() { Title = "recipe-title" };
 
-            public User User { get; } = new User { Id = 8 };
+            public User User { get; } = new() { Id = 8 };
 
-            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+            public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         }
     }
 }

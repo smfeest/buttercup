@@ -142,7 +142,7 @@ namespace Buttercup.Web.Controllers
         {
             using (var context = new Context())
             {
-                context.HttpContext.SetCurrentUser(new User { Id = 21 });
+                context.HttpContext.SetCurrentUser(new() { Id = 21 });
 
                 var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
@@ -167,12 +167,12 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.ControllerContext = new ControllerContext()
+                this.ControllerContext = new()
                 {
                     HttpContext = this.HttpContext,
                 };
 
-                this.AccountController = new AccountController(
+                this.AccountController = new(
                     this.MockClock.Object,
                     this.MockDbConnectionSource.Object,
                     this.MockUserDataProvider.Object,
@@ -193,25 +193,21 @@ namespace Buttercup.Web.Controllers
 
             public ControllerContext ControllerContext { get; }
 
-            public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
             public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
 
-            public Mock<IClock> MockClock { get; } = new Mock<IClock>();
+            public Mock<IClock> MockClock { get; } = new();
 
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } =
-                new Mock<IDbConnectionSource>();
+            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
 
-            public Mock<IUserDataProvider> MockUserDataProvider { get; } =
-                new Mock<IUserDataProvider>();
+            public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 
-            public Mock<IAuthenticationManager> MockAuthenticationManager { get; } =
-                new Mock<IAuthenticationManager>();
+            public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
 
-            public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } =
-                new Mock<IStringLocalizer<AccountController>>();
+            public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
 
-            public DateTime UtcNow { get; } = new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+            public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
             public void Dispose()
             {
@@ -232,7 +228,7 @@ namespace Buttercup.Web.Controllers
                         "Error_WrongPassword", "translated-wrong-password-error"));
             }
 
-            public ChangePasswordViewModel Model { get; } = new ChangePasswordViewModel
+            public ChangePasswordViewModel Model { get; } = new()
             {
                 CurrentPassword = "current-password",
                 NewPassword = "new-password",

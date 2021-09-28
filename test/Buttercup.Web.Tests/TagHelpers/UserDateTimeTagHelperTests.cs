@@ -80,32 +80,28 @@ namespace Buttercup.Web.TagHelpers
             public Context()
             {
                 var httpContext = new DefaultHttpContext();
-                httpContext.SetCurrentUser(new User { TimeZone = "Etc/GMT-5" });
 
-                var viewContext = new ViewContext { HttpContext = httpContext };
+                httpContext.SetCurrentUser(new() { TimeZone = "Etc/GMT-5" });
 
-                this.Output = new TagHelperOutput(
-                    "user-date-time", new TagHelperAttributeList(), GetChildContent);
-
-                this.TagHelper = new UserDateTimeTagHelper
+                this.TagHelper = new()
                 {
-                    DateTime = new DateTime(2001, 2, 3, 21, 22, 23, DateTimeKind.Utc),
-                    ViewContext = viewContext,
+                    DateTime = new(2001, 2, 3, 21, 22, 23, DateTimeKind.Utc),
+                    ViewContext = new() { HttpContext = httpContext },
                 };
             }
 
-            public TagHelperOutput Output { get; }
+            public TagHelperOutput Output { get; } = new("user-date-time", new(), GetChildContent);
 
             public UserDateTimeTagHelper TagHelper { get; }
 
             public DateTimeOffset UserDateTime =>
-                new DateTimeOffset(this.TagHelper.DateTime.Value).ToOffset(new TimeSpan(5, 0, 0));
+                new DateTimeOffset(this.TagHelper.DateTime.Value).ToOffset(new(5, 0, 0));
 
             public void Process()
             {
                 var context = new TagHelperContext(
                     "user-date-time",
-                    new TagHelperAttributeList(),
+                    new(),
                     new Dictionary<object, object>(),
                     "test");
 

@@ -226,8 +226,8 @@ namespace Buttercup.DataAccess
             for (var i = 1; i <= 10; i++)
             {
                 var recipe = SampleRecipes.CreateSampleRecipe(title: $"recently-updated-{i}");
-                recipe.Created = new DateTime(2010, 1, 2, 3, 4, 5);
-                recipe.Modified = new DateTime(2016, 7, i, 9, 10, 11);
+                recipe.Created = new(2010, 1, 2, 3, 4, 5);
+                recipe.Modified = new(2016, 7, i, 9, 10, 11);
                 await SampleRecipes.InsertSampleRecipe(connection, recipe);
             }
 
@@ -235,7 +235,7 @@ namespace Buttercup.DataAccess
             {
                 var recipe = SampleRecipes.CreateSampleRecipe(
                     title: $"recently-created-never-updated-{i}");
-                recipe.Created = recipe.Modified = new DateTime(2016, 8, i, 9, 10, 11);
+                recipe.Created = recipe.Modified = new(2016, 8, i, 9, 10, 11);
                 await SampleRecipes.InsertSampleRecipe(connection, recipe);
             }
 
@@ -243,8 +243,8 @@ namespace Buttercup.DataAccess
             {
                 var recipe = SampleRecipes.CreateSampleRecipe(
                     title: $"recently-created-and-updated-{i}");
-                recipe.Created = new DateTime(2016, 9, i, 9, 10, 11);
-                recipe.Modified = new DateTime(2016, 10, i, 9, 10, 11);
+                recipe.Created = new(2016, 9, i, 9, 10, 11);
+                recipe.Modified = new(2016, 10, i, 9, 10, 11);
                 await SampleRecipes.InsertSampleRecipe(connection, recipe);
             }
 

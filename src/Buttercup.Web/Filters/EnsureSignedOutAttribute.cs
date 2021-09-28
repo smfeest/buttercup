@@ -14,7 +14,7 @@ namespace Buttercup.Web.Filters
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             context.HttpContext.Response.GetTypedHeaders().CacheControl =
-                new CacheControlHeaderValue { NoCache = true, NoStore = true };
+                new() { NoCache = true, NoStore = true };
 
             if (context.HttpContext.User.Identity.IsAuthenticated)
             {

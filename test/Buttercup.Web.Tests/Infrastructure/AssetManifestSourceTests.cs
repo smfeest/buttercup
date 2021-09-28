@@ -73,8 +73,7 @@ namespace Buttercup.Web.Infrastructure
 
             public AssetManifestSource ManifestSource { get; }
 
-            public Mock<IAssetManifestReader> MockManifestReader { get; } =
-                new Mock<IAssetManifestReader>();
+            public Mock<IAssetManifestReader> MockManifestReader { get; } = new();
         }
     }
 }

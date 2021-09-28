@@ -170,7 +170,7 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
         }
 
         private static Recipe ReadRecipe(DbDataReader reader) =>
-            new Recipe
+            new()
             {
                 Id = reader.GetInt64("id"),
                 Title = reader.GetString("title"),

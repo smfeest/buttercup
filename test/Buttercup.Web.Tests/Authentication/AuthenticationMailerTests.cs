@@ -60,17 +60,16 @@ namespace Buttercup.Web.Authentication
         {
             public Context()
             {
-                this.AuthenticationMailer = new AuthenticationMailer(
+                this.AuthenticationMailer = new(
                     this.MockEmailSender.Object,
                     this.MockLocalizer.Object);
             }
 
             public AuthenticationMailer AuthenticationMailer { get; }
 
-            public Mock<IEmailSender> MockEmailSender { get; } = new Mock<IEmailSender>();
+            public Mock<IEmailSender> MockEmailSender { get; } = new();
 
-            public Mock<IStringLocalizer<AuthenticationMailer>> MockLocalizer { get; } =
-                new Mock<IStringLocalizer<AuthenticationMailer>>();
+            public Mock<IStringLocalizer<AuthenticationMailer>> MockLocalizer { get; } = new();
         }
     }
 }

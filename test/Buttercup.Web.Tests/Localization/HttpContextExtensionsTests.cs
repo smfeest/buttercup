@@ -15,7 +15,7 @@ namespace Buttercup.Web.Localization
         {
             var httpContext = new DefaultHttpContext();
 
-            httpContext.SetCurrentUser(new User { TimeZone = "Etc/GMT+10" });
+            httpContext.SetCurrentUser(new() { TimeZone = "Etc/GMT+10" });
 
             var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
 
@@ -44,7 +44,7 @@ namespace Buttercup.Web.Localization
         public void ToUserTimeThrowsWhenDateTimeKindIsNotUtc(DateTimeKind kind)
         {
             Assert.Throws<ArgumentException>(
-                () => new DefaultHttpContext().ToUserTime(new DateTime(0, kind)));
+                () => new DefaultHttpContext().ToUserTime(new(0, kind)));
         }
 
         #endregion

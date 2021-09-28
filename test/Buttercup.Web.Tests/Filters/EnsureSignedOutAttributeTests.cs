@@ -67,23 +67,18 @@ namespace Buttercup.Web.Filters
         {
             public Context()
             {
-                var actionContext = new ActionContext(
-                    this.HttpContext, new RouteData(), new ActionDescriptor());
-
-                this.ActionExecutingContext = new ActionExecutingContext(
-                    actionContext,
+                this.ActionExecutingContext = new(
+                    new(this.HttpContext, new(), new()),
                     Array.Empty<IFilterMetadata>(),
                     new Dictionary<string, object>(),
                     null);
-
-                this.EnsureSignedOutAttribute = new EnsureSignedOutAttribute();
             }
 
-            public EnsureSignedOutAttribute EnsureSignedOutAttribute { get; }
+            public EnsureSignedOutAttribute EnsureSignedOutAttribute { get; } = new();
 
             public ActionExecutingContext ActionExecutingContext { get; }
 
-            public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
+            public DefaultHttpContext HttpContext { get; } = new();
 
             public void Execute() =>
                 this.EnsureSignedOutAttribute.OnActionExecuting(this.ActionExecutingContext);

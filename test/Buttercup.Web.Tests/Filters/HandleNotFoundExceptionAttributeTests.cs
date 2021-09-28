@@ -39,23 +39,17 @@ namespace Buttercup.Web.Filters
         {
             public Context(Exception exception)
             {
-                var actionContext = new ActionContext(
-                    this.HttpContext, new RouteData(), new ActionDescriptor());
-
-                this.ExceptionContext = new ExceptionContext(
-                    actionContext, Array.Empty<IFilterMetadata>())
+                this.ExceptionContext = new(
+                    new(new DefaultHttpContext(), new(), new()),
+                    Array.Empty<IFilterMetadata>())
                 {
                     Exception = exception,
                 };
-
-                this.HandleNotFoundExceptionAttribute = new HandleNotFoundExceptionAttribute();
             }
 
-            public HandleNotFoundExceptionAttribute HandleNotFoundExceptionAttribute { get; }
+            public HandleNotFoundExceptionAttribute HandleNotFoundExceptionAttribute { get; } = new();
 
             public ExceptionContext ExceptionContext { get; }
-
-            public DefaultHttpContext HttpContext { get; } = new DefaultHttpContext();
 
             public void Execute() =>
                 this.HandleNotFoundExceptionAttribute.OnException(this.ExceptionContext);

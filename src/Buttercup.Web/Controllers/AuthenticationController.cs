@@ -118,7 +118,7 @@ namespace Buttercup.Web.Controllers
             await this.AuthenticationManager.SignOut(this.HttpContext);
 
             this.HttpContext.Response.GetTypedHeaders().CacheControl =
-                new CacheControlHeaderValue { NoCache = true, NoStore = true };
+                new() { NoCache = true, NoStore = true };
 
             if (this.Url.IsLocalUrl(returnUrl))
             {

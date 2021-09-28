@@ -36,7 +36,7 @@ namespace Buttercup.Web.Localization
             mockLocalizer
                 .Setup(x => x[It.IsAny<string>(), It.IsAny<object[]>()])
                 .Returns(
-                    (string key, object[] args) => new LocalizedString(
+                    (string key, object[] args) => new(
                         key,
                         string.Format(CultureInfo.InvariantCulture, resources[key], args)));
 

@@ -21,9 +21,9 @@ namespace Buttercup.Web.Authentication
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 null,
                 typeof(CookieAuthenticationHandler));
-            var ticket = new AuthenticationTicket(new ClaimsPrincipal(), null);
+            var ticket = new AuthenticationTicket(new(), null);
             var context = new CookieValidatePrincipalContext(
-                new DefaultHttpContext(), scheme, new CookieAuthenticationOptions(), ticket);
+                new DefaultHttpContext(), scheme, new(), ticket);
             var result = Task.FromResult(new object());
 
             mockAuthenticationManager.Setup(x => x.ValidatePrincipal(context)).Returns(result);

@@ -15,8 +15,7 @@ namespace Buttercup.Email
         [Fact]
         public async Task SendSetsFromAddress()
         {
-            var context = new Context(
-                new EmailOptions { FromAddress = "buttercup@example.com" });
+            var context = new Context(new() { FromAddress = "buttercup@example.com" });
 
             await context.EmailSender.Send(
                 "sample.recipient@example.com", "Sample subject", "Sample body");
@@ -65,9 +64,9 @@ namespace Buttercup.Email
         {
             public Context(EmailOptions emailOptions = null)
             {
-                this.EmailSender = new EmailSender(
+                this.EmailSender = new(
                     new FakeSendGridClientAccessor(this.MockSendGridClient.Object),
-                    Options.Create(emailOptions ?? new EmailOptions()));
+                    Options.Create(emailOptions ?? new()));
 
                 this.MockSendGridClient
                     .Setup(
@@ -82,7 +81,7 @@ namespace Buttercup.Email
 
             public EmailSender EmailSender { get; }
 
-            public Mock<ISendGridClient> MockSendGridClient { get; } = new Mock<ISendGridClient>();
+            public Mock<ISendGridClient> MockSendGridClient { get; } = new();
 
             public SendGridMessage SentMessage { get; private set; }
         }

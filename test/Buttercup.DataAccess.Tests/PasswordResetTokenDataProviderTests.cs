@@ -24,16 +24,16 @@ namespace Buttercup.DataAccess
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
 
             await passwordResetTokenDataProvider.InsertToken(
-                connection, 3, "token-a", new DateTime(2000, 1, 2, 11, 59, 59));
+                connection, 3, "token-a", new(2000, 1, 2, 11, 59, 59));
 
             await passwordResetTokenDataProvider.InsertToken(
-                connection, 3, "token-b", new DateTime(2000, 1, 2, 12, 00, 00));
+                connection, 3, "token-b", new(2000, 1, 2, 12, 00, 00));
 
             await passwordResetTokenDataProvider.InsertToken(
-                connection, 3, "token-c", new DateTime(2000, 1, 2, 12, 00, 01));
+                connection, 3, "token-c", new(2000, 1, 2, 12, 00, 01));
 
             await passwordResetTokenDataProvider.DeleteExpiredTokens(
-                connection, new DateTime(2000, 1, 2, 12, 00, 00));
+                connection, new(2000, 1, 2, 12, 00, 00));
 
             string survivingTokens;
 
