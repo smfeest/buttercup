@@ -20,16 +20,15 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void ShowReturnsViewResultWithCurrentUser()
         {
-            using (var context = new Context())
-            {
-                var user = new User();
+            using var context = new Context();
 
-                context.HttpContext.SetCurrentUser(user);
+            var user = new User();
 
-                var result = context.AccountController.Show();
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(user, viewResult.Model);
-            }
+            context.HttpContext.SetCurrentUser(user);
+
+            var result = context.AccountController.Show();
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(user, viewResult.Model);
         }
 
         #endregion
@@ -39,11 +38,10 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void ChangePasswordGetReturnsViewResult()
         {
-            using (var context = new Context())
-            {
-                var result = context.AccountController.ChangePassword();
-                Assert.IsType<ViewResult>(result);
-            }
+            using var context = new Context();
+
+            var result = context.AccountController.ChangePassword();
+            Assert.IsType<ViewResult>(result);
         }
 
         #endregion
@@ -53,63 +51,59 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
         {
-            using (var context = new ChangePasswordContext())
-            {
-                context.AccountController.ModelState.AddModelError("test", "test");
+            using var context = new ChangePasswordContext();
 
-                var result = await context.ChangePasswordPost();
+            context.AccountController.ModelState.AddModelError("test", "test");
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.Model, viewResult.Model);
-            }
+            var result = await context.ChangePasswordPost();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(context.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
         {
-            using (var context = new ChangePasswordContext())
-            {
-                context.SetupChangePassword(false);
+            using var context = new ChangePasswordContext();
 
-                await context.ChangePasswordPost();
+            context.SetupChangePassword(false);
 
-                var errors = context
-                    .AccountController
-                    .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]
-                    .Errors;
+            await context.ChangePasswordPost();
 
-                var error = Assert.Single(errors);
+            var errors = context
+                .AccountController
+                .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]
+                .Errors;
 
-                Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
-            }
+            var error = Assert.Single(errors);
+
+            Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
         }
 
         [Fact]
         public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
         {
-            using (var context = new ChangePasswordContext())
-            {
-                context.SetupChangePassword(false);
+            using var context = new ChangePasswordContext();
 
-                var result = await context.ChangePasswordPost();
+            context.SetupChangePassword(false);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.Model, viewResult.Model);
-            }
+            var result = await context.ChangePasswordPost();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(context.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
         {
-            using (var context = new ChangePasswordContext())
-            {
-                context.SetupChangePassword(true);
+            using var context = new ChangePasswordContext();
 
-                var result = await context.ChangePasswordPost();
+            context.SetupChangePassword(true);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
-            }
+            var result = await context.ChangePasswordPost();
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
         }
 
         #endregion
@@ -119,18 +113,17 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void PreferencesGetReturnsViewResultWithViewModel()
         {
-            using (var context = new Context())
-            {
-                var user = new User { TimeZone = "time-zone" };
+            using var context = new Context();
 
-                context.HttpContext.SetCurrentUser(user);
+            var user = new User { TimeZone = "time-zone" };
 
-                var result = context.AccountController.Preferences();
+            context.HttpContext.SetCurrentUser(user);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
-                Assert.Equal(user.TimeZone, viewModel.TimeZone);
-            }
+            var result = context.AccountController.Preferences();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
+            Assert.Equal(user.TimeZone, viewModel.TimeZone);
         }
 
         #endregion
@@ -140,25 +133,24 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
         {
-            using (var context = new Context())
-            {
-                context.HttpContext.SetCurrentUser(new() { Id = 21 });
+            using var context = new Context();
 
-                var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
+            context.HttpContext.SetCurrentUser(new() { Id = 21 });
 
-                context.MockUserDataProvider
-                    .Setup(x => x.UpdatePreferences(
-                        context.DbConnection, 21, viewModel.TimeZone, context.UtcNow))
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
+            var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
-                var result = await context.AccountController.Preferences(viewModel);
+            context.MockUserDataProvider
+                .Setup(x => x.UpdatePreferences(
+                    context.DbConnection, 21, viewModel.TimeZone, context.UtcNow))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
-                context.MockUserDataProvider.Verify();
+            var result = await context.AccountController.Preferences(viewModel);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
-            }
+            context.MockUserDataProvider.Verify();
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
         }
 
         #endregion

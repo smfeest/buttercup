@@ -31,24 +31,23 @@ namespace Buttercup.DataAccess
 
         public static async Task InsertSampleUser(DbConnection connection, User user)
         {
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = @"INSERT user(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"INSERT user(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
                 VALUES (@id, @name, @email, @hashed_password, @password_created, @security_stamp, @time_zone, @created, @modified, @revision);";
 
-                command.AddParameterWithValue("@id", user.Id);
-                command.AddParameterWithValue("@name", user.Name);
-                command.AddParameterWithValue("@email", user.Email);
-                command.AddParameterWithValue("@hashed_password", user.HashedPassword);
-                command.AddParameterWithValue("@password_created", user.PasswordCreated);
-                command.AddParameterWithValue("@security_stamp", user.SecurityStamp);
-                command.AddParameterWithValue("@time_zone", user.TimeZone);
-                command.AddParameterWithValue("@created", user.Created);
-                command.AddParameterWithValue("@modified", user.Modified);
-                command.AddParameterWithValue("@revision", user.Revision);
+            command.AddParameterWithValue("@id", user.Id);
+            command.AddParameterWithValue("@name", user.Name);
+            command.AddParameterWithValue("@email", user.Email);
+            command.AddParameterWithValue("@hashed_password", user.HashedPassword);
+            command.AddParameterWithValue("@password_created", user.PasswordCreated);
+            command.AddParameterWithValue("@security_stamp", user.SecurityStamp);
+            command.AddParameterWithValue("@time_zone", user.TimeZone);
+            command.AddParameterWithValue("@created", user.Created);
+            command.AddParameterWithValue("@modified", user.Modified);
+            command.AddParameterWithValue("@revision", user.Revision);
 
-                await command.ExecuteNonQueryAsync();
-            }
+            await command.ExecuteNonQueryAsync();
         }
     }
 }

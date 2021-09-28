@@ -67,235 +67,230 @@ namespace Buttercup.Web.Authentication
 
         public async Task<User> Authenticate(string email, string password)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            var user = await this.UserDataProvider.FindUserByEmail(connection, email);
+
+            if (user == null)
             {
-                var user = await this.UserDataProvider.FindUserByEmail(connection, email);
-
-                if (user == null)
-                {
-                    this.Logger.LogInformation(
-                        "Authentication failed; no user with email {email}", email);
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection,
-                        this.Clock.UtcNow,
-                        "authentication_failure:unrecognized_email",
-                        null,
-                        email);
-
-                    return null;
-                }
-
-                if (user.HashedPassword == null)
-                {
-                    this.Logger.LogInformation(
-                        "Authentication failed; no password set for user {userId} ({email})",
-                        user.Id,
-                        user.Email);
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection,
-                        this.Clock.UtcNow,
-                        "authentication_failure:no_password_set",
-                        user.Id,
-                        email);
-
-                    return null;
-                }
-
-                if (!this.VerifyPassword(user, password))
-                {
-                    this.Logger.LogInformation(
-                        "Authentication failed; incorrect password for user {userId} ({email})",
-                        user.Id,
-                        user.Email);
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection,
-                        this.Clock.UtcNow,
-                        "authentication_failure:incorrect_password",
-                        user.Id,
-                        email);
-
-                    return null;
-                }
-
                 this.Logger.LogInformation(
-                    "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
+                    "Authentication failed; no user with email {email}", email);
 
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "authentication_success", user.Id, email);
+                    connection,
+                    this.Clock.UtcNow,
+                    "authentication_failure:unrecognized_email",
+                    null,
+                    email);
 
-                return user;
+                return null;
             }
+
+            if (user.HashedPassword == null)
+            {
+                this.Logger.LogInformation(
+                    "Authentication failed; no password set for user {userId} ({email})",
+                    user.Id,
+                    user.Email);
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection,
+                    this.Clock.UtcNow,
+                    "authentication_failure:no_password_set",
+                    user.Id,
+                    email);
+
+                return null;
+            }
+
+            if (!this.VerifyPassword(user, password))
+            {
+                this.Logger.LogInformation(
+                    "Authentication failed; incorrect password for user {userId} ({email})",
+                    user.Id,
+                    user.Email);
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection,
+                    this.Clock.UtcNow,
+                    "authentication_failure:incorrect_password",
+                    user.Id,
+                    email);
+
+                return null;
+            }
+
+            this.Logger.LogInformation(
+                "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
+
+            await this.AuthenticationEventDataProvider.LogEvent(
+                connection, this.Clock.UtcNow, "authentication_success", user.Id, email);
+
+            return user;
         }
 
         public async Task<bool> ChangePassword(
             HttpContext httpContext, string currentPassword, string newPassword)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            var user = httpContext.GetCurrentUser();
+
+            if (user.HashedPassword == null)
             {
-                var user = httpContext.GetCurrentUser();
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection,
+                    this.Clock.UtcNow,
+                    "password_change_failure:no_password_set",
+                    user.Id);
 
-                if (user.HashedPassword == null)
-                {
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection,
-                        this.Clock.UtcNow,
-                        "password_change_failure:no_password_set",
-                        user.Id);
+                throw new InvalidOperationException(
+                    $"User {user.Id} ({user.Email}) does not have a password.");
+            }
 
-                    throw new InvalidOperationException(
-                        $"User {user.Id} ({user.Email}) does not have a password.");
-                }
-
-                if (!this.VerifyPassword(user, currentPassword))
-                {
-                    this.Logger.LogInformation(
-                        "Password change denied for user {userId} ({email}); current password is incorrect",
-                        user.Id,
-                        user.Email);
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection,
-                        this.Clock.UtcNow,
-                        "password_change_failure:incorrect_password",
-                        user.Id);
-
-                    return false;
-                }
-
-                user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
-
+            if (!this.VerifyPassword(user, currentPassword))
+            {
                 this.Logger.LogInformation(
-                    "Password successfully changed for user {userId} ({email})",
+                    "Password change denied for user {userId} ({email}); current password is incorrect",
                     user.Id,
                     user.Email);
 
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "password_change_success", user.Id);
+                    connection,
+                    this.Clock.UtcNow,
+                    "password_change_failure:incorrect_password",
+                    user.Id);
 
-                await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
-
-                await this.SignInUser(httpContext, user);
-
-                return true;
+                return false;
             }
+
+            user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
+
+            this.Logger.LogInformation(
+                "Password successfully changed for user {userId} ({email})",
+                user.Id,
+                user.Email);
+
+            await this.AuthenticationEventDataProvider.LogEvent(
+                connection, this.Clock.UtcNow, "password_change_success", user.Id);
+
+            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+
+            await this.SignInUser(httpContext, user);
+
+            return true;
         }
 
         public async Task<bool> PasswordResetTokenIsValid(string token)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            var userId = await this.ValidatePasswordResetToken(connection, token);
+
+            if (userId.HasValue)
             {
-                var userId = await this.ValidatePasswordResetToken(connection, token);
-
-                if (userId.HasValue)
-                {
-                    this.Logger.LogDebug(
-                        "Password reset token '{token}' is valid and belongs to user {userId}",
-                        RedactToken(token),
-                        userId);
-                }
-                else
-                {
-                    this.Logger.LogDebug(
-                        "Password reset token '{token}' is no longer valid", RedactToken(token));
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
-                }
-
-                return userId.HasValue;
+                this.Logger.LogDebug(
+                    "Password reset token '{token}' is valid and belongs to user {userId}",
+                    RedactToken(token),
+                    userId);
             }
+            else
+            {
+                this.Logger.LogDebug(
+                    "Password reset token '{token}' is no longer valid", RedactToken(token));
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
+            }
+
+            return userId.HasValue;
         }
 
         public async Task<User> ResetPassword(string token, string newPassword)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            var userId = await this.ValidatePasswordResetToken(connection, token);
+
+            if (!userId.HasValue)
             {
-                var userId = await this.ValidatePasswordResetToken(connection, token);
-
-                if (!userId.HasValue)
-                {
-                    this.Logger.LogInformation(
-                        "Unable to reset password; password reset token {token} is invalid",
-                        RedactToken(token));
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
-
-                    throw new InvalidTokenException("Password reset token is invalid");
-                }
-
-                await this.SetPassword(connection, userId.Value, newPassword);
-
                 this.Logger.LogInformation(
-                    "Password reset for user {userId} using token {token}",
-                    userId,
+                    "Unable to reset password; password reset token {token} is invalid",
                     RedactToken(token));
 
                 await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "password_reset_success", userId.Value);
+                    connection, this.Clock.UtcNow, "password_reset_failure:invalid_token");
 
-                var user = await this.UserDataProvider.GetUser(connection, userId.Value);
-
-                await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
-
-                return user;
+                throw new InvalidTokenException("Password reset token is invalid");
             }
+
+            await this.SetPassword(connection, userId.Value, newPassword);
+
+            this.Logger.LogInformation(
+                "Password reset for user {userId} using token {token}",
+                userId,
+                RedactToken(token));
+
+            await this.AuthenticationEventDataProvider.LogEvent(
+                connection, this.Clock.UtcNow, "password_reset_success", userId.Value);
+
+            var user = await this.UserDataProvider.GetUser(connection, userId.Value);
+
+            await this.AuthenticationMailer.SendPasswordChangeNotification(user.Email);
+
+            return user;
         }
 
         public async Task SendPasswordResetLink(ActionContext actionContext, string email)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            var user = await this.UserDataProvider.FindUserByEmail(connection, email);
+
+            if (user == null)
             {
-                var user = await this.UserDataProvider.FindUserByEmail(connection, email);
+                this.Logger.LogInformation(
+                    "Unable to send password reset link; No user with email {email}", email);
 
-                if (user == null)
-                {
-                    this.Logger.LogInformation(
-                        "Unable to send password reset link; No user with email {email}", email);
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection,
+                    this.Clock.UtcNow,
+                    "password_reset_failure:unrecognized_email",
+                    null,
+                    email);
 
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection,
-                        this.Clock.UtcNow,
-                        "password_reset_failure:unrecognized_email",
-                        null,
-                        email);
+                return;
+            }
 
-                    return;
-                }
+            email = user.Email;
 
-                email = user.Email;
+            var token = this.RandomTokenGenerator.Generate(12);
 
-                var token = this.RandomTokenGenerator.Generate(12);
+            await this.PasswordResetTokenDataProvider.InsertToken(
+                connection, user.Id, token, this.Clock.UtcNow);
 
-                await this.PasswordResetTokenDataProvider.InsertToken(
-                    connection, user.Id, token, this.Clock.UtcNow);
+            var urlHelper = this.UrlHelperFactory.GetUrlHelper(actionContext);
+            var link = urlHelper.Link("ResetPassword", new { token = token });
 
-                var urlHelper = this.UrlHelperFactory.GetUrlHelper(actionContext);
-                var link = urlHelper.Link("ResetPassword", new { token = token });
+            try
+            {
+                await this.AuthenticationMailer.SendPasswordResetLink(email, link);
 
-                try
-                {
-                    await this.AuthenticationMailer.SendPasswordResetLink(email, link);
+                this.Logger.LogInformation(
+                    "Password reset link sent to user {userId} ({email})",
+                    user.Id,
+                    email);
 
-                    this.Logger.LogInformation(
-                        "Password reset link sent to user {userId} ({email})",
-                        user.Id,
-                        email);
-
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, this.Clock.UtcNow, "password_reset_link_sent", user.Id, email);
-                }
-                catch (Exception e)
-                {
-                    this.Logger.LogError(
-                        e,
-                        "Error sending password reset link to user {userId} ({email})",
-                        user.Id,
-                        email);
-                }
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, this.Clock.UtcNow, "password_reset_link_sent", user.Id, email);
+            }
+            catch (Exception e)
+            {
+                this.Logger.LogError(
+                    e,
+                    "Error sending password reset link to user {userId} ({email})",
+                    user.Id,
+                    email);
             }
         }
 
@@ -307,11 +302,10 @@ namespace Buttercup.Web.Authentication
 
             this.Logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
 
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                await this.AuthenticationEventDataProvider.LogEvent(
-                    connection, this.Clock.UtcNow, "sign_in", user.Id);
-            }
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            await this.AuthenticationEventDataProvider.LogEvent(
+                connection, this.Clock.UtcNow, "sign_in", user.Id);
         }
 
         public async Task SignOut(HttpContext httpContext)
@@ -326,11 +320,10 @@ namespace Buttercup.Web.Authentication
 
                 this.Logger.LogInformation("User {userId} ({email}) signed out", userId, email);
 
-                using (var connection = await this.DbConnectionSource.OpenConnection())
-                {
-                    await this.AuthenticationEventDataProvider.LogEvent(
-                        connection, this.Clock.UtcNow, "sign_out", userId);
-                }
+                using var connection = await this.DbConnectionSource.OpenConnection();
+
+                await this.AuthenticationEventDataProvider.LogEvent(
+                    connection, this.Clock.UtcNow, "sign_out", userId);
             }
         }
 

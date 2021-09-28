@@ -27,23 +27,21 @@ namespace Buttercup.DataAccess
                 8,
                 "sample@example.com");
 
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
-                command.AddParameterWithValue("@id", id);
+            using var command = connection.CreateCommand();
 
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    await reader.ReadAsync();
+            command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
+            command.AddParameterWithValue("@id", id);
 
-                    Assert.Equal(
-                        new(2000, 1, 2, 3, 4, 5),
-                        reader.GetDateTime("time", DateTimeKind.Utc));
-                    Assert.Equal("sample-event", reader.GetString("event"));
-                    Assert.Equal(8, reader.GetInt64("user_id"));
-                    Assert.Equal("sample@example.com", reader.GetString("email"));
-                }
-            }
+            using var reader = await command.ExecuteReaderAsync();
+
+            await reader.ReadAsync();
+
+            Assert.Equal(
+                new(2000, 1, 2, 3, 4, 5),
+                reader.GetDateTime("time", DateTimeKind.Utc));
+            Assert.Equal("sample-event", reader.GetString("event"));
+            Assert.Equal(8, reader.GetInt64("user_id"));
+            Assert.Equal("sample@example.com", reader.GetString("email"));
         });
 
         [Fact]
@@ -53,19 +51,17 @@ namespace Buttercup.DataAccess
             var id = await new AuthenticationEventDataProvider().LogEvent(
                 connection, DateTime.UtcNow, "sample-event");
 
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
-                command.AddParameterWithValue("@id", id);
+            using var command = connection.CreateCommand();
 
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    await reader.ReadAsync();
+            command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
+            command.AddParameterWithValue("@id", id);
 
-                    Assert.True(reader.IsDBNull(reader.GetOrdinal("user_id")));
-                    Assert.True(reader.IsDBNull(reader.GetOrdinal("email")));
-                }
-            }
+            using var reader = await command.ExecuteReaderAsync();
+
+            await reader.ReadAsync();
+
+            Assert.True(reader.IsDBNull(reader.GetOrdinal("user_id")));
+            Assert.True(reader.IsDBNull(reader.GetOrdinal("email")));
         });
 
         #endregion

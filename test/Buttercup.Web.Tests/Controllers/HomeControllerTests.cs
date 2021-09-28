@@ -18,26 +18,25 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task IndexReturnsViewResultWithRecentlyAddedRecipes()
         {
-            using (var context = new Context())
-            {
-                IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
-                IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
+            using var context = new Context();
 
-                context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecentlyAddedRecipes(context.MockConnection.Object))
-                    .ReturnsAsync(recentlyAddedRecipes);
-                context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecentlyUpdatedRecipes(context.MockConnection.Object))
-                    .ReturnsAsync(recentlyUpdatedRecipes);
+            IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
+            IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
 
-                var result = await context.HomeController.Index();
+            context.MockRecipeDataProvider
+                .Setup(x => x.GetRecentlyAddedRecipes(context.MockConnection.Object))
+                .ReturnsAsync(recentlyAddedRecipes);
+            context.MockRecipeDataProvider
+                .Setup(x => x.GetRecentlyUpdatedRecipes(context.MockConnection.Object))
+                .ReturnsAsync(recentlyUpdatedRecipes);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
+            var result = await context.HomeController.Index();
 
-                Assert.Same(recentlyAddedRecipes, viewModel.RecentlyAddedRecipes);
-                Assert.Same(recentlyUpdatedRecipes, viewModel.RecentlyUpdatedRecipes);
-            }
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
+
+            Assert.Same(recentlyAddedRecipes, viewModel.RecentlyAddedRecipes);
+            Assert.Same(recentlyUpdatedRecipes, viewModel.RecentlyUpdatedRecipes);
         }
 
         #endregion

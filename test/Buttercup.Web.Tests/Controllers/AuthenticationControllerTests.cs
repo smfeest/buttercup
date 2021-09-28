@@ -18,11 +18,10 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void RequestPasswordResetGetReturnsViewResult()
         {
-            using (var context = new Context())
-            {
-                var result = context.AuthenticationController.RequestPasswordReset();
-                Assert.IsType<ViewResult>(result);
-            }
+            using var context = new Context();
+
+            var result = context.AuthenticationController.RequestPasswordReset();
+            Assert.IsType<ViewResult>(result);
         }
 
         #endregion
@@ -32,44 +31,41 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task RequestPasswordResetPostReturnsViewResultWhenModelIsInvalid()
         {
-            using (var context = new Context())
-            {
-                context.AuthenticationController.ModelState.AddModelError("test", "test");
+            using var context = new Context();
 
-                var model = new RequestPasswordResetViewModel();
-                var result = await context.AuthenticationController.RequestPasswordReset(model);
+            context.AuthenticationController.ModelState.AddModelError("test", "test");
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(model, viewResult.Model);
-            }
+            var model = new RequestPasswordResetViewModel();
+            var result = await context.AuthenticationController.RequestPasswordReset(model);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(model, viewResult.Model);
         }
 
         [Fact]
         public async Task RequestPasswordResetPostSendsPasswordResetLink()
         {
-            using (var context = new Context())
-            {
-                var model = new RequestPasswordResetViewModel { Email = "sample-user@example.com" };
-                var result = await context.AuthenticationController.RequestPasswordReset(model);
+            using var context = new Context();
 
-                context.MockAuthenticationManager.Verify(x => x.SendPasswordResetLink(
-                    context.ControllerContext, "sample-user@example.com"));
-            }
+            var model = new RequestPasswordResetViewModel { Email = "sample-user@example.com" };
+            var result = await context.AuthenticationController.RequestPasswordReset(model);
+
+            context.MockAuthenticationManager.Verify(x => x.SendPasswordResetLink(
+                context.ControllerContext, "sample-user@example.com"));
         }
 
         [Fact]
         public async Task RequestPasswordResetPostReturnsViewResult()
         {
-            using (var context = new Context())
-            {
-                var model = new RequestPasswordResetViewModel();
+            using var context = new Context();
 
-                var result = await context.AuthenticationController.RequestPasswordReset(model);
+            var model = new RequestPasswordResetViewModel();
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Equal("RequestPasswordResetConfirmation", viewResult.ViewName);
-                Assert.Same(model, viewResult.Model);
-            }
+            var result = await context.AuthenticationController.RequestPasswordReset(model);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("RequestPasswordResetConfirmation", viewResult.ViewName);
+            Assert.Same(model, viewResult.Model);
         }
 
         #endregion
@@ -79,33 +75,31 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordGetReturnsDefaultViewResultWhenTokenIsValid()
         {
-            using (var context = new Context())
-            {
-                context.MockAuthenticationManager
-                    .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
-                    .ReturnsAsync(true);
+            using var context = new Context();
 
-                var result = await context.AuthenticationController.ResetPassword("sample-token");
+            context.MockAuthenticationManager
+                .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
+                .ReturnsAsync(true);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Null(viewResult.ViewName);
-            }
+            var result = await context.AuthenticationController.ResetPassword("sample-token");
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Null(viewResult.ViewName);
         }
 
         [Fact]
         public async Task ResetPasswordGetReturnsInvalidTokenViewResultWhenTokenIsInvalid()
         {
-            using (var context = new Context())
-            {
-                context.MockAuthenticationManager
-                    .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
-                    .ReturnsAsync(false);
+            using var context = new Context();
 
-                var result = await context.AuthenticationController.ResetPassword("sample-token");
+            context.MockAuthenticationManager
+                .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
+                .ReturnsAsync(false);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
-            }
+            var result = await context.AuthenticationController.ResetPassword("sample-token");
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
         }
 
         #endregion
@@ -115,66 +109,62 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordPostReturnsDefaultViewResultWhenModelIsInvalid()
         {
-            using (var context = new Context())
-            {
-                context.AuthenticationController.ModelState.AddModelError("test", "test");
+            using var context = new Context();
 
-                var viewModel = new ResetPasswordViewModel();
-                var result = await context.AuthenticationController.ResetPassword(
-                    "sample-token", viewModel);
+            context.AuthenticationController.ModelState.AddModelError("test", "test");
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(viewModel, viewResult.Model);
-            }
+            var viewModel = new ResetPasswordViewModel();
+            var result = await context.AuthenticationController.ResetPassword(
+                "sample-token", viewModel);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(viewModel, viewResult.Model);
         }
 
         [Fact]
         public async Task ResetPasswordPostReturnsInvalidTokenViewResultWhenTokenIsInvalid()
         {
-            using (var context = new Context())
-            {
-                context.MockAuthenticationManager
-                    .Setup(x => x.ResetPassword("sample-token", "sample-password"))
-                    .ThrowsAsync(new InvalidTokenException());
+            using var context = new Context();
 
-                var result = await context.AuthenticationController.ResetPassword(
-                    "sample-token", new() { Password = "sample-password" });
+            context.MockAuthenticationManager
+                .Setup(x => x.ResetPassword("sample-token", "sample-password"))
+                .ThrowsAsync(new InvalidTokenException());
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
-            }
+            var result = await context.AuthenticationController.ResetPassword(
+                "sample-token", new() { Password = "sample-password" });
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
         }
 
         [Fact]
         public async Task ResetPasswordPostSignsInUser()
         {
-            using (var context = new Context())
-            {
-                var user = new User();
+            using var context = new Context();
 
-                context.MockAuthenticationManager
-                    .Setup(x => x.ResetPassword("sample-token", "sample-password"))
-                    .ReturnsAsync(user);
+            var user = new User();
 
-                await context.AuthenticationController.ResetPassword(
-                    "sample-token", new() { Password = "sample-password" });
+            context.MockAuthenticationManager
+                .Setup(x => x.ResetPassword("sample-token", "sample-password"))
+                .ReturnsAsync(user);
 
-                context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
-            }
+            await context.AuthenticationController.ResetPassword(
+                "sample-token", new() { Password = "sample-password" });
+
+            context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
         }
 
         [Fact]
         public async Task ResetPasswordPostRedirectsToHomeIndex()
         {
-            using (var context = new Context())
-            {
-                var result = await context.AuthenticationController.ResetPassword(
-                    "sample-token", new());
+            using var context = new Context();
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal("Home", redirectResult.ControllerName);
-                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
-            }
+            var result = await context.AuthenticationController.ResetPassword(
+                "sample-token", new());
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Home", redirectResult.ControllerName);
+            Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
         }
 
         #endregion
@@ -184,11 +174,10 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void SignInGetReturnsViewResult()
         {
-            using (var context = new Context())
-            {
-                var result = context.AuthenticationController.SignIn();
-                Assert.IsType<ViewResult>(result);
-            }
+            using var context = new Context();
+
+            var result = context.AuthenticationController.SignIn();
+            Assert.IsType<ViewResult>(result);
         }
 
         #endregion
@@ -198,93 +187,87 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostReturnsViewResultWhenModelIsInvalid()
         {
-            using (var context = new SignInContext())
-            {
-                context.AuthenticationController.ModelState.AddModelError("test", "test");
+            using var context = new SignInContext();
 
-                var result = await context.SignInPost();
+            context.AuthenticationController.ModelState.AddModelError("test", "test");
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.Model, viewResult.Model);
-            }
+            var result = await context.SignInPost();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(context.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task SignInPostAddsErrorWhenAuthenticationFails()
         {
-            using (var context = new SignInContext())
-            {
-                context.SetupAuthenticate(null);
+            using var context = new SignInContext();
 
-                await context.SignInPost();
+            context.SetupAuthenticate(null);
 
-                var error = Assert.Single(
-                    context.AuthenticationController.ModelState[string.Empty].Errors);
+            await context.SignInPost();
 
-                Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
-            }
+            var error = Assert.Single(
+                context.AuthenticationController.ModelState[string.Empty].Errors);
+
+            Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
         }
 
         [Fact]
         public async Task SignInPostReturnsViewResultWhenAuthenticationFails()
         {
-            using (var context = new SignInContext())
-            {
-                context.SetupAuthenticate(null);
+            using var context = new SignInContext();
 
-                var result = await context.SignInPost();
+            context.SetupAuthenticate(null);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.Model, viewResult.Model);
-            }
+            var result = await context.SignInPost();
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(context.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task SignInSignsInUserWhenSuccessful()
         {
-            using (var context = new SignInContext())
-            {
-                var user = new User();
+            using var context = new SignInContext();
 
-                context.SetupAuthenticate(user);
+            var user = new User();
 
-                await context.SignInPost();
+            context.SetupAuthenticate(user);
 
-                context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
-            }
+            await context.SignInPost();
+
+            context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
         }
 
         [Fact]
         public async Task SignInPostRedirectsToInternalUrl()
         {
-            using (var context = new SignInContext())
-            {
-                context.SetupAuthenticate(new());
+            using var context = new SignInContext();
 
-                context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
+            context.SetupAuthenticate(new());
 
-                var result = await context.SignInPost("/sample/redirect");
+            context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
-                var redirectResult = Assert.IsType<RedirectResult>(result);
-                Assert.Equal("/sample/redirect", redirectResult.Url);
-            }
+            var result = await context.SignInPost("/sample/redirect");
+
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            Assert.Equal("/sample/redirect", redirectResult.Url);
         }
 
         [Fact]
         public async Task SignInPostRedirectsDoesNotRedirectToExternalUrl()
         {
-            using (var context = new SignInContext())
-            {
-                context.SetupAuthenticate(new());
+            using var context = new SignInContext();
 
-                context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
+            context.SetupAuthenticate(new());
 
-                var result = await context.SignInPost("https://evil.com/");
+            context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal("Home", redirectResult.ControllerName);
-                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
-            }
+            var result = await context.SignInPost("https://evil.com/");
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Home", redirectResult.ControllerName);
+            Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
         }
 
         #endregion
@@ -294,55 +277,51 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void SignOutSignsOutUser()
         {
-            using (var context = new Context())
-            {
-                var result = context.AuthenticationController.SignOut();
+            using var context = new Context();
 
-                context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
-            }
+            var result = context.AuthenticationController.SignOut();
+
+            context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
         }
 
         [Fact]
         public void SignOutSetsCacheControlHeader()
         {
-            using (var context = new Context())
-            {
-                var result = context.AuthenticationController.SignOut();
+            using var context = new Context();
 
-                var cacheControlHeader = context.HttpContext.Response.GetTypedHeaders().CacheControl;
+            var result = context.AuthenticationController.SignOut();
 
-                Assert.True(cacheControlHeader.NoCache);
-                Assert.True(cacheControlHeader.NoStore);
-            }
+            var cacheControlHeader = context.HttpContext.Response.GetTypedHeaders().CacheControl;
+
+            Assert.True(cacheControlHeader.NoCache);
+            Assert.True(cacheControlHeader.NoStore);
         }
 
         [Fact]
         public async Task SignOutRedirectsToInternalUrls()
         {
-            using (var context = new Context())
-            {
-                context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
+            using var context = new Context();
 
-                var result = await context.AuthenticationController.SignOut("/sample/redirect");
+            context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
-                var redirectResult = Assert.IsType<RedirectResult>(result);
-                Assert.Equal("/sample/redirect", redirectResult.Url);
-            }
+            var result = await context.AuthenticationController.SignOut("/sample/redirect");
+
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            Assert.Equal("/sample/redirect", redirectResult.Url);
         }
 
         [Fact]
         public async Task SignOutDoesNotRedirectToExternalUrls()
         {
-            using (var context = new Context())
-            {
-                context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
+            using var context = new Context();
 
-                var result = await context.AuthenticationController.SignOut("https://evil.com/");
+            context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal("Home", redirectResult.ControllerName);
-                Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
-            }
+            var result = await context.AuthenticationController.SignOut("https://evil.com/");
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Home", redirectResult.ControllerName);
+            Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
         }
 
         #endregion

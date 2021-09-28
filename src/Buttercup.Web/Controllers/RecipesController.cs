@@ -34,19 +34,17 @@ namespace Buttercup.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                return this.View(await this.RecipeDataProvider.GetRecipes(connection));
-            }
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            return this.View(await this.RecipeDataProvider.GetRecipes(connection));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Show(long id)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
-            }
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
         }
 
         [HttpGet("new")]
@@ -79,11 +77,10 @@ namespace Buttercup.Web.Controllers
         [HttpGet("{id}/edit")]
         public async Task<IActionResult> Edit(long id)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                return this.View(new RecipeEditModel(
-                    await this.RecipeDataProvider.GetRecipe(connection, id)));
-            }
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            return this.View(new RecipeEditModel(
+                await this.RecipeDataProvider.GetRecipe(connection, id)));
         }
 
         [HttpPost("{id}/edit")]
@@ -112,20 +109,18 @@ namespace Buttercup.Web.Controllers
         [HttpGet("{id}/delete")]
         public async Task<IActionResult> Delete(long id)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
-            }
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
         }
 
         [HttpPost("{id}/delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id, int revision)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                await this.RecipeDataProvider.DeleteRecipe(connection, id, revision);
-            }
+            using var connection = await this.DbConnectionSource.OpenConnection();
+
+            await this.RecipeDataProvider.DeleteRecipe(connection, id, revision);
 
             return this.RedirectToAction(nameof(this.Index));
         }

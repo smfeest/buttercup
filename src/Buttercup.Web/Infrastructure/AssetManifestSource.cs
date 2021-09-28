@@ -41,11 +41,10 @@ namespace Buttercup.Web.Infrastructure
 
                             var fileInfo = this.fileProvider.GetFileInfo(path);
 
-                            using (var stream = fileInfo.CreateReadStream())
-                            {
-                                this.productionManifest = new ReadOnlyDictionary<string, string>(
-                                    this.manifestReader.ReadManifest(stream));
-                            }
+                            using var stream = fileInfo.CreateReadStream();
+
+                            this.productionManifest = new ReadOnlyDictionary<string, string>(
+                                this.manifestReader.ReadManifest(stream));
                         }
                     }
                 }

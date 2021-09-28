@@ -52,29 +52,28 @@ namespace Buttercup.DataAccess
                 await InsertRelatedUser(connection, recipe.ModifiedByUserId);
             }
 
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = @"INSERT recipe(id, title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"INSERT recipe(id, title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
                 VALUES (@id, @title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @modified, @modified_by_user_id, @revision);";
 
-                command.AddParameterWithValue("@id", recipe.Id);
-                command.AddParameterWithValue("@title", recipe.Title);
-                command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
-                command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
-                command.AddParameterWithValue("@servings", recipe.Servings);
-                command.AddParameterWithValue("@ingredients", recipe.Ingredients);
-                command.AddParameterWithValue("@method", recipe.Method);
-                command.AddParameterWithValue("@suggestions", recipe.Suggestions);
-                command.AddParameterWithValue("@remarks", recipe.Remarks);
-                command.AddParameterWithValue("@source", recipe.Source);
-                command.AddParameterWithValue("@created", recipe.Created);
-                command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
-                command.AddParameterWithValue("@modified", recipe.Modified);
-                command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
-                command.AddParameterWithValue("@revision", recipe.Revision);
+            command.AddParameterWithValue("@id", recipe.Id);
+            command.AddParameterWithValue("@title", recipe.Title);
+            command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
+            command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
+            command.AddParameterWithValue("@servings", recipe.Servings);
+            command.AddParameterWithValue("@ingredients", recipe.Ingredients);
+            command.AddParameterWithValue("@method", recipe.Method);
+            command.AddParameterWithValue("@suggestions", recipe.Suggestions);
+            command.AddParameterWithValue("@remarks", recipe.Remarks);
+            command.AddParameterWithValue("@source", recipe.Source);
+            command.AddParameterWithValue("@created", recipe.Created);
+            command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
+            command.AddParameterWithValue("@modified", recipe.Modified);
+            command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
+            command.AddParameterWithValue("@revision", recipe.Revision);
 
-                await command.ExecuteNonQueryAsync();
-            }
+            await command.ExecuteNonQueryAsync();
         }
 
         private static async Task InsertRelatedUser(DbConnection connection, long? userId)

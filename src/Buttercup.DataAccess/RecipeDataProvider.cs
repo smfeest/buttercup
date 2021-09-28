@@ -15,56 +15,51 @@ namespace Buttercup.DataAccess
         /// <inheritdoc />
         public async Task<long> AddRecipe(DbConnection connection, Recipe recipe)
         {
-            using (var command = (MySqlCommand)connection.CreateCommand())
-            {
-                command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
-VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
+            using var command = (MySqlCommand)connection.CreateCommand();
 
-                AddInsertUpdateParameters(command, recipe);
-                command.AddParameterWithValue("@created", recipe.Created);
-                command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
+            command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
+                VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
 
-                await command.ExecuteNonQueryAsync();
+            AddInsertUpdateParameters(command, recipe);
+            command.AddParameterWithValue("@created", recipe.Created);
+            command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
 
-                return command.LastInsertedId;
-            }
+            await command.ExecuteNonQueryAsync();
+
+            return command.LastInsertedId;
         }
 
         /// <inheritdoc />
         public async Task DeleteRecipe(DbConnection connection, long id, int revision)
         {
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText =
-                    "DELETE FROM recipe WHERE id = @id AND revision = @revision";
-                command.AddParameterWithValue("@id", id);
-                command.AddParameterWithValue("@revision", revision);
+            using var command = connection.CreateCommand();
 
-                if (await command.ExecuteNonQueryAsync() == 0)
-                {
-                    throw await ConcurrencyOrNotFoundException(connection, id, revision);
-                }
+            command.CommandText = "DELETE FROM recipe WHERE id = @id AND revision = @revision";
+            command.AddParameterWithValue("@id", id);
+            command.AddParameterWithValue("@revision", revision);
+
+            if (await command.ExecuteNonQueryAsync() == 0)
+            {
+                throw await ConcurrencyOrNotFoundException(connection, id, revision);
             }
         }
 
         /// <inheritdoc />
         public async Task<Recipe> GetRecipe(DbConnection connection, long id)
         {
-            using (var command = connection.CreateCommand())
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT * FROM recipe WHERE id = @id";
+            command.AddParameterWithValue("@id", id);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (!await reader.ReadAsync())
             {
-                command.CommandText = "SELECT * FROM recipe WHERE id = @id";
-                command.AddParameterWithValue("@id", id);
-
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    if (!await reader.ReadAsync())
-                    {
-                        throw new NotFoundException($"Recipe {id} not found");
-                    }
-
-                    return ReadRecipe(reader);
-                }
+                throw new NotFoundException($"Recipe {id} not found");
             }
+
+            return ReadRecipe(reader);
         }
 
         /// <inheritdoc />
@@ -90,27 +85,26 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
         /// <inheritdoc />
         public async Task UpdateRecipe(DbConnection connection, Recipe recipe)
         {
-            using (var command = connection.CreateCommand())
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"UPDATE recipe
+                SET title = @title, preparation_minutes = @preparation_minutes,
+                    cooking_minutes = @cooking_minutes, servings = @servings,
+                    ingredients = @ingredients, method = @method, suggestions = @suggestions,
+                    remarks = @remarks, source = @source, modified = @modified,
+                    modified_by_user_id = @modified_by_user_id, revision = revision + 1
+                WHERE id = @id AND revision = @revision";
+
+            AddInsertUpdateParameters(command, recipe);
+            command.AddParameterWithValue("@id", recipe.Id);
+            command.AddParameterWithValue("@modified", recipe.Modified);
+            command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
+            command.AddParameterWithValue("@revision", recipe.Revision);
+
+            if (await command.ExecuteNonQueryAsync() == 0)
             {
-                command.CommandText = @"UPDATE recipe
-                    SET title = @title, preparation_minutes = @preparation_minutes,
-                        cooking_minutes = @cooking_minutes, servings = @servings,
-                        ingredients = @ingredients, method = @method, suggestions = @suggestions,
-                        remarks = @remarks, source = @source, modified = @modified,
-                        modified_by_user_id = @modified_by_user_id, revision = revision + 1
-                    WHERE id = @id AND revision = @revision";
-
-                AddInsertUpdateParameters(command, recipe);
-                command.AddParameterWithValue("@id", recipe.Id);
-                command.AddParameterWithValue("@modified", recipe.Modified);
-                command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
-                command.AddParameterWithValue("@revision", recipe.Revision);
-
-                if (await command.ExecuteNonQueryAsync() == 0)
-                {
-                    throw await ConcurrencyOrNotFoundException(
-                        connection, recipe.Id, recipe.Revision);
-                }
+                throw await ConcurrencyOrNotFoundException(
+                    connection, recipe.Id, recipe.Revision);
             }
         }
 
@@ -130,43 +124,40 @@ VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients,
         private static async Task<Exception> ConcurrencyOrNotFoundException(
             DbConnection connection, long id, int revision)
         {
-            using (var command = connection.CreateCommand())
+            using var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT revision FROM recipe WHERE id = @id";
+            command.AddParameterWithValue("@id", id);
+
+            var currentRevision = await command.ExecuteScalarAsync();
+
+            if (currentRevision == null)
             {
-                command.CommandText = "SELECT revision FROM recipe WHERE id = @id";
-                command.AddParameterWithValue("@id", id);
-
-                var currentRevision = await command.ExecuteScalarAsync();
-
-                if (currentRevision == null)
-                {
-                    return new NotFoundException($"Recipe {id} not found");
-                }
-                else
-                {
-                    return new ConcurrencyException(
-                        $"Revision {revision} does not match current revision {currentRevision}");
-                }
+                return new NotFoundException($"Recipe {id} not found");
+            }
+            else
+            {
+                return new ConcurrencyException(
+                    $"Revision {revision} does not match current revision {currentRevision}");
             }
         }
 
         private static async Task<IList<Recipe>> GetRecipes(DbConnection connection, string query)
         {
-            using (var command = connection.CreateCommand())
+            using var command = connection.CreateCommand();
+
+            command.CommandText = query;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            var recipes = new List<Recipe>();
+
+            while (await reader.ReadAsync())
             {
-                command.CommandText = query;
-
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    var recipes = new List<Recipe>();
-
-                    while (await reader.ReadAsync())
-                    {
-                        recipes.Add(ReadRecipe(reader));
-                    }
-
-                    return recipes;
-                }
+                recipes.Add(ReadRecipe(reader));
             }
+
+            return recipes;
         }
 
         private static Recipe ReadRecipe(DbDataReader reader) =>

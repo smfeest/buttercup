@@ -20,19 +20,18 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task IndexReturnsViewResultWithRecipes()
         {
-            using (var context = new Context())
-            {
-                IList<Recipe> recipes = Array.Empty<Recipe>();
+            using var context = new Context();
 
-                context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipes(context.DbConnection))
-                    .ReturnsAsync(recipes);
+            IList<Recipe> recipes = Array.Empty<Recipe>();
 
-                var result = await context.RecipesController.Index();
-                var viewResult = Assert.IsType<ViewResult>(result);
+            context.MockRecipeDataProvider
+                .Setup(x => x.GetRecipes(context.DbConnection))
+                .ReturnsAsync(recipes);
 
-                Assert.Same(recipes, viewResult.Model);
-            }
+            var result = await context.RecipesController.Index();
+            var viewResult = Assert.IsType<ViewResult>(result);
+
+            Assert.Same(recipes, viewResult.Model);
         }
 
         #endregion
@@ -42,19 +41,18 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ShowReturnsViewResultWithRecipe()
         {
-            using (var context = new Context())
-            {
-                var recipe = new Recipe();
+            using var context = new Context();
 
-                context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipe(context.DbConnection, 3))
-                    .ReturnsAsync(recipe);
+            var recipe = new Recipe();
 
-                var result = await context.RecipesController.Show(3);
-                var viewResult = Assert.IsType<ViewResult>(result);
+            context.MockRecipeDataProvider
+                .Setup(x => x.GetRecipe(context.DbConnection, 3))
+                .ReturnsAsync(recipe);
 
-                Assert.Same(recipe, viewResult.Model);
-            }
+            var result = await context.RecipesController.Show(3);
+            var viewResult = Assert.IsType<ViewResult>(result);
+
+            Assert.Same(recipe, viewResult.Model);
         }
 
         #endregion
@@ -64,11 +62,10 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void NewGetReturnsViewResult()
         {
-            using (var context = new Context())
-            {
-                var result = context.RecipesController.New();
-                var viewResult = Assert.IsType<ViewResult>(result);
-            }
+            using var context = new Context();
+
+            var result = context.RecipesController.New();
+            var viewResult = Assert.IsType<ViewResult>(result);
         }
 
         #endregion
@@ -78,41 +75,39 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task NewPostAddsRecipeAndRedirectsToShowPage()
         {
-            using (var context = new NewEditContext())
-            {
-                context.MockRecipeDataProvider
-                    .Setup(x => x.AddRecipe(context.DbConnection, It.IsAny<Recipe>()))
-                    .Callback((DbConnection connection, Recipe recipe) =>
-                    {
-                        Assert.Equal(context.EditModel.Title, recipe.Title);
-                        Assert.Equal(context.UtcNow, recipe.Created);
-                        Assert.Equal(context.User.Id, recipe.CreatedByUserId);
-                    })
-                    .ReturnsAsync(5)
-                    .Verifiable();
+            using var context = new NewEditContext();
 
-                var result = await context.RecipesController.New(context.EditModel);
+            context.MockRecipeDataProvider
+                .Setup(x => x.AddRecipe(context.DbConnection, It.IsAny<Recipe>()))
+                .Callback((DbConnection connection, Recipe recipe) =>
+                {
+                    Assert.Equal(context.EditModel.Title, recipe.Title);
+                    Assert.Equal(context.UtcNow, recipe.Created);
+                    Assert.Equal(context.User.Id, recipe.CreatedByUserId);
+                })
+                .ReturnsAsync(5)
+                .Verifiable();
 
-                context.MockRecipeDataProvider.Verify();
+            var result = await context.RecipesController.New(context.EditModel);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
-                Assert.Equal(5L, redirectResult.RouteValues["id"]);
-            }
+            context.MockRecipeDataProvider.Verify();
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
+            Assert.Equal(5L, redirectResult.RouteValues["id"]);
         }
 
         [Fact]
         public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
         {
-            using (var context = new NewEditContext())
-            {
-                context.RecipesController.ModelState.AddModelError("test", "test");
+            using var context = new NewEditContext();
 
-                var result = await context.RecipesController.New(context.EditModel);
+            context.RecipesController.ModelState.AddModelError("test", "test");
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.EditModel, viewResult.Model);
-            }
+            var result = await context.RecipesController.New(context.EditModel);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(context.EditModel, viewResult.Model);
         }
 
         #endregion
@@ -122,23 +117,22 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditGetReturnsViewResultWithEditModel()
         {
-            using (var context = new Context())
+            using var context = new Context();
+
+            var recipe = new Recipe
             {
-                var recipe = new Recipe
-                {
-                    Title = "recipe-title",
-                };
+                Title = "recipe-title",
+            };
 
-                context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipe(context.DbConnection, 5))
-                    .ReturnsAsync(recipe);
+            context.MockRecipeDataProvider
+                .Setup(x => x.GetRecipe(context.DbConnection, 5))
+                .ReturnsAsync(recipe);
 
-                var result = await context.RecipesController.Edit(5);
+            var result = await context.RecipesController.Edit(5);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                var editModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
-                Assert.Equal(recipe.Title, editModel.Title);
-            }
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var editModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
+            Assert.Equal(recipe.Title, editModel.Title);
         }
 
         #endregion
@@ -148,42 +142,40 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
         {
-            using (var context = new NewEditContext())
-            {
-                context.MockRecipeDataProvider
-                    .Setup(x => x.UpdateRecipe(context.DbConnection, It.IsAny<Recipe>()))
-                    .Callback((DbConnection connection, Recipe recipe) =>
-                    {
-                        Assert.Equal(3, recipe.Id);
-                        Assert.Equal(context.EditModel.Title, recipe.Title);
-                        Assert.Equal(context.UtcNow, recipe.Modified);
-                        Assert.Equal(context.User.Id, recipe.ModifiedByUserId);
-                    })
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
+            using var context = new NewEditContext();
 
-                var result = await context.RecipesController.Edit(3, context.EditModel);
+            context.MockRecipeDataProvider
+                .Setup(x => x.UpdateRecipe(context.DbConnection, It.IsAny<Recipe>()))
+                .Callback((DbConnection connection, Recipe recipe) =>
+                {
+                    Assert.Equal(3, recipe.Id);
+                    Assert.Equal(context.EditModel.Title, recipe.Title);
+                    Assert.Equal(context.UtcNow, recipe.Modified);
+                    Assert.Equal(context.User.Id, recipe.ModifiedByUserId);
+                })
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
-                context.MockRecipeDataProvider.Verify();
+            var result = await context.RecipesController.Edit(3, context.EditModel);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
-                Assert.Equal(3L, redirectResult.RouteValues["id"]);
-            }
+            context.MockRecipeDataProvider.Verify();
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
+            Assert.Equal(3L, redirectResult.RouteValues["id"]);
         }
 
         [Fact]
         public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
         {
-            using (var context = new NewEditContext())
-            {
-                context.RecipesController.ModelState.AddModelError("test", "test");
+            using var context = new NewEditContext();
 
-                var result = await context.RecipesController.Edit(3, context.EditModel);
+            context.RecipesController.ModelState.AddModelError("test", "test");
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(context.EditModel, viewResult.Model);
-            }
+            var result = await context.RecipesController.Edit(3, context.EditModel);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(context.EditModel, viewResult.Model);
         }
 
         #endregion
@@ -193,19 +185,18 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task DeleteGetReturnsViewResultWithRecipe()
         {
-            using (var context = new Context())
-            {
-                var recipe = new Recipe();
+            using var context = new Context();
 
-                context.MockRecipeDataProvider
-                    .Setup(x => x.GetRecipe(context.DbConnection, 8))
-                    .ReturnsAsync(recipe);
+            var recipe = new Recipe();
 
-                var result = await context.RecipesController.Delete(8);
+            context.MockRecipeDataProvider
+                .Setup(x => x.GetRecipe(context.DbConnection, 8))
+                .ReturnsAsync(recipe);
 
-                var viewResult = Assert.IsType<ViewResult>(result);
-                Assert.Same(recipe, viewResult.Model);
-            }
+            var result = await context.RecipesController.Delete(8);
+
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Same(recipe, viewResult.Model);
         }
 
         #endregion
@@ -215,20 +206,19 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task DeletePostDeletesRecipeAndRedirectsToIndexPage()
         {
-            using (var context = new Context())
-            {
-                context.MockRecipeDataProvider
-                    .Setup(x => x.DeleteRecipe(context.DbConnection, 6, 12))
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
+            using var context = new Context();
 
-                var result = await context.RecipesController.Delete(6, 12);
+            context.MockRecipeDataProvider
+                .Setup(x => x.DeleteRecipe(context.DbConnection, 6, 12))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
-                context.MockRecipeDataProvider.Verify();
+            var result = await context.RecipesController.Delete(6, 12);
 
-                var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-                Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
-            }
+            context.MockRecipeDataProvider.Verify();
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
         }
 
         #endregion

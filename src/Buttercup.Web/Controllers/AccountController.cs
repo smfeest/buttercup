@@ -74,15 +74,14 @@ namespace Buttercup.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Preferences(PreferencesViewModel model)
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
-            {
-                var user = this.HttpContext.GetCurrentUser();
+            using var connection = await this.DbConnectionSource.OpenConnection();
 
-                await this.UserDataProvider.UpdatePreferences(
-                    connection, user.Id, model.TimeZone, this.Clock.UtcNow);
+            var user = this.HttpContext.GetCurrentUser();
 
-                return this.RedirectToAction(nameof(this.Show));
-            }
+            await this.UserDataProvider.UpdatePreferences(
+                connection, user.Id, model.TimeZone, this.Clock.UtcNow);
+
+            return this.RedirectToAction(nameof(this.Show));
         }
     }
 }

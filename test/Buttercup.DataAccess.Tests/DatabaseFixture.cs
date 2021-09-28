@@ -59,15 +59,13 @@ namespace Buttercup.DataAccess
         /// </returns>
         public async Task WithRollback(Func<MySqlConnection, Task> action)
         {
-            using (var connection = new MySqlConnection(this.DatabaseConnectionString))
-            {
-                await connection.OpenAsync();
+            using var connection = new MySqlConnection(this.DatabaseConnectionString);
 
-                using (var transaction = await connection.BeginTransactionAsync())
-                {
-                    await action(connection);
-                }
-            }
+            await connection.OpenAsync();
+
+            using var transaction = await connection.BeginTransactionAsync();
+
+            await action(connection);
         }
 
         private string BuildDatabaseConnectionString() =>
@@ -78,28 +76,25 @@ namespace Buttercup.DataAccess
 
         private async Task RecreateDatabase()
         {
-            using (var connection = new MySqlConnection(this.ConnectionString))
+            using var connection = new MySqlConnection(this.ConnectionString);
+
+            await connection.OpenAsync();
+
+            using var textReader = File.OpenText("schema.sql");
+
+            var scriptReader = new MySqlScriptReader(textReader);
+
+            string commandText;
+
+            while ((commandText = await scriptReader.ReadStatement()) != null)
             {
-                await connection.OpenAsync();
+                using var command = connection.CreateCommand();
 
-                using (var textReader = File.OpenText("schema.sql"))
-                {
-                    var scriptReader = new MySqlScriptReader(textReader);
-
-                    string commandText;
-
-                    while ((commandText = await scriptReader.ReadStatement()) != null)
-                    {
-                        using (var command = connection.CreateCommand())
-                        {
-                            command.CommandText = commandText.Replace(
-                                "{DatabaseName}",
-                                this.DatabaseName,
-                                StringComparison.OrdinalIgnoreCase);
-                            await command.ExecuteNonQueryAsync();
-                        }
-                    }
-                }
+                command.CommandText = commandText.Replace(
+                    "{DatabaseName}",
+                    this.DatabaseName,
+                    StringComparison.OrdinalIgnoreCase);
+                await command.ExecuteNonQueryAsync();
             }
         }
     }

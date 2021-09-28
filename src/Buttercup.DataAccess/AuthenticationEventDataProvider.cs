@@ -18,20 +18,19 @@ namespace Buttercup.DataAccess
             long? userId = null,
             string email = null)
         {
-            using (var command = (MySqlCommand)connection.CreateCommand())
-            {
-                command.CommandText = @"INSERT authentication_event (time, event, user_id, email)
-VALUES (@time, @event, @user_id, @email)";
+            using var command = (MySqlCommand)connection.CreateCommand();
 
-                command.AddParameterWithValue("@time", time);
-                command.AddParameterWithStringValue("@event", eventName);
-                command.AddParameterWithValue("@user_id", userId);
-                command.AddParameterWithStringValue("@email", email);
+            command.CommandText = @"INSERT authentication_event (time, event, user_id, email)
+                VALUES (@time, @event, @user_id, @email)";
 
-                await command.ExecuteNonQueryAsync();
+            command.AddParameterWithValue("@time", time);
+            command.AddParameterWithStringValue("@event", eventName);
+            command.AddParameterWithValue("@user_id", userId);
+            command.AddParameterWithStringValue("@email", email);
 
-                return command.LastInsertedId;
-            }
+            await command.ExecuteNonQueryAsync();
+
+            return command.LastInsertedId;
         }
     }
 }

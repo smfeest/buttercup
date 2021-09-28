@@ -23,16 +23,15 @@ namespace Buttercup.Web.Controllers
         [HttpGet("/")]
         public async Task<IActionResult> Index()
         {
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            var connection = await this.DbConnectionSource.OpenConnection();
+
+            return this.View(new HomePageViewModel
             {
-                return this.View(new HomePageViewModel
-                {
-                    RecentlyAddedRecipes =
-                        await this.RecipeDataProvider.GetRecentlyAddedRecipes(connection),
-                    RecentlyUpdatedRecipes =
-                        await this.RecipeDataProvider.GetRecentlyUpdatedRecipes(connection),
-                });
-            }
+                RecentlyAddedRecipes =
+                    await this.RecipeDataProvider.GetRecentlyAddedRecipes(connection),
+                RecentlyUpdatedRecipes =
+                    await this.RecipeDataProvider.GetRecentlyUpdatedRecipes(connection),
+            });
         }
     }
 }

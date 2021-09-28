@@ -123,19 +123,16 @@ namespace Buttercup.DataAccess
             await new PasswordResetTokenDataProvider().InsertToken(
                 connection, 6, "sample-token", time);
 
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText =
-                    "SELECT * FROM password_reset_token WHERE token = 'sample-token'";
+            using var command = connection.CreateCommand();
 
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    await reader.ReadAsync();
+            command.CommandText = "SELECT * FROM password_reset_token WHERE token = 'sample-token'";
 
-                    Assert.Equal(6, reader.GetInt64("user_id"));
-                    Assert.Equal(time, reader.GetDateTime("created", DateTimeKind.Utc));
-                }
-            }
+            using var reader = await command.ExecuteReaderAsync();
+
+            await reader.ReadAsync();
+
+            Assert.Equal(6, reader.GetInt64("user_id"));
+            Assert.Equal(time, reader.GetDateTime("created", DateTimeKind.Utc));
         });
 
         #endregion
