@@ -19,16 +19,14 @@ namespace Buttercup.Web.Infrastructure
         {
             var actionContext = new ActionContext();
 
-            var mockManifestSource = new Mock<IAssetManifestSource>();
-            mockManifestSource
-                .SetupGet(x => x.ProductionManifest)
-                .Returns(new Dictionary<string, string>
+            var manifestSource = Mock.Of<IAssetManifestSource>(
+                x => x.ProductionManifest == new Dictionary<string, string>
                 {
                     { "gamma/delta.png", "gamma/delta-82fb493637.png" },
                 });
 
-            var mockHostingEnvironment = new Mock<IWebHostEnvironment>();
-            mockHostingEnvironment.SetupGet(x => x.EnvironmentName).Returns(environment);
+            var hostingEnvironment = Mock.Of<IWebHostEnvironment>(
+                x => x.EnvironmentName == environment);
 
             var mockUrlHelper = new Mock<IUrlHelper>();
             mockUrlHelper
@@ -36,15 +34,10 @@ namespace Buttercup.Web.Infrastructure
                 .Returns(
                     (string path) => path.Replace("~", "/alpha/beta", StringComparison.Ordinal));
 
-            var mockUrlHelperFactory = new Mock<IUrlHelperFactory>();
-            mockUrlHelperFactory
-                .Setup(x => x.GetUrlHelper(actionContext))
-                .Returns(mockUrlHelper.Object);
+            var urlHelperFactory = Mock.Of<IUrlHelperFactory>(
+                x => x.GetUrlHelper(actionContext) == mockUrlHelper.Object);
 
-            var assetHelper = new AssetHelper(
-                mockManifestSource.Object,
-                mockHostingEnvironment.Object,
-                mockUrlHelperFactory.Object);
+            var assetHelper = new AssetHelper(manifestSource, hostingEnvironment, urlHelperFactory);
 
             Assert.Equal(expectedContentPath, assetHelper.Url(actionContext, "gamma/delta.png"));
         }

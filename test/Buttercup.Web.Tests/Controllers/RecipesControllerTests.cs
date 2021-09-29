@@ -227,25 +227,21 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.RecipesController = new(
-                    this.MockClock.Object,
-                    this.MockDbConnectionSource.Object,
-                    this.MockRecipeDataProvider.Object);
+                var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
+                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
 
-                this.MockDbConnectionSource
-                    .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.DbConnection);
+                this.RecipesController = new(
+                    clock, dbConnectionSource, this.MockRecipeDataProvider.Object);
             }
 
             public RecipesController RecipesController { get; }
 
             public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
 
-            public Mock<IClock> MockClock { get; } = new();
-
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
-
             public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
+
+            public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
             public void Dispose()
             {
@@ -260,8 +256,6 @@ namespace Buttercup.Web.Controllers
         {
             public NewEditContext()
             {
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
-
                 this.HttpContext.SetCurrentUser(this.User);
 
                 this.RecipesController.ControllerContext = new()
@@ -277,8 +271,6 @@ namespace Buttercup.Web.Controllers
             public RecipeEditModel EditModel { get; } = new() { Title = "recipe-title" };
 
             public User User { get; } = new() { Id = 8 };
-
-            public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         }
     }
 }

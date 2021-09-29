@@ -159,39 +159,29 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.ControllerContext = new()
-                {
-                    HttpContext = this.HttpContext,
-                };
+                var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
+                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
 
                 this.AccountController = new(
-                    this.MockClock.Object,
-                    this.MockDbConnectionSource.Object,
+                    clock,
+                    dbConnectionSource,
                     this.MockUserDataProvider.Object,
                     this.MockAuthenticationManager.Object,
                     this.MockLocalizer.Object)
                 {
-                    ControllerContext = this.ControllerContext,
+                    ControllerContext = new()
+                    {
+                        HttpContext = this.HttpContext,
+                    },
                 };
-
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
-
-                this.MockDbConnectionSource
-                    .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.DbConnection);
             }
 
             public AccountController AccountController { get; }
 
-            public ControllerContext ControllerContext { get; }
-
             public DefaultHttpContext HttpContext { get; } = new();
 
             public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
-
-            public Mock<IClock> MockClock { get; } = new();
-
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
 
             public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 

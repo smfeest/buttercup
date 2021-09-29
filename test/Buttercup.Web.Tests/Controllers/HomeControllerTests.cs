@@ -24,10 +24,10 @@ namespace Buttercup.Web.Controllers
             IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
 
             context.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyAddedRecipes(context.MockConnection.Object))
+                .Setup(x => x.GetRecentlyAddedRecipes(context.DbConnection))
                 .ReturnsAsync(recentlyAddedRecipes);
             context.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyUpdatedRecipes(context.MockConnection.Object))
+                .Setup(x => x.GetRecentlyUpdatedRecipes(context.DbConnection))
                 .ReturnsAsync(recentlyUpdatedRecipes);
 
             var result = await context.HomeController.Index();
@@ -45,19 +45,15 @@ namespace Buttercup.Web.Controllers
         {
             public Context()
             {
-                this.HomeController = new(
-                    this.MockDbConnectionSource.Object, this.MockRecipeDataProvider.Object);
+                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
 
-                this.MockDbConnectionSource
-                    .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.MockConnection.Object);
+                this.HomeController = new(dbConnectionSource, this.MockRecipeDataProvider.Object);
             }
 
             public HomeController HomeController { get; }
 
-            public Mock<DbConnection> MockConnection { get; } = new();
-
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
+            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
 
             public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 

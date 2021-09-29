@@ -131,43 +131,35 @@ namespace Buttercup.DataAccess
         [Fact]
         public async Task ExecuteScalarAsyncReturnsValue()
         {
-            var mockCommand = new Mock<DbCommand>();
+            var command = MockCommandWithScalarResult(54);
 
-            mockCommand
-                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(54);
-
-            Assert.Equal(54, await mockCommand.Object.ExecuteScalarAsync<int>());
-            Assert.Equal(54, await mockCommand.Object.ExecuteScalarAsync<int?>());
+            Assert.Equal(54, await command.ExecuteScalarAsync<int>());
+            Assert.Equal(54, await command.ExecuteScalarAsync<int?>());
         }
 
         [Fact]
         public async Task ExecuteScalarAsyncReturnsDefaultValueWhenColumnContainsNull()
         {
-            var mockCommand = new Mock<DbCommand>();
+            var command = MockCommandWithScalarResult(DBNull.Value);
 
-            mockCommand
-                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(DBNull.Value);
-
-            Assert.Equal(0, await mockCommand.Object.ExecuteScalarAsync<long>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<long?>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<string>());
+            Assert.Equal(0, await command.ExecuteScalarAsync<long>());
+            Assert.Null(await command.ExecuteScalarAsync<long?>());
+            Assert.Null(await command.ExecuteScalarAsync<string>());
         }
 
         [Fact]
         public async Task ExecuteScalarAsyncReturnsDefaultValueWhenResultSetIsEmpty()
         {
-            var mockCommand = new Mock<DbCommand>();
+            var command = MockCommandWithScalarResult(null);
 
-            mockCommand
-                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object)null);
-
-            Assert.Equal(default(DateTime), await mockCommand.Object.ExecuteScalarAsync<DateTime>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<DateTime?>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<string>());
+            Assert.Equal(default(DateTime), await command.ExecuteScalarAsync<DateTime>());
+            Assert.Null(await command.ExecuteScalarAsync<DateTime?>());
+            Assert.Null(await command.ExecuteScalarAsync<string>());
         }
+
+        private static DbCommand MockCommandWithScalarResult(object result) =>
+            Mock.Of<DbCommand>(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()) ==
+                Task.FromResult(result));
 
         #endregion
 

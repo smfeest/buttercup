@@ -15,8 +15,6 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public void ValidatePrincipalDelegatesToAuthenticationManager()
         {
-            var mockAuthenticationManager = new Mock<IAuthenticationManager>();
-
             var scheme = new AuthenticationScheme(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 null,
@@ -24,14 +22,15 @@ namespace Buttercup.Web.Authentication
             var ticket = new AuthenticationTicket(new(), null);
             var context = new CookieValidatePrincipalContext(
                 new DefaultHttpContext(), scheme, new(), ticket);
-            var result = Task.FromResult(new object());
+            var expectedResult = Task.FromResult(new object());
 
-            mockAuthenticationManager.Setup(x => x.ValidatePrincipal(context)).Returns(result);
+            var authenticationManager = Mock.Of<IAuthenticationManager>(
+                x => x.ValidatePrincipal(context) == expectedResult);
 
-            var cookieAuthenticationEventsHandler =
-                new CookieAuthenticationEventsHandler(mockAuthenticationManager.Object);
+            var actualResult = new CookieAuthenticationEventsHandler(authenticationManager)
+                .ValidatePrincipal(context);
 
-            Assert.Equal(result, cookieAuthenticationEventsHandler.ValidatePrincipal(context));
+            Assert.Equal(expectedResult, actualResult);
         }
 
         #endregion

@@ -716,24 +716,22 @@ namespace Buttercup.Web.Authentication
         {
             public Context()
             {
+                var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
+                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
+
                 this.AuthenticationManager = new(
                     this.MockAuthenticationEventDataProvider.Object,
                     this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
-                    this.MockClock.Object,
-                    this.MockDbConnectionSource.Object,
-                    this.MockLogger.Object,
+                    clock,
+                    dbConnectionSource,
+                    Mock.Of<ILogger<AuthenticationManager>>(),
                     this.MockPasswordHasher.Object,
                     this.MockPasswordResetTokenDataProvider.Object,
                     this.MockRandomTokenGenerator.Object,
                     this.MockUrlHelperFactory.Object,
                     this.MockUserDataProvider.Object);
-
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
-
-                this.MockDbConnectionSource
-                    .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.DbConnection);
             }
 
             public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
@@ -745,12 +743,6 @@ namespace Buttercup.Web.Authentication
             public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
 
             public Mock<IAuthenticationService> MockAuthenticationService { get; } = new();
-
-            public Mock<IClock> MockClock { get; } = new();
-
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
-
-            public Mock<ILogger<AuthenticationManager>> MockLogger { get; } = new();
 
             public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
 

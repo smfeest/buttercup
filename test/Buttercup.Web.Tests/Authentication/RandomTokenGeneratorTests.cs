@@ -19,9 +19,7 @@ namespace Buttercup.Web.Authentication
 
             context.RandomTokenGenerator.Generate(n);
 
-            context
-                .MockRandomNumberGeneratorFactory
-                .MockRandomNumberGenerator
+            context.MockRandomNumberGenerator
                 .Verify(x => x.GetBytes(It.Is<byte[]>(bytes => bytes.Length == (3 * n))));
         }
 
@@ -30,8 +28,7 @@ namespace Buttercup.Web.Authentication
         {
             var context = new Context();
 
-            context.MockRandomNumberGeneratorFactory
-                .MockRandomNumberGenerator
+            context.MockRandomNumberGenerator
                 .Setup(x => x.GetBytes(It.IsAny<byte[]>()))
                 .Callback((byte[] bytes) =>
                 {
@@ -56,20 +53,15 @@ namespace Buttercup.Web.Authentication
         {
             public Context()
             {
-                this.RandomTokenGenerator = new(this.MockRandomNumberGeneratorFactory);
+                var randomNumberGeneratorFactory = Mock.Of<IRandomNumberGeneratorFactory>(
+                    x => x.Create() == this.MockRandomNumberGenerator.Object);
+
+                this.RandomTokenGenerator = new(randomNumberGeneratorFactory);
             }
 
             public RandomTokenGenerator RandomTokenGenerator { get; }
 
-            public MockRandomNumberGeneratorFactory MockRandomNumberGeneratorFactory { get; } =
-                new();
-        }
-
-        private class MockRandomNumberGeneratorFactory : IRandomNumberGeneratorFactory
-        {
             public Mock<RandomNumberGenerator> MockRandomNumberGenerator { get; } = new();
-
-            public RandomNumberGenerator Create() => this.MockRandomNumberGenerator.Object;
         }
     }
 }
