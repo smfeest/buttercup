@@ -64,9 +64,10 @@ namespace Buttercup.Email
         {
             public Context(EmailOptions emailOptions = null)
             {
-                this.EmailSender = new(
-                    new FakeSendGridClientAccessor(this.MockSendGridClient.Object),
-                    Options.Create(emailOptions ?? new()));
+                var client = Mock.Of<ISendGridClientAccessor>(
+                    x => x.SendGridClient == this.MockSendGridClient.Object);
+
+                this.EmailSender = new(client, Options.Create(emailOptions ?? new()));
 
                 this.MockSendGridClient
                     .Setup(
@@ -84,14 +85,6 @@ namespace Buttercup.Email
             public Mock<ISendGridClient> MockSendGridClient { get; } = new();
 
             public SendGridMessage SentMessage { get; private set; }
-        }
-
-        private class FakeSendGridClientAccessor : ISendGridClientAccessor
-        {
-            public FakeSendGridClientAccessor(ISendGridClient sendGridClient) =>
-                this.SendGridClient = sendGridClient;
-
-            public ISendGridClient SendGridClient { get; }
         }
     }
 }
