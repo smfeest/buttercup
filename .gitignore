@@ -4,3 +4,4 @@ obj/
 **/assets/scripts
 **/assets/styles
 prod-assets/
+mono_crash.*
