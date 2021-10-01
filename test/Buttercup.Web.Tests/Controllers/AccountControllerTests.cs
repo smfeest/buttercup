@@ -110,10 +110,8 @@ namespace Buttercup.Web.Controllers
         {
             public ChangePasswordPostFixture()
             {
-                this.MockLocalizer
-                    .SetupGet(x => x["Error_WrongPassword"])
-                    .Returns(new LocalizedString(
-                        "Error_WrongPassword", "translated-wrong-password-error"));
+                this.MockLocalizer.SetupLocalizedString(
+                    "Error_WrongPassword", "translated-wrong-password-error");
             }
 
             public ChangePasswordViewModel Model { get; } = new()

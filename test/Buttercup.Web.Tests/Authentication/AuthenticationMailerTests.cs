@@ -16,12 +16,8 @@ namespace Buttercup.Web.Authentication
             var fixture = new AuthenticationMailerFixture();
 
             fixture.MockLocalizer
-                .SetupGet(x => x["Subject_PasswordChangeNotification"])
-                .Returns(new LocalizedString(string.Empty, "translated-subject"));
-
-            fixture.MockLocalizer
-                .SetupGet(x => x["Body_PasswordChangeNotification"])
-                .Returns(new LocalizedString(string.Empty, "translated-body"));
+                .SetupLocalizedString("Subject_PasswordChangeNotification", "translated-subject")
+                .SetupLocalizedString("Body_PasswordChangeNotification", "translated-body");
 
             await fixture.AuthenticationMailer.SendPasswordChangeNotification(
                 "user@example.com");
@@ -40,12 +36,11 @@ namespace Buttercup.Web.Authentication
             var fixture = new AuthenticationMailerFixture();
 
             fixture.MockLocalizer
-                .SetupGet(x => x["Subject_PasswordResetLink"])
-                .Returns(new LocalizedString(string.Empty, "translated-subject"));
-
-            fixture.MockLocalizer
-                .SetupGet(x => x["Body_PasswordResetLink", "https://example.com/reset/password"])
-                .Returns(new LocalizedString(string.Empty, "translated-body"));
+                .SetupLocalizedString("Subject_PasswordResetLink", "translated-subject")
+                .SetupLocalizedString(
+                    "Body_PasswordResetLink",
+                    new[] { "https://example.com/reset/password" },
+                    "translated-body");
 
             await fixture.AuthenticationMailer.SendPasswordResetLink(
                 "user@example.com", "https://example.com/reset/password");

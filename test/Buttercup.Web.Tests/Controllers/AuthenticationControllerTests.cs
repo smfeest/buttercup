@@ -273,10 +273,8 @@ namespace Buttercup.Web.Controllers
         private class SignInPostFixture : AuthenticationControllerFixture
         {
             public SignInPostFixture() =>
-                this.MockLocalizer
-                    .SetupGet(x => x["Error_WrongEmailOrPassword"])
-                    .Returns(new LocalizedString(
-                        "Error_WrongPassword", "translated-wrong-email-or-password-error"));
+                this.MockLocalizer.SetupLocalizedString(
+                    "Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
             public SignInViewModel Model { get; } = new()
             {

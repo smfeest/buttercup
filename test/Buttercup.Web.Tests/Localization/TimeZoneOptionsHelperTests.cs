@@ -93,9 +93,8 @@ namespace Buttercup.Web.Localization
 
             fixture.StubGetTimeZone(offset);
 
-            fixture.MockLocalizer
-                .SetupGet(x => x[expectedFormat, offset])
-                .Returns(new LocalizedString(string.Empty, "localized-offset"));
+            fixture.MockLocalizer.SetupLocalizedString(
+                expectedFormat, new object[] { offset }, "localized-offset");
 
             Assert.Equal("localized-offset", fixture.OptionForTimeZone().FormattedOffset);
         }
@@ -107,9 +106,8 @@ namespace Buttercup.Web.Localization
 
             fixture.StubGetTimeZone();
 
-            fixture.MockLocalizer
-                .SetupGet(x => x[$"City_{fixture.TimeZoneId}"])
-                .Returns(new LocalizedString(string.Empty, "localized-city-name"));
+            fixture.MockLocalizer.SetupLocalizedString(
+                $"City_{fixture.TimeZoneId}", "localized-city-name");
 
             Assert.Equal("localized-city-name", fixture.OptionForTimeZone().City);
         }
@@ -150,9 +148,7 @@ namespace Buttercup.Web.Localization
                 this.timeZones.Add(TimeZoneInfo.CreateCustomTimeZone(
                     timeZoneId, new(offsetHours, 0, 0), string.Empty, string.Empty));
 
-                this.MockLocalizer
-                    .SetupGet(x => x[$"City_{timeZoneId}"])
-                    .Returns(new LocalizedString(string.Empty, city));
+                this.MockLocalizer.SetupLocalizedString($"City_{timeZoneId}", city);
 
                 return this;
             }
