@@ -15,20 +15,20 @@ namespace Buttercup.Web.Authentication
         [InlineData(3)]
         public void GenerateUses3nRandomBytes(int n)
         {
-            var context = new Context();
+            var fixture = new RandomTokenGeneratorFixture();
 
-            context.RandomTokenGenerator.Generate(n);
+            fixture.RandomTokenGenerator.Generate(n);
 
-            context.MockRandomNumberGenerator
+            fixture.MockRandomNumberGenerator
                 .Verify(x => x.GetBytes(It.Is<byte[]>(bytes => bytes.Length == (3 * n))));
         }
 
         [Fact]
         public void GenerateReturnsUrlSafeBase64()
         {
-            var context = new Context();
+            var fixture = new RandomTokenGeneratorFixture();
 
-            context.MockRandomNumberGenerator
+            fixture.MockRandomNumberGenerator
                 .Setup(x => x.GetBytes(It.IsAny<byte[]>()))
                 .Callback((byte[] bytes) =>
                 {
@@ -44,14 +44,14 @@ namespace Buttercup.Web.Authentication
                     Array.Copy(generatedBytes, bytes, 9);
                 });
 
-            Assert.Equal("0aB-1cDe_2Fg", context.RandomTokenGenerator.Generate(3));
+            Assert.Equal("0aB-1cDe_2Fg", fixture.RandomTokenGenerator.Generate(3));
         }
 
         #endregion
 
-        private class Context
+        private class RandomTokenGeneratorFixture
         {
-            public Context()
+            public RandomTokenGeneratorFixture()
             {
                 var randomNumberGeneratorFactory = Mock.Of<IRandomNumberGeneratorFactory>(
                     x => x.Create() == this.MockRandomNumberGenerator.Object);

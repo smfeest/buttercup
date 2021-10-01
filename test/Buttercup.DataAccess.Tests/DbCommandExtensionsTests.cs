@@ -16,11 +16,11 @@ namespace Buttercup.DataAccess
         [Fact]
         public void AddParameterWithValueSetsName()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
 
-            context.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
+            fixture.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
         }
 
         [Theory]
@@ -29,41 +29,41 @@ namespace Buttercup.DataAccess
         [InlineData(339)]
         public void AddParameterWithValueSetsValue(object value)
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", value);
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", value);
 
-            context.MockDbParameter.VerifySet(p => p.Value = value);
+            fixture.MockDbParameter.VerifySet(p => p.Value = value);
         }
 
         [Fact]
         public void AddParameterWithValueConvertsNullValue()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", null);
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", null);
 
-            context.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
+            fixture.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
         }
 
         [Fact]
         public void AddParameterWithValueAddsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
 
-            context.MockDbParameterCollection.Verify(c => c.Add(context.MockDbParameter.Object));
+            fixture.MockDbParameterCollection.Verify(c => c.Add(fixture.MockDbParameter.Object));
         }
 
         [Fact]
         public void AddParameterWithValueReturnsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            var parameter = context.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
+            var parameter = fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
 
-            Assert.Same(context.MockDbParameter.Object, parameter);
+            Assert.Same(fixture.MockDbParameter.Object, parameter);
         }
 
         #endregion
@@ -73,11 +73,11 @@ namespace Buttercup.DataAccess
         [Fact]
         public void AddParameterWithStringValueSetsName()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
 
-            context.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
+            fixture.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
         }
 
         [Theory]
@@ -86,42 +86,42 @@ namespace Buttercup.DataAccess
         [InlineData("\n")]
         public void AddParameterWithStringValueConvertsNullAndWhiteSpaceValues(string value)
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", value);
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", value);
 
-            context.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
+            fixture.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
         }
 
         [Fact]
         public void AddParameterWithStringValueTrimsValue()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "  beta\t  ");
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "  beta\t  ");
 
-            context.MockDbParameter.VerifySet(p => p.Value = "beta");
+            fixture.MockDbParameter.VerifySet(p => p.Value = "beta");
         }
 
         [Fact]
         public void AddParameterWithStringValueAddsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
 
-            context.MockDbParameterCollection.Verify(c => c.Add(context.MockDbParameter.Object));
+            fixture.MockDbParameterCollection.Verify(c => c.Add(fixture.MockDbParameter.Object));
         }
 
         [Fact]
         public void AddParameterWithStringValueReturnsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            var parameter = context.MockDbCommand.Object.AddParameterWithStringValue(
+            var parameter = fixture.MockDbCommand.Object.AddParameterWithStringValue(
                 "@alpha", "beta");
 
-            Assert.Same(context.MockDbParameter.Object, parameter);
+            Assert.Same(fixture.MockDbParameter.Object, parameter);
         }
 
         #endregion
@@ -163,9 +163,9 @@ namespace Buttercup.DataAccess
 
         #endregion
 
-        private class AddParameterContext
+        private class AddParameterFixture
         {
-            public AddParameterContext()
+            public AddParameterFixture()
             {
                 this.MockDbCommand.Protected()
                     .Setup<DbParameter>("CreateDbParameter")

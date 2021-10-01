@@ -18,9 +18,9 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void RequestPasswordResetGetReturnsViewResult()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            var result = context.AuthenticationController.RequestPasswordReset();
+            var result = fixture.AuthenticationController.RequestPasswordReset();
             Assert.IsType<ViewResult>(result);
         }
 
@@ -31,12 +31,12 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task RequestPasswordResetPostReturnsViewResultWhenModelIsInvalid()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.AuthenticationController.ModelState.AddModelError("test", "test");
+            fixture.AuthenticationController.ModelState.AddModelError("test", "test");
 
             var model = new RequestPasswordResetViewModel();
-            var result = await context.AuthenticationController.RequestPasswordReset(model);
+            var result = await fixture.AuthenticationController.RequestPasswordReset(model);
 
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Same(model, viewResult.Model);
@@ -45,23 +45,23 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task RequestPasswordResetPostSendsPasswordResetLink()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
             var model = new RequestPasswordResetViewModel { Email = "sample-user@example.com" };
-            var result = await context.AuthenticationController.RequestPasswordReset(model);
+            var result = await fixture.AuthenticationController.RequestPasswordReset(model);
 
-            context.MockAuthenticationManager.Verify(x => x.SendPasswordResetLink(
-                context.ControllerContext, "sample-user@example.com"));
+            fixture.MockAuthenticationManager.Verify(x => x.SendPasswordResetLink(
+                fixture.ControllerContext, "sample-user@example.com"));
         }
 
         [Fact]
         public async Task RequestPasswordResetPostReturnsViewResult()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
             var model = new RequestPasswordResetViewModel();
 
-            var result = await context.AuthenticationController.RequestPasswordReset(model);
+            var result = await fixture.AuthenticationController.RequestPasswordReset(model);
 
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal("RequestPasswordResetConfirmation", viewResult.ViewName);
@@ -75,13 +75,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordGetReturnsDefaultViewResultWhenTokenIsValid()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.MockAuthenticationManager
+            fixture.MockAuthenticationManager
                 .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
                 .ReturnsAsync(true);
 
-            var result = await context.AuthenticationController.ResetPassword("sample-token");
+            var result = await fixture.AuthenticationController.ResetPassword("sample-token");
 
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Null(viewResult.ViewName);
@@ -90,13 +90,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordGetReturnsInvalidTokenViewResultWhenTokenIsInvalid()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.MockAuthenticationManager
+            fixture.MockAuthenticationManager
                 .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
                 .ReturnsAsync(false);
 
-            var result = await context.AuthenticationController.ResetPassword("sample-token");
+            var result = await fixture.AuthenticationController.ResetPassword("sample-token");
 
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
@@ -109,12 +109,12 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordPostReturnsDefaultViewResultWhenModelIsInvalid()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.AuthenticationController.ModelState.AddModelError("test", "test");
+            fixture.AuthenticationController.ModelState.AddModelError("test", "test");
 
             var viewModel = new ResetPasswordViewModel();
-            var result = await context.AuthenticationController.ResetPassword(
+            var result = await fixture.AuthenticationController.ResetPassword(
                 "sample-token", viewModel);
 
             var viewResult = Assert.IsType<ViewResult>(result);
@@ -124,13 +124,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordPostReturnsInvalidTokenViewResultWhenTokenIsInvalid()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.MockAuthenticationManager
+            fixture.MockAuthenticationManager
                 .Setup(x => x.ResetPassword("sample-token", "sample-password"))
                 .ThrowsAsync(new InvalidTokenException());
 
-            var result = await context.AuthenticationController.ResetPassword(
+            var result = await fixture.AuthenticationController.ResetPassword(
                 "sample-token", new() { Password = "sample-password" });
 
             var viewResult = Assert.IsType<ViewResult>(result);
@@ -140,26 +140,26 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ResetPasswordPostSignsInUser()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
             var user = new User();
 
-            context.MockAuthenticationManager
+            fixture.MockAuthenticationManager
                 .Setup(x => x.ResetPassword("sample-token", "sample-password"))
                 .ReturnsAsync(user);
 
-            await context.AuthenticationController.ResetPassword(
+            await fixture.AuthenticationController.ResetPassword(
                 "sample-token", new() { Password = "sample-password" });
 
-            context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
+            fixture.MockAuthenticationManager.Verify(x => x.SignIn(fixture.HttpContext, user));
         }
 
         [Fact]
         public async Task ResetPasswordPostRedirectsToHomeIndex()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            var result = await context.AuthenticationController.ResetPassword(
+            var result = await fixture.AuthenticationController.ResetPassword(
                 "sample-token", new());
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
@@ -174,9 +174,9 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void SignInGetReturnsViewResult()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            var result = context.AuthenticationController.SignIn();
+            var result = fixture.AuthenticationController.SignIn();
             Assert.IsType<ViewResult>(result);
         }
 
@@ -187,27 +187,27 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostReturnsViewResultWhenModelIsInvalid()
         {
-            using var context = new SignInContext();
+            using var fixture = new SignInPostFixture();
 
-            context.AuthenticationController.ModelState.AddModelError("test", "test");
+            fixture.AuthenticationController.ModelState.AddModelError("test", "test");
 
-            var result = await context.SignInPost();
+            var result = await fixture.SignInPost();
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(context.Model, viewResult.Model);
+            Assert.Same(fixture.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task SignInPostAddsErrorWhenAuthenticationFails()
         {
-            using var context = new SignInContext();
+            using var fixture = new SignInPostFixture();
 
-            context.SetupAuthenticate(null);
+            fixture.SetupAuthenticate(null);
 
-            await context.SignInPost();
+            await fixture.SignInPost();
 
             var error = Assert.Single(
-                context.AuthenticationController.ModelState[string.Empty].Errors);
+                fixture.AuthenticationController.ModelState[string.Empty].Errors);
 
             Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
         }
@@ -215,40 +215,40 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostReturnsViewResultWhenAuthenticationFails()
         {
-            using var context = new SignInContext();
+            using var fixture = new SignInPostFixture();
 
-            context.SetupAuthenticate(null);
+            fixture.SetupAuthenticate(null);
 
-            var result = await context.SignInPost();
+            var result = await fixture.SignInPost();
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(context.Model, viewResult.Model);
+            Assert.Same(fixture.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task SignInSignsInUserWhenSuccessful()
         {
-            using var context = new SignInContext();
+            using var fixture = new SignInPostFixture();
 
             var user = new User();
 
-            context.SetupAuthenticate(user);
+            fixture.SetupAuthenticate(user);
 
-            await context.SignInPost();
+            await fixture.SignInPost();
 
-            context.MockAuthenticationManager.Verify(x => x.SignIn(context.HttpContext, user));
+            fixture.MockAuthenticationManager.Verify(x => x.SignIn(fixture.HttpContext, user));
         }
 
         [Fact]
         public async Task SignInPostRedirectsToInternalUrl()
         {
-            using var context = new SignInContext();
+            using var fixture = new SignInPostFixture();
 
-            context.SetupAuthenticate(new());
+            fixture.SetupAuthenticate(new());
 
-            context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
+            fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
-            var result = await context.SignInPost("/sample/redirect");
+            var result = await fixture.SignInPost("/sample/redirect");
 
             var redirectResult = Assert.IsType<RedirectResult>(result);
             Assert.Equal("/sample/redirect", redirectResult.Url);
@@ -257,13 +257,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignInPostRedirectsDoesNotRedirectToExternalUrl()
         {
-            using var context = new SignInContext();
+            using var fixture = new SignInPostFixture();
 
-            context.SetupAuthenticate(new());
+            fixture.SetupAuthenticate(new());
 
-            context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
+            fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
-            var result = await context.SignInPost("https://evil.com/");
+            var result = await fixture.SignInPost("https://evil.com/");
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Home", redirectResult.ControllerName);
@@ -277,21 +277,21 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void SignOutSignsOutUser()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            var result = context.AuthenticationController.SignOut();
+            var result = fixture.AuthenticationController.SignOut();
 
-            context.MockAuthenticationManager.Verify(x => x.SignOut(context.HttpContext));
+            fixture.MockAuthenticationManager.Verify(x => x.SignOut(fixture.HttpContext));
         }
 
         [Fact]
         public void SignOutSetsCacheControlHeader()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            var result = context.AuthenticationController.SignOut();
+            var result = fixture.AuthenticationController.SignOut();
 
-            var cacheControlHeader = context.HttpContext.Response.GetTypedHeaders().CacheControl;
+            var cacheControlHeader = fixture.HttpContext.Response.GetTypedHeaders().CacheControl;
 
             Assert.True(cacheControlHeader.NoCache);
             Assert.True(cacheControlHeader.NoStore);
@@ -300,11 +300,11 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignOutRedirectsToInternalUrls()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
+            fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
-            var result = await context.AuthenticationController.SignOut("/sample/redirect");
+            var result = await fixture.AuthenticationController.SignOut("/sample/redirect");
 
             var redirectResult = Assert.IsType<RedirectResult>(result);
             Assert.Equal("/sample/redirect", redirectResult.Url);
@@ -313,11 +313,11 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task SignOutDoesNotRedirectToExternalUrls()
         {
-            using var context = new Context();
+            using var fixture = new AuthenticationControllerFixture();
 
-            context.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
+            fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
-            var result = await context.AuthenticationController.SignOut("https://evil.com/");
+            var result = await fixture.AuthenticationController.SignOut("https://evil.com/");
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Home", redirectResult.ControllerName);
@@ -326,9 +326,9 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
-        private class Context : IDisposable
+        private class AuthenticationControllerFixture : IDisposable
         {
-            public Context()
+            public AuthenticationControllerFixture()
             {
                 this.ControllerContext = new()
                 {
@@ -365,9 +365,9 @@ namespace Buttercup.Web.Controllers
             }
         }
 
-        private class SignInContext : Context
+        private class SignInPostFixture : AuthenticationControllerFixture
         {
-            public SignInContext() =>
+            public SignInPostFixture() =>
                 this.MockLocalizer
                     .SetupGet(x => x["Error_WrongEmailOrPassword"])
                     .Returns(new LocalizedString(

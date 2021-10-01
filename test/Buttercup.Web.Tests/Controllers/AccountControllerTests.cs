@@ -20,13 +20,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void ShowReturnsViewResultWithCurrentUser()
         {
-            using var context = new Context();
+            using var fixture = new AccountControllerFixture();
 
             var user = new User();
 
-            context.HttpContext.SetCurrentUser(user);
+            fixture.HttpContext.SetCurrentUser(user);
 
-            var result = context.AccountController.Show();
+            var result = fixture.AccountController.Show();
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Same(user, viewResult.Model);
         }
@@ -38,9 +38,9 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void ChangePasswordGetReturnsViewResult()
         {
-            using var context = new Context();
+            using var fixture = new AccountControllerFixture();
 
-            var result = context.AccountController.ChangePassword();
+            var result = fixture.AccountController.ChangePassword();
             Assert.IsType<ViewResult>(result);
         }
 
@@ -51,26 +51,26 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
         {
-            using var context = new ChangePasswordContext();
+            using var fixture = new ChangePasswordPostFixture();
 
-            context.AccountController.ModelState.AddModelError("test", "test");
+            fixture.AccountController.ModelState.AddModelError("test", "test");
 
-            var result = await context.ChangePasswordPost();
+            var result = await fixture.ChangePasswordPost();
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(context.Model, viewResult.Model);
+            Assert.Same(fixture.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
         {
-            using var context = new ChangePasswordContext();
+            using var fixture = new ChangePasswordPostFixture();
 
-            context.SetupChangePassword(false);
+            fixture.SetupChangePassword(false);
 
-            await context.ChangePasswordPost();
+            await fixture.ChangePasswordPost();
 
-            var errors = context
+            var errors = fixture
                 .AccountController
                 .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]
                 .Errors;
@@ -83,24 +83,24 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
         {
-            using var context = new ChangePasswordContext();
+            using var fixture = new ChangePasswordPostFixture();
 
-            context.SetupChangePassword(false);
+            fixture.SetupChangePassword(false);
 
-            var result = await context.ChangePasswordPost();
+            var result = await fixture.ChangePasswordPost();
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(context.Model, viewResult.Model);
+            Assert.Same(fixture.Model, viewResult.Model);
         }
 
         [Fact]
         public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
         {
-            using var context = new ChangePasswordContext();
+            using var fixture = new ChangePasswordPostFixture();
 
-            context.SetupChangePassword(true);
+            fixture.SetupChangePassword(true);
 
-            var result = await context.ChangePasswordPost();
+            var result = await fixture.ChangePasswordPost();
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
@@ -113,13 +113,13 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void PreferencesGetReturnsViewResultWithViewModel()
         {
-            using var context = new Context();
+            using var fixture = new AccountControllerFixture();
 
             var user = new User { TimeZone = "time-zone" };
 
-            context.HttpContext.SetCurrentUser(user);
+            fixture.HttpContext.SetCurrentUser(user);
 
-            var result = context.AccountController.Preferences();
+            var result = fixture.AccountController.Preferences();
 
             var viewResult = Assert.IsType<ViewResult>(result);
             var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
@@ -133,21 +133,21 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
         {
-            using var context = new Context();
+            using var fixture = new AccountControllerFixture();
 
-            context.HttpContext.SetCurrentUser(new() { Id = 21 });
+            fixture.HttpContext.SetCurrentUser(new() { Id = 21 });
 
             var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
-            context.MockUserDataProvider
+            fixture.MockUserDataProvider
                 .Setup(x => x.UpdatePreferences(
-                    context.DbConnection, 21, viewModel.TimeZone, context.UtcNow))
+                    fixture.DbConnection, 21, viewModel.TimeZone, fixture.UtcNow))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            var result = await context.AccountController.Preferences(viewModel);
+            var result = await fixture.AccountController.Preferences(viewModel);
 
-            context.MockUserDataProvider.Verify();
+            fixture.MockUserDataProvider.Verify();
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
@@ -155,9 +155,9 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
-        private class Context : IDisposable
+        private class AccountControllerFixture : IDisposable
         {
-            public Context()
+            public AccountControllerFixture()
             {
                 var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
                 var dbConnectionSource = Mock.Of<IDbConnectionSource>(
@@ -200,9 +200,9 @@ namespace Buttercup.Web.Controllers
             }
         }
 
-        private class ChangePasswordContext : Context
+        private class ChangePasswordPostFixture : AccountControllerFixture
         {
-            public ChangePasswordContext()
+            public ChangePasswordPostFixture()
             {
                 this.MockLocalizer
                     .SetupGet(x => x["Error_WrongPassword"])

@@ -20,15 +20,15 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task IndexReturnsViewResultWithRecipes()
         {
-            using var context = new Context();
+            using var fixture = new RecipesControllerFixture();
 
             IList<Recipe> recipes = Array.Empty<Recipe>();
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.GetRecipes(context.DbConnection))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.GetRecipes(fixture.DbConnection))
                 .ReturnsAsync(recipes);
 
-            var result = await context.RecipesController.Index();
+            var result = await fixture.RecipesController.Index();
             var viewResult = Assert.IsType<ViewResult>(result);
 
             Assert.Same(recipes, viewResult.Model);
@@ -41,15 +41,15 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task ShowReturnsViewResultWithRecipe()
         {
-            using var context = new Context();
+            using var fixture = new RecipesControllerFixture();
 
             var recipe = new Recipe();
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.GetRecipe(context.DbConnection, 3))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.GetRecipe(fixture.DbConnection, 3))
                 .ReturnsAsync(recipe);
 
-            var result = await context.RecipesController.Show(3);
+            var result = await fixture.RecipesController.Show(3);
             var viewResult = Assert.IsType<ViewResult>(result);
 
             Assert.Same(recipe, viewResult.Model);
@@ -62,9 +62,9 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public void NewGetReturnsViewResult()
         {
-            using var context = new Context();
+            using var fixture = new RecipesControllerFixture();
 
-            var result = context.RecipesController.New();
+            var result = fixture.RecipesController.New();
             var viewResult = Assert.IsType<ViewResult>(result);
         }
 
@@ -75,22 +75,22 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task NewPostAddsRecipeAndRedirectsToShowPage()
         {
-            using var context = new NewEditContext();
+            using var fixture = new NewEditPostFixture();
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.AddRecipe(context.DbConnection, It.IsAny<Recipe>()))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.AddRecipe(fixture.DbConnection, It.IsAny<Recipe>()))
                 .Callback((DbConnection connection, Recipe recipe) =>
                 {
-                    Assert.Equal(context.EditModel.Title, recipe.Title);
-                    Assert.Equal(context.UtcNow, recipe.Created);
-                    Assert.Equal(context.User.Id, recipe.CreatedByUserId);
+                    Assert.Equal(fixture.EditModel.Title, recipe.Title);
+                    Assert.Equal(fixture.UtcNow, recipe.Created);
+                    Assert.Equal(fixture.User.Id, recipe.CreatedByUserId);
                 })
                 .ReturnsAsync(5)
                 .Verifiable();
 
-            var result = await context.RecipesController.New(context.EditModel);
+            var result = await fixture.RecipesController.New(fixture.EditModel);
 
-            context.MockRecipeDataProvider.Verify();
+            fixture.MockRecipeDataProvider.Verify();
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -100,14 +100,14 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
         {
-            using var context = new NewEditContext();
+            using var fixture = new NewEditPostFixture();
 
-            context.RecipesController.ModelState.AddModelError("test", "test");
+            fixture.RecipesController.ModelState.AddModelError("test", "test");
 
-            var result = await context.RecipesController.New(context.EditModel);
+            var result = await fixture.RecipesController.New(fixture.EditModel);
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(context.EditModel, viewResult.Model);
+            Assert.Same(fixture.EditModel, viewResult.Model);
         }
 
         #endregion
@@ -117,18 +117,18 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditGetReturnsViewResultWithEditModel()
         {
-            using var context = new Context();
+            using var fixture = new RecipesControllerFixture();
 
             var recipe = new Recipe
             {
                 Title = "recipe-title",
             };
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.GetRecipe(context.DbConnection, 5))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.GetRecipe(fixture.DbConnection, 5))
                 .ReturnsAsync(recipe);
 
-            var result = await context.RecipesController.Edit(5);
+            var result = await fixture.RecipesController.Edit(5);
 
             var viewResult = Assert.IsType<ViewResult>(result);
             var editModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
@@ -142,23 +142,23 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
         {
-            using var context = new NewEditContext();
+            using var fixture = new NewEditPostFixture();
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.UpdateRecipe(context.DbConnection, It.IsAny<Recipe>()))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.UpdateRecipe(fixture.DbConnection, It.IsAny<Recipe>()))
                 .Callback((DbConnection connection, Recipe recipe) =>
                 {
                     Assert.Equal(3, recipe.Id);
-                    Assert.Equal(context.EditModel.Title, recipe.Title);
-                    Assert.Equal(context.UtcNow, recipe.Modified);
-                    Assert.Equal(context.User.Id, recipe.ModifiedByUserId);
+                    Assert.Equal(fixture.EditModel.Title, recipe.Title);
+                    Assert.Equal(fixture.UtcNow, recipe.Modified);
+                    Assert.Equal(fixture.User.Id, recipe.ModifiedByUserId);
                 })
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            var result = await context.RecipesController.Edit(3, context.EditModel);
+            var result = await fixture.RecipesController.Edit(3, fixture.EditModel);
 
-            context.MockRecipeDataProvider.Verify();
+            fixture.MockRecipeDataProvider.Verify();
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -168,14 +168,14 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
         {
-            using var context = new NewEditContext();
+            using var fixture = new NewEditPostFixture();
 
-            context.RecipesController.ModelState.AddModelError("test", "test");
+            fixture.RecipesController.ModelState.AddModelError("test", "test");
 
-            var result = await context.RecipesController.Edit(3, context.EditModel);
+            var result = await fixture.RecipesController.Edit(3, fixture.EditModel);
 
             var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(context.EditModel, viewResult.Model);
+            Assert.Same(fixture.EditModel, viewResult.Model);
         }
 
         #endregion
@@ -185,15 +185,15 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task DeleteGetReturnsViewResultWithRecipe()
         {
-            using var context = new Context();
+            using var fixture = new RecipesControllerFixture();
 
             var recipe = new Recipe();
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.GetRecipe(context.DbConnection, 8))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.GetRecipe(fixture.DbConnection, 8))
                 .ReturnsAsync(recipe);
 
-            var result = await context.RecipesController.Delete(8);
+            var result = await fixture.RecipesController.Delete(8);
 
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Same(recipe, viewResult.Model);
@@ -206,16 +206,16 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task DeletePostDeletesRecipeAndRedirectsToIndexPage()
         {
-            using var context = new Context();
+            using var fixture = new RecipesControllerFixture();
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.DeleteRecipe(context.DbConnection, 6, 12))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.DeleteRecipe(fixture.DbConnection, 6, 12))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            var result = await context.RecipesController.Delete(6, 12);
+            var result = await fixture.RecipesController.Delete(6, 12);
 
-            context.MockRecipeDataProvider.Verify();
+            fixture.MockRecipeDataProvider.Verify();
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
@@ -223,9 +223,9 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
-        private class Context : IDisposable
+        private class RecipesControllerFixture : IDisposable
         {
-            public Context()
+            public RecipesControllerFixture()
             {
                 var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
                 var dbConnectionSource = Mock.Of<IDbConnectionSource>(
@@ -252,9 +252,9 @@ namespace Buttercup.Web.Controllers
             }
         }
 
-        private class NewEditContext : Context
+        private class NewEditPostFixture : RecipesControllerFixture
         {
-            public NewEditContext()
+            public NewEditPostFixture()
             {
                 this.HttpContext.SetCurrentUser(this.User);
 

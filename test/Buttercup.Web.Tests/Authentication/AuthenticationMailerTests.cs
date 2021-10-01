@@ -13,20 +13,20 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordChangeNotificationSendsEmail()
         {
-            var context = new Context();
+            var fixture = new AuthenticationMailerFixture();
 
-            context.MockLocalizer
+            fixture.MockLocalizer
                 .SetupGet(x => x["Subject_PasswordChangeNotification"])
                 .Returns(new LocalizedString(string.Empty, "translated-subject"));
 
-            context.MockLocalizer
+            fixture.MockLocalizer
                 .SetupGet(x => x["Body_PasswordChangeNotification"])
                 .Returns(new LocalizedString(string.Empty, "translated-body"));
 
-            await context.AuthenticationMailer.SendPasswordChangeNotification(
+            await fixture.AuthenticationMailer.SendPasswordChangeNotification(
                 "user@example.com");
 
-            context.MockEmailSender.Verify(x => x.Send(
+            fixture.MockEmailSender.Verify(x => x.Send(
                 "user@example.com", "translated-subject", "translated-body"));
         }
 
@@ -37,28 +37,28 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordResetLinkSendsEmail()
         {
-            var context = new Context();
+            var fixture = new AuthenticationMailerFixture();
 
-            context.MockLocalizer
+            fixture.MockLocalizer
                 .SetupGet(x => x["Subject_PasswordResetLink"])
                 .Returns(new LocalizedString(string.Empty, "translated-subject"));
 
-            context.MockLocalizer
+            fixture.MockLocalizer
                 .SetupGet(x => x["Body_PasswordResetLink", "https://example.com/reset/password"])
                 .Returns(new LocalizedString(string.Empty, "translated-body"));
 
-            await context.AuthenticationMailer.SendPasswordResetLink(
+            await fixture.AuthenticationMailer.SendPasswordResetLink(
                 "user@example.com", "https://example.com/reset/password");
 
-            context.MockEmailSender.Verify(x => x.Send(
+            fixture.MockEmailSender.Verify(x => x.Send(
                 "user@example.com", "translated-subject", "translated-body"));
         }
 
         #endregion
 
-        private class Context
+        private class AuthenticationMailerFixture
         {
-            public Context()
+            public AuthenticationMailerFixture()
             {
                 this.AuthenticationMailer = new(
                     this.MockEmailSender.Object,

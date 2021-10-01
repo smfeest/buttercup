@@ -18,19 +18,19 @@ namespace Buttercup.Web.Controllers
         [Fact]
         public async Task IndexReturnsViewResultWithRecentlyAddedRecipes()
         {
-            using var context = new Context();
+            using var fixture = new HomeControllerFixture();
 
             IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
             IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
 
-            context.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyAddedRecipes(context.DbConnection))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.GetRecentlyAddedRecipes(fixture.DbConnection))
                 .ReturnsAsync(recentlyAddedRecipes);
-            context.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyUpdatedRecipes(context.DbConnection))
+            fixture.MockRecipeDataProvider
+                .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.DbConnection))
                 .ReturnsAsync(recentlyUpdatedRecipes);
 
-            var result = await context.HomeController.Index();
+            var result = await fixture.HomeController.Index();
 
             var viewResult = Assert.IsType<ViewResult>(result);
             var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
@@ -41,9 +41,9 @@ namespace Buttercup.Web.Controllers
 
         #endregion
 
-        private class Context : IDisposable
+        private class HomeControllerFixture : IDisposable
         {
-            public Context()
+            public HomeControllerFixture()
             {
                 var dbConnectionSource = Mock.Of<IDbConnectionSource>(
                     x => x.OpenConnection() == Task.FromResult(this.DbConnection));

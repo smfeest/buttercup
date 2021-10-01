@@ -16,31 +16,31 @@ namespace Buttercup.Web.Infrastructure
         [Fact]
         public void ProductionManifestReturnsManifestAsReadOnlyDictionary()
         {
-            var context = new Context();
+            var fixture = new AssetManifestSourceFixture();
 
-            var actual = context.ManifestSource.ProductionManifest;
+            var actual = fixture.ManifestSource.ProductionManifest;
 
             Assert.True(actual.IsReadOnly);
-            Assert.Equal(context.ExpectedManifest, actual);
+            Assert.Equal(fixture.ExpectedManifest, actual);
         }
 
         [Fact]
         public void ProductionManifestCachesResult()
         {
-            var context = new Context();
+            var fixture = new AssetManifestSourceFixture();
 
             Assert.Same(
-                context.ManifestSource.ProductionManifest,
-                context.ManifestSource.ProductionManifest);
-            context.MockManifestReader.Verify(
+                fixture.ManifestSource.ProductionManifest,
+                fixture.ManifestSource.ProductionManifest);
+            fixture.MockManifestReader.Verify(
                 x => x.ReadManifest(It.IsAny<Stream>()), Times.Once());
         }
 
         #endregion
 
-        private class Context
+        private class AssetManifestSourceFixture
         {
-            public Context()
+            public AssetManifestSourceFixture()
             {
                 var path = Path.Combine("prod-assets", "manifest.json");
 
