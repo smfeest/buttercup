@@ -375,8 +375,6 @@ namespace Buttercup.Web.Authentication
 
             public string NewPassword { get; } = "new-password";
 
-            public string HashedNewPassword { get; private set; }
-
             public string SecurityStamp { get; } = "sample-security-stamp";
 
             public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>

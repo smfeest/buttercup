@@ -264,8 +264,6 @@ namespace Buttercup.Web.Controllers
                 };
             }
 
-            public ControllerContext ControllerContext { get; }
-
             public DefaultHttpContext HttpContext { get; } = new();
 
             public RecipeEditModel EditModel { get; } = new() { Title = "recipe-title" };
