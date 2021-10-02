@@ -14,48 +14,38 @@ namespace Buttercup.Web.Filters
 {
     public class EnsureSignedOutAttributeTests
     {
+        private const string RequestPath = "/path/to/action";
+
         #region OnActionExecuting
 
         [Fact]
         public void OnActionExecutingDoesNotRedirectIfUnauthenticated()
         {
-            var context = new Context();
+            var actionExecutingContext = CallOnActionExecuting(null);
 
-            context.Execute();
-
-            Assert.Null(context.ActionExecutingContext.Result);
+            Assert.Null(actionExecutingContext.Result);
         }
 
         [Fact]
         public void OnActionExecutingRedirectsToSignOutIfAuthenticated()
         {
-            var context = new Context();
-
-            context.HttpContext.Features.Set<IHttpRequestFeature>(new HttpRequestFeature
-            {
-                Path = "/path/to/action",
-            });
-            context.HttpContext.User = new ClaimsPrincipal(
-                new ClaimsIdentity(Array.Empty<Claim>(), "sample-authentication-type"));
-
-            context.Execute();
+            var actionExecutingContext = CallOnActionExecuting("authentication-type");
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(
-                context.ActionExecutingContext.Result);
+                actionExecutingContext.Result);
+
             Assert.Equal("Authentication", redirectResult.ControllerName);
             Assert.Equal(nameof(AuthenticationController.SignOut), redirectResult.ActionName);
-            Assert.Equal(
-                new PathString("/path/to/action"), redirectResult.RouteValues["returnUrl"]);
+            Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues["returnUrl"]);
         }
 
         [Fact]
         public void OnActionExecutingSetsCacheControlHeader()
         {
-            var context = new Context();
+            var actionExecutingContext = CallOnActionExecuting(null);
 
-            context.Execute();
-
-            var cacheControlHeader = context.HttpContext.Response.GetTypedHeaders().CacheControl;
+            var cacheControlHeader =
+                actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl;
 
             Assert.True(cacheControlHeader.NoCache);
             Assert.True(cacheControlHeader.NoStore);
@@ -63,25 +53,25 @@ namespace Buttercup.Web.Filters
 
         #endregion
 
-        private class Context
+        private static ActionExecutingContext CallOnActionExecuting(string authenticationType)
         {
-            public Context()
-            {
-                this.ActionExecutingContext = new(
-                    new(this.HttpContext, new(), new()),
-                    Array.Empty<IFilterMetadata>(),
-                    new Dictionary<string, object>(),
-                    null);
-            }
+            var user = new ClaimsPrincipal(
+                new ClaimsIdentity(Array.Empty<Claim>(), authenticationType));
 
-            public EnsureSignedOutAttribute EnsureSignedOutAttribute { get; } = new();
+            var httpContext = new DefaultHttpContext { User = user };
 
-            public ActionExecutingContext ActionExecutingContext { get; }
+            httpContext.Features.Set<IHttpRequestFeature>(
+                new HttpRequestFeature { Path = RequestPath });
 
-            public DefaultHttpContext HttpContext { get; } = new();
+            var actionExecutingContext = new ActionExecutingContext(
+                new(httpContext, new(), new()),
+                Array.Empty<IFilterMetadata>(),
+                new Dictionary<string, object>(),
+                new());
 
-            public void Execute() =>
-                this.EnsureSignedOutAttribute.OnActionExecuting(this.ActionExecutingContext);
+            new EnsureSignedOutAttribute().OnActionExecuting(actionExecutingContext);
+
+            return actionExecutingContext;
         }
     }
 }
