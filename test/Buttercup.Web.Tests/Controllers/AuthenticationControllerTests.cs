@@ -270,6 +270,31 @@ namespace Buttercup.Web.Controllers
             Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
         }
 
+        private class SignInPostFixture : AuthenticationControllerFixture
+        {
+            public SignInPostFixture() =>
+                this.MockLocalizer
+                    .SetupGet(x => x["Error_WrongEmailOrPassword"])
+                    .Returns(new LocalizedString(
+                        "Error_WrongPassword", "translated-wrong-email-or-password-error"));
+
+            public SignInViewModel Model { get; } = new()
+            {
+                Email = "sample@example.com",
+                Password = "sample-password",
+            };
+
+            public void SetupAuthenticate(User user)
+            {
+                this.MockAuthenticationManager
+                    .Setup(x => x.Authenticate("sample@example.com", "sample-password"))
+                    .ReturnsAsync(user);
+            }
+
+            public Task<IActionResult> SignInPost(string returnUrl = null) =>
+                this.AuthenticationController.SignIn(this.Model, returnUrl);
+        }
+
         #endregion
 
         #region SignOut
@@ -363,31 +388,6 @@ namespace Buttercup.Web.Controllers
                     this.AuthenticationController.Dispose();
                 }
             }
-        }
-
-        private class SignInPostFixture : AuthenticationControllerFixture
-        {
-            public SignInPostFixture() =>
-                this.MockLocalizer
-                    .SetupGet(x => x["Error_WrongEmailOrPassword"])
-                    .Returns(new LocalizedString(
-                        "Error_WrongPassword", "translated-wrong-email-or-password-error"));
-
-            public SignInViewModel Model { get; } = new()
-            {
-                Email = "sample@example.com",
-                Password = "sample-password",
-            };
-
-            public void SetupAuthenticate(User user)
-            {
-                this.MockAuthenticationManager
-                    .Setup(x => x.Authenticate("sample@example.com", "sample-password"))
-                    .ReturnsAsync(user);
-            }
-
-            public Task<IActionResult> SignInPost(string returnUrl = null) =>
-                this.AuthenticationController.SignIn(this.Model, returnUrl);
         }
     }
 }

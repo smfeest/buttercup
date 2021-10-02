@@ -116,6 +116,59 @@ namespace Buttercup.Web.Authentication
             Assert.Null(await fixture.Authenticate());
         }
 
+        private class AuthenticateFixture : AuthenticationManagerFixture
+        {
+            public AuthenticateFixture() =>
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
+                    .ReturnsAsync(() => this.User);
+
+            public string Email { get; } = "sample@example.com";
+
+            public User User { get; private set; }
+
+            public long UserId { get; private set; }
+
+            public void SetupEmailNotFound() => this.User = null;
+
+            public void SetupUserHasNoPassword() => this.User = new()
+            {
+                Id = this.UserId = 29,
+                HashedPassword = null,
+            };
+
+            public void SetupPasswordIncorrect()
+            {
+                this.User = new()
+                {
+                    Id = this.UserId = 45,
+                    HashedPassword = "sample-hashed-password",
+                };
+
+                this.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        this.User, "sample-hashed-password", "sample-password"))
+                    .Returns(PasswordVerificationResult.Failed);
+            }
+
+            public void SetupSuccess()
+            {
+                this.User = new()
+                {
+                    Id = this.UserId = 52,
+                    HashedPassword = "sample-hashed-password",
+                };
+
+                this.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        this.User, "sample-hashed-password", "sample-password"))
+                    .Returns(PasswordVerificationResult.Success);
+            }
+
+            public Task<User> Authenticate() =>
+                this.AuthenticationManager.Authenticate("sample@example.com", "sample-password");
+        }
+
         #endregion
 
         #region ChangePassword
@@ -290,6 +343,52 @@ namespace Buttercup.Web.Authentication
             Assert.True(await fixture.ChangePassword());
         }
 
+        private class ChangePasswordFixture : AuthenticationManagerFixture
+        {
+            public ChangePasswordFixture()
+            {
+                this.User = new()
+                {
+                    Id = this.UserId,
+                    Email = this.Email,
+                    HashedPassword = this.HashedCurrentPassword,
+                };
+
+                this.HttpContext.SetCurrentUser(this.User);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(2))
+                    .Returns(this.SecurityStamp);
+            }
+
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public User User { get; }
+
+            public long UserId { get; } = 43;
+
+            public string Email { get; } = "sample@example.com";
+
+            public string CurrentPassword { get; } = "current-password";
+
+            public string HashedCurrentPassword { get; } = "hashed-current-password";
+
+            public string NewPassword { get; } = "new-password";
+
+            public string HashedNewPassword { get; private set; }
+
+            public string SecurityStamp { get; } = "sample-security-stamp";
+
+            public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>
+                this.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        this.User, this.HashedCurrentPassword, this.CurrentPassword))
+                    .Returns(result);
+
+            public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
+                this.HttpContext, this.CurrentPassword, this.NewPassword);
+        }
+
         #endregion
 
         #region PasswordResetTokenIsValid
@@ -356,6 +455,18 @@ namespace Buttercup.Web.Authentication
             await fixture.PasswordResetTokenIsValid();
 
             Assert.False(await fixture.PasswordResetTokenIsValid());
+        }
+
+        private class PasswordResetTokenIsValidFixture : AuthenticationManagerFixture
+        {
+            public string Token { get; } = "sample-token";
+
+            public void SetupValidToken() => this.SetupGetUserIdForToken(this.Token, 43);
+
+            public void SetupInvalidToken() => this.SetupGetUserIdForToken(this.Token, null);
+
+            public Task<bool> PasswordResetTokenIsValid() =>
+                this.AuthenticationManager.PasswordResetTokenIsValid(this.Token);
         }
 
         #endregion
@@ -478,6 +589,34 @@ namespace Buttercup.Web.Authentication
             Assert.Equal(fixture.User, actual);
         }
 
+        private class ResetPasswordFixture : AuthenticationManagerFixture
+        {
+            public string Token { get; } = "sample-token";
+
+            public string NewPassword { get; } = "sample-password";
+
+            public long? UserId { get; private set; }
+
+            public User User { get; private set; }
+
+            public string Email { get; private set; }
+
+            public void SetupInvalidToken() =>
+                this.SetupGetUserIdForToken(this.Token, this.UserId = null);
+
+            public void SetupSuccess()
+            {
+                this.UserId = 23;
+                this.User = new() { Email = this.Email = "user@example.com" };
+
+                this.SetupGetUserIdForToken(this.Token, this.UserId);
+                this.SetupGetUser(this.UserId.Value, this.User);
+            }
+
+            public Task<User> ResetPassword() =>
+                this.AuthenticationManager.ResetPassword(this.Token, this.NewPassword);
+        }
+
         #endregion
 
         #region SendPasswordResetLink
@@ -547,6 +686,57 @@ namespace Buttercup.Web.Authentication
                 "password_reset_failure:unrecognized_email", null, fixture.Email);
         }
 
+        private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
+        {
+            public SendPasswordResetLinkFixture() =>
+                this.MockUrlHelperFactory
+                    .Setup(x => x.GetUrlHelper(this.ActionContext))
+                    .Returns(this.MockUrlHelper.Object);
+
+            public Mock<IUrlHelper> MockUrlHelper { get; } = new();
+
+            public ActionContext ActionContext { get; } = new();
+
+            public string Email { get; } = "sample@example.com";
+
+            public User User { get; private set; }
+
+            public long UserId { get; private set; }
+
+            public string Token { get; private set; }
+
+            public string Link { get; private set; }
+
+            public void SetupSuccess()
+            {
+                this.User = new() { Id = this.UserId = 31, Email = "sample-x@example.com" };
+
+                this.SetupFindUserByEmail(this.Email, this.User);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(12))
+                    .Returns(this.Token = "sample-token");
+
+                this.MockUrlHelper
+                    .Setup(x => x.Link(
+                        "ResetPassword",
+                        It.Is<object>(
+                            o => this.Token.Equals(new RouteValueDictionary(o)["token"]))))
+                    .Returns(this.Link = "https://example.com/reset-password/sample-token");
+            }
+
+            public void SetupUnrecognizedEmail() =>
+                this.SetupFindUserByEmail(this.Email, this.User = null);
+
+            public Task SendPasswordResetLink() =>
+                this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
+
+            private void SetupFindUserByEmail(string email, User user) =>
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, email))
+                    .ReturnsAsync(user);
+        }
+
         #endregion
 
         #region SignIn
@@ -605,6 +795,28 @@ namespace Buttercup.Web.Authentication
             fixture.VerifyEventLogged("sign_in", fixture.UserId);
         }
 
+        private class SignInFixture : AuthenticationManagerFixture
+        {
+            public SignInFixture() => this.User = new()
+            {
+                Id = this.UserId,
+                Email = this.Email,
+                SecurityStamp = this.SecurityStamp,
+            };
+
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public User User { get; }
+
+            public long UserId { get; } = 6;
+
+            public string Email { get; } = "sample@example.com";
+
+            public string SecurityStamp { get; } = "sample-security-stamp";
+
+            public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
+        }
+
         #endregion
 
         #region SignOut
@@ -642,6 +854,29 @@ namespace Buttercup.Web.Authentication
             fixture.MockAuthenticationEventDataProvider.Verify(
                 x => x.LogEvent(fixture.DbConnection, fixture.UtcNow, "sign_out", null, null),
                 Times.Never);
+        }
+
+        private class SignOutFixture : AuthenticationManagerFixture
+        {
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public long? UserId { get; private set; }
+
+            public void SetupUserSignedIn()
+            {
+                this.UserId = 76;
+
+                var claim = new Claim(
+                    ClaimTypes.NameIdentifier,
+                    this.UserId.Value.ToString(CultureInfo.InvariantCulture));
+
+                var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                   new[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
+
+                this.HttpContext.User = principal;
+            }
+
+            public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
         }
 
         #endregion
@@ -710,6 +945,52 @@ namespace Buttercup.Web.Authentication
                     fixture.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
         }
 
+        private class ValidatePrincipalFixture : AuthenticationManagerFixture
+        {
+            public CookieValidatePrincipalContext CookieContext { get; private set; }
+
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public ClaimsPrincipal Principal { get; private set; }
+
+            public User User { get; private set; }
+
+            public void SetupUnauthenticated() => this.SetupCookieContext();
+
+            public void SetupCorrectStamp() =>
+                this.SetupAuthenticated("sample-security-stamp", "sample-security-stamp");
+
+            public void SetupIncorrectStamp() =>
+                this.SetupAuthenticated("principal-security-stamp", "user-security-stamp");
+
+            public Task ValidatePrincipal() =>
+                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
+
+            private void SetupCookieContext(params Claim[] claims)
+            {
+                this.Principal = new(new ClaimsIdentity(claims));
+
+                var scheme = new AuthenticationScheme(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null,
+                    typeof(CookieAuthenticationHandler));
+                var ticket = new AuthenticationTicket(this.Principal, null);
+
+                this.CookieContext = new(this.HttpContext, scheme, new(), ticket);
+            }
+
+            private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
+            {
+                this.SetupCookieContext(
+                    new(ClaimTypes.NameIdentifier, "34"),
+                    new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
+
+                this.User = new() { SecurityStamp = userSecurityStamp };
+
+                this.SetupGetUser(34, this.User);
+            }
+        }
+
         #endregion
 
         private class AuthenticationManagerFixture
@@ -770,287 +1051,6 @@ namespace Buttercup.Web.Authentication
                 string eventName, long? userId = null, string email = null) =>
                 this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
                     this.DbConnection, this.UtcNow, eventName, userId, email));
-        }
-
-        private class AuthenticateFixture : AuthenticationManagerFixture
-        {
-            public AuthenticateFixture() =>
-                this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
-                    .ReturnsAsync(() => this.User);
-
-            public string Email { get; } = "sample@example.com";
-
-            public User User { get; private set; }
-
-            public long UserId { get; private set; }
-
-            public void SetupEmailNotFound() => this.User = null;
-
-            public void SetupUserHasNoPassword() => this.User = new()
-            {
-                Id = this.UserId = 29,
-                HashedPassword = null,
-            };
-
-            public void SetupPasswordIncorrect()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId = 45,
-                    HashedPassword = "sample-hashed-password",
-                };
-
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, "sample-hashed-password", "sample-password"))
-                    .Returns(PasswordVerificationResult.Failed);
-            }
-
-            public void SetupSuccess()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId = 52,
-                    HashedPassword = "sample-hashed-password",
-                };
-
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, "sample-hashed-password", "sample-password"))
-                    .Returns(PasswordVerificationResult.Success);
-            }
-
-            public Task<User> Authenticate() =>
-                this.AuthenticationManager.Authenticate("sample@example.com", "sample-password");
-        }
-
-        private class ChangePasswordFixture : AuthenticationManagerFixture
-        {
-            public ChangePasswordFixture()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId,
-                    Email = this.Email,
-                    HashedPassword = this.HashedCurrentPassword,
-                };
-
-                this.HttpContext.SetCurrentUser(this.User);
-
-                this.MockRandomTokenGenerator
-                    .Setup(x => x.Generate(2))
-                    .Returns(this.SecurityStamp);
-            }
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public User User { get; }
-
-            public long UserId { get; } = 43;
-
-            public string Email { get; } = "sample@example.com";
-
-            public string CurrentPassword { get; } = "current-password";
-
-            public string HashedCurrentPassword { get; } = "hashed-current-password";
-
-            public string NewPassword { get; } = "new-password";
-
-            public string HashedNewPassword { get; private set; }
-
-            public string SecurityStamp { get; } = "sample-security-stamp";
-
-            public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, this.HashedCurrentPassword, this.CurrentPassword))
-                    .Returns(result);
-
-            public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
-                this.HttpContext, this.CurrentPassword, this.NewPassword);
-        }
-
-        private class PasswordResetTokenIsValidFixture : AuthenticationManagerFixture
-        {
-            public string Token { get; } = "sample-token";
-
-            public void SetupValidToken() => this.SetupGetUserIdForToken(this.Token, 43);
-
-            public void SetupInvalidToken() => this.SetupGetUserIdForToken(this.Token, null);
-
-            public Task<bool> PasswordResetTokenIsValid() =>
-                this.AuthenticationManager.PasswordResetTokenIsValid(this.Token);
-        }
-
-        private class ResetPasswordFixture : AuthenticationManagerFixture
-        {
-            public string Token { get; } = "sample-token";
-
-            public string NewPassword { get; } = "sample-password";
-
-            public long? UserId { get; private set; }
-
-            public User User { get; private set; }
-
-            public string Email { get; private set; }
-
-            public void SetupInvalidToken() =>
-                this.SetupGetUserIdForToken(this.Token, this.UserId = null);
-
-            public void SetupSuccess()
-            {
-                this.UserId = 23;
-                this.User = new() { Email = this.Email = "user@example.com" };
-
-                this.SetupGetUserIdForToken(this.Token, this.UserId);
-                this.SetupGetUser(this.UserId.Value, this.User);
-            }
-
-            public Task<User> ResetPassword() =>
-                this.AuthenticationManager.ResetPassword(this.Token, this.NewPassword);
-        }
-
-        private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
-        {
-            public SendPasswordResetLinkFixture() =>
-                this.MockUrlHelperFactory
-                    .Setup(x => x.GetUrlHelper(this.ActionContext))
-                    .Returns(this.MockUrlHelper.Object);
-
-            public Mock<IUrlHelper> MockUrlHelper { get; } = new();
-
-            public ActionContext ActionContext { get; } = new();
-
-            public string Email { get; } = "sample@example.com";
-
-            public User User { get; private set; }
-
-            public long UserId { get; private set; }
-
-            public string Token { get; private set; }
-
-            public string Link { get; private set; }
-
-            public void SetupSuccess()
-            {
-                this.User = new() { Id = this.UserId = 31, Email = "sample-x@example.com" };
-
-                this.SetupFindUserByEmail(this.Email, this.User);
-
-                this.MockRandomTokenGenerator
-                    .Setup(x => x.Generate(12))
-                    .Returns(this.Token = "sample-token");
-
-                this.MockUrlHelper
-                    .Setup(x => x.Link(
-                        "ResetPassword",
-                        It.Is<object>(
-                            o => this.Token.Equals(new RouteValueDictionary(o)["token"]))))
-                    .Returns(this.Link = "https://example.com/reset-password/sample-token");
-            }
-
-            public void SetupUnrecognizedEmail() =>
-                this.SetupFindUserByEmail(this.Email, this.User = null);
-
-            public Task SendPasswordResetLink() =>
-                this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
-
-            private void SetupFindUserByEmail(string email, User user) =>
-                this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, email))
-                    .ReturnsAsync(user);
-        }
-
-        private class SignInFixture : AuthenticationManagerFixture
-        {
-            public SignInFixture() => this.User = new()
-            {
-                Id = this.UserId,
-                Email = this.Email,
-                SecurityStamp = this.SecurityStamp,
-            };
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public User User { get; }
-
-            public long UserId { get; } = 6;
-
-            public string Email { get; } = "sample@example.com";
-
-            public string SecurityStamp { get; } = "sample-security-stamp";
-
-            public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
-        }
-
-        private class SignOutFixture : AuthenticationManagerFixture
-        {
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public long? UserId { get; private set; }
-
-            public void SetupUserSignedIn()
-            {
-                this.UserId = 76;
-
-                var claim = new Claim(
-                    ClaimTypes.NameIdentifier,
-                    this.UserId.Value.ToString(CultureInfo.InvariantCulture));
-
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                   new[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
-
-                this.HttpContext.User = principal;
-            }
-
-            public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
-        }
-
-        private class ValidatePrincipalFixture : AuthenticationManagerFixture
-        {
-            public CookieValidatePrincipalContext CookieContext { get; private set; }
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public ClaimsPrincipal Principal { get; private set; }
-
-            public User User { get; private set; }
-
-            public void SetupUnauthenticated() => this.SetupCookieContext();
-
-            public void SetupCorrectStamp() =>
-                this.SetupAuthenticated("sample-security-stamp", "sample-security-stamp");
-
-            public void SetupIncorrectStamp() =>
-                this.SetupAuthenticated("principal-security-stamp", "user-security-stamp");
-
-            public Task ValidatePrincipal() =>
-                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
-
-            private void SetupCookieContext(params Claim[] claims)
-            {
-                this.Principal = new(new ClaimsIdentity(claims));
-
-                var scheme = new AuthenticationScheme(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    null,
-                    typeof(CookieAuthenticationHandler));
-                var ticket = new AuthenticationTicket(this.Principal, null);
-
-                this.CookieContext = new(this.HttpContext, scheme, new(), ticket);
-            }
-
-            private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
-            {
-                this.SetupCookieContext(
-                    new(ClaimTypes.NameIdentifier, "34"),
-                    new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
-
-                this.User = new() { SecurityStamp = userSecurityStamp };
-
-                this.SetupGetUser(34, this.User);
-            }
         }
     }
 }

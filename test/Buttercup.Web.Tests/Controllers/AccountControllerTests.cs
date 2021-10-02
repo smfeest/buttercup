@@ -106,6 +106,32 @@ namespace Buttercup.Web.Controllers
             Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
         }
 
+        private class ChangePasswordPostFixture : AccountControllerFixture
+        {
+            public ChangePasswordPostFixture()
+            {
+                this.MockLocalizer
+                    .SetupGet(x => x["Error_WrongPassword"])
+                    .Returns(new LocalizedString(
+                        "Error_WrongPassword", "translated-wrong-password-error"));
+            }
+
+            public ChangePasswordViewModel Model { get; } = new()
+            {
+                CurrentPassword = "current-password",
+                NewPassword = "new-password",
+            };
+
+            public void SetupChangePassword(bool result) =>
+                this.MockAuthenticationManager
+                    .Setup(x => x.ChangePassword(
+                        this.HttpContext, "current-password", "new-password"))
+                    .ReturnsAsync(result);
+
+            public Task<IActionResult> ChangePasswordPost() =>
+                this.AccountController.ChangePassword(this.Model);
+        }
+
         #endregion
 
         #region Preferences (GET)
@@ -198,32 +224,6 @@ namespace Buttercup.Web.Controllers
                     this.AccountController.Dispose();
                 }
             }
-        }
-
-        private class ChangePasswordPostFixture : AccountControllerFixture
-        {
-            public ChangePasswordPostFixture()
-            {
-                this.MockLocalizer
-                    .SetupGet(x => x["Error_WrongPassword"])
-                    .Returns(new LocalizedString(
-                        "Error_WrongPassword", "translated-wrong-password-error"));
-            }
-
-            public ChangePasswordViewModel Model { get; } = new()
-            {
-                CurrentPassword = "current-password",
-                NewPassword = "new-password",
-            };
-
-            public void SetupChangePassword(bool result) =>
-                this.MockAuthenticationManager
-                    .Setup(x => x.ChangePassword(
-                        this.HttpContext, "current-password", "new-password"))
-                    .ReturnsAsync(result);
-
-            public Task<IActionResult> ChangePasswordPost() =>
-                this.AccountController.ChangePassword(this.Model);
         }
     }
 }
