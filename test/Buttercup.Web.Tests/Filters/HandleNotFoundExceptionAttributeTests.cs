@@ -16,43 +16,32 @@ namespace Buttercup.Web.Filters
         [Fact]
         public void OnExceptionSetsResultIfExceptionMatches()
         {
-            var context = new Context(new NotFoundException());
+            var exceptionContext = CallOnException(new NotFoundException());
 
-            context.Execute();
-
-            Assert.IsType<NotFoundResult>(context.ExceptionContext.Result);
+            Assert.IsType<NotFoundResult>(exceptionContext.Result);
         }
 
         [Fact]
         public void OnExceptionDoesNotSetResultIfExceptionDoesNotMatch()
         {
-            var context = new Context(new Exception());
+            var exceptionContext = CallOnException(new Exception());
 
-            context.Execute();
-
-            Assert.Null(context.ExceptionContext.Result);
+            Assert.Null(exceptionContext.Result);
         }
 
         #endregion
 
-        private class Context
+        private static ExceptionContext CallOnException(Exception exception)
         {
-            public Context(Exception exception)
+            var exceptionContext = new ExceptionContext(
+                new(new DefaultHttpContext(), new(), new()), Array.Empty<IFilterMetadata>())
             {
-                this.ExceptionContext = new(
-                    new(new DefaultHttpContext(), new(), new()),
-                    Array.Empty<IFilterMetadata>())
-                {
-                    Exception = exception,
-                };
-            }
+                Exception = exception,
+            };
 
-            public HandleNotFoundExceptionAttribute HandleNotFoundExceptionAttribute { get; } = new();
+            new HandleNotFoundExceptionAttribute().OnException(exceptionContext);
 
-            public ExceptionContext ExceptionContext { get; }
-
-            public void Execute() =>
-                this.HandleNotFoundExceptionAttribute.OnException(this.ExceptionContext);
+            return exceptionContext;
         }
     }
 }
