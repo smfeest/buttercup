@@ -448,9 +448,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupSuccess();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
             await fixture.ResetPassword();
 
@@ -461,9 +459,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordLogsEventIfTokenIsInvalid()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupInvalidToken();
+            var fixture = ResetPasswordFixture.ForInvalidToken();
 
             try
             {
@@ -479,9 +475,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordThrowsIfTokenIsInvalid()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupInvalidToken();
+            var fixture = ResetPasswordFixture.ForInvalidToken();
 
             await Assert.ThrowsAsync<InvalidTokenException>(fixture.ResetPassword);
         }
@@ -489,34 +483,22 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordUpdatesUserOnSuccess()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupSuccess();
-
-            fixture.MockPasswordHasher
-                .Setup(x => x.HashPassword(null, fixture.NewPassword))
-                .Returns("sample-hashed-password");
-
-            fixture.MockRandomTokenGenerator
-                .Setup(x => x.Generate(2))
-                .Returns("sample-security-stamp");
+            var fixture = ResetPasswordFixture.ForSuccess();
 
             await fixture.ResetPassword();
 
             fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
                 fixture.DbConnection,
                 fixture.UserId.Value,
-                "sample-hashed-password",
-                "sample-security-stamp",
+                fixture.NewHashedPassword,
+                fixture.NewSecurityStamp,
                 fixture.UtcNow));
         }
 
         [Fact]
         public async Task ResetPasswordDeletesPasswordResetTokensOnSuccess()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupSuccess();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
             await fixture.ResetPassword();
 
@@ -527,22 +509,18 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordSendsPasswordChangeNotificationOnSuccess()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupSuccess();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
             await fixture.ResetPassword();
 
             fixture.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordChangeNotification(fixture.Email));
+                x => x.SendPasswordChangeNotification(fixture.User.Email));
         }
 
         [Fact]
         public async Task ResetPasswordLogsEventOnSuccess()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupSuccess();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
             await fixture.ResetPassword();
 
@@ -552,9 +530,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordReturnsUserOnSuccess()
         {
-            var fixture = new ResetPasswordFixture();
-
-            fixture.SetupSuccess();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
             var actual = await fixture.ResetPassword();
 
@@ -563,30 +539,47 @@ namespace Buttercup.Web.Authentication
 
         private class ResetPasswordFixture : AuthenticationManagerFixture
         {
-            public string Token { get; } = "sample-token";
+            private const string NewPassword = "new-password";
 
-            public string NewPassword { get; } = "sample-password";
-
-            public long? UserId { get; private set; }
-
-            public User User { get; private set; }
-
-            public string Email { get; private set; }
-
-            public void SetupInvalidToken() =>
-                this.SetupGetUserIdForToken(this.Token, this.UserId = null);
-
-            public void SetupSuccess()
+            private ResetPasswordFixture(long? userId)
             {
-                this.UserId = 23;
-                this.User = new() { Email = this.Email = "user@example.com" };
-
-                this.SetupGetUserIdForToken(this.Token, this.UserId);
-                this.SetupGetUser(this.UserId.Value, this.User);
+                this.UserId = userId;
+                this.SetupGetUserIdForToken(this.Token, userId);
             }
 
+            private ResetPasswordFixture(long userId, User user)
+                : this(userId)
+            {
+                this.User = user;
+
+                this.SetupGetUser(userId, user);
+
+                this.MockPasswordHasher
+                    .Setup(x => x.HashPassword(null, NewPassword))
+                    .Returns(this.NewHashedPassword);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(2))
+                    .Returns(this.NewSecurityStamp);
+            }
+
+            public string Token { get; } = "password-reset-token";
+
+            public long? UserId { get; }
+
+            public User User { get; }
+
+            public string NewHashedPassword { get; } = "new-hashed-password";
+
+            public string NewSecurityStamp { get; } = "new-security-stamp";
+
+            public static ResetPasswordFixture ForInvalidToken() => new(null);
+
+            public static ResetPasswordFixture ForSuccess() =>
+                new(23, new() { Email = "user@example.com" });
+
             public Task<User> ResetPassword() =>
-                this.AuthenticationManager.ResetPassword(this.Token, this.NewPassword);
+                this.AuthenticationManager.ResetPassword(this.Token, NewPassword);
         }
 
         #endregion
