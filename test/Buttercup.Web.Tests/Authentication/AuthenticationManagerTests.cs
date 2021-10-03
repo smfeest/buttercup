@@ -589,9 +589,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordResetLinkInsertsPasswordResetTokenOnSuccess()
         {
-            var fixture = new SendPasswordResetLinkFixture();
-
-            fixture.SetupSuccess();
+            var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
             await fixture.SendPasswordResetLink();
 
@@ -602,9 +600,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordResetLinkSendsLinkToUserOnSuccess()
         {
-            var fixture = new SendPasswordResetLinkFixture();
-
-            fixture.SetupSuccess();
+            var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
             await fixture.SendPasswordResetLink();
 
@@ -615,22 +611,18 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordResetLinkLogsEventOnSuccess()
         {
-            var fixture = new SendPasswordResetLinkFixture();
-
-            fixture.SetupSuccess();
+            var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
             await fixture.SendPasswordResetLink();
 
             fixture.VerifyEventLogged(
-                "password_reset_link_sent", fixture.UserId, fixture.User.Email);
+                "password_reset_link_sent", fixture.User.Id, fixture.User.Email);
         }
 
         [Fact]
         public async Task SendPasswordResetLinkDoesNotSendLinkIfEmailIsUnrecognized()
         {
-            var fixture = new SendPasswordResetLinkFixture();
-
-            fixture.SetupUnrecognizedEmail();
+            var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
             await fixture.SendPasswordResetLink();
 
@@ -641,65 +633,65 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordResetLinkLogsEventIfEmailIsUnrecognized()
         {
-            var fixture = new SendPasswordResetLinkFixture();
-
-            fixture.SetupUnrecognizedEmail();
+            var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
             await fixture.SendPasswordResetLink();
 
             fixture.VerifyEventLogged(
-                "password_reset_failure:unrecognized_email", null, fixture.Email);
+                "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
         }
 
         private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
         {
-            public SendPasswordResetLinkFixture() =>
+            private SendPasswordResetLinkFixture(User user)
+            {
+                this.User = user;
+
                 this.MockUrlHelperFactory
                     .Setup(x => x.GetUrlHelper(this.ActionContext))
                     .Returns(this.MockUrlHelper.Object);
+
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.SuppliedEmail))
+                    .ReturnsAsync(user);
+            }
 
             public Mock<IUrlHelper> MockUrlHelper { get; } = new();
 
             public ActionContext ActionContext { get; } = new();
 
-            public string Email { get; } = "sample@example.com";
+            public string SuppliedEmail { get; } = "supplied-email@example.com";
 
-            public User User { get; private set; }
+            public User User { get; }
 
-            public long UserId { get; private set; }
+            public string Token { get; } = "password-reset-token";
 
-            public string Token { get; private set; }
+            public string Link { get; } = "https://example.com/reset-password/token";
 
-            public string Link { get; private set; }
-
-            public void SetupSuccess()
+            public static SendPasswordResetLinkFixture ForSuccess()
             {
-                this.User = new() { Id = this.UserId = 31, Email = "sample-x@example.com" };
+                var fixture = new SendPasswordResetLinkFixture(
+                    new() { Id = 31, Email = "user-email@example.com" });
 
-                this.SetupFindUserByEmail(this.Email, this.User);
-
-                this.MockRandomTokenGenerator
+                fixture.MockRandomTokenGenerator
                     .Setup(x => x.Generate(12))
-                    .Returns(this.Token = "sample-token");
+                    .Returns(fixture.Token);
 
-                this.MockUrlHelper
+                fixture.MockUrlHelper
                     .Setup(x => x.Link(
                         "ResetPassword",
                         It.Is<object>(
-                            o => this.Token.Equals(new RouteValueDictionary(o)["token"]))))
-                    .Returns(this.Link = "https://example.com/reset-password/sample-token");
+                            o => fixture.Token.Equals(new RouteValueDictionary(o)["token"]))))
+                    .Returns(fixture.Link);
+
+                return fixture;
             }
 
-            public void SetupUnrecognizedEmail() =>
-                this.SetupFindUserByEmail(this.Email, this.User = null);
+            public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
 
             public Task SendPasswordResetLink() =>
-                this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
-
-            private void SetupFindUserByEmail(string email, User user) =>
-                this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, email))
-                    .ReturnsAsync(user);
+                this.AuthenticationManager.SendPasswordResetLink(
+                    this.ActionContext, this.SuppliedEmail);
         }
 
         #endregion
