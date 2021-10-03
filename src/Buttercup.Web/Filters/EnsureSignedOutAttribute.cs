@@ -9,7 +9,7 @@ namespace Buttercup.Web.Filters
 {
     [AttributeUsage(
         AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class EnsureSignedOutAttribute : ActionFilterAttribute
+    public sealed class EnsureSignedOutAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
