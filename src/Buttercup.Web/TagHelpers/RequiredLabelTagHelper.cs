@@ -16,7 +16,6 @@ namespace Buttercup.Web.TagHelpers
     [HtmlTargetElement("label", Attributes = ForAttributeName)]
     public class RequiredLabelTagHelper : TagHelper
     {
-        [SuppressMessage("Microsoft.Performance", "CA1823", Justification = "Used in attributes")]
         private const string ForAttributeName = "asp-for";
 
         public RequiredLabelTagHelper(IStringLocalizer<RequiredLabelTagHelper> localizer) =>

@@ -10,7 +10,6 @@ namespace Buttercup.Web.TagHelpers
     [HtmlTargetElement(Attributes = InputAttributeName)]
     public class ListFromLinesTagHelper : TagHelper
     {
-        [SuppressMessage("Microsoft.Performance", "CA1823", Justification = "Used in attributes")]
         private const string InputAttributeName = "lines-in";
 
         /// <summary>
