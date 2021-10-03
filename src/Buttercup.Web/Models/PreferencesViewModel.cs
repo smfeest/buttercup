@@ -10,6 +10,6 @@ namespace Buttercup.Web.Models
 
         public PreferencesViewModel(User user) => this.TimeZone = user.TimeZone;
 
-        public string? TimeZone { get; set; }
+        public string? TimeZone { get; init; }
     }
 }

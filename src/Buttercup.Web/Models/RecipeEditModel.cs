@@ -26,39 +26,39 @@ namespace Buttercup.Web.Models
         }
 
         [BindNever]
-        public long Id { get; set; }
+        public long Id { get; init; }
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
-        public string? Title { get; set; }
+        public string? Title { get; init; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
-        public int? PreparationMinutes { get; set; }
+        public int? PreparationMinutes { get; init; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
-        public int? CookingMinutes { get; set; }
+        public int? CookingMinutes { get; init; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
-        public int? Servings { get; set; }
+        public int? Servings { get; init; }
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string? Ingredients { get; set; }
+        public string? Ingredients { get; init; }
 
         [Required(ErrorMessage = "Error_RequiredField")]
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string? Method { get; set; }
+        public string? Method { get; init; }
 
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string? Suggestions { get; set; }
+        public string? Suggestions { get; init; }
 
         [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-        public string? Remarks { get; set; }
+        public string? Remarks { get; init; }
 
         [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
-        public string? Source { get; set; }
+        public string? Source { get; init; }
 
-        public int Revision { get; set; }
+        public int Revision { get; init; }
 
         public Recipe ToRecipe() => new()
         {
