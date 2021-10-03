@@ -843,45 +843,37 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ValidatePrincipalDoesNotRejectPrincipalWhenUnauthenticated()
         {
-            var fixture = new ValidatePrincipalFixture();
-
-            fixture.SetupUnauthenticated();
+            var fixture = ValidatePrincipalFixture.ForUnauthenticated();
 
             await fixture.ValidatePrincipal();
 
-            Assert.Same(fixture.Principal, fixture.CookieContext.Principal);
+            Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
         }
 
         [Fact]
         public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
         {
-            var fixture = new ValidatePrincipalFixture();
-
-            fixture.SetupCorrectStamp();
+            var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
             await fixture.ValidatePrincipal();
 
-            Assert.Equal(fixture.User, fixture.HttpContext.GetCurrentUser());
+            Assert.Equal(fixture.User, fixture.CookieContext.HttpContext.GetCurrentUser());
         }
 
         [Fact]
         public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
         {
-            var fixture = new ValidatePrincipalFixture();
-
-            fixture.SetupCorrectStamp();
+            var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
             await fixture.ValidatePrincipal();
 
-            Assert.Same(fixture.Principal, fixture.CookieContext.Principal);
+            Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
         }
 
         [Fact]
         public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
         {
-            var fixture = new ValidatePrincipalFixture();
-
-            fixture.SetupIncorrectStamp();
+            var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
             await fixture.ValidatePrincipal();
 
@@ -891,60 +883,62 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ValidatePrincipalSignsUserOutWhenStampIsIncorrect()
         {
-            var fixture = new ValidatePrincipalFixture();
-
-            fixture.SetupIncorrectStamp();
+            var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
             await fixture.ValidatePrincipal();
 
             fixture.MockAuthenticationService.Verify(
                 x => x.SignOutAsync(
-                    fixture.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
+                    fixture.CookieContext.HttpContext,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null));
         }
 
         private class ValidatePrincipalFixture : AuthenticationManagerFixture
         {
-            public CookieValidatePrincipalContext CookieContext { get; private set; }
+            private const string UserSecurityStamp = "user-security-stamp";
 
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public ClaimsPrincipal Principal { get; private set; }
-
-            public User User { get; private set; }
-
-            public void SetupUnauthenticated() => this.SetupCookieContext();
-
-            public void SetupCorrectStamp() =>
-                this.SetupAuthenticated("sample-security-stamp", "sample-security-stamp");
-
-            public void SetupIncorrectStamp() =>
-                this.SetupAuthenticated("principal-security-stamp", "user-security-stamp");
-
-            public Task ValidatePrincipal() =>
-                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
-
-            private void SetupCookieContext(params Claim[] claims)
+            private ValidatePrincipalFixture(params Claim[] claims)
             {
-                this.Principal = new(new ClaimsIdentity(claims));
+                this.InitialPrincipal = new(new ClaimsIdentity(claims));
 
                 var scheme = new AuthenticationScheme(
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     null,
                     typeof(CookieAuthenticationHandler));
-                var ticket = new AuthenticationTicket(this.Principal, null);
+                var ticket = new AuthenticationTicket(
+                    this.InitialPrincipal,
+                    CookieAuthenticationDefaults.AuthenticationScheme);
 
-                this.CookieContext = new(this.HttpContext, scheme, new(), ticket);
+                this.CookieContext = new(new DefaultHttpContext(), scheme, new(), ticket);
             }
 
-            private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
+            public ClaimsPrincipal InitialPrincipal { get; }
+
+            public CookieValidatePrincipalContext CookieContext { get; }
+
+            public User User { get; } = new() { SecurityStamp = UserSecurityStamp };
+
+            public static ValidatePrincipalFixture ForUnauthenticated() => new();
+
+            public static ValidatePrincipalFixture ForCorrectStamp() =>
+                ForAuthenticated(UserSecurityStamp);
+
+            public static ValidatePrincipalFixture ForIncorrectStamp() =>
+                ForAuthenticated("stale-security-stamp");
+
+            public Task ValidatePrincipal() =>
+                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
+
+            private static ValidatePrincipalFixture ForAuthenticated(string principalSecurityStamp)
             {
-                this.SetupCookieContext(
+                var fixture = new ValidatePrincipalFixture(
                     new(ClaimTypes.NameIdentifier, "34"),
                     new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
 
-                this.User = new() { SecurityStamp = userSecurityStamp };
+                fixture.SetupGetUser(34, fixture.User);
 
-                this.SetupGetUser(34, this.User);
+                return fixture;
             }
         }
 
