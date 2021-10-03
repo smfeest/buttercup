@@ -11,5 +11,36 @@ trim_trailing_whitespace = true
 [*.cs]
 indent_size = 4
 
+# Code quality analysis rules
+dotnet_diagnostic.CA1062.severity = none # Validate arguments of public methods
+dotnet_diagnostic.CA2007.severity = none # Do not directly await a task
+
+# StyleCop rules
+dotnet_diagnostic.SA1633.severity = none # FileMustHaveHeader
+
+[src/Buttercup.Web/**.cs]
+
+# Compiler warnings
+dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member
+
+# Code quality analysis rules
+dotnet_diagnostic.CA1054.severity = none # URI parameters should not be strings
+
+# StyleCop rules
+dotnet_diagnostic.SA1600.severity = none # ElementsMustBeDocumented
+
+[test/**.cs]
+
+# Compiler warnings
+dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member
+
+# Code quality analysis rules
+dotnet_diagnostic.CA1822.severity = none # Mark members as static
+
+# StyleCop rules
+dotnet_diagnostic.SA1124.severity = none # DoNotUseRegions
+dotnet_diagnostic.SA1201.severity = none # ElementsMustAppearInTheCorrectOrder
+dotnet_diagnostic.SA1600.severity = none # ElementsMustBeDocumented
+
 [*.sln]
 indent_style = tab

@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <CodeAnalysisRuleSet>Buttercup.Web.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn),1591</NoWarn>
     <UserSecretsId>1b20fb70-92de-4af7-9518-6cfe3805821e</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
