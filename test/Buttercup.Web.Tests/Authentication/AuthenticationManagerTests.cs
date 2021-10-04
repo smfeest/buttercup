@@ -25,22 +25,18 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task AuthenticateLogsEventOnSuccess()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupSuccess();
+            var fixture = AuthenticateFixture.ForSuccess();
 
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_success", fixture.UserId, "sample@example.com");
+                "authentication_success", fixture.User.Id, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsUserOnSuccess()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupSuccess();
+            var fixture = AuthenticateFixture.ForSuccess();
 
             var actual = await fixture.Authenticate();
 
@@ -50,22 +46,18 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task AuthenticateLogsEventIfEmailIsUnrecognized()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupEmailNotFound();
+            var fixture = AuthenticateFixture.ForEmailNotFound();
 
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_failure:unrecognized_email", null, "sample@example.com");
+                "authentication_failure:unrecognized_email", null, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsNullIfEmailIsUnrecognized()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupEmailNotFound();
+            var fixture = AuthenticateFixture.ForEmailNotFound();
 
             Assert.Null(await fixture.Authenticate());
         }
@@ -73,22 +65,18 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task AuthenticateLogsEventIfUserHasNoPassword()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupUserHasNoPassword();
+            var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_failure:no_password_set", fixture.UserId, "sample@example.com");
+                "authentication_failure:no_password_set", fixture.User.Id, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsNullIfUserHasNoPassword()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupUserHasNoPassword();
+            var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
             Assert.Null(await fixture.Authenticate());
         }
@@ -96,77 +84,68 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task AuthenticateLogsEventIfPasswordIsIncorrect()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupPasswordIncorrect();
+            var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
             await fixture.Authenticate();
 
             fixture.VerifyEventLogged(
-                "authentication_failure:incorrect_password", fixture.UserId, "sample@example.com");
+                "authentication_failure:incorrect_password", fixture.User.Id, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsNullIfPasswordIsIncorrect()
         {
-            var fixture = new AuthenticateFixture();
-
-            fixture.SetupPasswordIncorrect();
+            var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
             Assert.Null(await fixture.Authenticate());
         }
 
         private class AuthenticateFixture : AuthenticationManagerFixture
         {
-            public AuthenticateFixture() =>
+            private const long UserId = 29;
+            private const string Password = "user-password";
+            private const string HashedPassword = "hashed-password";
+
+            private AuthenticateFixture(User user)
+            {
+                this.User = user;
+
                 this.MockUserDataProvider
                     .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
-                    .ReturnsAsync(() => this.User);
-
-            public string Email { get; } = "sample@example.com";
-
-            public User User { get; private set; }
-
-            public long UserId { get; private set; }
-
-            public void SetupEmailNotFound() => this.User = null;
-
-            public void SetupUserHasNoPassword() => this.User = new()
-            {
-                Id = this.UserId = 29,
-                HashedPassword = null,
-            };
-
-            public void SetupPasswordIncorrect()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId = 45,
-                    HashedPassword = "sample-hashed-password",
-                };
-
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, "sample-hashed-password", "sample-password"))
-                    .Returns(PasswordVerificationResult.Failed);
+                    .ReturnsAsync(user);
             }
 
-            public void SetupSuccess()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId = 52,
-                    HashedPassword = "sample-hashed-password",
-                };
+            public string Email { get; } = "user@example.com";
 
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, "sample-hashed-password", "sample-password"))
-                    .Returns(PasswordVerificationResult.Success);
-            }
+            public User User { get; }
+
+            public static AuthenticateFixture ForSuccess() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Success);
+
+            public static AuthenticateFixture ForEmailNotFound() => new(null);
+
+            public static AuthenticateFixture ForUserHasNoPassword() =>
+                new(new User { Id = UserId, HashedPassword = null });
+
+            public static AuthenticateFixture ForPasswordIncorrect() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Failed);
 
             public Task<User> Authenticate() =>
-                this.AuthenticationManager.Authenticate("sample@example.com", "sample-password");
+                this.AuthenticationManager.Authenticate(this.Email, Password);
+
+            private static AuthenticateFixture ForPasswordVerificationResult(
+                PasswordVerificationResult result)
+            {
+                var user = new User { Id = UserId, HashedPassword = HashedPassword };
+
+                var fixture = new AuthenticateFixture(user);
+
+                fixture.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(user, HashedPassword, Password))
+                    .Returns(result);
+
+                return fixture;
+            }
         }
 
         #endregion
