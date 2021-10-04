@@ -373,7 +373,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
         {
-            var fixture = new PasswordResetTokenIsValidFixture();
+            var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
             await fixture.PasswordResetTokenIsValid();
 
@@ -384,9 +384,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidDoesNotLogEventIfValid()
         {
-            var fixture = new PasswordResetTokenIsValidFixture();
-
-            fixture.SetupValidToken();
+            var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
             await fixture.PasswordResetTokenIsValid();
 
@@ -403,9 +401,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
         {
-            var fixture = new PasswordResetTokenIsValidFixture();
-
-            fixture.SetupValidToken();
+            var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
             Assert.True(await fixture.PasswordResetTokenIsValid());
         }
@@ -413,9 +409,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidLogsEventIfInvalid()
         {
-            var fixture = new PasswordResetTokenIsValidFixture();
-
-            fixture.SetupInvalidToken();
+            var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
 
             await fixture.PasswordResetTokenIsValid();
 
@@ -425,9 +419,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
         {
-            var fixture = new PasswordResetTokenIsValidFixture();
-
-            fixture.SetupInvalidToken();
+            var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
 
             await fixture.PasswordResetTokenIsValid();
 
@@ -436,14 +428,17 @@ namespace Buttercup.Web.Authentication
 
         private class PasswordResetTokenIsValidFixture : AuthenticationManagerFixture
         {
-            public string Token { get; } = "sample-token";
+            private const string Token = "password-reset-token";
 
-            public void SetupValidToken() => this.SetupGetUserIdForToken(this.Token, 43);
+            private PasswordResetTokenIsValidFixture(long? userId) =>
+                this.SetupGetUserIdForToken(Token, userId);
 
-            public void SetupInvalidToken() => this.SetupGetUserIdForToken(this.Token, null);
+            public static PasswordResetTokenIsValidFixture ForValidToken() => new(43);
+
+            public static PasswordResetTokenIsValidFixture ForInvalidToken() => new(null);
 
             public Task<bool> PasswordResetTokenIsValid() =>
-                this.AuthenticationManager.PasswordResetTokenIsValid(this.Token);
+                this.AuthenticationManager.PasswordResetTokenIsValid(Token);
         }
 
         #endregion
