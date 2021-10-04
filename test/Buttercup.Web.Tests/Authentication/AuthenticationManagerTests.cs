@@ -155,9 +155,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ChangePasswordLogsEventIfUserHasNoPassword()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.User.HashedPassword = null;
+            var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
             try
             {
@@ -167,15 +165,13 @@ namespace Buttercup.Web.Authentication
             {
             }
 
-            fixture.VerifyEventLogged("password_change_failure:no_password_set", fixture.UserId);
+            fixture.VerifyEventLogged("password_change_failure:no_password_set", fixture.User.Id);
         }
 
         [Fact]
         public async Task ChangePasswordThrowsIfUserHasNoPassword()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.User.HashedPassword = null;
+            var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
             await Assert.ThrowsAsync<InvalidOperationException>(fixture.ChangePassword);
         }
@@ -183,21 +179,17 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ChangePasswordLogsEventIfCurrentPasswordDoesNotMatch()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+            var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
             await fixture.ChangePassword();
 
-            fixture.VerifyEventLogged("password_change_failure:incorrect_password", fixture.UserId);
+            fixture.VerifyEventLogged("password_change_failure:incorrect_password", fixture.User.Id);
         }
 
         [Fact]
         public async Task ChangePasswordReturnsFalseIfCurrentPasswordDoesNotMatch()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+            var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
             Assert.False(await fixture.ChangePassword());
         }
@@ -205,9 +197,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ChangePasswordDoesNotChangePasswordIfCurrentPasswordDoesNotMatch()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+            var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
             await fixture.ChangePassword();
 
@@ -218,70 +208,54 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ChangePasswordUpdatesUser()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
-
-            fixture.MockPasswordHasher
-                .Setup(x => x.HashPassword(null, fixture.NewPassword))
-                .Returns("sample-hashed-password");
+            var fixture = ChangePasswordFixture.ForSuccess();
 
             await fixture.ChangePassword();
 
             fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
                 fixture.DbConnection,
-                fixture.UserId,
-                "sample-hashed-password",
-                "sample-security-stamp",
+                fixture.User.Id,
+                fixture.HashedNewPassword,
+                fixture.NewSecurityStamp,
                 fixture.UtcNow));
         }
 
         [Fact]
         public async Task ChangePasswordDeletesPasswordResetTokens()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            var fixture = ChangePasswordFixture.ForSuccess();
 
             await fixture.ChangePassword();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.UserId));
+                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.User.Id));
         }
 
         [Fact]
         public async Task ChangePasswordSendsPasswordChangeNotification()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.User.Email = "user@example.com";
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            var fixture = ChangePasswordFixture.ForSuccess();
 
             await fixture.ChangePassword();
 
             fixture.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordChangeNotification("user@example.com"));
+                x => x.SendPasswordChangeNotification(fixture.User.Email));
         }
 
         [Fact]
         public async Task ChangePasswordLogsEvent()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            var fixture = ChangePasswordFixture.ForSuccess();
 
             await fixture.ChangePassword();
 
-            fixture.VerifyEventLogged("password_change_success", fixture.UserId);
+            fixture.VerifyEventLogged("password_change_success", fixture.User.Id);
         }
 
         [Fact]
         public async Task ChangePasswordSignsInUpdatedPrincipal()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            var fixture = ChangePasswordFixture.ForSuccess();
 
             fixture.MockAuthenticationService
                 .Setup(x => x.SignInAsync(
@@ -293,16 +267,16 @@ namespace Buttercup.Web.Authentication
                     (contextArg, scheme, principal, properties) =>
                     {
                         Assert.Equal(
-                            fixture.UserId.ToString(CultureInfo.InvariantCulture),
+                            fixture.User.Id.ToString(CultureInfo.InvariantCulture),
                             principal.FindFirstValue(ClaimTypes.NameIdentifier));
                         Assert.Equal(
-                            fixture.Email,
+                            fixture.User.Email,
                             principal.FindFirstValue(ClaimTypes.Email));
                         Assert.Equal(
-                            fixture.SecurityStamp,
+                            fixture.NewSecurityStamp,
                             principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
-                        Assert.Equal(fixture.Email, principal.Identity.Name);
+                        Assert.Equal(fixture.User.Email, principal.Identity.Name);
                     })
                 .Returns(Task.CompletedTask)
                 .Verifiable();
@@ -315,55 +289,69 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ChangePasswordReturnsTrue()
         {
-            var fixture = new ChangePasswordFixture();
-
-            fixture.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            var fixture = ChangePasswordFixture.ForSuccess();
 
             Assert.True(await fixture.ChangePassword());
         }
 
         private class ChangePasswordFixture : AuthenticationManagerFixture
         {
-            public ChangePasswordFixture()
+            private const string CurrentPassword = "current-password";
+            private const string HashedCurrentPassword = "hashed-current-password";
+
+            private ChangePasswordFixture(string hashedPassword)
             {
                 this.User = new()
                 {
-                    Id = this.UserId,
-                    Email = this.Email,
-                    HashedPassword = this.HashedCurrentPassword,
+                    Id = 43,
+                    Email = "user@example.com",
+                    HashedPassword = hashedPassword,
                 };
 
                 this.HttpContext.SetCurrentUser(this.User);
 
+                this.MockPasswordHasher
+                    .Setup(x => x.HashPassword(null, this.NewPassword))
+                    .Returns(this.HashedNewPassword);
+
                 this.MockRandomTokenGenerator
                     .Setup(x => x.Generate(2))
-                    .Returns(this.SecurityStamp);
+                    .Returns(this.NewSecurityStamp);
             }
 
             public DefaultHttpContext HttpContext { get; } = new();
 
             public User User { get; }
 
-            public long UserId { get; } = 43;
-
-            public string Email { get; } = "sample@example.com";
-
-            public string CurrentPassword { get; } = "current-password";
-
-            public string HashedCurrentPassword { get; } = "hashed-current-password";
-
             public string NewPassword { get; } = "new-password";
 
-            public string SecurityStamp { get; } = "sample-security-stamp";
+            public string HashedNewPassword { get; } = "hashed-new-password";
 
-            public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, this.HashedCurrentPassword, this.CurrentPassword))
-                    .Returns(result);
+            public string NewSecurityStamp { get; } = "new-security-stamp";
+
+            public static ChangePasswordFixture ForUserHasNoPassword() => new(null);
+
+            public static ChangePasswordFixture ForPasswordDoesNotMatch() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Failed);
+
+            public static ChangePasswordFixture ForSuccess() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Success);
 
             public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
-                this.HttpContext, this.CurrentPassword, this.NewPassword);
+                this.HttpContext, CurrentPassword, this.NewPassword);
+
+            private static ChangePasswordFixture ForPasswordVerificationResult(
+                PasswordVerificationResult result)
+            {
+                var fixture = new ChangePasswordFixture(HashedCurrentPassword);
+
+                fixture.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        fixture.User, HashedCurrentPassword, CurrentPassword))
+                    .Returns(result);
+
+                return fixture;
+            }
         }
 
         #endregion
