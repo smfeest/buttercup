@@ -781,7 +781,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignOutSignsOutUser()
         {
-            var fixture = new SignOutFixture();
+            var fixture = SignOutFixture.ForUserSignedIn();
 
             await fixture.SignOut();
 
@@ -792,9 +792,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignOutLogsEventIfUserPreviouslySignedIn()
         {
-            var fixture = new SignOutFixture();
-
-            fixture.SetupUserSignedIn();
+            var fixture = SignOutFixture.ForUserSignedIn();
 
             await fixture.SignOut();
 
@@ -804,7 +802,7 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignOutDoesNotLogsEventIfUserPreviouslySignedOut()
         {
-            var fixture = new SignOutFixture();
+            var fixture = SignOutFixture.ForNoUserSignedIn();
 
             await fixture.SignOut();
 
@@ -815,22 +813,24 @@ namespace Buttercup.Web.Authentication
 
         private class SignOutFixture : AuthenticationManagerFixture
         {
+            private SignOutFixture(long? userId) => this.UserId = userId;
+
             public DefaultHttpContext HttpContext { get; } = new();
 
-            public long? UserId { get; private set; }
+            public long? UserId { get; }
 
-            public void SetupUserSignedIn()
+            public static SignOutFixture ForNoUserSignedIn() => new(null);
+
+            public static SignOutFixture ForUserSignedIn()
             {
-                this.UserId = 76;
+                var fixture = new SignOutFixture(76);
 
-                var claim = new Claim(
-                    ClaimTypes.NameIdentifier,
-                    this.UserId.Value.ToString(CultureInfo.InvariantCulture));
+                fixture.HttpContext.User = new ClaimsPrincipal(
+                    new ClaimsIdentity(
+                        new[] { new Claim(ClaimTypes.NameIdentifier, "76") },
+                        CookieAuthenticationDefaults.AuthenticationScheme));
 
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                   new[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
-
-                this.HttpContext.User = principal;
+                return fixture;
             }
 
             public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
