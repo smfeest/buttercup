@@ -22,9 +22,9 @@ namespace Buttercup.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration) => this.Configuration = configuration;
+        private readonly IConfiguration configuration;
 
-        public IConfiguration Configuration { get; }
+        public Startup(IConfiguration configuration) => this.configuration = configuration;
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -86,9 +86,9 @@ namespace Buttercup.Web
 
             services
                 .AddCoreServices()
-                .AddDataAccessServices(this.Configuration.GetValue<string>("ConnectionString"))
+                .AddDataAccessServices(this.configuration.GetValue<string>("ConnectionString"))
                 .AddEmailServices()
-                .Configure<EmailOptions>(this.Configuration.GetSection("Email"));
+                .Configure<EmailOptions>(this.configuration.GetSection("Email"));
 
             services
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

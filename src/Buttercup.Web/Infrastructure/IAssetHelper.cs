@@ -26,7 +26,7 @@ namespace Buttercup.Web.Infrastructure
         /// The URL for the asset, relative to the web root of the application.
         /// </returns>
         [SuppressMessage(
-            "Microsoft.Design",
+            "Design",
             "CA1055:UriReturnValuesShouldNotBeStrings",
             Justification = "IUrlHelper.Content uses strings for paths")]
         string Url(ActionContext context, string path);

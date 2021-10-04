@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Buttercup.Models;
 using MySqlConnector;
@@ -142,6 +143,10 @@ namespace Buttercup.DataAccess
             }
         }
 
+        [SuppressMessage(
+            "Security",
+            "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
+            Justification = "Command text does not contain user input")]
         private static async Task<IList<Recipe>> GetRecipes(DbConnection connection, string query)
         {
             using var command = connection.CreateCommand();

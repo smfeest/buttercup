@@ -15,36 +15,34 @@ namespace Buttercup.Web.Controllers
     [Route("recipes")]
     public class RecipesController : Controller
     {
+        private readonly IClock clock;
+        private readonly IDbConnectionSource dbConnectionSource;
+        private readonly IRecipeDataProvider recipeDataProvider;
+
         public RecipesController(
             IClock clock,
             IDbConnectionSource dbConnectionSource,
             IRecipeDataProvider recipeDataProvider)
         {
-            this.Clock = clock;
-            this.DbConnectionSource = dbConnectionSource;
-            this.RecipeDataProvider = recipeDataProvider;
+            this.clock = clock;
+            this.dbConnectionSource = dbConnectionSource;
+            this.recipeDataProvider = recipeDataProvider;
         }
-
-        public IClock Clock { get; }
-
-        public IDbConnectionSource DbConnectionSource { get; }
-
-        public IRecipeDataProvider RecipeDataProvider { get; }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            return this.View(await this.RecipeDataProvider.GetRecipes(connection));
+            return this.View(await this.recipeDataProvider.GetRecipes(connection));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Show(long id)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
+            return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
         }
 
         [HttpGet("new")]
@@ -60,14 +58,14 @@ namespace Buttercup.Web.Controllers
 
             var recipe = model.ToRecipe();
 
-            recipe.Created = this.Clock.UtcNow;
+            recipe.Created = this.clock.UtcNow;
             recipe.CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id;
 
             long id;
 
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using (var connection = await this.dbConnectionSource.OpenConnection())
             {
-                id = await this.RecipeDataProvider.AddRecipe(connection, recipe);
+                id = await this.recipeDataProvider.AddRecipe(connection, recipe);
             }
 
             return this.RedirectToAction(nameof(this.Show), new { id = id });
@@ -76,10 +74,10 @@ namespace Buttercup.Web.Controllers
         [HttpGet("{id}/edit")]
         public async Task<IActionResult> Edit(long id)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
             return this.View(new RecipeEditModel(
-                await this.RecipeDataProvider.GetRecipe(connection, id)));
+                await this.recipeDataProvider.GetRecipe(connection, id)));
         }
 
         [HttpPost("{id}/edit")]
@@ -93,12 +91,12 @@ namespace Buttercup.Web.Controllers
             var recipe = model.ToRecipe();
 
             recipe.Id = id;
-            recipe.Modified = this.Clock.UtcNow;
+            recipe.Modified = this.clock.UtcNow;
             recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id;
 
-            using (var connection = await this.DbConnectionSource.OpenConnection())
+            using (var connection = await this.dbConnectionSource.OpenConnection())
             {
-                await this.RecipeDataProvider.UpdateRecipe(connection, recipe);
+                await this.recipeDataProvider.UpdateRecipe(connection, recipe);
             }
 
             return this.RedirectToAction(nameof(this.Show), new { id = id });
@@ -107,17 +105,17 @@ namespace Buttercup.Web.Controllers
         [HttpGet("{id}/delete")]
         public async Task<IActionResult> Delete(long id)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            return this.View(await this.RecipeDataProvider.GetRecipe(connection, id));
+            return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
         }
 
         [HttpPost("{id}/delete")]
         public async Task<IActionResult> Delete(long id, int revision)
         {
-            using var connection = await this.DbConnectionSource.OpenConnection();
+            using var connection = await this.dbConnectionSource.OpenConnection();
 
-            await this.RecipeDataProvider.DeleteRecipe(connection, id, revision);
+            await this.recipeDataProvider.DeleteRecipe(connection, id, revision);
 
             return this.RedirectToAction(nameof(this.Index));
         }

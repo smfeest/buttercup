@@ -13,17 +13,16 @@ namespace Buttercup.Web.Controllers
 {
     public class AuthenticationController : Controller
     {
+        private readonly IAuthenticationManager authenticationManager;
+        private readonly IStringLocalizer<AuthenticationController> localizer;
+
         public AuthenticationController(
             IAuthenticationManager authenticationManager,
             IStringLocalizer<AuthenticationController> localizer)
         {
-            this.AuthenticationManager = authenticationManager;
-            this.Localizer = localizer;
+            this.authenticationManager = authenticationManager;
+            this.localizer = localizer;
         }
-
-        public IAuthenticationManager AuthenticationManager { get; }
-
-        public IStringLocalizer<AuthenticationController> Localizer { get; }
 
         [HttpGet("reset-password")]
         public IActionResult RequestPasswordReset() => this.View();
@@ -36,7 +35,7 @@ namespace Buttercup.Web.Controllers
                 return this.View(model);
             }
 
-            await this.AuthenticationManager.SendPasswordResetLink(
+            await this.authenticationManager.SendPasswordResetLink(
                 this.ControllerContext, model.Email!);
 
             return this.View("RequestPasswordResetConfirmation", model);
@@ -46,7 +45,7 @@ namespace Buttercup.Web.Controllers
         [EnsureSignedOut]
         public async Task<IActionResult> ResetPassword(string token)
         {
-            if (!await this.AuthenticationManager.PasswordResetTokenIsValid(token))
+            if (!await this.authenticationManager.PasswordResetTokenIsValid(token))
             {
                 return this.View("ResetPasswordInvalidToken");
             }
@@ -64,9 +63,9 @@ namespace Buttercup.Web.Controllers
 
             try
             {
-                var user = await this.AuthenticationManager.ResetPassword(token, model.Password!);
+                var user = await this.authenticationManager.ResetPassword(token, model.Password!);
 
-                await this.AuthenticationManager.SignIn(this.HttpContext, user);
+                await this.authenticationManager.SignIn(this.HttpContext, user);
 
                 return this.RedirectToHome();
             }
@@ -88,17 +87,17 @@ namespace Buttercup.Web.Controllers
                 return this.View(model);
             }
 
-            var user = await this.AuthenticationManager.Authenticate(model.Email!, model.Password!);
+            var user = await this.authenticationManager.Authenticate(model.Email!, model.Password!);
 
             if (user == null)
             {
                 this.ModelState.AddModelError(
-                    string.Empty, this.Localizer["Error_WrongEmailOrPassword"]!);
+                    string.Empty, this.localizer["Error_WrongEmailOrPassword"]!);
 
                 return this.View(model);
             }
 
-            await this.AuthenticationManager.SignIn(this.HttpContext, user);
+            await this.authenticationManager.SignIn(this.HttpContext, user);
 
             if (this.Url.IsLocalUrl(returnUrl))
             {
@@ -113,7 +112,7 @@ namespace Buttercup.Web.Controllers
         [HttpGet("sign-out")]
         public async Task<IActionResult> SignOut(string? returnUrl = null)
         {
-            await this.AuthenticationManager.SignOut(this.HttpContext);
+            await this.authenticationManager.SignOut(this.HttpContext);
 
             this.HttpContext.Response.GetTypedHeaders().CacheControl =
                 new() { NoCache = true, NoStore = true };

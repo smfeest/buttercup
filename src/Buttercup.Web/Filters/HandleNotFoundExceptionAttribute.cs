@@ -8,7 +8,7 @@ namespace Buttercup.Web.Filters
 {
     [AttributeUsage(
         AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class HandleNotFoundExceptionAttribute : ExceptionFilterAttribute
+    public sealed class HandleNotFoundExceptionAttribute : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
         {

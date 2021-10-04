@@ -24,7 +24,7 @@ namespace Buttercup.Web.Filters
         [Fact]
         public void OnExceptionDoesNotSetResultIfExceptionDoesNotMatch()
         {
-            var exceptionContext = CallOnException(new Exception());
+            var exceptionContext = CallOnException(new InvalidOperationException());
 
             Assert.Null(exceptionContext.Result);
         }

@@ -6,27 +6,26 @@ namespace Buttercup.Web.Authentication
 {
     public class AuthenticationMailer : IAuthenticationMailer
     {
+        private readonly IEmailSender emailSender;
+        private readonly IStringLocalizer<AuthenticationMailer> localizer;
+
         public AuthenticationMailer(
             IEmailSender emailSender, IStringLocalizer<AuthenticationMailer> localizer)
         {
-            this.EmailSender = emailSender;
-            this.Localizer = localizer;
+            this.emailSender = emailSender;
+            this.localizer = localizer;
         }
 
-        public IEmailSender EmailSender { get; }
-
-        public IStringLocalizer<AuthenticationMailer> Localizer { get; }
-
         public async Task SendPasswordChangeNotification(string email) =>
-            await this.EmailSender.Send(
+            await this.emailSender.Send(
                 email,
-                this.Localizer["Subject_PasswordChangeNotification"]!,
-                this.Localizer["Body_PasswordChangeNotification"]!);
+                this.localizer["Subject_PasswordChangeNotification"]!,
+                this.localizer["Body_PasswordChangeNotification"]!);
 
-        public async Task SendPasswordResetLink(string email, string resetLink) =>
-            await this.EmailSender.Send(
+        public async Task SendPasswordResetLink(string email, string link) =>
+            await this.emailSender.Send(
                 email,
-                this.Localizer["Subject_PasswordResetLink"]!,
-                this.Localizer["Body_PasswordResetLink", resetLink]!);
+                this.localizer["Subject_PasswordResetLink"]!,
+                this.localizer["Body_PasswordResetLink", link]!);
     }
 }

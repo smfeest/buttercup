@@ -9,28 +9,27 @@ namespace Buttercup.Web.Controllers
     [Authorize]
     public class HomeController : Controller
     {
+        private readonly IDbConnectionSource dbConnectionSource;
+        private readonly IRecipeDataProvider recipeDataProvider;
+
         public HomeController(
             IDbConnectionSource dbConnectionSource, IRecipeDataProvider recipeDataProvider)
         {
-            this.DbConnectionSource = dbConnectionSource;
-            this.RecipeDataProvider = recipeDataProvider;
+            this.dbConnectionSource = dbConnectionSource;
+            this.recipeDataProvider = recipeDataProvider;
         }
-
-        public IDbConnectionSource DbConnectionSource { get; }
-
-        public IRecipeDataProvider RecipeDataProvider { get; }
 
         [HttpGet("/")]
         public async Task<IActionResult> Index()
         {
-            var connection = await this.DbConnectionSource.OpenConnection();
+            var connection = await this.dbConnectionSource.OpenConnection();
 
             return this.View(new HomePageViewModel
             {
                 RecentlyAddedRecipes =
-                    await this.RecipeDataProvider.GetRecentlyAddedRecipes(connection),
+                    await this.recipeDataProvider.GetRecentlyAddedRecipes(connection),
                 RecentlyUpdatedRecipes =
-                    await this.RecipeDataProvider.GetRecentlyUpdatedRecipes(connection),
+                    await this.recipeDataProvider.GetRecentlyUpdatedRecipes(connection),
             });
         }
     }
