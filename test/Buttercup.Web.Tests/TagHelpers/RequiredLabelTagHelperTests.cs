@@ -23,10 +23,8 @@ namespace Buttercup.Web.TagHelpers
         public void AddsRequiredLabelWhenModelValueIsRequired(
             bool? showRequiredLabel, bool isRequired, bool requiredLabelExpected)
         {
-            var mockLocalizer = new Mock<IStringLocalizer<RequiredLabelTagHelper>>();
-            mockLocalizer
-                .SetupGet(x => x["Label_Required"])
-                .Returns(new LocalizedString(string.Empty, "required"));
+            var localizer = Mock.Of<IStringLocalizer<RequiredLabelTagHelper>>(
+                x => x["Label_Required"] == new LocalizedString(string.Empty, "required"));
 
             var mockMetadata = new Mock<ModelMetadata>(
                 ModelMetadataIdentity.ForType(typeof(object)));
@@ -34,7 +32,7 @@ namespace Buttercup.Web.TagHelpers
 
             var modelExplorer = new ModelExplorer(mockMetadata.Object, mockMetadata.Object, null);
 
-            var tagHelper = new RequiredLabelTagHelper(mockLocalizer.Object)
+            var tagHelper = new RequiredLabelTagHelper(localizer)
             {
                 For = new("SampleProperty", modelExplorer),
                 ShowRequiredLabel = showRequiredLabel,

@@ -13,52 +13,38 @@ namespace Buttercup.Web.TagHelpers
         [InlineData(" \n \t\n")]
         public void SuppressesOutputWhenListIsEmpty(string input)
         {
-            var context = new Context();
+            var output = Process(input);
 
-            context.TagHelper.Input = input;
-
-            context.Process();
-
-            Assert.Null(context.Output.TagName);
-            Assert.True(context.Output.Content.IsEmptyOrWhiteSpace);
+            Assert.Null(output.TagName);
+            Assert.True(output.Content.IsEmptyOrWhiteSpace);
         }
 
         [Fact]
         public void InsertsListItemForEachNonEmptyLine()
         {
-            var context = new Context();
+            var output = Process(" \nAlpha\r\nBeta & Gamma\n  \nDelta");
 
-            context.TagHelper.Input = " \nAlpha\r\nBeta & Gamma\n  \nDelta";
-
-            context.Process();
-
-            Assert.Equal("ul", context.Output.TagName);
+            Assert.Equal("ul", output.TagName);
             Assert.Equal(
                 "<li>Alpha</li><li>Beta &amp; Gamma</li><li>Delta</li>",
-                context.Output.Content.GetContent());
+                output.Content.GetContent());
         }
 
-        private class Context
+        private static TagHelperOutput Process(string input)
         {
-            public TagHelperOutput Output { get; } = new("ul", new(), GetChildContent);
+            var output = new TagHelperOutput(
+                "ul",
+                new(),
+                (_, _) => Task.FromResult(new DefaultTagHelperContent().SetContent("content")));
 
-            public ListFromLinesTagHelper TagHelper { get; } = new();
+            var context = new TagHelperContext(
+                "ul", new(), new Dictionary<object, object>(), "test");
 
-            public void Process()
-            {
-                var context = new TagHelperContext(
-                    "ul", new(), new Dictionary<object, object>(), "test");
+            var tagHelper = new ListFromLinesTagHelper { Input = input };
 
-                this.TagHelper.Process(context, this.Output);
-            }
+            tagHelper.Process(context, output);
 
-            private static Task<TagHelperContent> GetChildContent(
-                bool useCachedResult, HtmlEncoder encoder)
-            {
-                TagHelperContent content = new DefaultTagHelperContent();
-                content.SetContent("test-content");
-                return Task.FromResult(content);
-            }
+            return output;
         }
     }
 }

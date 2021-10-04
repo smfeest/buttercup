@@ -16,11 +16,11 @@ namespace Buttercup.DataAccess
         [Fact]
         public void AddParameterWithValueSetsName()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
 
-            context.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
+            fixture.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
         }
 
         [Theory]
@@ -29,41 +29,41 @@ namespace Buttercup.DataAccess
         [InlineData(339)]
         public void AddParameterWithValueSetsValue(object value)
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", value);
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", value);
 
-            context.MockDbParameter.VerifySet(p => p.Value = value);
+            fixture.MockDbParameter.VerifySet(p => p.Value = value);
         }
 
         [Fact]
         public void AddParameterWithValueConvertsNullValue()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", null);
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", null);
 
-            context.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
+            fixture.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
         }
 
         [Fact]
         public void AddParameterWithValueAddsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
 
-            context.MockDbParameterCollection.Verify(c => c.Add(context.MockDbParameter.Object));
+            fixture.MockDbParameterCollection.Verify(c => c.Add(fixture.MockDbParameter.Object));
         }
 
         [Fact]
         public void AddParameterWithValueReturnsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            var parameter = context.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
+            var parameter = fixture.MockDbCommand.Object.AddParameterWithValue("@alpha", "beta");
 
-            Assert.Same(context.MockDbParameter.Object, parameter);
+            Assert.Same(fixture.MockDbParameter.Object, parameter);
         }
 
         #endregion
@@ -73,11 +73,11 @@ namespace Buttercup.DataAccess
         [Fact]
         public void AddParameterWithStringValueSetsName()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
 
-            context.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
+            fixture.MockDbParameter.VerifySet(p => p.ParameterName = "@alpha");
         }
 
         [Theory]
@@ -86,42 +86,42 @@ namespace Buttercup.DataAccess
         [InlineData("\n")]
         public void AddParameterWithStringValueConvertsNullAndWhiteSpaceValues(string value)
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", value);
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", value);
 
-            context.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
+            fixture.MockDbParameter.VerifySet(p => p.Value = DBNull.Value);
         }
 
         [Fact]
         public void AddParameterWithStringValueTrimsValue()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "  beta\t  ");
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "  beta\t  ");
 
-            context.MockDbParameter.VerifySet(p => p.Value = "beta");
+            fixture.MockDbParameter.VerifySet(p => p.Value = "beta");
         }
 
         [Fact]
         public void AddParameterWithStringValueAddsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            context.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
+            fixture.MockDbCommand.Object.AddParameterWithStringValue("@alpha", "beta");
 
-            context.MockDbParameterCollection.Verify(c => c.Add(context.MockDbParameter.Object));
+            fixture.MockDbParameterCollection.Verify(c => c.Add(fixture.MockDbParameter.Object));
         }
 
         [Fact]
         public void AddParameterWithStringValueReturnsParameter()
         {
-            var context = new AddParameterContext();
+            var fixture = new AddParameterFixture();
 
-            var parameter = context.MockDbCommand.Object.AddParameterWithStringValue(
+            var parameter = fixture.MockDbCommand.Object.AddParameterWithStringValue(
                 "@alpha", "beta");
 
-            Assert.Same(context.MockDbParameter.Object, parameter);
+            Assert.Same(fixture.MockDbParameter.Object, parameter);
         }
 
         #endregion
@@ -131,49 +131,41 @@ namespace Buttercup.DataAccess
         [Fact]
         public async Task ExecuteScalarAsyncReturnsValue()
         {
-            var mockCommand = new Mock<DbCommand>();
+            var command = MockCommandWithScalarResult(54);
 
-            mockCommand
-                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(54);
-
-            Assert.Equal(54, await mockCommand.Object.ExecuteScalarAsync<int>());
-            Assert.Equal(54, await mockCommand.Object.ExecuteScalarAsync<int?>());
+            Assert.Equal(54, await command.ExecuteScalarAsync<int>());
+            Assert.Equal(54, await command.ExecuteScalarAsync<int?>());
         }
 
         [Fact]
         public async Task ExecuteScalarAsyncReturnsDefaultValueWhenColumnContainsNull()
         {
-            var mockCommand = new Mock<DbCommand>();
+            var command = MockCommandWithScalarResult(DBNull.Value);
 
-            mockCommand
-                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(DBNull.Value);
-
-            Assert.Equal(0, await mockCommand.Object.ExecuteScalarAsync<long>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<long?>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<string>());
+            Assert.Equal(0, await command.ExecuteScalarAsync<long>());
+            Assert.Null(await command.ExecuteScalarAsync<long?>());
+            Assert.Null(await command.ExecuteScalarAsync<string>());
         }
 
         [Fact]
         public async Task ExecuteScalarAsyncReturnsDefaultValueWhenResultSetIsEmpty()
         {
-            var mockCommand = new Mock<DbCommand>();
+            var command = MockCommandWithScalarResult(null);
 
-            mockCommand
-                .Setup(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync((object)null);
-
-            Assert.Equal(default(DateTime), await mockCommand.Object.ExecuteScalarAsync<DateTime>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<DateTime?>());
-            Assert.Null(await mockCommand.Object.ExecuteScalarAsync<string>());
+            Assert.Equal(default(DateTime), await command.ExecuteScalarAsync<DateTime>());
+            Assert.Null(await command.ExecuteScalarAsync<DateTime?>());
+            Assert.Null(await command.ExecuteScalarAsync<string>());
         }
+
+        private static DbCommand MockCommandWithScalarResult(object result) =>
+            Mock.Of<DbCommand>(x => x.ExecuteScalarAsync(It.IsAny<CancellationToken>()) ==
+                Task.FromResult(result));
 
         #endregion
 
-        private class AddParameterContext
+        private class AddParameterFixture
         {
-            public AddParameterContext()
+            public AddParameterFixture()
             {
                 this.MockDbCommand.Protected()
                     .Setup<DbParameter>("CreateDbParameter")

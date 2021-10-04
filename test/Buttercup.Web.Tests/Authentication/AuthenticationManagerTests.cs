@@ -25,95 +25,127 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task AuthenticateLogsEventOnSuccess()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.Authenticate();
 
-            await context.Authenticate();
-
-            context.VerifyEventLogged(
-                "authentication_success", context.UserId, "sample@example.com");
+            fixture.VerifyEventLogged(
+                "authentication_success", fixture.User.Id, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsUserOnSuccess()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForSuccess();
 
-            context.SetupSuccess();
+            var actual = await fixture.Authenticate();
 
-            var actual = await context.Authenticate();
-
-            Assert.Equal(context.User, actual);
+            Assert.Equal(fixture.User, actual);
         }
 
         [Fact]
         public async Task AuthenticateLogsEventIfEmailIsUnrecognized()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForEmailNotFound();
 
-            context.SetupEmailNotFound();
+            await fixture.Authenticate();
 
-            await context.Authenticate();
-
-            context.VerifyEventLogged(
-                "authentication_failure:unrecognized_email", null, "sample@example.com");
+            fixture.VerifyEventLogged(
+                "authentication_failure:unrecognized_email", null, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsNullIfEmailIsUnrecognized()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForEmailNotFound();
 
-            context.SetupEmailNotFound();
-
-            Assert.Null(await context.Authenticate());
+            Assert.Null(await fixture.Authenticate());
         }
 
         [Fact]
         public async Task AuthenticateLogsEventIfUserHasNoPassword()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
-            context.SetupUserHasNoPassword();
+            await fixture.Authenticate();
 
-            await context.Authenticate();
-
-            context.VerifyEventLogged(
-                "authentication_failure:no_password_set", context.UserId, "sample@example.com");
+            fixture.VerifyEventLogged(
+                "authentication_failure:no_password_set", fixture.User.Id, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsNullIfUserHasNoPassword()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
-            context.SetupUserHasNoPassword();
-
-            Assert.Null(await context.Authenticate());
+            Assert.Null(await fixture.Authenticate());
         }
 
         [Fact]
         public async Task AuthenticateLogsEventIfPasswordIsIncorrect()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
-            context.SetupPasswordIncorrect();
+            await fixture.Authenticate();
 
-            await context.Authenticate();
-
-            context.VerifyEventLogged(
-                "authentication_failure:incorrect_password", context.UserId, "sample@example.com");
+            fixture.VerifyEventLogged(
+                "authentication_failure:incorrect_password", fixture.User.Id, fixture.Email);
         }
 
         [Fact]
         public async Task AuthenticateReturnsNullIfPasswordIsIncorrect()
         {
-            var context = new AuthenticateContext();
+            var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
-            context.SetupPasswordIncorrect();
+            Assert.Null(await fixture.Authenticate());
+        }
 
-            Assert.Null(await context.Authenticate());
+        private class AuthenticateFixture : AuthenticationManagerFixture
+        {
+            private const long UserId = 29;
+            private const string Password = "user-password";
+            private const string HashedPassword = "hashed-password";
+
+            private AuthenticateFixture(User user)
+            {
+                this.User = user;
+
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
+                    .ReturnsAsync(user);
+            }
+
+            public string Email { get; } = "user@example.com";
+
+            public User User { get; }
+
+            public static AuthenticateFixture ForSuccess() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Success);
+
+            public static AuthenticateFixture ForEmailNotFound() => new(null);
+
+            public static AuthenticateFixture ForUserHasNoPassword() =>
+                new(new User { Id = UserId, HashedPassword = null });
+
+            public static AuthenticateFixture ForPasswordIncorrect() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Failed);
+
+            public Task<User> Authenticate() =>
+                this.AuthenticationManager.Authenticate(this.Email, Password);
+
+            private static AuthenticateFixture ForPasswordVerificationResult(
+                PasswordVerificationResult result)
+            {
+                var user = new User { Id = UserId, HashedPassword = HashedPassword };
+
+                var fixture = new AuthenticateFixture(user);
+
+                fixture.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(user, HashedPassword, Password))
+                    .Returns(result);
+
+                return fixture;
+            }
         }
 
         #endregion
@@ -123,137 +155,111 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ChangePasswordLogsEventIfUserHasNoPassword()
         {
-            var context = new ChangePasswordContext();
-
-            context.User.HashedPassword = null;
+            var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
             try
             {
-                await context.ChangePassword();
+                await fixture.ChangePassword();
             }
             catch (InvalidOperationException)
             {
             }
 
-            context.VerifyEventLogged("password_change_failure:no_password_set", context.UserId);
+            fixture.VerifyEventLogged("password_change_failure:no_password_set", fixture.User.Id);
         }
 
         [Fact]
         public async Task ChangePasswordThrowsIfUserHasNoPassword()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
-            context.User.HashedPassword = null;
-
-            await Assert.ThrowsAsync<InvalidOperationException>(context.ChangePassword);
+            await Assert.ThrowsAsync<InvalidOperationException>(fixture.ChangePassword);
         }
 
         [Fact]
         public async Task ChangePasswordLogsEventIfCurrentPasswordDoesNotMatch()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+            await fixture.ChangePassword();
 
-            await context.ChangePassword();
-
-            context.VerifyEventLogged("password_change_failure:incorrect_password", context.UserId);
+            fixture.VerifyEventLogged("password_change_failure:incorrect_password", fixture.User.Id);
         }
 
         [Fact]
         public async Task ChangePasswordReturnsFalseIfCurrentPasswordDoesNotMatch()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
-
-            Assert.False(await context.ChangePassword());
+            Assert.False(await fixture.ChangePassword());
         }
 
         [Fact]
         public async Task ChangePasswordDoesNotChangePasswordIfCurrentPasswordDoesNotMatch()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Failed);
+            await fixture.ChangePassword();
 
-            await context.ChangePassword();
-
-            context.MockPasswordHasher.Verify(
-                x => x.HashPassword(null, context.NewPassword), Times.Never);
+            fixture.MockPasswordHasher.Verify(
+                x => x.HashPassword(null, fixture.NewPassword), Times.Never);
         }
 
         [Fact]
         public async Task ChangePasswordUpdatesUser()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForSuccess();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            await fixture.ChangePassword();
 
-            context.MockPasswordHasher
-                .Setup(x => x.HashPassword(null, context.NewPassword))
-                .Returns("sample-hashed-password");
-
-            await context.ChangePassword();
-
-            context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.DbConnection,
-                context.UserId,
-                "sample-hashed-password",
-                "sample-security-stamp",
-                context.UtcNow));
+            fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
+                fixture.DbConnection,
+                fixture.User.Id,
+                fixture.HashedNewPassword,
+                fixture.NewSecurityStamp,
+                fixture.UtcNow));
         }
 
         [Fact]
         public async Task ChangePasswordDeletesPasswordResetTokens()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForSuccess();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            await fixture.ChangePassword();
 
-            await context.ChangePassword();
-
-            context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(context.DbConnection, context.UserId));
+            fixture.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.User.Id));
         }
 
         [Fact]
         public async Task ChangePasswordSendsPasswordChangeNotification()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForSuccess();
 
-            context.User.Email = "user@example.com";
+            await fixture.ChangePassword();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
-
-            await context.ChangePassword();
-
-            context.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordChangeNotification("user@example.com"));
+            fixture.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordChangeNotification(fixture.User.Email));
         }
 
         [Fact]
         public async Task ChangePasswordLogsEvent()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForSuccess();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            await fixture.ChangePassword();
 
-            await context.ChangePassword();
-
-            context.VerifyEventLogged("password_change_success", context.UserId);
+            fixture.VerifyEventLogged("password_change_success", fixture.User.Id);
         }
 
         [Fact]
         public async Task ChangePasswordSignsInUpdatedPrincipal()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForSuccess();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
-
-            context.MockAuthenticationService
+            fixture.MockAuthenticationService
                 .Setup(x => x.SignInAsync(
-                    context.HttpContext,
+                    fixture.HttpContext,
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     It.IsAny<ClaimsPrincipal>(),
                     null))
@@ -261,33 +267,91 @@ namespace Buttercup.Web.Authentication
                     (contextArg, scheme, principal, properties) =>
                     {
                         Assert.Equal(
-                            context.UserId.ToString(CultureInfo.InvariantCulture),
+                            fixture.User.Id.ToString(CultureInfo.InvariantCulture),
                             principal.FindFirstValue(ClaimTypes.NameIdentifier));
                         Assert.Equal(
-                            context.Email,
+                            fixture.User.Email,
                             principal.FindFirstValue(ClaimTypes.Email));
                         Assert.Equal(
-                            context.SecurityStamp,
+                            fixture.NewSecurityStamp,
                             principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
-                        Assert.Equal(context.Email, principal.Identity.Name);
+                        Assert.Equal(fixture.User.Email, principal.Identity.Name);
                     })
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            await context.ChangePassword();
+            await fixture.ChangePassword();
 
-            context.MockAuthenticationService.Verify();
+            fixture.MockAuthenticationService.Verify();
         }
 
         [Fact]
         public async Task ChangePasswordReturnsTrue()
         {
-            var context = new ChangePasswordContext();
+            var fixture = ChangePasswordFixture.ForSuccess();
 
-            context.SetupVerifyHashedPassword(PasswordVerificationResult.Success);
+            Assert.True(await fixture.ChangePassword());
+        }
 
-            Assert.True(await context.ChangePassword());
+        private class ChangePasswordFixture : AuthenticationManagerFixture
+        {
+            private const string CurrentPassword = "current-password";
+            private const string HashedCurrentPassword = "hashed-current-password";
+
+            private ChangePasswordFixture(string hashedPassword)
+            {
+                this.User = new()
+                {
+                    Id = 43,
+                    Email = "user@example.com",
+                    HashedPassword = hashedPassword,
+                };
+
+                this.HttpContext.SetCurrentUser(this.User);
+
+                this.MockPasswordHasher
+                    .Setup(x => x.HashPassword(null, this.NewPassword))
+                    .Returns(this.HashedNewPassword);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(2))
+                    .Returns(this.NewSecurityStamp);
+            }
+
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public User User { get; }
+
+            public string NewPassword { get; } = "new-password";
+
+            public string HashedNewPassword { get; } = "hashed-new-password";
+
+            public string NewSecurityStamp { get; } = "new-security-stamp";
+
+            public static ChangePasswordFixture ForUserHasNoPassword() => new(null);
+
+            public static ChangePasswordFixture ForPasswordDoesNotMatch() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Failed);
+
+            public static ChangePasswordFixture ForSuccess() =>
+                ForPasswordVerificationResult(PasswordVerificationResult.Success);
+
+            public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
+                this.HttpContext, CurrentPassword, this.NewPassword);
+
+            private static ChangePasswordFixture ForPasswordVerificationResult(
+                PasswordVerificationResult result)
+            {
+                var fixture = new ChangePasswordFixture(HashedCurrentPassword);
+
+                fixture.MockPasswordHasher
+                    .Setup(x => x.VerifyHashedPassword(
+                        fixture.User, HashedCurrentPassword, CurrentPassword))
+                    .Returns(result);
+
+                return fixture;
+            }
         }
 
         #endregion
@@ -297,27 +361,25 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
         {
-            var context = new PasswordResetTokenIsValidContext();
+            var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
-            await context.PasswordResetTokenIsValid();
+            await fixture.PasswordResetTokenIsValid();
 
-            context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(context.DbConnection, context.UtcNow.AddDays(-1)));
+            fixture.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteExpiredTokens(fixture.DbConnection, fixture.UtcNow.AddDays(-1)));
         }
 
         [Fact]
         public async Task PasswordResetTokenIsValidDoesNotLogEventIfValid()
         {
-            var context = new PasswordResetTokenIsValidContext();
+            var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
-            context.SetupValidToken();
+            await fixture.PasswordResetTokenIsValid();
 
-            await context.PasswordResetTokenIsValid();
-
-            context.MockAuthenticationEventDataProvider.Verify(
+            fixture.MockAuthenticationEventDataProvider.Verify(
                 x => x.LogEvent(
-                    context.DbConnection,
-                    context.UtcNow,
+                    fixture.DbConnection,
+                    fixture.UtcNow,
                     "password_reset_failure:invalid_token",
                     null,
                     null),
@@ -327,35 +389,44 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
         {
-            var context = new PasswordResetTokenIsValidContext();
+            var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
-            context.SetupValidToken();
-
-            Assert.True(await context.PasswordResetTokenIsValid());
+            Assert.True(await fixture.PasswordResetTokenIsValid());
         }
 
         [Fact]
         public async Task PasswordResetTokenIsValidLogsEventIfInvalid()
         {
-            var context = new PasswordResetTokenIsValidContext();
+            var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
 
-            context.SetupInvalidToken();
+            await fixture.PasswordResetTokenIsValid();
 
-            await context.PasswordResetTokenIsValid();
-
-            context.VerifyEventLogged("password_reset_failure:invalid_token");
+            fixture.VerifyEventLogged("password_reset_failure:invalid_token");
         }
 
         [Fact]
         public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
         {
-            var context = new PasswordResetTokenIsValidContext();
+            var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
 
-            context.SetupInvalidToken();
+            await fixture.PasswordResetTokenIsValid();
 
-            await context.PasswordResetTokenIsValid();
+            Assert.False(await fixture.PasswordResetTokenIsValid());
+        }
 
-            Assert.False(await context.PasswordResetTokenIsValid());
+        private class PasswordResetTokenIsValidFixture : AuthenticationManagerFixture
+        {
+            private const string Token = "password-reset-token";
+
+            private PasswordResetTokenIsValidFixture(long? userId) =>
+                this.SetupGetUserIdForToken(Token, userId);
+
+            public static PasswordResetTokenIsValidFixture ForValidToken() => new(43);
+
+            public static PasswordResetTokenIsValidFixture ForInvalidToken() => new(null);
+
+            public Task<bool> PasswordResetTokenIsValid() =>
+                this.AuthenticationManager.PasswordResetTokenIsValid(Token);
         }
 
         #endregion
@@ -365,117 +436,138 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.ResetPassword();
 
-            await context.ResetPassword();
-
-            context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(context.DbConnection, context.UtcNow.AddDays(-1)));
+            fixture.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteExpiredTokens(fixture.DbConnection, fixture.UtcNow.AddDays(-1)));
         }
 
         [Fact]
         public async Task ResetPasswordLogsEventIfTokenIsInvalid()
         {
-            var context = new ResetPasswordContext();
-
-            context.SetupInvalidToken();
+            var fixture = ResetPasswordFixture.ForInvalidToken();
 
             try
             {
-                await context.ResetPassword();
+                await fixture.ResetPassword();
             }
             catch (InvalidTokenException)
             {
             }
 
-            context.VerifyEventLogged("password_reset_failure:invalid_token");
+            fixture.VerifyEventLogged("password_reset_failure:invalid_token");
         }
 
         [Fact]
         public async Task ResetPasswordThrowsIfTokenIsInvalid()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForInvalidToken();
 
-            context.SetupInvalidToken();
-
-            await Assert.ThrowsAsync<InvalidTokenException>(context.ResetPassword);
+            await Assert.ThrowsAsync<InvalidTokenException>(fixture.ResetPassword);
         }
 
         [Fact]
         public async Task ResetPasswordUpdatesUserOnSuccess()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.ResetPassword();
 
-            context.MockPasswordHasher
-                .Setup(x => x.HashPassword(null, context.NewPassword))
-                .Returns("sample-hashed-password");
-
-            context.MockRandomTokenGenerator
-                .Setup(x => x.Generate(2))
-                .Returns("sample-security-stamp");
-
-            await context.ResetPassword();
-
-            context.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                context.DbConnection,
-                context.UserId.Value,
-                "sample-hashed-password",
-                "sample-security-stamp",
-                context.UtcNow));
+            fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
+                fixture.DbConnection,
+                fixture.UserId.Value,
+                fixture.NewHashedPassword,
+                fixture.NewSecurityStamp,
+                fixture.UtcNow));
         }
 
         [Fact]
         public async Task ResetPasswordDeletesPasswordResetTokensOnSuccess()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.ResetPassword();
 
-            await context.ResetPassword();
-
-            context.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(context.DbConnection, context.UserId.Value));
+            fixture.MockPasswordResetTokenDataProvider.Verify(
+                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.UserId.Value));
         }
 
         [Fact]
         public async Task ResetPasswordSendsPasswordChangeNotificationOnSuccess()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.ResetPassword();
 
-            await context.ResetPassword();
-
-            context.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordChangeNotification(context.Email));
+            fixture.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordChangeNotification(fixture.User.Email));
         }
 
         [Fact]
         public async Task ResetPasswordLogsEventOnSuccess()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.ResetPassword();
 
-            await context.ResetPassword();
-
-            context.VerifyEventLogged("password_reset_success", context.UserId);
+            fixture.VerifyEventLogged("password_reset_success", fixture.UserId);
         }
 
         [Fact]
         public async Task ResetPasswordReturnsUserOnSuccess()
         {
-            var context = new ResetPasswordContext();
+            var fixture = ResetPasswordFixture.ForSuccess();
 
-            context.SetupSuccess();
+            var actual = await fixture.ResetPassword();
 
-            var actual = await context.ResetPassword();
+            Assert.Equal(fixture.User, actual);
+        }
 
-            Assert.Equal(context.User, actual);
+        private class ResetPasswordFixture : AuthenticationManagerFixture
+        {
+            private const string NewPassword = "new-password";
+
+            private ResetPasswordFixture(long? userId)
+            {
+                this.UserId = userId;
+                this.SetupGetUserIdForToken(this.Token, userId);
+            }
+
+            private ResetPasswordFixture(long userId, User user)
+                : this(userId)
+            {
+                this.User = user;
+
+                this.SetupGetUser(userId, user);
+
+                this.MockPasswordHasher
+                    .Setup(x => x.HashPassword(null, NewPassword))
+                    .Returns(this.NewHashedPassword);
+
+                this.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(2))
+                    .Returns(this.NewSecurityStamp);
+            }
+
+            public string Token { get; } = "password-reset-token";
+
+            public long? UserId { get; }
+
+            public User User { get; }
+
+            public string NewHashedPassword { get; } = "new-hashed-password";
+
+            public string NewSecurityStamp { get; } = "new-security-stamp";
+
+            public static ResetPasswordFixture ForInvalidToken() => new(null);
+
+            public static ResetPasswordFixture ForSuccess() =>
+                new(23, new() { Email = "user@example.com" });
+
+            public Task<User> ResetPassword() =>
+                this.AuthenticationManager.ResetPassword(this.Token, NewPassword);
         }
 
         #endregion
@@ -485,66 +577,109 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SendPasswordResetLinkInsertsPasswordResetTokenOnSuccess()
         {
-            var context = new SendPasswordResetLinkContext();
+            var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.SendPasswordResetLink();
 
-            await context.SendPasswordResetLink();
-
-            context.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-                context.DbConnection, context.User.Id, context.Token, context.UtcNow));
+            fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
+                fixture.DbConnection, fixture.User.Id, fixture.Token, fixture.UtcNow));
         }
 
         [Fact]
         public async Task SendPasswordResetLinkSendsLinkToUserOnSuccess()
         {
-            var context = new SendPasswordResetLinkContext();
+            var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.SendPasswordResetLink();
 
-            await context.SendPasswordResetLink();
-
-            context.MockAuthenticationMailer.Verify(
-                x => x.SendPasswordResetLink(context.User.Email, context.Link));
+            fixture.MockAuthenticationMailer.Verify(
+                x => x.SendPasswordResetLink(fixture.User.Email, fixture.Link));
         }
 
         [Fact]
         public async Task SendPasswordResetLinkLogsEventOnSuccess()
         {
-            var context = new SendPasswordResetLinkContext();
+            var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
-            context.SetupSuccess();
+            await fixture.SendPasswordResetLink();
 
-            await context.SendPasswordResetLink();
-
-            context.VerifyEventLogged(
-                "password_reset_link_sent", context.UserId, context.User.Email);
+            fixture.VerifyEventLogged(
+                "password_reset_link_sent", fixture.User.Id, fixture.User.Email);
         }
 
         [Fact]
         public async Task SendPasswordResetLinkDoesNotSendLinkIfEmailIsUnrecognized()
         {
-            var context = new SendPasswordResetLinkContext();
+            var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
-            context.SetupUnrecognizedEmail();
+            await fixture.SendPasswordResetLink();
 
-            await context.SendPasswordResetLink();
-
-            context.MockAuthenticationMailer.Verify(
+            fixture.MockAuthenticationMailer.Verify(
                 x => x.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
         public async Task SendPasswordResetLinkLogsEventIfEmailIsUnrecognized()
         {
-            var context = new SendPasswordResetLinkContext();
+            var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
-            context.SetupUnrecognizedEmail();
+            await fixture.SendPasswordResetLink();
 
-            await context.SendPasswordResetLink();
+            fixture.VerifyEventLogged(
+                "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
+        }
 
-            context.VerifyEventLogged(
-                "password_reset_failure:unrecognized_email", null, context.Email);
+        private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
+        {
+            private SendPasswordResetLinkFixture(User user)
+            {
+                this.User = user;
+
+                this.MockUrlHelperFactory
+                    .Setup(x => x.GetUrlHelper(this.ActionContext))
+                    .Returns(this.MockUrlHelper.Object);
+
+                this.MockUserDataProvider
+                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.SuppliedEmail))
+                    .ReturnsAsync(user);
+            }
+
+            public Mock<IUrlHelper> MockUrlHelper { get; } = new();
+
+            public ActionContext ActionContext { get; } = new();
+
+            public string SuppliedEmail { get; } = "supplied-email@example.com";
+
+            public User User { get; }
+
+            public string Token { get; } = "password-reset-token";
+
+            public string Link { get; } = "https://example.com/reset-password/token";
+
+            public static SendPasswordResetLinkFixture ForSuccess()
+            {
+                var fixture = new SendPasswordResetLinkFixture(
+                    new() { Id = 31, Email = "user-email@example.com" });
+
+                fixture.MockRandomTokenGenerator
+                    .Setup(x => x.Generate(12))
+                    .Returns(fixture.Token);
+
+                fixture.MockUrlHelper
+                    .Setup(x => x.Link(
+                        "ResetPassword",
+                        It.Is<object>(
+                            o => fixture.Token.Equals(new RouteValueDictionary(o)["token"]))))
+                    .Returns(fixture.Link);
+
+                return fixture;
+            }
+
+            public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
+
+            public Task SendPasswordResetLink() =>
+                this.AuthenticationManager.SendPasswordResetLink(
+                    this.ActionContext, this.SuppliedEmail);
         }
 
         #endregion
@@ -554,11 +689,11 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignInSignsInPrincipal()
         {
-            var context = new SignInContext();
+            var fixture = new SignInFixture();
 
-            context.MockAuthenticationService
+            fixture.MockAuthenticationService
                 .Setup(x => x.SignInAsync(
-                    context.HttpContext,
+                    fixture.HttpContext,
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     It.IsAny<ClaimsPrincipal>(),
                     null))
@@ -566,43 +701,65 @@ namespace Buttercup.Web.Authentication
                     (contextArg, scheme, principal, properties) =>
                     {
                         Assert.Equal(
-                            context.UserId.ToString(CultureInfo.InvariantCulture),
+                            fixture.UserId.ToString(CultureInfo.InvariantCulture),
                             principal.FindFirstValue(ClaimTypes.NameIdentifier));
                         Assert.Equal(
-                            context.Email,
+                            fixture.Email,
                             principal.FindFirstValue(ClaimTypes.Email));
                         Assert.Equal(
-                            context.SecurityStamp,
+                            fixture.SecurityStamp,
                             principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
-                        Assert.Equal(context.Email, principal.Identity.Name);
+                        Assert.Equal(fixture.Email, principal.Identity.Name);
                     })
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            await context.SignIn();
+            await fixture.SignIn();
 
-            context.MockAuthenticationService.Verify();
+            fixture.MockAuthenticationService.Verify();
         }
 
         [Fact]
         public async Task SignInSetsCurrentUser()
         {
-            var context = new SignInContext();
+            var fixture = new SignInFixture();
 
-            await context.SignIn();
+            await fixture.SignIn();
 
-            Assert.Equal(context.User, context.HttpContext.GetCurrentUser());
+            Assert.Equal(fixture.User, fixture.HttpContext.GetCurrentUser());
         }
 
         [Fact]
         public async Task SignInLogsEvent()
         {
-            var context = new SignInContext();
+            var fixture = new SignInFixture();
 
-            await context.SignIn();
+            await fixture.SignIn();
 
-            context.VerifyEventLogged("sign_in", context.UserId);
+            fixture.VerifyEventLogged("sign_in", fixture.UserId);
+        }
+
+        private class SignInFixture : AuthenticationManagerFixture
+        {
+            public SignInFixture() => this.User = new()
+            {
+                Id = this.UserId,
+                Email = this.Email,
+                SecurityStamp = this.SecurityStamp,
+            };
+
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public User User { get; }
+
+            public long UserId { get; } = 6;
+
+            public string Email { get; } = "sample@example.com";
+
+            public string SecurityStamp { get; } = "sample-security-stamp";
+
+            public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
         }
 
         #endregion
@@ -612,36 +769,59 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task SignOutSignsOutUser()
         {
-            var context = new SignOutContext();
+            var fixture = SignOutFixture.ForUserSignedIn();
 
-            await context.SignOut();
+            await fixture.SignOut();
 
-            context.MockAuthenticationService.Verify(x => x.SignOutAsync(
-                context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
+            fixture.MockAuthenticationService.Verify(x => x.SignOutAsync(
+                fixture.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
         }
 
         [Fact]
         public async Task SignOutLogsEventIfUserPreviouslySignedIn()
         {
-            var context = new SignOutContext();
+            var fixture = SignOutFixture.ForUserSignedIn();
 
-            context.SetupUserSignedIn();
+            await fixture.SignOut();
 
-            await context.SignOut();
-
-            context.VerifyEventLogged("sign_out", context.UserId);
+            fixture.VerifyEventLogged("sign_out", fixture.UserId);
         }
 
         [Fact]
         public async Task SignOutDoesNotLogsEventIfUserPreviouslySignedOut()
         {
-            var context = new SignOutContext();
+            var fixture = SignOutFixture.ForNoUserSignedIn();
 
-            await context.SignOut();
+            await fixture.SignOut();
 
-            context.MockAuthenticationEventDataProvider.Verify(
-                x => x.LogEvent(context.DbConnection, context.UtcNow, "sign_out", null, null),
+            fixture.MockAuthenticationEventDataProvider.Verify(
+                x => x.LogEvent(fixture.DbConnection, fixture.UtcNow, "sign_out", null, null),
                 Times.Never);
+        }
+
+        private class SignOutFixture : AuthenticationManagerFixture
+        {
+            private SignOutFixture(long? userId) => this.UserId = userId;
+
+            public DefaultHttpContext HttpContext { get; } = new();
+
+            public long? UserId { get; }
+
+            public static SignOutFixture ForNoUserSignedIn() => new(null);
+
+            public static SignOutFixture ForUserSignedIn()
+            {
+                var fixture = new SignOutFixture(76);
+
+                fixture.HttpContext.User = new ClaimsPrincipal(
+                    new ClaimsIdentity(
+                        new[] { new Claim(ClaimTypes.NameIdentifier, "76") },
+                        CookieAuthenticationDefaults.AuthenticationScheme));
+
+                return fixture;
+            }
+
+            public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
         }
 
         #endregion
@@ -651,89 +831,127 @@ namespace Buttercup.Web.Authentication
         [Fact]
         public async Task ValidatePrincipalDoesNotRejectPrincipalWhenUnauthenticated()
         {
-            var context = new ValidatePrincipalContext();
+            var fixture = ValidatePrincipalFixture.ForUnauthenticated();
 
-            context.SetupUnauthenticated();
+            await fixture.ValidatePrincipal();
 
-            await context.ValidatePrincipal();
-
-            Assert.Same(context.Principal, context.CookieContext.Principal);
+            Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
         }
 
         [Fact]
         public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
         {
-            var context = new ValidatePrincipalContext();
+            var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
-            context.SetupCorrectStamp();
+            await fixture.ValidatePrincipal();
 
-            await context.ValidatePrincipal();
-
-            Assert.Equal(context.User, context.HttpContext.GetCurrentUser());
+            Assert.Equal(fixture.User, fixture.CookieContext.HttpContext.GetCurrentUser());
         }
 
         [Fact]
         public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
         {
-            var context = new ValidatePrincipalContext();
+            var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
-            context.SetupCorrectStamp();
+            await fixture.ValidatePrincipal();
 
-            await context.ValidatePrincipal();
-
-            Assert.Same(context.Principal, context.CookieContext.Principal);
+            Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
         }
 
         [Fact]
         public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
         {
-            var context = new ValidatePrincipalContext();
+            var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
-            context.SetupIncorrectStamp();
+            await fixture.ValidatePrincipal();
 
-            await context.ValidatePrincipal();
-
-            Assert.Null(context.CookieContext.Principal);
+            Assert.Null(fixture.CookieContext.Principal);
         }
 
         [Fact]
         public async Task ValidatePrincipalSignsUserOutWhenStampIsIncorrect()
         {
-            var context = new ValidatePrincipalContext();
+            var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
-            context.SetupIncorrectStamp();
+            await fixture.ValidatePrincipal();
 
-            await context.ValidatePrincipal();
-
-            context.MockAuthenticationService.Verify(
+            fixture.MockAuthenticationService.Verify(
                 x => x.SignOutAsync(
-                    context.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
+                    fixture.CookieContext.HttpContext,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null));
+        }
+
+        private class ValidatePrincipalFixture : AuthenticationManagerFixture
+        {
+            private const string UserSecurityStamp = "user-security-stamp";
+
+            private ValidatePrincipalFixture(params Claim[] claims)
+            {
+                this.InitialPrincipal = new(new ClaimsIdentity(claims));
+
+                var scheme = new AuthenticationScheme(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null,
+                    typeof(CookieAuthenticationHandler));
+                var ticket = new AuthenticationTicket(
+                    this.InitialPrincipal,
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+
+                this.CookieContext = new(new DefaultHttpContext(), scheme, new(), ticket);
+            }
+
+            public ClaimsPrincipal InitialPrincipal { get; }
+
+            public CookieValidatePrincipalContext CookieContext { get; }
+
+            public User User { get; } = new() { SecurityStamp = UserSecurityStamp };
+
+            public static ValidatePrincipalFixture ForUnauthenticated() => new();
+
+            public static ValidatePrincipalFixture ForCorrectStamp() =>
+                ForAuthenticated(UserSecurityStamp);
+
+            public static ValidatePrincipalFixture ForIncorrectStamp() =>
+                ForAuthenticated("stale-security-stamp");
+
+            public Task ValidatePrincipal() =>
+                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
+
+            private static ValidatePrincipalFixture ForAuthenticated(string principalSecurityStamp)
+            {
+                var fixture = new ValidatePrincipalFixture(
+                    new(ClaimTypes.NameIdentifier, "34"),
+                    new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
+
+                fixture.SetupGetUser(34, fixture.User);
+
+                return fixture;
+            }
         }
 
         #endregion
 
-        private class Context
+        private class AuthenticationManagerFixture
         {
-            public Context()
+            public AuthenticationManagerFixture()
             {
+                var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
+                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
+
                 this.AuthenticationManager = new(
                     this.MockAuthenticationEventDataProvider.Object,
                     this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
-                    this.MockClock.Object,
-                    this.MockDbConnectionSource.Object,
-                    this.MockLogger.Object,
+                    clock,
+                    dbConnectionSource,
+                    Mock.Of<ILogger<AuthenticationManager>>(),
                     this.MockPasswordHasher.Object,
                     this.MockPasswordResetTokenDataProvider.Object,
                     this.MockRandomTokenGenerator.Object,
                     this.MockUrlHelperFactory.Object,
                     this.MockUserDataProvider.Object);
-
-                this.MockClock.SetupGet(x => x.UtcNow).Returns(this.UtcNow);
-
-                this.MockDbConnectionSource
-                    .Setup(x => x.OpenConnection())
-                    .ReturnsAsync(this.DbConnection);
             }
 
             public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
@@ -745,12 +963,6 @@ namespace Buttercup.Web.Authentication
             public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
 
             public Mock<IAuthenticationService> MockAuthenticationService { get; } = new();
-
-            public Mock<IClock> MockClock { get; } = new();
-
-            public Mock<IDbConnectionSource> MockDbConnectionSource { get; } = new();
-
-            public Mock<ILogger<AuthenticationManager>> MockLogger { get; } = new();
 
             public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
 
@@ -778,287 +990,6 @@ namespace Buttercup.Web.Authentication
                 string eventName, long? userId = null, string email = null) =>
                 this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
                     this.DbConnection, this.UtcNow, eventName, userId, email));
-        }
-
-        private class AuthenticateContext : Context
-        {
-            public AuthenticateContext() =>
-                this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
-                    .ReturnsAsync(() => this.User);
-
-            public string Email { get; } = "sample@example.com";
-
-            public User User { get; private set; }
-
-            public long UserId { get; private set; }
-
-            public void SetupEmailNotFound() => this.User = null;
-
-            public void SetupUserHasNoPassword() => this.User = new()
-            {
-                Id = this.UserId = 29,
-                HashedPassword = null,
-            };
-
-            public void SetupPasswordIncorrect()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId = 45,
-                    HashedPassword = "sample-hashed-password",
-                };
-
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, "sample-hashed-password", "sample-password"))
-                    .Returns(PasswordVerificationResult.Failed);
-            }
-
-            public void SetupSuccess()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId = 52,
-                    HashedPassword = "sample-hashed-password",
-                };
-
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, "sample-hashed-password", "sample-password"))
-                    .Returns(PasswordVerificationResult.Success);
-            }
-
-            public Task<User> Authenticate() =>
-                this.AuthenticationManager.Authenticate("sample@example.com", "sample-password");
-        }
-
-        private class ChangePasswordContext : Context
-        {
-            public ChangePasswordContext()
-            {
-                this.User = new()
-                {
-                    Id = this.UserId,
-                    Email = this.Email,
-                    HashedPassword = this.HashedCurrentPassword,
-                };
-
-                this.HttpContext.SetCurrentUser(this.User);
-
-                this.MockRandomTokenGenerator
-                    .Setup(x => x.Generate(2))
-                    .Returns(this.SecurityStamp);
-            }
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public User User { get; }
-
-            public long UserId { get; } = 43;
-
-            public string Email { get; } = "sample@example.com";
-
-            public string CurrentPassword { get; } = "current-password";
-
-            public string HashedCurrentPassword { get; } = "hashed-current-password";
-
-            public string NewPassword { get; } = "new-password";
-
-            public string HashedNewPassword { get; private set; }
-
-            public string SecurityStamp { get; } = "sample-security-stamp";
-
-            public void SetupVerifyHashedPassword(PasswordVerificationResult result) =>
-                this.MockPasswordHasher
-                    .Setup(x => x.VerifyHashedPassword(
-                        this.User, this.HashedCurrentPassword, this.CurrentPassword))
-                    .Returns(result);
-
-            public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
-                this.HttpContext, this.CurrentPassword, this.NewPassword);
-        }
-
-        private class PasswordResetTokenIsValidContext : Context
-        {
-            public string Token { get; } = "sample-token";
-
-            public void SetupValidToken() => this.SetupGetUserIdForToken(this.Token, 43);
-
-            public void SetupInvalidToken() => this.SetupGetUserIdForToken(this.Token, null);
-
-            public Task<bool> PasswordResetTokenIsValid() =>
-                this.AuthenticationManager.PasswordResetTokenIsValid(this.Token);
-        }
-
-        private class ResetPasswordContext : Context
-        {
-            public string Token { get; } = "sample-token";
-
-            public string NewPassword { get; } = "sample-password";
-
-            public long? UserId { get; private set; }
-
-            public User User { get; private set; }
-
-            public string Email { get; private set; }
-
-            public void SetupInvalidToken() =>
-                this.SetupGetUserIdForToken(this.Token, this.UserId = null);
-
-            public void SetupSuccess()
-            {
-                this.UserId = 23;
-                this.User = new() { Email = this.Email = "user@example.com" };
-
-                this.SetupGetUserIdForToken(this.Token, this.UserId);
-                this.SetupGetUser(this.UserId.Value, this.User);
-            }
-
-            public Task<User> ResetPassword() =>
-                this.AuthenticationManager.ResetPassword(this.Token, this.NewPassword);
-        }
-
-        private class SendPasswordResetLinkContext : Context
-        {
-            public SendPasswordResetLinkContext() =>
-                this.MockUrlHelperFactory
-                    .Setup(x => x.GetUrlHelper(this.ActionContext))
-                    .Returns(this.MockUrlHelper.Object);
-
-            public Mock<IUrlHelper> MockUrlHelper { get; } = new();
-
-            public ActionContext ActionContext { get; } = new();
-
-            public string Email { get; } = "sample@example.com";
-
-            public User User { get; private set; }
-
-            public long UserId { get; private set; }
-
-            public string Token { get; private set; }
-
-            public string Link { get; private set; }
-
-            public void SetupSuccess()
-            {
-                this.User = new() { Id = this.UserId = 31, Email = "sample-x@example.com" };
-
-                this.SetupFindUserByEmail(this.Email, this.User);
-
-                this.MockRandomTokenGenerator
-                    .Setup(x => x.Generate(12))
-                    .Returns(this.Token = "sample-token");
-
-                this.MockUrlHelper
-                    .Setup(x => x.Link(
-                        "ResetPassword",
-                        It.Is<object>(
-                            o => this.Token.Equals(new RouteValueDictionary(o)["token"]))))
-                    .Returns(this.Link = "https://example.com/reset-password/sample-token");
-            }
-
-            public void SetupUnrecognizedEmail() =>
-                this.SetupFindUserByEmail(this.Email, this.User = null);
-
-            public Task SendPasswordResetLink() =>
-                this.AuthenticationManager.SendPasswordResetLink(this.ActionContext, this.Email);
-
-            private void SetupFindUserByEmail(string email, User user) =>
-                this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, email))
-                    .ReturnsAsync(user);
-        }
-
-        private class SignInContext : Context
-        {
-            public SignInContext() => this.User = new()
-            {
-                Id = this.UserId,
-                Email = this.Email,
-                SecurityStamp = this.SecurityStamp,
-            };
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public User User { get; }
-
-            public long UserId { get; } = 6;
-
-            public string Email { get; } = "sample@example.com";
-
-            public string SecurityStamp { get; } = "sample-security-stamp";
-
-            public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
-        }
-
-        private class SignOutContext : Context
-        {
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public long? UserId { get; private set; }
-
-            public void SetupUserSignedIn()
-            {
-                this.UserId = 76;
-
-                var claim = new Claim(
-                    ClaimTypes.NameIdentifier,
-                    this.UserId.Value.ToString(CultureInfo.InvariantCulture));
-
-                var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                   new[] { claim }, CookieAuthenticationDefaults.AuthenticationScheme));
-
-                this.HttpContext.User = principal;
-            }
-
-            public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
-        }
-
-        private class ValidatePrincipalContext : Context
-        {
-            public CookieValidatePrincipalContext CookieContext { get; private set; }
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public ClaimsPrincipal Principal { get; private set; }
-
-            public User User { get; private set; }
-
-            public void SetupUnauthenticated() => this.SetupCookieContext();
-
-            public void SetupCorrectStamp() =>
-                this.SetupAuthenticated("sample-security-stamp", "sample-security-stamp");
-
-            public void SetupIncorrectStamp() =>
-                this.SetupAuthenticated("principal-security-stamp", "user-security-stamp");
-
-            public Task ValidatePrincipal() =>
-                this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
-
-            private void SetupCookieContext(params Claim[] claims)
-            {
-                this.Principal = new(new ClaimsIdentity(claims));
-
-                var scheme = new AuthenticationScheme(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    null,
-                    typeof(CookieAuthenticationHandler));
-                var ticket = new AuthenticationTicket(this.Principal, null);
-
-                this.CookieContext = new(this.HttpContext, scheme, new(), ticket);
-            }
-
-            private void SetupAuthenticated(string principalSecurityStamp, string userSecurityStamp)
-            {
-                this.SetupCookieContext(
-                    new(ClaimTypes.NameIdentifier, "34"),
-                    new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
-
-                this.User = new() { SecurityStamp = userSecurityStamp };
-
-                this.SetupGetUser(34, this.User);
-            }
         }
     }
 }

@@ -17,67 +17,67 @@ namespace Buttercup.Web.TagHelpers
         [Fact]
         public void SuppressesOutputWhenDateTimeIsNull()
         {
-            var context = new Context();
+            var fixture = new UserDateTimeTagHelperFixture();
 
-            context.TagHelper.DateTime = null;
+            fixture.TagHelper.DateTime = null;
 
-            context.Process();
+            fixture.Process();
 
-            Assert.Null(context.Output.TagName);
-            Assert.True(context.Output.Content.IsEmptyOrWhiteSpace);
+            Assert.Null(fixture.Output.TagName);
+            Assert.True(fixture.Output.Content.IsEmptyOrWhiteSpace);
         }
 
         [Fact]
         public void SetsTagNameToSpan()
         {
-            var context = new Context();
+            var fixture = new UserDateTimeTagHelperFixture();
 
-            context.Process();
+            fixture.Process();
 
-            Assert.Equal("span", context.Output.TagName);
+            Assert.Equal("span", fixture.Output.TagName);
         }
 
         [Fact]
         public void SetsContentToFormattedUserDateAndTime()
         {
-            var context = new Context();
+            var fixture = new UserDateTimeTagHelperFixture();
 
-            context.TagHelper.Format = "D";
+            fixture.TagHelper.Format = "D";
 
-            context.Process();
+            fixture.Process();
 
             Assert.Equal(
-                context.UserDateTime.ToString("D", CultureInfo.CurrentCulture),
-                context.Output.Content.GetContent());
+                fixture.UserDateTime.ToString("D", CultureInfo.CurrentCulture),
+                fixture.Output.Content.GetContent());
         }
 
         [Fact]
         public void UsesGeneralDateLongTimeFormatByDefault()
         {
-            var context = new Context();
+            var fixture = new UserDateTimeTagHelperFixture();
 
-            context.TagHelper.Format = null;
+            fixture.TagHelper.Format = null;
 
-            context.Process();
+            fixture.Process();
 
             Assert.Equal(
-                context.UserDateTime.ToString("G", CultureInfo.CurrentCulture),
-                context.Output.Content.GetContent());
+                fixture.UserDateTime.ToString("G", CultureInfo.CurrentCulture),
+                fixture.Output.Content.GetContent());
         }
 
         [Fact]
         public void SetsTitleAttributeToUtcDateTime()
         {
-            var context = new Context();
+            var fixture = new UserDateTimeTagHelperFixture();
 
-            context.Process();
+            fixture.Process();
 
-            Assert.Equal("2001-02-03 21:22:23Z", (string)context.Output.Attributes["Title"].Value);
+            Assert.Equal("2001-02-03 21:22:23Z", (string)fixture.Output.Attributes["Title"].Value);
         }
 
-        private class Context
+        private class UserDateTimeTagHelperFixture
         {
-            public Context()
+            public UserDateTimeTagHelperFixture()
             {
                 var httpContext = new DefaultHttpContext();
 

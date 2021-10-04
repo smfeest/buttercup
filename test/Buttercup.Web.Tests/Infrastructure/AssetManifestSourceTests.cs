@@ -16,56 +16,47 @@ namespace Buttercup.Web.Infrastructure
         [Fact]
         public void ProductionManifestReturnsManifestAsReadOnlyDictionary()
         {
-            var context = new Context();
+            var fixture = new AssetManifestSourceFixture();
 
-            var actual = context.ManifestSource.ProductionManifest;
+            var actual = fixture.ManifestSource.ProductionManifest;
 
             Assert.True(actual.IsReadOnly);
-            Assert.Equal(context.ExpectedManifest, actual);
+            Assert.Equal(fixture.ExpectedManifest, actual);
         }
 
         [Fact]
         public void ProductionManifestCachesResult()
         {
-            var context = new Context();
+            var fixture = new AssetManifestSourceFixture();
 
             Assert.Same(
-                context.ManifestSource.ProductionManifest,
-                context.ManifestSource.ProductionManifest);
-            context.MockManifestReader.Verify(
+                fixture.ManifestSource.ProductionManifest,
+                fixture.ManifestSource.ProductionManifest);
+            fixture.MockManifestReader.Verify(
                 x => x.ReadManifest(It.IsAny<Stream>()), Times.Once());
         }
 
         #endregion
 
-        private class Context
+        private class AssetManifestSourceFixture
         {
-            public Context()
+            public AssetManifestSourceFixture()
             {
-                var stream = new MemoryStream();
-
-                var mockFileInfo = new Mock<IFileInfo>();
-                mockFileInfo.Setup(x => x.CreateReadStream()).Returns(stream);
-
-                var mockFileProvider = new Mock<IFileProvider>();
                 var path = Path.Combine("prod-assets", "manifest.json");
-                mockFileProvider.Setup(x => x.GetFileInfo(path)).Returns(mockFileInfo.Object);
 
-                var mockHostEnvironment = new Mock<IWebHostEnvironment>();
-                mockHostEnvironment
-                    .SetupGet(x => x.WebRootFileProvider)
-                    .Returns(mockFileProvider.Object);
-
-                var mockLogger = new Mock<ILogger<AssetManifestSource>>();
+                var stream = Mock.Of<Stream>();
+                var fileInfo = Mock.Of<IFileInfo>(x => x.CreateReadStream() == stream);
+                var fileProvider = Mock.Of<IFileProvider>(x => x.GetFileInfo(path) == fileInfo);
+                var hostEnvironment = Mock.Of<IWebHostEnvironment>(
+                    x => x.WebRootFileProvider == fileProvider);
+                var logger = Mock.Of<ILogger<AssetManifestSource>>();
 
                 this.MockManifestReader
                     .Setup(x => x.ReadManifest(stream))
                     .Returns(this.ExpectedManifest);
 
                 this.ManifestSource = new AssetManifestSource(
-                    mockHostEnvironment.Object,
-                    mockLogger.Object,
-                    this.MockManifestReader.Object);
+                    hostEnvironment, logger, this.MockManifestReader.Object);
             }
 
             public IDictionary<string, string> ExpectedManifest { get; } =

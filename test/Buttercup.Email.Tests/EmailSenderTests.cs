@@ -10,88 +10,65 @@ namespace Buttercup.Email
 {
     public class EmailSenderTests
     {
+        private const string FromAddress = "from@example.com";
+        private const string ToAddress = "to@example.com";
+        private const string Subject = "message-subject";
+        private const string Body = "message-body";
+
         #region Send
 
         [Fact]
         public async Task SendSetsFromAddress()
         {
-            var context = new Context(new() { FromAddress = "buttercup@example.com" });
+            var message = await Send();
 
-            await context.EmailSender.Send(
-                "sample.recipient@example.com", "Sample subject", "Sample body");
-
-            Assert.Equal("buttercup@example.com", context.SentMessage.From.Email);
+            Assert.Equal(FromAddress, message.From.Email);
         }
 
         [Fact]
         public async Task SendSetsToAddress()
         {
-            var context = new Context();
+            var message = await Send();
 
-            await context.EmailSender.Send(
-                "sample.recipient@example.com", "Sample subject", "Sample body");
-
-            var personalization = Assert.Single(context.SentMessage.Personalizations);
+            var personalization = Assert.Single(message.Personalizations);
             var to = Assert.Single(personalization.Tos);
-            Assert.Equal("sample.recipient@example.com", to.Email);
+            Assert.Equal(ToAddress, to.Email);
         }
 
         [Fact]
         public async Task SendSetsSubject()
         {
-            var context = new Context();
+            var message = await Send();
 
-            await context.EmailSender.Send(
-                "sample.recipient@example.com", "Sample subject", "Sample body");
-
-            Assert.Equal("Sample subject", context.SentMessage.Subject);
+            Assert.Equal(Subject, message.Subject);
         }
 
         [Fact]
         public async Task SendSetsBody()
         {
-            var context = new Context();
+            var message = await Send();
 
-            await context.EmailSender.Send(
-                "sample.recipient@example.com", "Sample subject", "Sample body");
+            Assert.Equal(Body, message.PlainTextContent);
+        }
 
-            Assert.Equal("Sample body", context.SentMessage.PlainTextContent);
+        private static async Task<SendGridMessage> Send()
+        {
+            var mockClient = new Mock<ISendGridClient>();
+            var clientAccessor = Mock.Of<ISendGridClientAccessor>(x => x.SendGridClient == mockClient.Object);
+            var options = Options.Create(new EmailOptions { FromAddress = FromAddress });
+            var emailSender = new EmailSender(clientAccessor, options);
+
+            SendGridMessage sentMessage = null;
+
+            mockClient
+                .Setup(x => x.SendEmailAsync(It.IsAny<SendGridMessage>(), CancellationToken.None))
+                .Callback<SendGridMessage, CancellationToken>((message, _) => sentMessage = message);
+
+            await emailSender.Send(ToAddress, Subject, Body);
+
+            return sentMessage;
         }
 
         #endregion
-
-        private class Context
-        {
-            public Context(EmailOptions emailOptions = null)
-            {
-                this.EmailSender = new(
-                    new FakeSendGridClientAccessor(this.MockSendGridClient.Object),
-                    Options.Create(emailOptions ?? new()));
-
-                this.MockSendGridClient
-                    .Setup(
-                        x => x.SendEmailAsync(It.IsAny<SendGridMessage>(), CancellationToken.None))
-                    .Returns((SendGridMessage message, CancellationToken cancellationToken) =>
-                    {
-                        this.SentMessage = message;
-
-                        return Task.FromResult<Response>(null);
-                    });
-            }
-
-            public EmailSender EmailSender { get; }
-
-            public Mock<ISendGridClient> MockSendGridClient { get; } = new();
-
-            public SendGridMessage SentMessage { get; private set; }
-        }
-
-        private class FakeSendGridClientAccessor : ISendGridClientAccessor
-        {
-            public FakeSendGridClientAccessor(ISendGridClient sendGridClient) =>
-                this.SendGridClient = sendGridClient;
-
-            public ISendGridClient SendGridClient { get; }
-        }
     }
 }
