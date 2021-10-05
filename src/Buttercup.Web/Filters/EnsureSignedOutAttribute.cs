@@ -3,7 +3,6 @@ using Buttercup.Web.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Net.Http.Headers;
 
 namespace Buttercup.Web.Filters
 {

@@ -1,13 +1,10 @@
 using System.Threading.Tasks;
-using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using Microsoft.Net.Http.Headers;
 
 namespace Buttercup.Web.Controllers
 {

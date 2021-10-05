@@ -1,5 +1,4 @@
 using System;
-using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
 using Xunit;
