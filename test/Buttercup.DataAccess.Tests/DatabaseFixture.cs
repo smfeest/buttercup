@@ -69,38 +69,40 @@ namespace Buttercup.DataAccess
             await action(connection);
         }
 
+        [SuppressMessage(
+            "Microsoft.Security",
+            "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
+            Justification = "Command text does not contain user input")]
+        private static async Task ExecuteCommand(MySqlConnection connection, string commandText)
+        {
+            using var command = connection.CreateCommand();
+
+            command.CommandText = commandText;
+
+            await command.ExecuteNonQueryAsync();
+        }
+
         private string BuildDatabaseConnectionString() =>
             new MySqlConnectionStringBuilder(this.ConnectionString)
             {
                 Database = this.DatabaseName,
             }.ToString();
 
-        [SuppressMessage(
-            "Security",
-            "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
-            Justification = "Command text does not contain user input")]
         private async Task RecreateDatabase()
         {
             using var connection = new MySqlConnection(this.ConnectionString);
 
             await connection.OpenAsync();
 
-            using var textReader = File.OpenText("schema.sql");
+            await ExecuteCommand(
+                connection,
+                $"DROP DATABASE IF EXISTS `{this.DatabaseName}`;CREATE DATABASE `{this.DatabaseName}`");
 
-            var scriptReader = new MySqlScriptReader(textReader);
+            await connection.ChangeDatabaseAsync(this.DatabaseName);
 
-            string? commandText;
+            var commandText = await File.ReadAllTextAsync("schema.sql");
 
-            while ((commandText = await scriptReader.ReadStatement()) != null)
-            {
-                using var command = connection.CreateCommand();
-
-                command.CommandText = commandText.Replace(
-                    "{DatabaseName}",
-                    this.DatabaseName,
-                    StringComparison.OrdinalIgnoreCase);
-                await command.ExecuteNonQueryAsync();
-            }
+            await ExecuteCommand(connection, commandText);
         }
     }
 }
