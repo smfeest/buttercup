@@ -24,6 +24,7 @@ dotnet_diagnostic.CA2007.severity = none # Do not directly await a task
 
 # Code style analysis rules
 dotnet_analyzer_diagnostic.category-Style.severity = warning
+dotnet_diagnostic.IDE0058.severity = none # Remove unnecessary expression value
 
 # StyleCop rules
 dotnet_diagnostic.SA1633.severity = none # FileMustHaveHeader
