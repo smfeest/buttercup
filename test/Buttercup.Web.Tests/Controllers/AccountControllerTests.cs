@@ -108,11 +108,9 @@ namespace Buttercup.Web.Controllers
 
         private class ChangePasswordPostFixture : AccountControllerFixture
         {
-            public ChangePasswordPostFixture()
-            {
+            public ChangePasswordPostFixture() =>
                 this.MockLocalizer.SetupLocalizedString(
                     "Error_WrongPassword", "translated-wrong-password-error");
-            }
 
             public ChangePasswordViewModel Model { get; } = new()
             {

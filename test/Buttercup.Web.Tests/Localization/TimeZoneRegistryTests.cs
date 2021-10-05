@@ -8,11 +8,9 @@ namespace Buttercup.Web.Localization
         #region GetSupportedTimeZones
 
         [Fact]
-        public void GetSupportedTimeZonesReturnsSupportedTimeZones()
-        {
+        public void GetSupportedTimeZonesReturnsSupportedTimeZones() =>
             Assert.Equal(
                 TimeZoneInfo.GetSystemTimeZones(), new TimeZoneRegistry().GetSupportedTimeZones());
-        }
 
         #endregion
 

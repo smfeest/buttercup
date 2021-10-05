@@ -282,12 +282,10 @@ namespace Buttercup.Web.Controllers
                 Password = "sample-password",
             };
 
-            public void SetupAuthenticate(User? user)
-            {
+            public void SetupAuthenticate(User? user) =>
                 this.MockAuthenticationManager
                     .Setup(x => x.Authenticate("sample@example.com", "sample-password"))
                     .ReturnsAsync(user);
-            }
 
             public Task<IActionResult> SignInPost(string? returnUrl = null) =>
                 this.AuthenticationController.SignIn(this.Model, returnUrl);

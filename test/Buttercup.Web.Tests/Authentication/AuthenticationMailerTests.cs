@@ -53,12 +53,10 @@ namespace Buttercup.Web.Authentication
 
         private class AuthenticationMailerFixture
         {
-            public AuthenticationMailerFixture()
-            {
+            public AuthenticationMailerFixture() =>
                 this.AuthenticationMailer = new(
                     this.MockEmailSender.Object,
                     this.MockLocalizer.Object);
-            }
 
             public AuthenticationMailer AuthenticationMailer { get; }
 
