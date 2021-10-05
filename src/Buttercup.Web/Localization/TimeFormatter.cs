@@ -19,14 +19,9 @@ namespace Buttercup.Web.Localization
             var minutes = totalMinutes % 60;
             var hours = (totalMinutes - minutes) / 60;
 
-            if (minutes == 0)
-            {
-                return this.FormatHours(hours);
-            }
-            else
-            {
-                return $"{this.FormatHours(hours)} {this.FormatMinutes(minutes)}";
-            }
+            return minutes == 0 ?
+                this.FormatHours(hours) :
+                $"{this.FormatHours(hours)} {this.FormatMinutes(minutes)}";
         }
 
         private string FormatHours(int hours) =>

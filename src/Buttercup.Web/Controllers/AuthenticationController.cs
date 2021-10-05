@@ -40,15 +40,10 @@ namespace Buttercup.Web.Controllers
 
         [HttpGet("reset-password/{token}", Name = "ResetPassword")]
         [EnsureSignedOut]
-        public async Task<IActionResult> ResetPassword(string token)
-        {
-            if (!await this.authenticationManager.PasswordResetTokenIsValid(token))
-            {
-                return this.View("ResetPasswordInvalidToken");
-            }
-
-            return this.View();
-        }
+        public async Task<IActionResult> ResetPassword(string token) =>
+            await this.authenticationManager.PasswordResetTokenIsValid(token) ?
+                this.View() :
+                this.View("ResetPasswordInvalidToken");
 
         [HttpPost("reset-password/{token}")]
         public async Task<IActionResult> ResetPassword(string token, ResetPasswordViewModel model)
@@ -96,14 +91,9 @@ namespace Buttercup.Web.Controllers
 
             await this.authenticationManager.SignIn(this.HttpContext, user);
 
-            if (this.Url.IsLocalUrl(returnUrl))
-            {
-                return this.Redirect(returnUrl);
-            }
-            else
-            {
-                return this.RedirectToHome();
-            }
+            return this.Url.IsLocalUrl(returnUrl) ?
+                this.Redirect(returnUrl) :
+                this.RedirectToHome();
         }
 
         [HttpGet("sign-out")]
@@ -114,14 +104,9 @@ namespace Buttercup.Web.Controllers
             this.HttpContext.Response.GetTypedHeaders().CacheControl =
                 new() { NoCache = true, NoStore = true };
 
-            if (this.Url.IsLocalUrl(returnUrl))
-            {
-                return this.Redirect(returnUrl);
-            }
-            else
-            {
-                return this.RedirectToHome();
-            }
+            return this.Url.IsLocalUrl(returnUrl) ?
+                this.Redirect(returnUrl) :
+                this.RedirectToHome();
         }
 
         private RedirectToActionResult RedirectToHome() =>

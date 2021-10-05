@@ -17,17 +17,8 @@ namespace Buttercup.Web.Authentication
         /// <returns>
         /// The current user.
         /// </returns>
-        public static User? GetCurrentUser(this HttpContext httpContext)
-        {
-            if (httpContext.Items.TryGetValue(typeof(User), out var user))
-            {
-                return (User?)user;
-            }
-            else
-            {
-                return null;
-            }
-        }
+        public static User? GetCurrentUser(this HttpContext httpContext) =>
+            httpContext.Items.TryGetValue(typeof(User), out var user) ? (User?)user : null;
 
         /// <summary>
         /// Sets the current user for a request.

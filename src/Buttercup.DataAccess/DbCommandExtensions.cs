@@ -60,14 +60,7 @@ namespace Buttercup.DataAccess
         public static DbParameter AddParameterWithStringValue(
             this DbCommand command, string name, string? value)
         {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                value = null;
-            }
-            else
-            {
-                value = value.Trim();
-            }
+            value = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
             return command.AddParameterWithValue(name, value);
         }
@@ -96,12 +89,7 @@ namespace Buttercup.DataAccess
         {
             var rawValue = await command.ExecuteScalarAsync();
 
-            if (rawValue == null || Convert.IsDBNull(rawValue))
-            {
-                return default;
-            }
-
-            return (T)rawValue;
+            return rawValue == null || Convert.IsDBNull(rawValue) ? default : (T)rawValue;
         }
     }
 }

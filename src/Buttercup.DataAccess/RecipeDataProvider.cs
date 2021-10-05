@@ -55,12 +55,9 @@ namespace Buttercup.DataAccess
 
             using var reader = await command.ExecuteReaderAsync();
 
-            if (!await reader.ReadAsync())
-            {
+            return await reader.ReadAsync() ?
+                ReadRecipe(reader) :
                 throw new NotFoundException($"Recipe {id} not found");
-            }
-
-            return ReadRecipe(reader);
         }
 
         /// <inheritdoc />
@@ -132,15 +129,10 @@ namespace Buttercup.DataAccess
 
             var currentRevision = await command.ExecuteScalarAsync();
 
-            if (currentRevision == null)
-            {
-                return new NotFoundException($"Recipe {id} not found");
-            }
-            else
-            {
-                return new ConcurrencyException(
+            return currentRevision == null ?
+                new NotFoundException($"Recipe {id} not found") :
+                new ConcurrencyException(
                     $"Revision {revision} does not match current revision {currentRevision}");
-            }
         }
 
         [SuppressMessage(

@@ -363,12 +363,7 @@ namespace Buttercup.Web.Authentication
         {
             var claimValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (claimValue == null)
-            {
-                return null;
-            }
-
-            return long.Parse(claimValue, CultureInfo.InvariantCulture);
+            return claimValue == null ? null : long.Parse(claimValue, CultureInfo.InvariantCulture);
         }
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";

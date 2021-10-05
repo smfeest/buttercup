@@ -39,12 +39,9 @@ namespace Buttercup.Web.Localization
 
             var utc = new DateTimeOffset(dateTime);
 
-            if (user == null)
-            {
-                return utc;
-            }
-
-            return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone!);
+            return user == null ?
+                utc :
+                TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone!);
         }
     }
 }
