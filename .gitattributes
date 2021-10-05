@@ -13,3 +13,4 @@
 *.sql eol=lf
 *.svg eol=lf
 *.ts eol=lf
+*.yml eol=lf
