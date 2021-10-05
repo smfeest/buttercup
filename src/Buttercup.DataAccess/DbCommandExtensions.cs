@@ -98,7 +98,7 @@ namespace Buttercup.DataAccess
 
             if (rawValue == null || Convert.IsDBNull(rawValue))
             {
-                return default(T);
+                return default;
             }
 
             return (T)rawValue;

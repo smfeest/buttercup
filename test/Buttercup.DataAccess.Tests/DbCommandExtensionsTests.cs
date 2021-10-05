@@ -151,7 +151,7 @@ namespace Buttercup.DataAccess
         {
             var command = MockCommandWithScalarResult(null);
 
-            Assert.Equal(default(DateTime), await command.ExecuteScalarAsync<DateTime>());
+            Assert.Equal(default, await command.ExecuteScalarAsync<DateTime>());
             Assert.Null(await command.ExecuteScalarAsync<DateTime?>());
             Assert.Null(await command.ExecuteScalarAsync<string>());
         }

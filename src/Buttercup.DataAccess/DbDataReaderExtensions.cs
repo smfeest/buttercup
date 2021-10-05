@@ -178,7 +178,7 @@ namespace Buttercup.DataAccess
 
             if (canBeNull && reader.IsDBNull(ordinal))
             {
-                return default(T);
+                return default;
             }
 
             return readValue(ordinal);
