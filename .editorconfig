@@ -22,6 +22,9 @@ csharp_style_var_when_type_is_apparent = true
 dotnet_diagnostic.CA1062.severity = none # Validate arguments of public methods
 dotnet_diagnostic.CA2007.severity = none # Do not directly await a task
 
+# Code style analysis rules
+dotnet_analyzer_diagnostic.category-Style.severity = warning
+
 # StyleCop rules
 dotnet_diagnostic.SA1633.severity = none # FileMustHaveHeader
 
