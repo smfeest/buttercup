@@ -19,7 +19,7 @@ namespace Buttercup.Web.Authentication
         /// </returns>
         public static User? GetCurrentUser(this HttpContext httpContext)
         {
-            if (httpContext.Items.TryGetValue(typeof(User), out object? user))
+            if (httpContext.Items.TryGetValue(typeof(User), out var user))
             {
                 return (User?)user;
             }
