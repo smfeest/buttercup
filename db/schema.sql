@@ -1,5 +1,5 @@
 DROP DATABASE IF EXISTS `{DatabaseName}`;
-CREATE DATABASE `{DatabaseName}` DEFAULT CHARACTER SET utf8;
+CREATE DATABASE `{DatabaseName}`;
 USE `{DatabaseName}`;
 
 CREATE TABLE authentication_event (
