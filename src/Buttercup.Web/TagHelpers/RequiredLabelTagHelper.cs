@@ -45,9 +45,7 @@ namespace Buttercup.Web.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            if (this.ShowRequiredLabel.HasValue ?
-                this.ShowRequiredLabel.Value :
-                this.For!.Metadata.IsRequired)
+            if (this.ShowRequiredLabel ?? this.For!.Metadata.IsRequired)
             {
                 var span = new TagBuilder("span");
                 span.AddCssClass("form-field__required-label");
