@@ -1,7 +1,3 @@
-DROP DATABASE IF EXISTS `{DatabaseName}`;
-CREATE DATABASE `{DatabaseName}`;
-USE `{DatabaseName}`;
-
 CREATE TABLE authentication_event (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   time DATETIME NOT NULL,

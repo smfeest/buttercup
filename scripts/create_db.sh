@@ -11,4 +11,6 @@
 script_path="`dirname \"$0\"`"
 database_name=$1
 shift
-sed "s/{DatabaseName}/$database_name/g" $script_path/../db/schema.sql | mysql "$@"
+
+mysql "$@" -e "DROP DATABASE IF EXISTS \`$database_name\`;CREATE DATABASE \`$database_name\`;"
+mysql "$@" $database_name < $script_path/../db/schema.sql | mysql "$@"
