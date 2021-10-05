@@ -260,7 +260,7 @@ namespace Buttercup.Web.Authentication
                 connection, user.Id, token, this.clock.UtcNow);
 
             var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
-            var link = urlHelper.Link("ResetPassword", new { token = token })!;
+            var link = urlHelper.Link("ResetPassword", new { token })!;
 
             try
             {
@@ -363,12 +363,7 @@ namespace Buttercup.Web.Authentication
         {
             var claimValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (claimValue == null)
-            {
-                return null;
-            }
-
-            return long.Parse(claimValue, CultureInfo.InvariantCulture);
+            return claimValue == null ? null : long.Parse(claimValue, CultureInfo.InvariantCulture);
         }
 
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";

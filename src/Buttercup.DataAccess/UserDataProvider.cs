@@ -20,12 +20,7 @@ namespace Buttercup.DataAccess
 
             using var reader = await command.ExecuteReaderAsync();
 
-            if (!await reader.ReadAsync())
-            {
-                return null;
-            }
-
-            return ReadUser(reader);
+            return await reader.ReadAsync() ? ReadUser(reader) : null;
         }
 
         /// <inheritdoc />
@@ -38,12 +33,7 @@ namespace Buttercup.DataAccess
 
             using var reader = await command.ExecuteReaderAsync();
 
-            if (!await reader.ReadAsync())
-            {
-                throw UserNotFound(id);
-            }
-
-            return ReadUser(reader);
+            return await reader.ReadAsync() ? ReadUser(reader) : throw UserNotFound(id);
         }
 
         /// <inheritdoc />

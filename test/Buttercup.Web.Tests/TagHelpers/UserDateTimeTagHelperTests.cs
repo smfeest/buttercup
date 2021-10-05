@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Xunit;
 

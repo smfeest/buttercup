@@ -1,5 +1,3 @@
-using System;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Web.Authentication;
@@ -68,7 +66,7 @@ namespace Buttercup.Web.Controllers
                 id = await this.recipeDataProvider.AddRecipe(connection, recipe);
             }
 
-            return this.RedirectToAction(nameof(this.Show), new { id = id });
+            return this.RedirectToAction(nameof(this.Show), new { id });
         }
 
         [HttpGet("{id}/edit")]
@@ -99,7 +97,7 @@ namespace Buttercup.Web.Controllers
                 await this.recipeDataProvider.UpdateRecipe(connection, recipe);
             }
 
-            return this.RedirectToAction(nameof(this.Show), new { id = id });
+            return this.RedirectToAction(nameof(this.Show), new { id });
         }
 
         [HttpGet("{id}/delete")]

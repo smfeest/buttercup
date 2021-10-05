@@ -1,5 +1,4 @@
 using System;
-using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -41,11 +40,9 @@ namespace Buttercup.Web.Localization
         [Theory]
         [InlineData(DateTimeKind.Local)]
         [InlineData(DateTimeKind.Unspecified)]
-        public void ToUserTimeThrowsWhenDateTimeKindIsNotUtc(DateTimeKind kind)
-        {
+        public void ToUserTimeThrowsWhenDateTimeKindIsNotUtc(DateTimeKind kind) =>
             Assert.Throws<ArgumentException>(
                 () => new DefaultHttpContext().ToUserTime(new(0, kind)));
-        }
 
         #endregion
     }

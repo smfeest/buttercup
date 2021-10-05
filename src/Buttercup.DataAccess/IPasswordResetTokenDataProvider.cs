@@ -1,7 +1,6 @@
 using System;
 using System.Data.Common;
 using System.Threading.Tasks;
-using Buttercup.Models;
 
 namespace Buttercup.DataAccess
 {

@@ -176,12 +176,7 @@ namespace Buttercup.DataAccess
         {
             var ordinal = reader.GetOrdinal(columnName);
 
-            if (canBeNull && reader.IsDBNull(ordinal))
-            {
-                return default(T);
-            }
-
-            return readValue(ordinal);
+            return canBeNull && reader.IsDBNull(ordinal) ? default : readValue(ordinal);
         }
     }
 }

@@ -8,9 +8,6 @@ namespace Buttercup
     public class Clock : IClock
     {
         /// <inheritdoc />
-        public DateTime UtcNow
-        {
-            get => DateTime.UtcNow;
-        }
+        public DateTime UtcNow => DateTime.UtcNow;
     }
 }

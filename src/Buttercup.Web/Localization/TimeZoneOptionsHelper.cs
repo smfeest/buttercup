@@ -39,12 +39,7 @@ namespace Buttercup.Web.Localization
         {
             var result = x.CurrentOffset.CompareTo(y.CurrentOffset);
 
-            if (result != 0)
-            {
-                return result;
-            }
-
-            return StringComparer.CurrentCulture.Compare(x.City, y.City);
+            return result != 0 ? result : StringComparer.CurrentCulture.Compare(x.City, y.City);
         }
 
         private TimeZoneOption OptionForTimeZone(TimeZoneInfo timeZone)

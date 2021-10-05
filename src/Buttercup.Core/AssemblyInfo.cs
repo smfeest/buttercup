@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Buttercup.Core.Tests")]
+[assembly: InternalsVisibleTo("Buttercup.Core.Tests")]

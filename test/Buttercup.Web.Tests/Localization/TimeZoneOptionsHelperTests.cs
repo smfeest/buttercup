@@ -116,8 +116,11 @@ namespace Buttercup.Web.Localization
 
         private class TimeZoneOptionsHelperFixture
         {
-            public TimeZoneOptionsHelperFixture() => this.TimeZoneOptionsHelper = new(
-                this.MockClock.Object, this.MockLocalizer.Object, this.MockTimeZoneRegistry.Object);
+            public TimeZoneOptionsHelperFixture() =>
+                this.TimeZoneOptionsHelper = new(
+                    this.MockClock.Object,
+                    this.MockLocalizer.Object,
+                    this.MockTimeZoneRegistry.Object);
 
             public Mock<IClock> MockClock { get; } = new();
 
@@ -132,12 +135,10 @@ namespace Buttercup.Web.Localization
         {
             private readonly List<TimeZoneInfo> timeZones = new();
 
-            public AllOptionsFixture()
-            {
+            public AllOptionsFixture() =>
                 this.MockTimeZoneRegistry
                     .Setup(x => x.GetSupportedTimeZones())
                     .Returns(this.timeZones);
-            }
 
             public AllOptionsFixture AddFakeTimeZone(string timeZoneId, int offsetHours) =>
                 this.AddFakeTimeZone(timeZoneId, offsetHours, string.Empty);

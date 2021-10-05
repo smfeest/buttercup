@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Buttercup.Web.TagHelpers
