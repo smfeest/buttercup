@@ -260,7 +260,7 @@ namespace Buttercup.Web.Authentication
                 connection, user.Id, token, this.clock.UtcNow);
 
             var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
-            var link = urlHelper.Link("ResetPassword", new { token = token })!;
+            var link = urlHelper.Link("ResetPassword", new { token })!;
 
             try
             {
