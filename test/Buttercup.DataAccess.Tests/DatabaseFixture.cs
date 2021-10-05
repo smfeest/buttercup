@@ -100,16 +100,9 @@ namespace Buttercup.DataAccess
 
             await connection.ChangeDatabaseAsync(this.DatabaseName);
 
-            using var textReader = File.OpenText("schema.sql");
+            var commandText = await File.ReadAllTextAsync("schema.sql");
 
-            var scriptReader = new MySqlScriptReader(textReader);
-
-            string? commandText;
-
-            while ((commandText = await scriptReader.ReadStatement()) != null)
-            {
-                await ExecuteCommand(connection, commandText);
-            }
+            await ExecuteCommand(connection, commandText);
         }
     }
 }
