@@ -8,7 +8,6 @@
 *.less eol=lf
 *.lock eol=lf
 *.props eol=lf
-*.ruleset eol=lf
 *.sh eol=lf
 *.sln eol=lf
 *.sql eol=lf
