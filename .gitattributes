@@ -1,16 +1,5 @@
-.editorconfig eol=lf
-.gitattributes eol=lf
-*.cs eol=lf
-*.cshtml eol=lf
-*.csproj eol=lf
-*.js eol=lf
-*.json eol=lf
-*.less eol=lf
-*.lock eol=lf
-*.props eol=lf
-*.sh eol=lf
-*.sln eol=lf
-*.sql eol=lf
-*.svg eol=lf
-*.ts eol=lf
-*.yml eol=lf
+* text=auto
+
+*.png binary
+*.woff binary
+*.woff2 binary
