@@ -104,7 +104,7 @@ function watchStyles() {
 function webpackDevScripts(config) {
   return webpackScripts({
     mode: 'development',
-    devtool: 'cheap-module-eval-source-map',
+    devtool: 'eval-cheap-module-source-map',
     ...config
   });
 }
