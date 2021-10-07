@@ -1,7 +1,7 @@
 module.exports = function (config) {
   config.set({
     browsers: ['ChromeHeadless'],
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine', 'webpack'],
     preprocessors: {
       '**/*.ts': ['webpack'],
     },
@@ -12,7 +12,7 @@ module.exports = function (config) {
     reporters: ['progress', 'kjhtml'],
     webpack: {
       mode: 'development',
-      devtool: 'cheap-module-eval-source-map',
+      devtool: 'eval-cheap-module-source-map',
       resolve: {
         extensions: ['.js', '.ts'],
       },

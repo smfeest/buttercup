@@ -81,10 +81,10 @@ function revisionStyles() {
 
 function test(browser) {
   return doneCallback => {
-    new karma.Server({
-      browsers: [browser],
-      configFile: `${__dirname}/karma.conf.js`,
-    }, doneCallback).start();
+    const config = karma.config.parseConfig(`${__dirname}/karma.conf.js`, {
+      browsers: [browser]
+    });
+    new karma.Server(config, doneCallback).start();
   };
 }
 
@@ -104,7 +104,7 @@ function watchStyles() {
 function webpackDevScripts(config) {
   return webpackScripts({
     mode: 'development',
-    devtool: 'cheap-module-eval-source-map',
+    devtool: 'eval-cheap-module-source-map',
     ...config
   });
 }
