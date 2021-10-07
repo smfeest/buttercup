@@ -1,7 +1,7 @@
 module.exports = function (config) {
   config.set({
     browsers: ['ChromeHeadless'],
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine', 'webpack'],
     preprocessors: {
       '**/*.ts': ['webpack'],
     },
