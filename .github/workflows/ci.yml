@@ -23,16 +23,13 @@ jobs:
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Restore .NET dependencies
         run: dotnet restore
-      - name: Get Yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Restore Yarn cache
+      - name: Restore npm cache
         uses: actions/cache@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
       - name: Restore Node.js dependencies
-        run: yarn install
+        run: npm ci
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build
         run: dotnet build --no-restore --configuration Release
@@ -43,13 +40,13 @@ jobs:
       - name: Run .NET tests
         run: dotnet test --no-build --verbosity normal --configuration Release
       - name: Run Karma tests
-        run: yarn karma start --single-run
+        run: npx karma start --single-run
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint scripts and styles
-        run: yarn gulp lint
+        run: npx gulp lint
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build assets
-        run: yarn gulp build
+        run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Publish
         run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
