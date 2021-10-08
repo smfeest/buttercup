@@ -94,7 +94,7 @@ export default class PopoverMenu {
         const items = Array.from(this.popover.getElementsByTagName('a'));
 
         if (items.length > 0) {
-          let targetIndex = items.indexOf(event.target as any) + offset;
+          let targetIndex = items.indexOf(event.target as HTMLAnchorElement) + offset;
           const maxIndex = items.length - 1;
 
           if (targetIndex < 0) {
