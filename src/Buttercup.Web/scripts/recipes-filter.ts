@@ -4,7 +4,7 @@ export default function recipesFilter(
 
   table.querySelectorAll('tbody > tr').forEach(element => rows.push({
     element,
-    text: element.firstElementChild.textContent.toLocaleLowerCase(),
+    text: element.firstElementChild!.textContent!.toLocaleLowerCase(),
   }));
 
   filterInput.addEventListener('input', apply);

@@ -4,6 +4,7 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
     "@types/jasmine": "^3.9.1",
     "del": "^6.0.0",
     "gulp": "^4.0.2",

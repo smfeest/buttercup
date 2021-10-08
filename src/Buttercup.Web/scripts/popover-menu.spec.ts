@@ -470,7 +470,7 @@ describe('PopoverMenu', () => {
     const event = new KeyboardEvent('keydown', { key, bubbles: true, ...properties });
     spyOn(event, 'preventDefault');
 
-    document.activeElement.dispatchEvent(event);
+    document.activeElement!.dispatchEvent(event);
 
     return event;
   }

@@ -13,7 +13,7 @@ function initializeTopBar() {
     new PopoverMenu(
       document,
       menuButton,
-      document.getElementById('top-bar__menu-popover'),
+      document.getElementById('top-bar__menu-popover')!,
       { placement: 'bottom-end' },
     );
   }

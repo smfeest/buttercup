@@ -38,7 +38,7 @@ describe('recipesFilter', () => {
     return row;
   }
 
-  function initializeFilter(initialFilter?: string) {
+  function initializeFilter(initialFilter = '') {
     filterInput.value = initialFilter;
 
     recipesFilter(filterInput, table);
