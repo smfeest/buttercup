@@ -7,7 +7,6 @@
 - [Node.js](https://nodejs.org)
 - [Visual Studio Code](https://code.visualstudio.com/) with [recommended
   extensions](.vscode/extensions.json)
-- [Yarn 1](https://classic.yarnpkg.com/en/docs/install)
 
 ## Setting up the database
 
