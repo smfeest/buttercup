@@ -8,7 +8,8 @@
       "es2015.core",
       "es5"
     ],
-    "noImplicitAny": true,
-    "noUnusedLocals": true
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   }
 }

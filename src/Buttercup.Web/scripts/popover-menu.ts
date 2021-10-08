@@ -2,7 +2,7 @@ import Popper, { PopperOptions } from 'popper.js';
 
 export default class PopoverMenu {
   private _isOpen = false;
-  private popper: Popper;
+  private popper?: Popper;
 
   public constructor(
     public document: Document,
@@ -39,8 +39,8 @@ export default class PopoverMenu {
       this.popover.classList.remove('popover-menu--open');
       this.setExpanded(false);
 
-      this.popper.destroy();
-      this.popper = null;
+      this.popper!.destroy();
+      this.popper = undefined;
 
       this.document.removeEventListener('click', this.onDocumentClick);
 
