@@ -5,7 +5,7 @@ export default class PopoverMenu {
   private popper: Popper;
 
   public constructor(
-    public document: HTMLDocument,
+    public document: Document,
     public button: HTMLElement,
     public popover: HTMLElement,
     public popoverOptions?: PopperOptions) {
