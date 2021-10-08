@@ -1,13 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015",
     "module": "commonjs",
     "sourceMap": true,
-    "lib": [
-      "dom",
-      "es2015.core",
-      "es5"
-    ],
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true
