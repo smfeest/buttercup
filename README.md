@@ -47,15 +47,15 @@
 
 2.  Install node dependencies:
 
-        yarn install
+        npm install
 
 3.  Build all development and production assets once:
 
-        yarn gulp
+        npx gulp
 
     Or build only development assets and watch for changes:
 
-        yarn gulp watch
+        npx gulp watch
 
 4.  Run the app
 
@@ -70,16 +70,16 @@
 - To run all Jasmine tests using Headless Chrome:
 
       cd src/Buttercup.Web
-      yarn gulp test
+      npx gulp test
 
 - To run all Jasmine tests in a Chrome window (for interactive debugging):
 
       cd src/Buttercup.Web
-      yarn gulp testDebug
+      npx gulp testDebug
 
 ## Linting
 
 - To lint all frontend assets:
 
       cd src/Buttercup.Web
-      yarn gulp lint
+      npx gulp lint
