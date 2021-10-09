@@ -78,7 +78,12 @@
 
 ## Linting
 
-- To lint all frontend assets:
+- To lint scripts:
 
       cd src/Buttercup.Web
-      npx gulp lint
+      npx tslint -p .
+
+- To lint styles:
+
+      cd src/Buttercup.Web
+      npx lesshint .
