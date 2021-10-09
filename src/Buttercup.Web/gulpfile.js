@@ -4,11 +4,9 @@ const del = require('del');
 const { dest, parallel, series, src, watch } = require('gulp');
 const karma = require('karma');
 const less = require('gulp-less');
-const lesshint = require('gulp-lesshint');
 const rev = require('gulp-rev');
 const revReplace = require('gulp-rev-replace');
 const sourcemaps = require('gulp-sourcemaps');
-const tslint = require('gulp-tslint');
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 
@@ -43,19 +41,6 @@ function clean() {
     `${paths.styleAssets}/**/*`,
     `${paths.prodAssets}/**/*`,
   ]);
-}
-
-function lintScripts() {
-  return src(`${paths.scripts}/**/*.ts`)
-    .pipe(tslint({ formatter: "verbose" }))
-    .pipe(tslint.report());
-}
-
-function lintStyles() {
-  return src(`${paths.styles}/*.less`)
-    .pipe(lesshint())
-    .pipe(lesshint.reporter())
-    .pipe(lesshint.failOnError());
 }
 
 function revisionAssetsInStream(stream) {
@@ -128,8 +113,6 @@ function webpackScripts(config) {
   }, webpack));
 }
 
-const lint = parallel(lintScripts, lintStyles);
-
 const build = parallel(
   bundleDevelopmentScripts,
   series(
@@ -140,7 +123,6 @@ const build = parallel(
 exports.default = build;
 exports.build = build;
 exports.clean = clean;
-exports.lint = lint;
 exports.rebuild = series(clean, build);
 exports.test = test('ChromeHeadless');
 exports.testDebug = test('Chrome');

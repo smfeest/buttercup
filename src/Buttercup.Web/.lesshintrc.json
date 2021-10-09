@@ -1,4 +1,5 @@
 {
+  "excludedFiles": ["node_modules"],
   "hexLength": {
     "style": "short"
   },
