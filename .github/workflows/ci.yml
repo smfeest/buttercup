@@ -42,8 +42,11 @@ jobs:
       - name: Run Karma tests
         run: npx karma start --single-run
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Lint scripts and styles
-        run: npx gulp lint
+      - name: Lint scripts
+        run: npx tslint -p .
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Lint styles
+        run: npx lesshint -x 0 .
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build assets
         run: npx gulp build
