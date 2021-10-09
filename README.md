@@ -86,4 +86,4 @@
 - To lint styles:
 
       cd src/Buttercup.Web
-      npx lesshint .
+      npx stylelint styles/
