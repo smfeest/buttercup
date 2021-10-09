@@ -81,7 +81,7 @@
 - To lint scripts:
 
       cd src/Buttercup.Web
-      npx tslint -p .
+      npx eslint .
 
 - To lint styles:
 
