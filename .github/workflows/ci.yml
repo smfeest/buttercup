@@ -43,7 +43,7 @@ jobs:
         run: npx karma start --single-run
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint scripts
-        run: npx tslint -p .
+        run: npx eslint .
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint styles
         run: npx lesshint -x 0 .
