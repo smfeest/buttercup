@@ -7,8 +7,7 @@ import {
 export type Options = Partial<PopperOptions>;
 
 export default class PopoverMenu {
-  private _isOpen = false;
-  private popper?: PopperInstance;
+  private popper: PopperInstance | null = null;
 
   public constructor(
     public document: Document,
@@ -38,20 +37,18 @@ export default class PopoverMenu {
   }
 
   public get isOpen() {
-    return this._isOpen;
+    return !!this.popper;
   }
 
   public close() {
-    if (this._isOpen) {
+    if (this.popper) {
       this.popover.classList.remove('popover-menu--open');
       this.setExpanded(false);
 
-      this.popper!.destroy();
-      this.popper = undefined;
+      this.popper.destroy();
+      this.popper = null;
 
       this.document.removeEventListener('click', this.onDocumentClick);
-
-      this._isOpen = false;
     }
   }
 
@@ -65,7 +62,7 @@ export default class PopoverMenu {
   }
 
   public open() {
-    if (!this._isOpen) {
+    if (!this.popper) {
       this.popper = createPopper(
         this.button,
         this.popover,
@@ -76,18 +73,10 @@ export default class PopoverMenu {
       this.setExpanded(true);
 
       this.document.addEventListener('click', this.onDocumentClick);
-
-      this._isOpen = true;
     }
   }
 
-  private onButtonClick = () => {
-    if (this._isOpen) {
-      this.close();
-    } else {
-      this.open();
-    }
-  };
+  private onButtonClick = () => (this.popper ? this.close() : this.open());
 
   private onDocumentClick = (event: MouseEvent) => {
     const { defaultPrevented, target } = event;
@@ -106,7 +95,7 @@ export default class PopoverMenu {
   private onKeyDown = (event: KeyboardEvent) => {
     const { key, shiftKey, target } = event;
 
-    if (this.isOpen) {
+    if (this.popper) {
       const shiftFocus = (offset: number) => {
         const items = Array.from(this.popover.getElementsByTagName('a'));
 
