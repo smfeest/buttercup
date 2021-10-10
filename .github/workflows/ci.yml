@@ -46,7 +46,7 @@ jobs:
         run: npx eslint .
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint styles
-        run: npx lesshint -x 0 .
+        run: npx stylelint --max-warnings 0 styles/
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build assets
         run: npx gulp build

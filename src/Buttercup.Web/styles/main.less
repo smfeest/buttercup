@@ -1,57 +1,8 @@
+@import './core-variables';
 @import (less) 'node_modules/normalize.css/normalize.css';
 
 @import './fonts';
-
-@color-blue: #2c6877;
-@color-orange: #e4682d;
-@color-pink: #ecbabc;
-@color-red: #a00;
-
-@color-white: #fff;
-@color-light-grey: #eee;
-@color-grey: #ccc;
-@color-dark-grey: #666;
-@color-very-dark-grey: #333;
-@color-black: #000;
-
-@font-family-roboto: Roboto, sans-serif;
-
-@small-padding: 5px;
-@padding: 15px;
-@large-padding: 30px;
-
-@min-width: 260px;
-@max-width: 1200px;
-
-html {
-  overflow-y: scroll;
-}
-
-body {
-  font-family: @font-family-roboto;
-  min-width: @min-width;
-  padding: 0 @padding;
-}
-
-h1 {
-  color: @color-orange;
-}
-
-h2 {
-  color: @color-blue;
-}
-
-h1,
-h2 {
-  font-family: Lora, serif;
-  font-weight: bold;
-}
-
-a {
-  color: @color-blue;
-  text-decoration: none;
-}
-
+@import './base';
 @import './layout';
 
 @import './account-overview';
