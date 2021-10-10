@@ -14,15 +14,20 @@ function initializeTopBar() {
       document,
       menuButton,
       document.getElementById('top-bar__menu-popover')!,
-      { placement: 'bottom-end' },
+      { placement: 'bottom-end' }
     );
   }
 }
 
 function initializeRecipeFilter() {
-  const input = document.getElementById('recipe-index__filter') as HTMLInputElement;
+  const input = document.getElementById(
+    'recipe-index__filter'
+  ) as HTMLInputElement;
 
   if (input) {
-    recipesFilter(input, document.getElementById('recipes-index__table') as HTMLTableElement);
+    recipesFilter(
+      input,
+      document.getElementById('recipes-index__table') as HTMLTableElement
+    );
   }
 }

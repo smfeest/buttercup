@@ -9,9 +9,9 @@ describe('PopoverMenu', () => {
   let popoverMenu: PopoverMenu;
 
   beforeEach(() => {
-    document.body.appendChild(fixture = document.createElement('div'));
-    fixture.appendChild(button = document.createElement('button'));
-    fixture.appendChild(popover = document.createElement('div'));
+    document.body.appendChild((fixture = document.createElement('div')));
+    fixture.appendChild((button = document.createElement('button')));
+    fixture.appendChild((popover = document.createElement('div')));
   });
 
   afterEach(() => {
@@ -23,7 +23,12 @@ describe('PopoverMenu', () => {
   });
 
   function initializePopoverMenu(popoverOptions?: PopperOptions) {
-    return popoverMenu = new PopoverMenu(document, button, popover, popoverOptions);
+    return (popoverMenu = new PopoverMenu(
+      document,
+      button,
+      popover,
+      popoverOptions
+    ));
   }
 
   describe('initialization', () => {
@@ -64,7 +69,9 @@ describe('PopoverMenu', () => {
 
       initializePopoverMenu();
 
-      expect(popover.getAttribute('aria-labelledby')).toEqual('sample-button-id');
+      expect(popover.getAttribute('aria-labelledby')).toEqual(
+        'sample-button-id'
+      );
     });
 
     it('sets `isOpen` to false', () => {
@@ -467,7 +474,11 @@ describe('PopoverMenu', () => {
   }
 
   function triggerKeyDown(key: string, properties?: KeyboardEventInit) {
-    const event = new KeyboardEvent('keydown', { key, bubbles: true, ...properties });
+    const event = new KeyboardEvent('keydown', {
+      key,
+      bubbles: true,
+      ...properties,
+    });
     spyOn(event, 'preventDefault');
 
     document.activeElement!.dispatchEvent(event);

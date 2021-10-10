@@ -8,7 +8,8 @@ export default class PopoverMenu {
     public document: Document,
     public button: HTMLElement,
     public popover: HTMLElement,
-    public popoverOptions?: PopperOptions) {
+    public popoverOptions?: PopperOptions
+  ) {
     if (!button.id) {
       let i = 0;
       let id: string;
@@ -76,17 +77,19 @@ export default class PopoverMenu {
     } else {
       this.open();
     }
-  }
+  };
 
   private onDocumentClick = (event: MouseEvent) => {
-    if (!event.defaultPrevented &&
+    if (
+      !event.defaultPrevented &&
       event.target instanceof Node &&
       !this.button.contains(event.target) &&
-      !this.popover.contains(event.target)) {
+      !this.popover.contains(event.target)
+    ) {
       this.close();
       event.preventDefault();
     }
-  }
+  };
 
   private onKeyDown = (event: KeyboardEvent) => {
     if (this.isOpen) {
@@ -94,7 +97,8 @@ export default class PopoverMenu {
         const items = Array.from(this.popover.getElementsByTagName('a'));
 
         if (items.length > 0) {
-          let targetIndex = items.indexOf(event.target as HTMLAnchorElement) + offset;
+          let targetIndex =
+            items.indexOf(event.target as HTMLAnchorElement) + offset;
           const maxIndex = items.length - 1;
 
           if (targetIndex < 0) {
@@ -128,7 +132,7 @@ export default class PopoverMenu {
       this.open();
       event.preventDefault();
     }
-  }
+  };
 
   private setExpanded(expanded: boolean) {
     this.button.setAttribute('aria-expanded', expanded ? 'true' : 'false');

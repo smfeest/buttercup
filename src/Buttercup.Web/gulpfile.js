@@ -1,4 +1,3 @@
-
 const cleanCss = require('gulp-clean-css');
 const del = require('del');
 const { dest, parallel, series, src, watch } = require('gulp');
@@ -47,27 +46,33 @@ function revisionAssetsInStream(stream) {
   return stream
     .pipe(rev())
     .pipe(dest(paths.prodAssets))
-    .pipe(rev.manifest(paths.prodAssetManifest, {
-      base: paths.assets,
-      merge: true,
-    }))
+    .pipe(
+      rev.manifest(paths.prodAssetManifest, {
+        base: paths.assets,
+        merge: true,
+      })
+    )
     .pipe(dest(paths.prodAssets));
 }
 
 function revisionStaticAssets() {
-  return revisionAssetsInStream(src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets }));
+  return revisionAssetsInStream(
+    src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets })
+  );
 }
 
 function revisionStyles() {
-  return revisionAssetsInStream(src(`${paths.styleAssets}/*.css`, { base: paths.assets })
-    .pipe(revReplace({ manifest: src(paths.prodAssetManifest) }))
-    .pipe(cleanCss()));
+  return revisionAssetsInStream(
+    src(`${paths.styleAssets}/*.css`, { base: paths.assets })
+      .pipe(revReplace({ manifest: src(paths.prodAssetManifest) }))
+      .pipe(cleanCss())
+  );
 }
 
 function test(browser) {
-  return doneCallback => {
+  return (doneCallback) => {
     const config = karma.config.parseConfig(`${__dirname}/karma.conf.js`, {
-      browsers: [browser]
+      browsers: [browser],
     });
     new karma.Server(config, doneCallback).start();
   };
@@ -90,27 +95,32 @@ function webpackDevScripts(config) {
   return webpackScripts({
     mode: 'development',
     devtool: 'eval-cheap-module-source-map',
-    ...config
+    ...config,
   });
 }
 
 function webpackScripts(config) {
-  return src(`${paths.scripts}/main.ts`).pipe(webpackStream({
-    resolve: {
-      extensions: ['.js', '.ts'],
-    },
-    module: {
-      rules: [
-        {
-          test: /\.ts$/,
-          use: 'ts-loader',
-          exclude: /node_modules/
+  return src(`${paths.scripts}/main.ts`).pipe(
+    webpackStream(
+      {
+        resolve: {
+          extensions: ['.js', '.ts'],
         },
-      ],
-    },
-    output: { filename: 'scripts/[name].js' },
-    ...config,
-  }, webpack));
+        module: {
+          rules: [
+            {
+              test: /\.ts$/,
+              use: 'ts-loader',
+              exclude: /node_modules/,
+            },
+          ],
+        },
+        output: { filename: 'scripts/[name].js' },
+        ...config,
+      },
+      webpack
+    )
+  );
 }
 
 const build = parallel(
@@ -118,7 +128,9 @@ const build = parallel(
   series(
     parallel(bundleStyles, revisionStaticAssets),
     bundleAndRevisionProductionScripts,
-    revisionStyles));
+    revisionStyles
+  )
+);
 
 exports.default = build;
 exports.build = build;
