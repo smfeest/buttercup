@@ -4,100 +4,79 @@ import {
   Options as PopperOptions,
 } from '@popperjs/core';
 
-export type Options = Partial<PopperOptions>;
+export type PopoverMenuOptions = Partial<PopperOptions>;
 
-export default class PopoverMenu {
-  private popper: PopperInstance | null = null;
+export type PopoverMenu = {
+  close: () => void;
+  destroy: () => void;
+  isOpen: () => boolean;
+  open: () => void;
+};
 
-  public constructor(
-    public document: Document,
-    public button: HTMLElement,
-    public popover: HTMLElement,
-    public popoverOptions?: Options
-  ) {
-    if (!button.id) {
-      let i = 0;
-      let id: string;
+export const createPopoverMenu = (
+  document: Document,
+  button: HTMLElement,
+  popover: HTMLElement,
+  popoverOptions?: PopoverMenuOptions
+): PopoverMenu => {
+  let popper: PopperInstance | null = null;
 
-      do {
-        id = `popover-menu-button-${i++}`;
-      } while (document.getElementById(id));
+  const close = () => {
+    if (popper) {
+      popover.classList.remove('popover-menu--open');
+      setExpanded(false);
 
-      button.id = id;
+      popper.destroy();
+      popper = null;
+
+      document.removeEventListener('click', onDocumentClick);
     }
+  };
 
-    button.setAttribute('aria-haspopup', 'true');
-    button.addEventListener('click', this.onButtonClick);
-    button.addEventListener('keydown', this.onKeyDown);
+  const destroy = () => {
+    close();
 
-    popover.setAttribute('aria-labelledby', button.id);
-    popover.addEventListener('keydown', this.onKeyDown);
+    button.removeEventListener('click', onButtonClick);
+    button.removeEventListener('keydown', onKeyDown);
 
-    this.setExpanded(false);
-  }
+    popover.removeEventListener('keydown', onKeyDown);
+  };
 
-  public get isOpen() {
-    return !!this.popper;
-  }
+  const isOpen = () => !!popper;
 
-  public close() {
-    if (this.popper) {
-      this.popover.classList.remove('popover-menu--open');
-      this.setExpanded(false);
+  const open = () => {
+    if (!popper) {
+      popper = createPopper(button, popover, popoverOptions);
 
-      this.popper.destroy();
-      this.popper = null;
+      popover.classList.add('popover-menu--open');
+      setExpanded(true);
 
-      this.document.removeEventListener('click', this.onDocumentClick);
+      document.addEventListener('click', onDocumentClick);
     }
-  }
+  };
 
-  public destroy() {
-    this.close();
+  const onButtonClick = () => (popper ? close() : open());
 
-    this.button.removeEventListener('click', this.onButtonClick);
-    this.button.removeEventListener('keydown', this.onKeyDown);
-
-    this.popover.removeEventListener('keydown', this.onKeyDown);
-  }
-
-  public open() {
-    if (!this.popper) {
-      this.popper = createPopper(
-        this.button,
-        this.popover,
-        this.popoverOptions
-      );
-
-      this.popover.classList.add('popover-menu--open');
-      this.setExpanded(true);
-
-      this.document.addEventListener('click', this.onDocumentClick);
-    }
-  }
-
-  private onButtonClick = () => (this.popper ? this.close() : this.open());
-
-  private onDocumentClick = (event: MouseEvent) => {
+  const onDocumentClick = (event: MouseEvent) => {
     const { defaultPrevented, target } = event;
 
     if (
       !defaultPrevented &&
       target instanceof Node &&
-      !this.button.contains(target) &&
-      !this.popover.contains(target)
+      !button.contains(target) &&
+      !popover.contains(target)
     ) {
-      this.close();
+      close();
       event.preventDefault();
     }
   };
 
-  private onKeyDown = (event: KeyboardEvent) => {
+  const onKeyDown = (event: KeyboardEvent) => {
     const { key, shiftKey, target } = event;
 
-    if (this.popper) {
+    if (popper) {
       const shiftFocus = (offset: number) => {
-        const items = Array.from(this.popover.getElementsByTagName('a'));
+        const items = Array.from(popover.getElementsByTagName('a'));
 
         if (items.length > 0) {
           let targetIndex = items.indexOf(target as HTMLAnchorElement) + offset;
@@ -117,8 +96,8 @@ export default class PopoverMenu {
 
       switch (key) {
         case 'Escape':
-          this.button.focus();
-          this.close();
+          button.focus();
+          close();
           break;
         case 'ArrowUp':
           shiftFocus(-1);
@@ -131,12 +110,38 @@ export default class PopoverMenu {
           break;
       }
     } else if (key === 'ArrowUp' || key === 'ArrowDown') {
-      this.open();
+      open();
       event.preventDefault();
     }
   };
 
-  private setExpanded(expanded: boolean) {
-    this.button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  const setExpanded = (expanded: boolean) =>
+    button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+  if (!button.id) {
+    let i = 0;
+    let id: string;
+
+    do {
+      id = `popover-menu-button-${i++}`;
+    } while (document.getElementById(id));
+
+    button.id = id;
   }
-}
+
+  button.setAttribute('aria-haspopup', 'true');
+  button.addEventListener('click', onButtonClick);
+  button.addEventListener('keydown', onKeyDown);
+
+  popover.setAttribute('aria-labelledby', button.id);
+  popover.addEventListener('keydown', onKeyDown);
+
+  setExpanded(false);
+
+  return {
+    close,
+    destroy,
+    isOpen,
+    open,
+  };
+};

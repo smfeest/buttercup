@@ -1,4 +1,4 @@
-import PopoverMenu from './popover-menu';
+import { createPopoverMenu } from './popover-menu';
 import recipesFilter from './recipes-filter';
 
 (() => {
@@ -7,7 +7,7 @@ import recipesFilter from './recipes-filter';
   const topBarMenuButton = document.getElementById('top-bar__menu-button');
 
   if (topBarMenuButton) {
-    new PopoverMenu(
+    createPopoverMenu(
       document,
       topBarMenuButton,
       document.getElementById('top-bar__menu-popover')!,

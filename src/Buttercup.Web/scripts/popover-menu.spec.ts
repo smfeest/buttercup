@@ -1,4 +1,8 @@
-import PopoverMenu, { Options } from './popover-menu';
+import {
+  createPopoverMenu,
+  PopoverMenu,
+  PopoverMenuOptions,
+} from './popover-menu';
 
 import { jest } from '@jest/globals';
 
@@ -23,8 +27,13 @@ describe('PopoverMenu', () => {
     fixture.remove();
   });
 
-  const initializePopoverMenu = (popoverOptions?: Options) =>
-    (popoverMenu = new PopoverMenu(document, button, popover, popoverOptions));
+  const initializePopoverMenu = (popoverOptions?: PopoverMenuOptions) =>
+    (popoverMenu = createPopoverMenu(
+      document,
+      button,
+      popover,
+      popoverOptions
+    ));
 
   const addMenuItem = () => {
     const menuItem = document.createElement('a');
@@ -100,12 +109,6 @@ describe('PopoverMenu', () => {
         'sample-button-id'
       );
     });
-
-    it('sets `isOpen` to false', () => {
-      initializePopoverMenu();
-
-      expect(popoverMenu.isOpen).toBe(false);
-    });
   });
 
   describe('close()', () => {
@@ -132,12 +135,6 @@ describe('PopoverMenu', () => {
 
       expect(popover.hasAttribute('data-popper-placement')).toBe(false);
     });
-
-    it('sets `isOpen` to false', () => {
-      popoverMenu.close();
-
-      expect(popoverMenu.isOpen).toBe(false);
-    });
   });
 
   describe('destroy()', () => {
@@ -146,7 +143,7 @@ describe('PopoverMenu', () => {
     it('closes the popover', () => {
       popoverMenu.destroy();
 
-      expect(popoverMenu.isOpen).toBe(false);
+      expect(popoverMenu.isOpen()).toBe(false);
     });
 
     it('removes the button click handler', () => {
@@ -154,7 +151,7 @@ describe('PopoverMenu', () => {
 
       triggerClick(button);
 
-      expect(popoverMenu.isOpen).toBe(false);
+      expect(popoverMenu.isOpen()).toBe(false);
     });
 
     it('removes the button key down handler', () => {
@@ -163,7 +160,7 @@ describe('PopoverMenu', () => {
       button.focus();
       triggerKeyDown('ArrowDown');
 
-      expect(popoverMenu.isOpen).toBe(false);
+      expect(popoverMenu.isOpen()).toBe(false);
     });
 
     it('removes the popover key down handler', () => {
@@ -172,7 +169,28 @@ describe('PopoverMenu', () => {
       addMenuItem().focus();
       triggerKeyDown('ArrowDown');
 
-      expect(popoverMenu.isOpen).toBe(false);
+      expect(popoverMenu.isOpen()).toBe(false);
+    });
+  });
+
+  describe('isOpen()', () => {
+    it('initially returns false', () => {
+      initializePopoverMenu();
+
+      expect(popoverMenu.isOpen()).toBe(false);
+    });
+
+    it('returns true when the menu has been opened', () => {
+      initializePopoverMenu().open();
+
+      expect(popoverMenu.isOpen()).toBe(true);
+    });
+
+    it('returns false after the menu has been opened and closed', () => {
+      popoverMenu.open();
+      popoverMenu.close();
+
+      expect(popoverMenu.isOpen()).toBe(false);
     });
   });
 
@@ -198,12 +216,6 @@ describe('PopoverMenu', () => {
         'left-start'
       );
     });
-
-    it('sets `isOpen` to true', () => {
-      initializePopoverMenu().open();
-
-      expect(popoverMenu.isOpen).toBe(true);
-    });
   });
 
   describe('when closed', () => {
@@ -213,7 +225,7 @@ describe('PopoverMenu', () => {
       it('opens the popover', () => {
         triggerClick(button);
 
-        expect(popoverMenu.isOpen).toBe(true);
+        expect(popoverMenu.isOpen()).toBe(true);
       });
     });
 
@@ -224,7 +236,7 @@ describe('PopoverMenu', () => {
         it('opens the popover', () => {
           triggerKeyDown('ArrowDown');
 
-          expect(popoverMenu.isOpen).toBe(true);
+          expect(popoverMenu.isOpen()).toBe(true);
         });
 
         it('suppresses the default down key behaviour', () => {
@@ -238,7 +250,7 @@ describe('PopoverMenu', () => {
         it('opens the popover', () => {
           triggerKeyDown('ArrowUp');
 
-          expect(popoverMenu.isOpen).toBe(true);
+          expect(popoverMenu.isOpen()).toBe(true);
         });
 
         it('suppresses the default down key behaviour', () => {
@@ -267,7 +279,7 @@ describe('PopoverMenu', () => {
       it('closes the popover', () => {
         triggerClick(button);
 
-        expect(popoverMenu.isOpen).toBe(false);
+        expect(popoverMenu.isOpen()).toBe(false);
       });
     });
 
@@ -275,7 +287,7 @@ describe('PopoverMenu', () => {
       it('closes the popover', () => {
         triggerClick(fixture);
 
-        expect(popoverMenu.isOpen).toBe(false);
+        expect(popoverMenu.isOpen()).toBe(false);
       });
 
       it('suppresses the default click behaviour', () => {
@@ -289,7 +301,7 @@ describe('PopoverMenu', () => {
       it('does not close the popover', () => {
         triggerClick(menuItems[0]);
 
-        expect(popoverMenu.isOpen).toBe(true);
+        expect(popoverMenu.isOpen()).toBe(true);
       });
 
       it('does not suppress the default click behaviour', () => {
@@ -362,7 +374,7 @@ describe('PopoverMenu', () => {
         it('closes the popover', () => {
           triggerKeyDown('Escape');
 
-          expect(popoverMenu.isOpen).toBe(false);
+          expect(popoverMenu.isOpen()).toBe(false);
         });
 
         it('sets focus on the button', () => {
@@ -436,7 +448,7 @@ describe('PopoverMenu', () => {
         it('closes the popover', () => {
           triggerKeyDown('Escape');
 
-          expect(popoverMenu.isOpen).toBe(false);
+          expect(popoverMenu.isOpen()).toBe(false);
         });
 
         it('sets focus on the button', () => {
