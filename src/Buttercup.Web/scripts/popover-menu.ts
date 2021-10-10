@@ -1,14 +1,20 @@
-import Popper, { PopperOptions } from 'popper.js';
+import {
+  createPopper,
+  Instance as PopperInstance,
+  Options as PopperOptions,
+} from '@popperjs/core';
+
+export type Options = Partial<PopperOptions>;
 
 export default class PopoverMenu {
   private _isOpen = false;
-  private popper?: Popper;
+  private popper?: PopperInstance;
 
   public constructor(
     public document: Document,
     public button: HTMLElement,
     public popover: HTMLElement,
-    public popoverOptions?: PopperOptions
+    public popoverOptions?: Options
   ) {
     if (!button.id) {
       let i = 0;
@@ -60,7 +66,11 @@ export default class PopoverMenu {
 
   public open() {
     if (!this._isOpen) {
-      this.popper = new Popper(this.button, this.popover, this.popoverOptions);
+      this.popper = createPopper(
+        this.button,
+        this.popover,
+        this.popoverOptions
+      );
 
       this.popover.classList.add('popover-menu--open');
       this.setExpanded(true);

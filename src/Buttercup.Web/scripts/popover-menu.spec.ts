@@ -1,5 +1,4 @@
-import { PopperOptions } from 'popper.js';
-import PopoverMenu from './popover-menu';
+import PopoverMenu, { Options } from './popover-menu';
 
 describe('PopoverMenu', () => {
   let fixture: HTMLElement;
@@ -22,7 +21,7 @@ describe('PopoverMenu', () => {
     fixture.remove();
   });
 
-  function initializePopoverMenu(popoverOptions?: PopperOptions) {
+  function initializePopoverMenu(popoverOptions?: Options) {
     return (popoverMenu = new PopoverMenu(
       document,
       button,
@@ -160,10 +159,14 @@ describe('PopoverMenu', () => {
       expect(popover.classList.contains('popover-menu--open')).toBe(true);
     });
 
-    it('positions the popover with the specified placement', () => {
+    it('positions the popover with the specified placement', async () => {
       initializePopoverMenu({ placement: 'left-start' }).open();
 
-      expect(popover.getAttribute('x-placement')).toEqual('left-start');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(popover.getAttribute('data-popper-placement')).toEqual(
+        'left-start'
+      );
     });
 
     it('sets `isOpen` to true', () => {
