@@ -3,6 +3,7 @@
     "editorconfig.editorconfig",
     "ms-dotnettools.csharp",
     "dbaeumer.vscode-eslint",
-    "stylelint.vscode-stylelint"
+    "stylelint.vscode-stylelint",
+    "esbenp.prettier-vscode"
   ]
 }

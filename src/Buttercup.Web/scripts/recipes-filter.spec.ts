@@ -6,16 +6,16 @@ describe('recipesFilter', () => {
   let table: HTMLTableElement;
   let tableBody: HTMLTableSectionElement;
   let rows: {
-    applePie: HTMLElement,
-    chickenPie: HTMLElement,
-    pizza: HTMLElement,
+    applePie: HTMLElement;
+    chickenPie: HTMLElement;
+    pizza: HTMLElement;
   };
 
   beforeEach(() => {
-    document.body.appendChild(fixture = document.createElement('div'));
-    fixture.appendChild(filterInput = document.createElement('input'));
-    fixture.appendChild(table = document.createElement('table'));
-    table.appendChild(tableBody = document.createElement('tbody'));
+    document.body.appendChild((fixture = document.createElement('div')));
+    fixture.appendChild((filterInput = document.createElement('input')));
+    fixture.appendChild((table = document.createElement('table')));
+    table.appendChild((tableBody = document.createElement('tbody')));
 
     rows = {
       applePie: addRow('Apple pie'),
@@ -52,8 +52,12 @@ describe('recipesFilter', () => {
   it('shows and hides rows based on the initial filter', () => {
     initializeFilter('apple');
 
-    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(false);
-    expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(true);
+    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
+      false
+    );
+    expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(
+      true
+    );
     expect(rows.pizza.classList.contains('recipes-index--hidden')).toBe(false);
   });
 
@@ -62,8 +66,12 @@ describe('recipesFilter', () => {
 
     triggerFilterInput('pie');
 
-    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(false);
-    expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(false);
+    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
+      false
+    );
+    expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(
+      false
+    );
     expect(rows.pizza.classList.contains('recipes-index--hidden')).toBe(true);
 
     triggerFilterInput('');
@@ -74,14 +82,20 @@ describe('recipesFilter', () => {
   it('matches words and partial words in any order', () => {
     initializeFilter('pizza   appl ha');
 
-    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(true);
+    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
+      true
+    );
     expect(rows.pizza.classList.contains('recipes-index--hidden')).toBe(false);
   });
 
   it('ignores case', () => {
     initializeFilter('cHiCkEn');
 
-    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(true);
-    expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(false);
+    expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
+      true
+    );
+    expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(
+      false
+    );
   });
 });
