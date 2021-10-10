@@ -11,6 +11,29 @@ describe('recipesFilter', () => {
     pizza: HTMLElement;
   };
 
+  const addRow = (recipeTitle: string) => {
+    const cell = document.createElement('td');
+    cell.textContent = recipeTitle;
+
+    const row = document.createElement('tr');
+    row.appendChild(cell);
+
+    tableBody.appendChild(row);
+
+    return row;
+  };
+
+  const initializeFilter = (initialFilter = '') => {
+    filterInput.value = initialFilter;
+
+    recipesFilter(filterInput, table);
+  };
+
+  const triggerFilterInput = (newFilter: string) => {
+    filterInput.value = newFilter;
+    filterInput.dispatchEvent(new Event('input'));
+  };
+
   beforeEach(() => {
     document.body.appendChild((fixture = document.createElement('div')));
     fixture.appendChild((filterInput = document.createElement('input')));
@@ -25,29 +48,6 @@ describe('recipesFilter', () => {
   });
 
   afterEach(() => fixture.remove());
-
-  function addRow(recipeTitle: string) {
-    const cell = document.createElement('td');
-    cell.textContent = recipeTitle;
-
-    const row = document.createElement('tr');
-    row.appendChild(cell);
-
-    tableBody.appendChild(row);
-
-    return row;
-  }
-
-  function initializeFilter(initialFilter = '') {
-    filterInput.value = initialFilter;
-
-    recipesFilter(filterInput, table);
-  }
-
-  function triggerFilterInput(newFilter: string) {
-    filterInput.value = newFilter;
-    filterInput.dispatchEvent(new Event('input'));
-  }
 
   it('shows and hides rows based on the initial filter', () => {
     initializeFilter('apple');

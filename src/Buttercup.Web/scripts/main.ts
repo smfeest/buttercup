@@ -1,33 +1,28 @@
 import PopoverMenu from './popover-menu';
 import recipesFilter from './recipes-filter';
 
-document.body.classList.add('js-enabled');
+(() => {
+  document.body.classList.add('js-enabled');
 
-initializeTopBar();
-initializeRecipeFilter();
+  const topBarMenuButton = document.getElementById('top-bar__menu-button');
 
-function initializeTopBar() {
-  const menuButton = document.getElementById('top-bar__menu-button');
-
-  if (menuButton) {
+  if (topBarMenuButton) {
     new PopoverMenu(
       document,
-      menuButton,
+      topBarMenuButton,
       document.getElementById('top-bar__menu-popover')!,
       { placement: 'bottom-end' }
     );
   }
-}
 
-function initializeRecipeFilter() {
-  const input = document.getElementById(
+  const recipeFilterInput = document.getElementById(
     'recipe-index__filter'
   ) as HTMLInputElement;
 
-  if (input) {
+  if (recipeFilterInput) {
     recipesFilter(
-      input,
+      recipeFilterInput,
       document.getElementById('recipes-index__table') as HTMLTableElement
     );
   }
-}
+})();

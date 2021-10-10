@@ -21,14 +21,39 @@ describe('PopoverMenu', () => {
     fixture.remove();
   });
 
-  function initializePopoverMenu(popoverOptions?: Options) {
-    return (popoverMenu = new PopoverMenu(
-      document,
-      button,
-      popover,
-      popoverOptions
-    ));
-  }
+  const initializePopoverMenu = (popoverOptions?: Options) =>
+    (popoverMenu = new PopoverMenu(document, button, popover, popoverOptions));
+
+  const addMenuItem = () => {
+    const menuItem = document.createElement('a');
+    menuItem.href = '#';
+
+    popover.appendChild(menuItem);
+
+    return menuItem;
+  };
+
+  const triggerClick = (target: HTMLElement) => {
+    const event = new MouseEvent('click', { bubbles: true });
+    spyOn(event, 'preventDefault');
+
+    target.dispatchEvent(event);
+
+    return event;
+  };
+
+  const triggerKeyDown = (key: string, properties?: KeyboardEventInit) => {
+    const event = new KeyboardEvent('keydown', {
+      key,
+      bubbles: true,
+      ...properties,
+    });
+    spyOn(event, 'preventDefault');
+
+    document.activeElement!.dispatchEvent(event);
+
+    return event;
+  };
 
   describe('initialization', () => {
     it("generates a unique ID for the button, if it doesn't already have one", () => {
@@ -459,35 +484,4 @@ describe('PopoverMenu', () => {
       });
     });
   });
-
-  function addMenuItem() {
-    const menuItem = document.createElement('a');
-    menuItem.href = '#';
-
-    popover.appendChild(menuItem);
-
-    return menuItem;
-  }
-
-  function triggerClick(target: HTMLElement) {
-    const event = new MouseEvent('click', { bubbles: true });
-    spyOn(event, 'preventDefault');
-
-    target.dispatchEvent(event);
-
-    return event;
-  }
-
-  function triggerKeyDown(key: string, properties?: KeyboardEventInit) {
-    const event = new KeyboardEvent('keydown', {
-      key,
-      bubbles: true,
-      ...properties,
-    });
-    spyOn(event, 'preventDefault');
-
-    document.activeElement!.dispatchEvent(event);
-
-    return event;
-  }
 });

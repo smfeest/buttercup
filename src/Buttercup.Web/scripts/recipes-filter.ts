@@ -1,8 +1,15 @@
-export default function recipesFilter(
-  filterInput: HTMLInputElement,
-  table: HTMLTableElement
-) {
+export default (filterInput: HTMLInputElement, table: HTMLTableElement) => {
   const rows: { text: string; element: Element }[] = [];
+
+  const apply = () => {
+    const tokens = filterInput.value.toLocaleLowerCase().split(/\s+/);
+    rows.forEach(({ element, text }) =>
+      element.classList.toggle(
+        'recipes-index--hidden',
+        !tokens.every((token) => text.includes(token))
+      )
+    );
+  };
 
   table.querySelectorAll('tbody > tr').forEach((element) =>
     rows.push({
@@ -14,14 +21,4 @@ export default function recipesFilter(
   filterInput.addEventListener('input', apply);
 
   apply();
-
-  function apply() {
-    const tokens = filterInput.value.toLocaleLowerCase().split(/\s+/);
-    rows.forEach((row) =>
-      row.element.classList.toggle(
-        'recipes-index--hidden',
-        !tokens.every((token) => row.text.includes(token))
-      )
-    );
-  }
-}
+};

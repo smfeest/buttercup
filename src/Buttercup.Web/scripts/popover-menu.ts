@@ -90,11 +90,13 @@ export default class PopoverMenu {
   };
 
   private onDocumentClick = (event: MouseEvent) => {
+    const { defaultPrevented, target } = event;
+
     if (
-      !event.defaultPrevented &&
-      event.target instanceof Node &&
-      !this.button.contains(event.target) &&
-      !this.popover.contains(event.target)
+      !defaultPrevented &&
+      target instanceof Node &&
+      !this.button.contains(target) &&
+      !this.popover.contains(target)
     ) {
       this.close();
       event.preventDefault();
@@ -102,13 +104,14 @@ export default class PopoverMenu {
   };
 
   private onKeyDown = (event: KeyboardEvent) => {
+    const { key, shiftKey, target } = event;
+
     if (this.isOpen) {
       const shiftFocus = (offset: number) => {
         const items = Array.from(this.popover.getElementsByTagName('a'));
 
         if (items.length > 0) {
-          let targetIndex =
-            items.indexOf(event.target as HTMLAnchorElement) + offset;
+          let targetIndex = items.indexOf(target as HTMLAnchorElement) + offset;
           const maxIndex = items.length - 1;
 
           if (targetIndex < 0) {
@@ -123,7 +126,7 @@ export default class PopoverMenu {
         event.preventDefault();
       };
 
-      switch (event.key) {
+      switch (key) {
         case 'Escape':
           this.button.focus();
           this.close();
@@ -135,10 +138,10 @@ export default class PopoverMenu {
           shiftFocus(1);
           break;
         case 'Tab':
-          shiftFocus(event.shiftKey ? -1 : 1);
+          shiftFocus(shiftKey ? -1 : 1);
           break;
       }
-    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    } else if (key === 'ArrowUp' || key === 'ArrowDown') {
       this.open();
       event.preventDefault();
     }
