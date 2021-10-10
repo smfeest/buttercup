@@ -97,10 +97,12 @@ describe('PopoverMenu', () => {
       expect(popover.classList.contains('popover-menu--open')).toBe(false);
     });
 
-    it('stops positioning the popover', () => {
+    it('stops positioning the popover', async () => {
       popoverMenu.close();
 
-      expect(popover.hasAttribute('x-placement')).toBe(false);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(popover.hasAttribute('data-popper-placement')).toBe(false);
     });
 
     it('sets `isOpen` to false', () => {
