@@ -16,41 +16,33 @@ namespace Buttercup.DataAccess
         private const string User = "buttercup_dev";
         private const string DatabaseName = "buttercup_test";
 
-        public DatabaseFixture()
-        {
-            var connectionStringBuilder = new MySqlConnectionStringBuilder
-            {
-                Server = Server,
-                UserID = User,
-                IgnoreCommandTransaction = true,
-            };
-
-            this.ConnectionString = connectionStringBuilder.ToString();
-
-            connectionStringBuilder.Database = DatabaseName;
-
-            this.DatabaseConnectionString = connectionStringBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Gets the connection string for connecting to the database server.
-        /// </summary>
-        /// <value>
-        /// The connection string for connecting to the database server.
-        /// </value>
-        public string ConnectionString { get; }
-
-        /// <summary>
-        /// Gets the connection string for connecting to the test database created by this fixture.
-        /// </summary>
-        /// <value>
-        /// The connection string for connecting to the test database created by this fixture.
-        /// </value>
-        public string DatabaseConnectionString { get; }
-
         public Task InitializeAsync() => this.RecreateDatabase();
 
         public Task DisposeAsync() => Task.CompletedTask;
+
+        /// <summary>
+        /// Builds a connection string to connect to the test database.
+        /// </summary>
+        /// <param name="configure">
+        /// A callback that can be used to customize the connection string
+        /// builder.
+        /// </param>
+        /// <returns>
+        /// The connection string.
+        /// </returns>
+        public string BuildConnectionString(Action<MySqlConnectionStringBuilder>? configure = null)
+        {
+            var builder = new MySqlConnectionStringBuilder
+            {
+                Server = Server,
+                UserID = User,
+                Database = DatabaseName,
+            };
+
+            configure?.Invoke(builder);
+
+            return builder.ToString();
+        }
 
         /// <summary>
         /// Runs asynchronous code within a transaction that is rolled back on completion.
@@ -63,7 +55,8 @@ namespace Buttercup.DataAccess
         /// </returns>
         public async Task WithRollback(Func<MySqlConnection, Task> action)
         {
-            using var connection = new MySqlConnection(this.DatabaseConnectionString);
+            using var connection = new MySqlConnection(
+                this.BuildConnectionString(builder => builder.IgnoreCommandTransaction = true));
 
             await connection.OpenAsync();
 
@@ -87,7 +80,8 @@ namespace Buttercup.DataAccess
 
         private async Task RecreateDatabase()
         {
-            using var connection = new MySqlConnection(this.ConnectionString);
+            using var connection = new MySqlConnection(
+                this.BuildConnectionString(builder => builder.Database = null));
 
             await connection.OpenAsync();
 

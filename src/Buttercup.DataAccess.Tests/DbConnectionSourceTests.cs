@@ -15,7 +15,7 @@ namespace Buttercup.DataAccess
         [Fact]
         public async Task ReturnsOpenConnectionToDatabase()
         {
-            var connectionString = this.databaseFixture.DatabaseConnectionString;
+            var connectionString = this.databaseFixture.BuildConnectionString();
 
             var connectionSource = new DbConnectionSource(connectionString);
 
