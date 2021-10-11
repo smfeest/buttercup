@@ -7,16 +7,11 @@ namespace Buttercup.DataAccess
     [Collection("Database collection")]
     public class RecipeDataProviderTests
     {
-        private readonly DatabaseFixture databaseFixture;
-
-        public RecipeDataProviderTests(DatabaseFixture databaseFixture) =>
-            this.databaseFixture = databaseFixture;
-
         #region AddRecipe
 
         [Fact]
         public Task AddRecipeInsertsRecipeAndReturnsId() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -46,7 +41,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task AddRecipeAcceptsNullForOptionalAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -67,7 +62,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task AddRecipeTrimsStringValues() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -97,7 +92,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task DeleteRecipeReturnsRecipe() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -111,7 +106,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task DeleteRecipeThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 1));
@@ -124,7 +119,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task DeleteRecipeThrowsIfRevisionOutOfSync() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 4, revision: 2));
@@ -141,7 +136,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task GetRecipeReturnsRecipe() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             var expected = SampleRecipes.CreateSampleRecipe(id: 5);
 
@@ -155,7 +150,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task GetRecipeThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 5));
@@ -172,7 +167,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task GetRecipesReturnsAllRecipesInTitleOrder() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(title: "recipe-title-b"));
@@ -194,7 +189,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task GetRecentlyAddedRecipesReturnsRecipesInReverseChronologicalOrder() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             for (var i = 1; i <= 15; i++)
             {
@@ -220,7 +215,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task GetRecentlyUpdatedRecipesReturnsRecipesInReverseChronologicalOrder() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             for (var i = 1; i <= 10; i++)
             {
@@ -269,7 +264,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task UpdateRecipeUpdatesAllUpdatableAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -304,7 +299,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task UpdateRecipeAcceptsNullForOptionalAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -332,7 +327,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task UpdateRecipeTrimsStringValues() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var recipeDataProvider = new RecipeDataProvider();
 
@@ -360,7 +355,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task UpdateRecipeThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 5));
@@ -374,7 +369,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task UpdateRecipeThrowsIfRevisionOutOfSync() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 6, revision: 4));
@@ -392,7 +387,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task ReadRecipeReadsAllAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
 
@@ -422,7 +417,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task ReadRecipeHandlesNullAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false);
 

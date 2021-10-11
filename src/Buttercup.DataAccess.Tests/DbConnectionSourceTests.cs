@@ -7,15 +7,10 @@ namespace Buttercup.DataAccess
     [Collection("Database collection")]
     public class DbConnectionSourceTests
     {
-        private readonly DatabaseFixture databaseFixture;
-
-        public DbConnectionSourceTests(DatabaseFixture databaseFixture) =>
-            this.databaseFixture = databaseFixture;
-
         [Fact]
         public async Task ReturnsOpenConnectionToDatabase()
         {
-            var connectionString = this.databaseFixture.BuildConnectionString();
+            var connectionString = TestDatabase.BuildConnectionString();
 
             var connectionSource = new DbConnectionSource(connectionString);
 

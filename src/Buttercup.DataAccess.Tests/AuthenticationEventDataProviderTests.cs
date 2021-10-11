@@ -7,15 +7,10 @@ namespace Buttercup.DataAccess
     [Collection("Database collection")]
     public class AuthenticationEventDataProviderTests
     {
-        private readonly DatabaseFixture databaseFixture;
-
-        public AuthenticationEventDataProviderTests(DatabaseFixture databaseFixture) =>
-            this.databaseFixture = databaseFixture;
-
         #region LogEvent
 
         [Fact]
-        public Task LogEventInsertsEvent() => this.databaseFixture.WithRollback(async connection =>
+        public Task LogEventInsertsEvent() => TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 8));
 
@@ -45,7 +40,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task LogEventAcceptsNullUserIdAndEmail() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var id = await new AuthenticationEventDataProvider().LogEvent(
                 connection, DateTime.UtcNow, "sample-event");

@@ -7,16 +7,11 @@ namespace Buttercup.DataAccess
     [Collection("Database collection")]
     public class UserDataProviderTests
     {
-        private readonly DatabaseFixture databaseFixture;
-
-        public UserDataProviderTests(DatabaseFixture databaseFixture) =>
-            this.databaseFixture = databaseFixture;
-
         #region FindUserByEmail
 
         [Fact]
         public async Task FindUserByEmailReturnsUser() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
@@ -30,7 +25,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task FindUserByEmailReturnsNullIfNoMatchFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(email: "alpha@example.com"));
@@ -47,7 +42,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task GetUserReturnsUser() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             var expected = SampleUsers.CreateSampleUser(id: 76);
 
@@ -61,7 +56,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task GetUserThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
 
@@ -77,7 +72,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task UpdatePasswordUpdatesHashedPassword() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var userDataProvider = new UserDataProvider();
 
@@ -100,7 +95,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task UpdatePasswordThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 23));
 
@@ -117,7 +112,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task UpdatePreferencesUpdatesPreferences() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var userDataProvider = new UserDataProvider();
 
@@ -137,7 +132,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task UpdatePreferencesThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
 
@@ -154,7 +149,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task ReadUserReadsAllAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var expected = SampleUsers.CreateSampleUser();
 

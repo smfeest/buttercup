@@ -16,7 +16,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task DeleteExpiredTokensDeletesExpiredTokens() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
@@ -51,7 +51,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task DeleteTokensForUserDeletesTokensBelongingToUser() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
@@ -83,7 +83,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
@@ -99,7 +99,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public async Task GetUserIdForTokenReturnsNullIfNoMatchFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+            await TestDatabase.WithRollback(async connection =>
         {
             var actual = await new PasswordResetTokenDataProvider().GetUserIdForToken(
                 connection, "sample-token");
@@ -113,7 +113,7 @@ namespace Buttercup.DataAccess
 
         [Fact]
         public Task InsertTokenInsertsToken() =>
-            this.databaseFixture.WithRollback(async connection =>
+            TestDatabase.WithRollback(async connection =>
         {
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
 
