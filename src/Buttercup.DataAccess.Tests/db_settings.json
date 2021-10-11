@@ -1,4 +1,0 @@
-{
-  "ConnectionString": "Server=localhost;Uid=buttercup_dev;IgnoreCommandTransaction=true;",
-  "DatabaseName": "buttercup_test"
-}

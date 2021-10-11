@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 using Xunit;
 
@@ -13,12 +12,24 @@ namespace Buttercup.DataAccess
     /// </summary>
     public class DatabaseFixture : IAsyncLifetime
     {
+        private const string Server = "localhost";
+        private const string User = "buttercup_dev";
+        private const string DatabaseName = "buttercup_test";
+
         public DatabaseFixture()
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("db_settings.json").Build();
-            this.ConnectionString = configuration.GetValue<string>("ConnectionString");
-            this.DatabaseName = configuration.GetValue<string>("DatabaseName");
-            this.DatabaseConnectionString = this.BuildDatabaseConnectionString();
+            var connectionStringBuilder = new MySqlConnectionStringBuilder
+            {
+                Server = Server,
+                UserID = User,
+                IgnoreCommandTransaction = true,
+            };
+
+            this.ConnectionString = connectionStringBuilder.ToString();
+
+            connectionStringBuilder.Database = DatabaseName;
+
+            this.DatabaseConnectionString = connectionStringBuilder.ToString();
         }
 
         /// <summary>
@@ -36,14 +47,6 @@ namespace Buttercup.DataAccess
         /// The connection string for connecting to the test database created by this fixture.
         /// </value>
         public string DatabaseConnectionString { get; }
-
-        /// <summary>
-        /// Gets the database name.
-        /// </summary>
-        /// <value>
-        /// The database name.
-        /// </value>
-        public string DatabaseName { get; }
 
         public Task InitializeAsync() => this.RecreateDatabase();
 
@@ -82,12 +85,6 @@ namespace Buttercup.DataAccess
             await command.ExecuteNonQueryAsync();
         }
 
-        private string BuildDatabaseConnectionString() =>
-            new MySqlConnectionStringBuilder(this.ConnectionString)
-            {
-                Database = this.DatabaseName,
-            }.ToString();
-
         private async Task RecreateDatabase()
         {
             using var connection = new MySqlConnection(this.ConnectionString);
@@ -96,9 +93,9 @@ namespace Buttercup.DataAccess
 
             await ExecuteCommand(
                 connection,
-                $"DROP DATABASE IF EXISTS `{this.DatabaseName}`;CREATE DATABASE `{this.DatabaseName}`");
+                $"DROP DATABASE IF EXISTS `{DatabaseName}`;CREATE DATABASE `{DatabaseName}`");
 
-            await connection.ChangeDatabaseAsync(this.DatabaseName);
+            await connection.ChangeDatabaseAsync(DatabaseName);
 
             var commandText = await File.ReadAllTextAsync("schema.sql");
 
