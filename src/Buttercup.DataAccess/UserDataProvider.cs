@@ -2,6 +2,7 @@ using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -11,7 +12,7 @@ namespace Buttercup.DataAccess
     internal sealed class UserDataProvider : IUserDataProvider
     {
         /// <inheritdoc />
-        public async Task<User?> FindUserByEmail(DbConnection connection, string email)
+        public async Task<User?> FindUserByEmail(MySqlConnection connection, string email)
         {
             using var command = connection.CreateCommand();
 
@@ -24,7 +25,7 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task<User> GetUser(DbConnection connection, long id)
+        public async Task<User> GetUser(MySqlConnection connection, long id)
         {
             using var command = connection.CreateCommand();
 
@@ -38,7 +39,7 @@ namespace Buttercup.DataAccess
 
         /// <inheritdoc />
         public async Task UpdatePassword(
-            DbConnection connection,
+            MySqlConnection connection,
             long userId,
             string hashedPassword,
             string securityStamp,
@@ -66,7 +67,7 @@ namespace Buttercup.DataAccess
 
         /// <inheritdoc />
         public async Task UpdatePreferences(
-            DbConnection connection, long userId, string timeZone, DateTime time)
+            MySqlConnection connection, long userId, string timeZone, DateTime time)
         {
             using var command = connection.CreateCommand();
 

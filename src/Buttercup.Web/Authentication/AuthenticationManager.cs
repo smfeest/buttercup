@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
+using MySqlConnector;
 
 namespace Buttercup.Web.Authentication
 {
@@ -369,7 +369,7 @@ namespace Buttercup.Web.Authentication
         private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
 
         private async Task<string> SetPassword(
-            DbConnection connection, long userId, string newPassword)
+            MySqlConnection connection, long userId, string newPassword)
         {
             var hashedPassword = this.passwordHasher.HashPassword(null, newPassword);
 
@@ -403,7 +403,8 @@ namespace Buttercup.Web.Authentication
             this.authenticationService.SignOutAsync(
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
-        private async Task<long?> ValidatePasswordResetToken(DbConnection connection, string token)
+        private async Task<long?> ValidatePasswordResetToken(
+            MySqlConnection connection, string token)
         {
             await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
                 connection, this.clock.UtcNow.AddDays(-1));

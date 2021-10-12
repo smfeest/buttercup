@@ -14,9 +14,9 @@ namespace Buttercup.DataAccess
     internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         /// <inheritdoc />
-        public async Task<long> AddRecipe(DbConnection connection, Recipe recipe)
+        public async Task<long> AddRecipe(MySqlConnection connection, Recipe recipe)
         {
-            using var command = (MySqlCommand)connection.CreateCommand();
+            using var command = connection.CreateCommand();
 
             command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
                 VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
@@ -31,7 +31,7 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task DeleteRecipe(DbConnection connection, long id, int revision)
+        public async Task DeleteRecipe(MySqlConnection connection, long id, int revision)
         {
             using var command = connection.CreateCommand();
 
@@ -46,7 +46,7 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task<Recipe> GetRecipe(DbConnection connection, long id)
+        public async Task<Recipe> GetRecipe(MySqlConnection connection, long id)
         {
             using var command = connection.CreateCommand();
 
@@ -61,15 +61,15 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public Task<IList<Recipe>> GetRecipes(DbConnection connection) =>
+        public Task<IList<Recipe>> GetRecipes(MySqlConnection connection) =>
             GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
 
         /// <inheritdoc />
-        public Task<IList<Recipe>> GetRecentlyAddedRecipes(DbConnection connection) =>
+        public Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection) =>
             GetRecipes(connection, "SELECT * FROM recipe ORDER BY created DESC LIMIT 10");
 
         /// <inheritdoc />
-        public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(DbConnection connection)
+        public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection)
         {
             var query = @"SELECT *
                 FROM recipe
@@ -81,7 +81,7 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task UpdateRecipe(DbConnection connection, Recipe recipe)
+        public async Task UpdateRecipe(MySqlConnection connection, Recipe recipe)
         {
             using var command = connection.CreateCommand();
 
@@ -120,7 +120,7 @@ namespace Buttercup.DataAccess
         }
 
         private static async Task<Exception> ConcurrencyOrNotFoundException(
-            DbConnection connection, long id, int revision)
+            MySqlConnection connection, long id, int revision)
         {
             using var command = connection.CreateCommand();
 
@@ -139,7 +139,7 @@ namespace Buttercup.DataAccess
             "Security",
             "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
             Justification = "Command text does not contain user input")]
-        private static async Task<IList<Recipe>> GetRecipes(DbConnection connection, string query)
+        private static async Task<IList<Recipe>> GetRecipes(MySqlConnection connection, string query)
         {
             using var command = connection.CreateCommand();
 

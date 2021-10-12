@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -22,7 +22,7 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation. The task result is the ID of the new recipe.
         /// </returns>
-        Task<long> AddRecipe(DbConnection connection, Recipe recipe);
+        Task<long> AddRecipe(MySqlConnection connection, Recipe recipe);
 
         /// <summary>
         /// Deletes a recipe.
@@ -45,7 +45,7 @@ namespace Buttercup.DataAccess
         /// <exception cref="ConcurrencyException">
         /// <paramref name="revision"/> does not match the revision in the database.
         /// </exception>
-        Task DeleteRecipe(DbConnection connection, long id, int revision);
+        Task DeleteRecipe(MySqlConnection connection, long id, int revision);
 
         /// <summary>
         /// Gets a recipe.
@@ -62,7 +62,7 @@ namespace Buttercup.DataAccess
         /// <exception cref="NotFoundException">
         /// No matching recipe was found.
         /// </exception>
-        Task<Recipe> GetRecipe(DbConnection connection, long id);
+        Task<Recipe> GetRecipe(MySqlConnection connection, long id);
 
         /// <summary>
         /// Gets all the recipes ordered by title.
@@ -73,7 +73,7 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task<IList<Recipe>> GetRecipes(DbConnection connection);
+        Task<IList<Recipe>> GetRecipes(MySqlConnection connection);
 
         /// <summary>
         /// Gets the ten most recently added recipes.
@@ -84,7 +84,7 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task<IList<Recipe>> GetRecentlyAddedRecipes(DbConnection connection);
+        Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection);
 
         /// <summary>
         /// Gets the ten most recently updated recipes.
@@ -99,7 +99,7 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task<IList<Recipe>> GetRecentlyUpdatedRecipes(DbConnection connection);
+        Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection);
 
         /// <summary>
         /// Updates a recipe.
@@ -119,6 +119,6 @@ namespace Buttercup.DataAccess
         /// <exception cref="ConcurrencyException">
         /// The revision in <paramref name="recipe"/> does not match the revision in the database.
         /// </exception>
-        Task UpdateRecipe(DbConnection connection, Recipe recipe);
+        Task UpdateRecipe(MySqlConnection connection, Recipe recipe);
     }
 }

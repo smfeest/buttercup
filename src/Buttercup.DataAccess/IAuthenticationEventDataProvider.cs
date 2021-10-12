@@ -1,6 +1,6 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -31,7 +31,7 @@ namespace Buttercup.DataAccess
         /// A task for the operation. The result is the event ID.
         /// </returns>
         Task<long> LogEvent(
-            DbConnection connection,
+            MySqlConnection connection,
             DateTime time,
             string eventName,
             long? userId = null,

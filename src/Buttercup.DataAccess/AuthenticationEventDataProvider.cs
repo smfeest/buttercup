@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using MySqlConnector;
 
@@ -12,13 +11,13 @@ namespace Buttercup.DataAccess
     {
         /// <inheritdoc />
         public async Task<long> LogEvent(
-            DbConnection connection,
+            MySqlConnection connection,
             DateTime time,
             string eventName,
             long? userId = null,
             string? email = null)
         {
-            using var command = (MySqlCommand)connection.CreateCommand();
+            using var command = connection.CreateCommand();
 
             command.CommandText = @"INSERT authentication_event (time, event, user_id, email)
                 VALUES (@time, @event, @user_id, @email)";

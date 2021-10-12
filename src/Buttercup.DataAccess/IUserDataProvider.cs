@@ -1,7 +1,7 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -23,7 +23,7 @@ namespace Buttercup.DataAccess
         /// A task for the operation. The result is the user, or a null reference if no matching
         /// user is found.
         /// </returns>
-        Task<User?> FindUserByEmail(DbConnection connection, string email);
+        Task<User?> FindUserByEmail(MySqlConnection connection, string email);
 
         /// <summary>
         /// Gets a user.
@@ -40,7 +40,7 @@ namespace Buttercup.DataAccess
         /// <exception cref="NotFoundException">
         /// No matching user was found.
         /// </exception>
-        Task<User> GetUser(DbConnection connection, long id);
+        Task<User> GetUser(MySqlConnection connection, long id);
 
         /// <summary>
         /// Updates a user's password.
@@ -67,7 +67,7 @@ namespace Buttercup.DataAccess
         /// No matching user was found.
         /// </exception>
         Task UpdatePassword(
-            DbConnection connection,
+            MySqlConnection connection,
             long userId,
             string hashedPassword,
             string securityStamp,
@@ -95,6 +95,6 @@ namespace Buttercup.DataAccess
         /// No matching user was found.
         /// </exception>
         Task UpdatePreferences(
-            DbConnection connection, long userId, string timeZone, DateTime time);
+            MySqlConnection connection, long userId, string timeZone, DateTime time);
     }
 }
