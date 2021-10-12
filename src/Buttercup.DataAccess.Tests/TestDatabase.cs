@@ -41,6 +41,26 @@ namespace Buttercup.DataAccess
         }
 
         /// <summary>
+        /// Opens a connection to the test database with an open transaction
+        /// that will be automatically rolled back when the connection is
+        /// disposed.
+        /// </summary>
+        /// <returns>
+        /// A task for the operation. The result is the new connection.
+        /// </returns>
+        public static async Task<MySqlConnection> OpenConnectionWithRollback()
+        {
+            var connection = new MySqlConnection(BuildConnectionString(
+                builder => builder.IgnoreCommandTransaction = true));
+
+            await connection.OpenAsync();
+
+            await connection.BeginTransactionAsync();
+
+            return connection;
+        }
+
+        /// <summary>
         /// Recreates the test database.
         /// </summary>
         /// <returns>
@@ -62,27 +82,6 @@ namespace Buttercup.DataAccess
             var commandText = await File.ReadAllTextAsync("schema.sql");
 
             await ExecuteCommand(connection, commandText);
-        }
-
-        /// <summary>
-        /// Runs asynchronous code within a transaction that is rolled back on completion.
-        /// </summary>
-        /// <param name="action">
-        /// The asynchronous action.
-        /// </param>
-        /// <returns>
-        /// A task for the operation.
-        /// </returns>
-        public static async Task WithRollback(Func<MySqlConnection, Task> action)
-        {
-            using var connection = new MySqlConnection(
-                BuildConnectionString(builder => builder.IgnoreCommandTransaction = true));
-
-            await connection.OpenAsync();
-
-            using var transaction = await connection.BeginTransactionAsync();
-
-            await action(connection);
         }
 
         [SuppressMessage(

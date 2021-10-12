@@ -10,9 +10,10 @@ namespace Buttercup.DataAccess
         #region AddRecipe
 
         [Fact]
-        public Task AddRecipeInsertsRecipeAndReturnsId() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task AddRecipeInsertsRecipeAndReturnsId()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
@@ -37,12 +38,13 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Created, actual.Modified);
             Assert.Equal(expected.CreatedByUserId, actual.CreatedByUserId);
             Assert.Equal(expected.CreatedByUserId, actual.ModifiedByUserId);
-        });
+        }
 
         [Fact]
-        public Task AddRecipeAcceptsNullForOptionalAttributes() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task AddRecipeAcceptsNullForOptionalAttributes()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false);
@@ -58,12 +60,13 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Source);
             Assert.Null(actual.CreatedByUserId);
             Assert.Null(actual.ModifiedByUserId);
-        });
+        }
 
         [Fact]
-        public Task AddRecipeTrimsStringValues() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task AddRecipeTrimsStringValues()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             var expected = SampleRecipes.CreateSampleRecipe();
@@ -84,16 +87,17 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Suggestions);
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
-        });
+        }
 
         #endregion
 
         #region DeleteRecipe
 
         [Fact]
-        public async Task DeleteRecipeReturnsRecipe() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task DeleteRecipeReturnsRecipe()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             await SampleRecipes.InsertSampleRecipe(
@@ -102,12 +106,13 @@ namespace Buttercup.DataAccess
             await recipeDataProvider.DeleteRecipe(connection, 5, 1);
 
             Assert.Empty(await recipeDataProvider.GetRecipes(connection));
-        });
+        }
 
         [Fact]
-        public async Task DeleteRecipeThrowsIfRecordNotFound() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task DeleteRecipeThrowsIfRecordNotFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 1));
 
@@ -115,12 +120,13 @@ namespace Buttercup.DataAccess
                 () => new RecipeDataProvider().DeleteRecipe(connection, 2, 0));
 
             Assert.Equal("Recipe 2 not found", exception.Message);
-        });
+        }
 
         [Fact]
-        public async Task DeleteRecipeThrowsIfRevisionOutOfSync() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task DeleteRecipeThrowsIfRevisionOutOfSync()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 4, revision: 2));
 
@@ -128,16 +134,17 @@ namespace Buttercup.DataAccess
                 () => new RecipeDataProvider().DeleteRecipe(connection, 4, 1));
 
             Assert.Equal("Revision 1 does not match current revision 2", exception.Message);
-        });
+        }
 
         #endregion
 
         #region GetRecipe
 
         [Fact]
-        public async Task GetRecipeReturnsRecipe() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task GetRecipeReturnsRecipe()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var expected = SampleRecipes.CreateSampleRecipe(id: 5);
 
             await SampleRecipes.InsertSampleRecipe(connection, expected);
@@ -146,12 +153,13 @@ namespace Buttercup.DataAccess
 
             Assert.Equal(5, actual.Id);
             Assert.Equal(expected.Title, actual.Title);
-        });
+        }
 
         [Fact]
-        public async Task GetRecipeThrowsIfRecordNotFound() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task GetRecipeThrowsIfRecordNotFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 5));
 
@@ -159,16 +167,17 @@ namespace Buttercup.DataAccess
                 () => new RecipeDataProvider().GetRecipe(connection, 3));
 
             Assert.Equal("Recipe 3 not found", exception.Message);
-        });
+        }
 
         #endregion
 
         #region GetRecipes
 
         [Fact]
-        public Task GetRecipesReturnsAllRecipesInTitleOrder() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task GetRecipesReturnsAllRecipesInTitleOrder()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(title: "recipe-title-b"));
             await SampleRecipes.InsertSampleRecipe(
@@ -181,16 +190,17 @@ namespace Buttercup.DataAccess
             Assert.Equal("recipe-title-a", recipes[0].Title);
             Assert.Equal("recipe-title-b", recipes[1].Title);
             Assert.Equal("recipe-title-c", recipes[2].Title);
-        });
+        }
 
         #endregion
 
         #region GetRecentlyAddedRecipes
 
         [Fact]
-        public Task GetRecentlyAddedRecipesReturnsRecipesInReverseChronologicalOrder() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task GetRecentlyAddedRecipesReturnsRecipesInReverseChronologicalOrder()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             for (var i = 1; i <= 15; i++)
             {
                 var recipe = SampleRecipes.CreateSampleRecipe(title: $"recipe-{i}-title");
@@ -207,16 +217,17 @@ namespace Buttercup.DataAccess
             {
                 Assert.Equal($"recipe-{15 - i}-title", recipes[i].Title);
             }
-        });
+        }
 
         #endregion
 
         #region GetRecentlyUpdatedRecipes
 
         [Fact]
-        public Task GetRecentlyUpdatedRecipesReturnsRecipesInReverseChronologicalOrder() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task GetRecentlyUpdatedRecipesReturnsRecipesInReverseChronologicalOrder()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             for (var i = 1; i <= 10; i++)
             {
                 var recipe = SampleRecipes.CreateSampleRecipe(title: $"recently-updated-{i}");
@@ -256,16 +267,17 @@ namespace Buttercup.DataAccess
             {
                 Assert.Equal($"recently-updated-{10 - i}", recipes[5 + i].Title);
             }
-        });
+        }
 
         #endregion
 
         #region UpdateRecipe
 
         [Fact]
-        public Task UpdateRecipeUpdatesAllUpdatableAttributes() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task UpdateRecipeUpdatesAllUpdatableAttributes()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             var original = SampleRecipes.CreateSampleRecipe(id: 3, revision: 0);
@@ -295,12 +307,13 @@ namespace Buttercup.DataAccess
 
             Assert.Equal(original.Created, actual.Created);
             Assert.Equal(original.CreatedByUserId, actual.CreatedByUserId);
-        });
+        }
 
         [Fact]
-        public Task UpdateRecipeAcceptsNullForOptionalAttributes() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task UpdateRecipeAcceptsNullForOptionalAttributes()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             await SampleRecipes.InsertSampleRecipe(
@@ -323,12 +336,13 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
             Assert.Null(actual.ModifiedByUserId);
-        });
+        }
 
         [Fact]
-        public Task UpdateRecipeTrimsStringValues() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task UpdateRecipeTrimsStringValues()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var recipeDataProvider = new RecipeDataProvider();
 
             await SampleRecipes.InsertSampleRecipe(
@@ -351,12 +365,13 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Suggestions);
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
-        });
+        }
 
         [Fact]
-        public async Task UpdateRecipeThrowsIfRecordNotFound() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task UpdateRecipeThrowsIfRecordNotFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 5));
 
@@ -365,12 +380,13 @@ namespace Buttercup.DataAccess
                     connection, SampleRecipes.CreateSampleRecipe(id: 2)));
 
             Assert.Equal("Recipe 2 not found", exception.Message);
-        });
+        }
 
         [Fact]
-        public async Task UpdateRecipeThrowsIfRevisionOutOfSync() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task UpdateRecipeThrowsIfRevisionOutOfSync()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleRecipes.InsertSampleRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 6, revision: 4));
 
@@ -379,16 +395,17 @@ namespace Buttercup.DataAccess
                     connection, SampleRecipes.CreateSampleRecipe(id: 6, revision: 3)));
 
             Assert.Equal("Revision 3 does not match current revision 4", exception.Message);
-        });
+        }
 
         #endregion
 
         #region ReadRecipe
 
         [Fact]
-        public Task ReadRecipeReadsAllAttributes() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task ReadRecipeReadsAllAttributes()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
 
             await SampleRecipes.InsertSampleRecipe(
@@ -413,12 +430,13 @@ namespace Buttercup.DataAccess
             Assert.Equal(DateTimeKind.Utc, actual.Modified.Kind);
             Assert.Equal(expected.ModifiedByUserId, actual.ModifiedByUserId);
             Assert.Equal(expected.Revision, actual.Revision);
-        });
+        }
 
         [Fact]
-        public Task ReadRecipeHandlesNullAttributes() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task ReadRecipeHandlesNullAttributes()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false);
 
             await SampleRecipes.InsertSampleRecipe(connection, expected);
@@ -433,7 +451,7 @@ namespace Buttercup.DataAccess
             Assert.Null(actual.Source);
             Assert.Null(actual.CreatedByUserId);
             Assert.Null(actual.ModifiedByUserId);
-        });
+        }
 
         #endregion
     }

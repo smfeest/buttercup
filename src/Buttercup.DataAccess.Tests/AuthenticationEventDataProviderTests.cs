@@ -10,8 +10,10 @@ namespace Buttercup.DataAccess
         #region LogEvent
 
         [Fact]
-        public Task LogEventInsertsEvent() => TestDatabase.WithRollback(async connection =>
+        public async Task LogEventInsertsEvent()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 8));
 
             var id = await new AuthenticationEventDataProvider().LogEvent(
@@ -36,12 +38,13 @@ namespace Buttercup.DataAccess
             Assert.Equal("sample-event", reader.GetString("event"));
             Assert.Equal(8, reader.GetInt64("user_id"));
             Assert.Equal("sample@example.com", reader.GetString("email"));
-        });
+        }
 
         [Fact]
-        public Task LogEventAcceptsNullUserIdAndEmail() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task LogEventAcceptsNullUserIdAndEmail()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var id = await new AuthenticationEventDataProvider().LogEvent(
                 connection, DateTime.UtcNow, "sample-event");
 
@@ -56,7 +59,7 @@ namespace Buttercup.DataAccess
 
             Assert.True(reader.IsDBNull(reader.GetOrdinal("user_id")));
             Assert.True(reader.IsDBNull(reader.GetOrdinal("email")));
-        });
+        }
 
         #endregion
     }

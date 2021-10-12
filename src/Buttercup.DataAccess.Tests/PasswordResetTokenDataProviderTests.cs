@@ -15,9 +15,10 @@ namespace Buttercup.DataAccess
         #region DeleteExpiredTokens
 
         [Fact]
-        public Task DeleteExpiredTokensDeletesExpiredTokens() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task DeleteExpiredTokensDeletesExpiredTokens()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
@@ -43,16 +44,17 @@ namespace Buttercup.DataAccess
             }
 
             Assert.Equal("token-b,token-c", survivingTokens);
-        });
+        }
 
         #endregion
 
         #region DeleteTokensForUser
 
         [Fact]
-        public Task DeleteTokensForUserDeletesTokensBelongingToUser() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task DeleteTokensForUserDeletesTokensBelongingToUser()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 7));
@@ -75,16 +77,17 @@ namespace Buttercup.DataAccess
             }
 
             Assert.Equal("token-b", survivingTokens);
-        });
+        }
 
         #endregion
 
         #region GetUserIdForToken
 
         [Fact]
-        public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
 
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 5));
@@ -95,26 +98,28 @@ namespace Buttercup.DataAccess
                 connection, "sample-token");
 
             Assert.Equal(5, actual);
-        });
+        }
 
         [Fact]
-        public async Task GetUserIdForTokenReturnsNullIfNoMatchFound() =>
-            await TestDatabase.WithRollback(async connection =>
+        public async Task GetUserIdForTokenReturnsNullIfNoMatchFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var actual = await new PasswordResetTokenDataProvider().GetUserIdForToken(
                 connection, "sample-token");
 
             Assert.Null(actual);
-        });
+        }
 
         #endregion
 
         #region InsertToken
 
         [Fact]
-        public Task InsertTokenInsertsToken() =>
-            TestDatabase.WithRollback(async connection =>
+        public async Task InsertTokenInsertsToken()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
 
             var time = new DateTime(2000, 1, 2, 3, 4, 5);
@@ -132,7 +137,7 @@ namespace Buttercup.DataAccess
 
             Assert.Equal(6, reader.GetInt64("user_id"));
             Assert.Equal(time, reader.GetDateTime("created", DateTimeKind.Utc));
-        });
+        }
 
         #endregion
     }
