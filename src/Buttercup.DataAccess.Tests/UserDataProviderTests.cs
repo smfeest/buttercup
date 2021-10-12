@@ -7,17 +7,13 @@ namespace Buttercup.DataAccess
     [Collection("Database collection")]
     public class UserDataProviderTests
     {
-        private readonly DatabaseFixture databaseFixture;
-
-        public UserDataProviderTests(DatabaseFixture databaseFixture) =>
-            this.databaseFixture = databaseFixture;
-
         #region FindUserByEmail
 
         [Fact]
-        public async Task FindUserByEmailReturnsUser() =>
-            await this.databaseFixture.WithRollback(async connection =>
+        public async Task FindUserByEmailReturnsUser()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
 
@@ -26,12 +22,13 @@ namespace Buttercup.DataAccess
 
             Assert.Equal(4, actual!.Id);
             Assert.Equal("alpha@example.com", actual.Email);
-        });
+        }
 
         [Fact]
-        public async Task FindUserByEmailReturnsNullIfNoMatchFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+        public async Task FindUserByEmailReturnsNullIfNoMatchFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(
                 connection, SampleUsers.CreateSampleUser(email: "alpha@example.com"));
 
@@ -39,16 +36,17 @@ namespace Buttercup.DataAccess
                 connection, "beta@example.com");
 
             Assert.Null(actual);
-        });
+        }
 
         #endregion
 
         #region GetUser
 
         [Fact]
-        public async Task GetUserReturnsUser() =>
-            await this.databaseFixture.WithRollback(async connection =>
+        public async Task GetUserReturnsUser()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var expected = SampleUsers.CreateSampleUser(id: 76);
 
             await SampleUsers.InsertSampleUser(connection, expected);
@@ -57,28 +55,30 @@ namespace Buttercup.DataAccess
 
             Assert.Equal(76, actual.Id);
             Assert.Equal(expected.Email, actual.Email);
-        });
+        }
 
         [Fact]
-        public async Task GetUserThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+        public async Task GetUserThrowsIfRecordNotFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
                 () => new UserDataProvider().GetUser(connection, 7));
 
             Assert.Equal("User 7 not found", exception.Message);
-        });
+        }
 
         #endregion
 
         #region UpdatePassword
 
         [Fact]
-        public Task UpdatePasswordUpdatesHashedPassword() =>
-            this.databaseFixture.WithRollback(async connection =>
+        public async Task UpdatePasswordUpdatesHashedPassword()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var userDataProvider = new UserDataProvider();
 
             await SampleUsers.InsertSampleUser(
@@ -96,12 +96,13 @@ namespace Buttercup.DataAccess
             Assert.Equal("newstamp", actual.SecurityStamp);
             Assert.Equal(time, actual.Modified);
             Assert.Equal(6, actual.Revision);
-        });
+        }
 
         [Fact]
-        public async Task UpdatePasswordThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+        public async Task UpdatePasswordThrowsIfRecordNotFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 23));
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
@@ -109,16 +110,17 @@ namespace Buttercup.DataAccess
                     connection, 4, "new-hashed-password", "newstamp", DateTime.UtcNow));
 
             Assert.Equal("User 4 not found", exception.Message);
-        });
+        }
 
         #endregion
 
         #region UpdatePreferences
 
         [Fact]
-        public Task UpdatePreferencesUpdatesPreferences() =>
-            this.databaseFixture.WithRollback(async connection =>
+        public async Task UpdatePreferencesUpdatesPreferences()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var userDataProvider = new UserDataProvider();
 
             await SampleUsers.InsertSampleUser(
@@ -133,12 +135,13 @@ namespace Buttercup.DataAccess
             Assert.Equal("new-time-zone", actual.TimeZone);
             Assert.Equal(time, actual.Modified);
             Assert.Equal(3, actual.Revision);
-        });
+        }
 
         [Fact]
-        public async Task UpdatePreferencesThrowsIfRecordNotFound() =>
-            await this.databaseFixture.WithRollback(async connection =>
+        public async Task UpdatePreferencesThrowsIfRecordNotFound()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
 
             var exception = await Assert.ThrowsAsync<NotFoundException>(
@@ -146,16 +149,17 @@ namespace Buttercup.DataAccess
                     connection, 9, "new-time-zone", DateTime.UtcNow));
 
             Assert.Equal("User 9 not found", exception.Message);
-        });
+        }
 
         #endregion
 
         #region ReadUser
 
         [Fact]
-        public Task ReadUserReadsAllAttributes() =>
-            this.databaseFixture.WithRollback(async connection =>
+        public async Task ReadUserReadsAllAttributes()
         {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
             var expected = SampleUsers.CreateSampleUser();
 
             await SampleUsers.InsertSampleUser(connection, expected);
@@ -175,7 +179,7 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Modified, actual.Modified);
             Assert.Equal(DateTimeKind.Utc, actual.Modified.Kind);
             Assert.Equal(expected.Revision, actual.Revision);
-        });
+        }
 
         #endregion
     }

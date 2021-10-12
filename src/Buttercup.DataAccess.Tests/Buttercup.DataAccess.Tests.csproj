@@ -21,7 +21,6 @@
     <ProjectReference Include="..\..\src\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="db_settings.json" CopyToOutputDirectory="Always" />
     <None Include="../../db/schema.sql" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>
