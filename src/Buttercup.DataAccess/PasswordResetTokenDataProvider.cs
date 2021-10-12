@@ -15,7 +15,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = @"DELETE FROM password_reset_token WHERE created < @cut_off";
-            command.AddParameterWithValue("@cut_off", cutOff);
+            command.Parameters.AddWithValue("@cut_off", cutOff);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -26,7 +26,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = @"DELETE FROM password_reset_token WHERE user_id = @user_id";
-            command.AddParameterWithValue("@user_id", userId);
+            command.Parameters.AddWithValue("@user_id", userId);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -37,7 +37,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT user_id FROM password_reset_token WHERE token = @token";
-            command.AddParameterWithValue("@token", token);
+            command.Parameters.AddWithValue("@token", token);
 
             return await command.ExecuteScalarAsync<uint?>();
         }
@@ -50,9 +50,9 @@ namespace Buttercup.DataAccess
 
             command.CommandText = @"INSERT password_reset_token(token, user_id, created)
                 VALUES(@token, @user_id, @created)";
-            command.AddParameterWithValue("@token", token);
-            command.AddParameterWithValue("@user_id", userId);
-            command.AddParameterWithValue("@created", created);
+            command.Parameters.AddWithValue("@token", token);
+            command.Parameters.AddWithValue("@user_id", userId);
+            command.Parameters.AddWithValue("@created", created);
 
             await command.ExecuteNonQueryAsync();
         }

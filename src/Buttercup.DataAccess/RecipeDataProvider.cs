@@ -22,8 +22,8 @@ namespace Buttercup.DataAccess
                 VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
 
             AddInsertUpdateParameters(command, recipe);
-            command.AddParameterWithValue("@created", recipe.Created);
-            command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
+            command.Parameters.AddWithValue("@created", recipe.Created);
+            command.Parameters.AddWithValue("@created_by_user_id", recipe.CreatedByUserId);
 
             await command.ExecuteNonQueryAsync();
 
@@ -36,8 +36,8 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM recipe WHERE id = @id AND revision = @revision";
-            command.AddParameterWithValue("@id", id);
-            command.AddParameterWithValue("@revision", revision);
+            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@revision", revision);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -51,7 +51,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM recipe WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -94,10 +94,10 @@ namespace Buttercup.DataAccess
                 WHERE id = @id AND revision = @revision";
 
             AddInsertUpdateParameters(command, recipe);
-            command.AddParameterWithValue("@id", recipe.Id);
-            command.AddParameterWithValue("@modified", recipe.Modified);
-            command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
-            command.AddParameterWithValue("@revision", recipe.Revision);
+            command.Parameters.AddWithValue("@id", recipe.Id);
+            command.Parameters.AddWithValue("@modified", recipe.Modified);
+            command.Parameters.AddWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
+            command.Parameters.AddWithValue("@revision", recipe.Revision);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -106,12 +106,12 @@ namespace Buttercup.DataAccess
             }
         }
 
-        private static void AddInsertUpdateParameters(DbCommand command, Recipe recipe)
+        private static void AddInsertUpdateParameters(MySqlCommand command, Recipe recipe)
         {
             command.AddParameterWithStringValue("@title", recipe.Title);
-            command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
-            command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
-            command.AddParameterWithValue("@servings", recipe.Servings);
+            command.Parameters.AddWithValue("@preparation_minutes", recipe.PreparationMinutes);
+            command.Parameters.AddWithValue("@cooking_minutes", recipe.CookingMinutes);
+            command.Parameters.AddWithValue("@servings", recipe.Servings);
             command.AddParameterWithStringValue("@ingredients", recipe.Ingredients);
             command.AddParameterWithStringValue("@method", recipe.Method);
             command.AddParameterWithStringValue("@suggestions", recipe.Suggestions);
@@ -125,7 +125,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT revision FROM recipe WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             var currentRevision = await command.ExecuteScalarAsync();
 

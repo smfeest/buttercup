@@ -45,16 +45,16 @@ namespace Buttercup.DataAccess
             command.CommandText = @"INSERT user(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
                 VALUES (@id, @name, @email, @hashed_password, @password_created, @security_stamp, @time_zone, @created, @modified, @revision);";
 
-            command.AddParameterWithValue("@id", user.Id);
-            command.AddParameterWithValue("@name", user.Name);
-            command.AddParameterWithValue("@email", user.Email);
-            command.AddParameterWithValue("@hashed_password", user.HashedPassword);
-            command.AddParameterWithValue("@password_created", user.PasswordCreated);
-            command.AddParameterWithValue("@security_stamp", user.SecurityStamp);
-            command.AddParameterWithValue("@time_zone", user.TimeZone);
-            command.AddParameterWithValue("@created", user.Created);
-            command.AddParameterWithValue("@modified", user.Modified);
-            command.AddParameterWithValue("@revision", user.Revision);
+            command.Parameters.AddWithValue("@id", user.Id);
+            command.Parameters.AddWithValue("@name", user.Name);
+            command.Parameters.AddWithValue("@email", user.Email);
+            command.Parameters.AddWithValue("@hashed_password", user.HashedPassword);
+            command.Parameters.AddWithValue("@password_created", user.PasswordCreated);
+            command.Parameters.AddWithValue("@security_stamp", user.SecurityStamp);
+            command.Parameters.AddWithValue("@time_zone", user.TimeZone);
+            command.Parameters.AddWithValue("@created", user.Created);
+            command.Parameters.AddWithValue("@modified", user.Modified);
+            command.Parameters.AddWithValue("@revision", user.Revision);
 
             await command.ExecuteNonQueryAsync();
         }

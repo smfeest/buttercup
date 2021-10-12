@@ -17,7 +17,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM user WHERE email = @email";
-            command.AddParameterWithValue("@email", email);
+            command.Parameters.AddWithValue("@email", email);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -30,7 +30,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM user WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -54,10 +54,10 @@ namespace Buttercup.DataAccess
                     modified = @time,
                     revision = revision + 1
                 WHERE id = @id";
-            command.AddParameterWithValue("@id", userId);
-            command.AddParameterWithValue("@hashed_password", hashedPassword);
-            command.AddParameterWithValue("@security_stamp", securityStamp);
-            command.AddParameterWithValue("@time", time);
+            command.Parameters.AddWithValue("@id", userId);
+            command.Parameters.AddWithValue("@hashed_password", hashedPassword);
+            command.Parameters.AddWithValue("@security_stamp", securityStamp);
+            command.Parameters.AddWithValue("@time", time);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -76,9 +76,9 @@ namespace Buttercup.DataAccess
                     modified = @time,
                     revision = revision + 1
                 WHERE id = @id";
-            command.AddParameterWithValue("@id", userId);
-            command.AddParameterWithValue("@time_zone", timeZone);
-            command.AddParameterWithValue("@time", time);
+            command.Parameters.AddWithValue("@id", userId);
+            command.Parameters.AddWithValue("@time_zone", timeZone);
+            command.Parameters.AddWithValue("@time", time);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {

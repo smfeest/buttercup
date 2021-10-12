@@ -22,9 +22,9 @@ namespace Buttercup.DataAccess
             command.CommandText = @"INSERT authentication_event (time, event, user_id, email)
                 VALUES (@time, @event, @user_id, @email)";
 
-            command.AddParameterWithValue("@time", time);
+            command.Parameters.AddWithValue("@time", time);
             command.AddParameterWithStringValue("@event", eventName);
-            command.AddParameterWithValue("@user_id", userId);
+            command.Parameters.AddWithValue("@user_id", userId);
             command.AddParameterWithStringValue("@email", email);
 
             await command.ExecuteNonQueryAsync();

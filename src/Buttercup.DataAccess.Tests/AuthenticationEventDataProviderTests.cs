@@ -26,7 +26,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -51,7 +51,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 

@@ -57,21 +57,21 @@ namespace Buttercup.DataAccess
             command.CommandText = @"INSERT recipe(id, title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
                 VALUES (@id, @title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @modified, @modified_by_user_id, @revision);";
 
-            command.AddParameterWithValue("@id", recipe.Id);
-            command.AddParameterWithValue("@title", recipe.Title);
-            command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
-            command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
-            command.AddParameterWithValue("@servings", recipe.Servings);
-            command.AddParameterWithValue("@ingredients", recipe.Ingredients);
-            command.AddParameterWithValue("@method", recipe.Method);
-            command.AddParameterWithValue("@suggestions", recipe.Suggestions);
-            command.AddParameterWithValue("@remarks", recipe.Remarks);
-            command.AddParameterWithValue("@source", recipe.Source);
-            command.AddParameterWithValue("@created", recipe.Created);
-            command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
-            command.AddParameterWithValue("@modified", recipe.Modified);
-            command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
-            command.AddParameterWithValue("@revision", recipe.Revision);
+            command.Parameters.AddWithValue("@id", recipe.Id);
+            command.Parameters.AddWithValue("@title", recipe.Title);
+            command.Parameters.AddWithValue("@preparation_minutes", recipe.PreparationMinutes);
+            command.Parameters.AddWithValue("@cooking_minutes", recipe.CookingMinutes);
+            command.Parameters.AddWithValue("@servings", recipe.Servings);
+            command.Parameters.AddWithValue("@ingredients", recipe.Ingredients);
+            command.Parameters.AddWithValue("@method", recipe.Method);
+            command.Parameters.AddWithValue("@suggestions", recipe.Suggestions);
+            command.Parameters.AddWithValue("@remarks", recipe.Remarks);
+            command.Parameters.AddWithValue("@source", recipe.Source);
+            command.Parameters.AddWithValue("@created", recipe.Created);
+            command.Parameters.AddWithValue("@created_by_user_id", recipe.CreatedByUserId);
+            command.Parameters.AddWithValue("@modified", recipe.Modified);
+            command.Parameters.AddWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
+            command.Parameters.AddWithValue("@revision", recipe.Revision);
 
             await command.ExecuteNonQueryAsync();
         }
