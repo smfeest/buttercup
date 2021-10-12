@@ -1,7 +1,7 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -38,7 +38,7 @@ namespace Buttercup.DataAccess
             return user;
         }
 
-        public static async Task InsertSampleUser(DbConnection connection, User user)
+        public static async Task InsertSampleUser(MySqlConnection connection, User user)
         {
             using var command = connection.CreateCommand();
 

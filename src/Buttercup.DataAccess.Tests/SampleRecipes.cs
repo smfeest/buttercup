@@ -1,7 +1,7 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -44,7 +44,7 @@ namespace Buttercup.DataAccess
         }
 
         public static async Task InsertSampleRecipe(
-            DbConnection connection, Recipe recipe, bool insertRelatedRecords = false)
+            MySqlConnection connection, Recipe recipe, bool insertRelatedRecords = false)
         {
             if (insertRelatedRecords)
             {
@@ -76,7 +76,7 @@ namespace Buttercup.DataAccess
             await command.ExecuteNonQueryAsync();
         }
 
-        private static async Task InsertRelatedUser(DbConnection connection, long? userId)
+        private static async Task InsertRelatedUser(MySqlConnection connection, long? userId)
         {
             if (userId.HasValue)
             {
