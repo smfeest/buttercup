@@ -44,8 +44,8 @@ namespace Buttercup.DataAccess
 
         private static IServiceCollection AddDataAccessServices(this IServiceCollection services) =>
             services
-                .AddTransient<IDbConnectionSource, DbConnectionSource>()
                 .AddTransient<IAuthenticationEventDataProvider, AuthenticationEventDataProvider>()
+                .AddTransient<IMySqlConnectionSource, MySqlConnectionSource>()
                 .AddTransient<IPasswordResetTokenDataProvider, PasswordResetTokenDataProvider>()
                 .AddTransient<IRecipeDataProvider, RecipeDataProvider>()
                 .AddTransient<IUserDataProvider, UserDataProvider>();

@@ -14,19 +14,19 @@ namespace Buttercup.Web.Controllers
     {
         private readonly IAuthenticationManager authenticationManager;
         private readonly IClock clock;
-        private readonly IDbConnectionSource dbConnectionSource;
+        private readonly IMySqlConnectionSource mySqlConnectionSource;
         private readonly IStringLocalizer<AccountController> localizer;
         private readonly IUserDataProvider userDataProvider;
 
         public AccountController(
             IClock clock,
-            IDbConnectionSource dbConnectionSource,
+            IMySqlConnectionSource mySqlConnectionSource,
             IUserDataProvider userDataProvider,
             IAuthenticationManager authenticationManager,
             IStringLocalizer<AccountController> localizer)
         {
             this.clock = clock;
-            this.dbConnectionSource = dbConnectionSource;
+            this.mySqlConnectionSource = mySqlConnectionSource;
             this.userDataProvider = userDataProvider;
             this.authenticationManager = authenticationManager;
             this.localizer = localizer;
@@ -68,7 +68,7 @@ namespace Buttercup.Web.Controllers
         [HttpPost("preferences")]
         public async Task<IActionResult> Preferences(PreferencesViewModel model)
         {
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             var user = this.HttpContext.GetCurrentUser()!;
 

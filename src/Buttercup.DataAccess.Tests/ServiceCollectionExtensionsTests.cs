@@ -13,21 +13,21 @@ namespace Buttercup.DataAccess
         #region AddDataAccessServices
 
         [Fact]
-        public void AddDataAccessServicesAddsConnectionSource() =>
-            Assert.Contains(
-                new ServiceCollection().AddDataAccessServices(ConfigureOptions),
-                serviceDescriptor =>
-                    serviceDescriptor.ServiceType == typeof(IDbConnectionSource) &&
-                    serviceDescriptor.ImplementationType == typeof(DbConnectionSource) &&
-                    serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-        [Fact]
         public void AddDataAccessServicesAddsAuthenticationEventDataProvider() =>
             Assert.Contains(
                 new ServiceCollection().AddDataAccessServices(ConfigureOptions),
                 serviceDescriptor =>
                     serviceDescriptor.ServiceType == typeof(IAuthenticationEventDataProvider) &&
                     serviceDescriptor.ImplementationType == typeof(AuthenticationEventDataProvider) &&
+                    serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+        [Fact]
+        public void AddDataAccessServicesAddsMySqlConnectionSource() =>
+            Assert.Contains(
+                new ServiceCollection().AddDataAccessServices(ConfigureOptions),
+                serviceDescriptor =>
+                    serviceDescriptor.ServiceType == typeof(IMySqlConnectionSource) &&
+                    serviceDescriptor.ImplementationType == typeof(MySqlConnectionSource) &&
                     serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
         [Fact]

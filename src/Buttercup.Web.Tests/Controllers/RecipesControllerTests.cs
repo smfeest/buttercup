@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
@@ -9,6 +8,7 @@ using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Controllers
@@ -25,7 +25,7 @@ namespace Buttercup.Web.Controllers
             IList<Recipe> recipes = Array.Empty<Recipe>();
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecipes(fixture.DbConnection))
+                .Setup(x => x.GetRecipes(fixture.MySqlConnection))
                 .ReturnsAsync(recipes);
 
             var result = await fixture.RecipesController.Index();
@@ -46,7 +46,7 @@ namespace Buttercup.Web.Controllers
             var recipe = new Recipe();
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecipe(fixture.DbConnection, 3))
+                .Setup(x => x.GetRecipe(fixture.MySqlConnection, 3))
                 .ReturnsAsync(recipe);
 
             var result = await fixture.RecipesController.Show(3);
@@ -78,8 +78,8 @@ namespace Buttercup.Web.Controllers
             using var fixture = new NewEditPostFixture();
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.AddRecipe(fixture.DbConnection, It.IsAny<Recipe>()))
-                .Callback((DbConnection connection, Recipe recipe) =>
+                .Setup(x => x.AddRecipe(fixture.MySqlConnection, It.IsAny<Recipe>()))
+                .Callback((MySqlConnection connection, Recipe recipe) =>
                 {
                     Assert.Equal(fixture.EditModel.Title, recipe.Title);
                     Assert.Equal(fixture.UtcNow, recipe.Created);
@@ -125,7 +125,7 @@ namespace Buttercup.Web.Controllers
             };
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecipe(fixture.DbConnection, 5))
+                .Setup(x => x.GetRecipe(fixture.MySqlConnection, 5))
                 .ReturnsAsync(recipe);
 
             var result = await fixture.RecipesController.Edit(5);
@@ -145,8 +145,8 @@ namespace Buttercup.Web.Controllers
             using var fixture = new NewEditPostFixture();
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.UpdateRecipe(fixture.DbConnection, It.IsAny<Recipe>()))
-                .Callback((DbConnection connection, Recipe recipe) =>
+                .Setup(x => x.UpdateRecipe(fixture.MySqlConnection, It.IsAny<Recipe>()))
+                .Callback((MySqlConnection connection, Recipe recipe) =>
                 {
                     Assert.Equal(3, recipe.Id);
                     Assert.Equal(fixture.EditModel.Title, recipe.Title);
@@ -190,7 +190,7 @@ namespace Buttercup.Web.Controllers
             var recipe = new Recipe();
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecipe(fixture.DbConnection, 8))
+                .Setup(x => x.GetRecipe(fixture.MySqlConnection, 8))
                 .ReturnsAsync(recipe);
 
             var result = await fixture.RecipesController.Delete(8);
@@ -209,7 +209,7 @@ namespace Buttercup.Web.Controllers
             using var fixture = new RecipesControllerFixture();
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.DeleteRecipe(fixture.DbConnection, 6, 12))
+                .Setup(x => x.DeleteRecipe(fixture.MySqlConnection, 6, 12))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
@@ -228,16 +228,16 @@ namespace Buttercup.Web.Controllers
             public RecipesControllerFixture()
             {
                 var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
-                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
+                var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
                 this.RecipesController = new(
-                    clock, dbConnectionSource, this.MockRecipeDataProvider.Object);
+                    clock, mySqlConnectionSource, this.MockRecipeDataProvider.Object);
             }
 
             public RecipesController RecipesController { get; }
 
-            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+            public MySqlConnection MySqlConnection { get; } = new();
 
             public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 

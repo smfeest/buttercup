@@ -9,20 +9,20 @@ namespace Buttercup.Web.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly IDbConnectionSource dbConnectionSource;
+        private readonly IMySqlConnectionSource mySqlConnectionSource;
         private readonly IRecipeDataProvider recipeDataProvider;
 
         public HomeController(
-            IDbConnectionSource dbConnectionSource, IRecipeDataProvider recipeDataProvider)
+            IMySqlConnectionSource mySqlConnectionSource, IRecipeDataProvider recipeDataProvider)
         {
-            this.dbConnectionSource = dbConnectionSource;
+            this.mySqlConnectionSource = mySqlConnectionSource;
             this.recipeDataProvider = recipeDataProvider;
         }
 
         [HttpGet("/")]
         public async Task<IActionResult> Index()
         {
-            var connection = await this.dbConnectionSource.OpenConnection();
+            var connection = await this.mySqlConnectionSource.OpenConnection();
 
             return this.View(new HomePageViewModel
             {

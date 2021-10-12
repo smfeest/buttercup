@@ -21,7 +21,7 @@ namespace Buttercup.Web.Authentication
         private readonly IAuthenticationMailer authenticationMailer;
         private readonly IAuthenticationService authenticationService;
         private readonly IClock clock;
-        private readonly IDbConnectionSource dbConnectionSource;
+        private readonly IMySqlConnectionSource mySqlConnectionSource;
         private readonly ILogger<AuthenticationManager> logger;
         private readonly IPasswordHasher<User?> passwordHasher;
         private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
@@ -34,7 +34,7 @@ namespace Buttercup.Web.Authentication
             IAuthenticationMailer authenticationMailer,
             IAuthenticationService authenticationService,
             IClock clock,
-            IDbConnectionSource dbConnectionSource,
+            IMySqlConnectionSource mySqlConnectionSource,
             ILogger<AuthenticationManager> logger,
             IPasswordHasher<User?> passwordHasher,
             IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
@@ -46,7 +46,7 @@ namespace Buttercup.Web.Authentication
             this.authenticationMailer = authenticationMailer;
             this.authenticationService = authenticationService;
             this.clock = clock;
-            this.dbConnectionSource = dbConnectionSource;
+            this.mySqlConnectionSource = mySqlConnectionSource;
             this.logger = logger;
             this.passwordHasher = passwordHasher;
             this.passwordResetTokenDataProvider = passwordResetTokenDataProvider;
@@ -57,7 +57,7 @@ namespace Buttercup.Web.Authentication
 
         public async Task<User?> Authenticate(string email, string password)
         {
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             var user = await this.userDataProvider.FindUserByEmail(connection, email);
 
@@ -122,7 +122,7 @@ namespace Buttercup.Web.Authentication
         public async Task<bool> ChangePassword(
             HttpContext httpContext, string currentPassword, string newPassword)
         {
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             var user = httpContext.GetCurrentUser()!;
 
@@ -173,7 +173,7 @@ namespace Buttercup.Web.Authentication
 
         public async Task<bool> PasswordResetTokenIsValid(string token)
         {
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             var userId = await this.ValidatePasswordResetToken(connection, token);
 
@@ -198,7 +198,7 @@ namespace Buttercup.Web.Authentication
 
         public async Task<User> ResetPassword(string token, string newPassword)
         {
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             var userId = await this.ValidatePasswordResetToken(connection, token);
 
@@ -233,7 +233,7 @@ namespace Buttercup.Web.Authentication
 
         public async Task SendPasswordResetLink(ActionContext actionContext, string email)
         {
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             var user = await this.userDataProvider.FindUserByEmail(connection, email);
 
@@ -294,7 +294,7 @@ namespace Buttercup.Web.Authentication
 
             this.logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
 
-            using var connection = await this.dbConnectionSource.OpenConnection();
+            using var connection = await this.mySqlConnectionSource.OpenConnection();
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, this.clock.UtcNow, "sign_in", user.Id);
@@ -312,7 +312,7 @@ namespace Buttercup.Web.Authentication
 
                 this.logger.LogInformation("User {userId} ({email}) signed out", userId, email);
 
-                using var connection = await this.dbConnectionSource.OpenConnection();
+                using var connection = await this.mySqlConnectionSource.OpenConnection();
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection, this.clock.UtcNow, "sign_out", userId);
@@ -329,7 +329,7 @@ namespace Buttercup.Web.Authentication
             {
                 User user;
 
-                using (var connection = await this.dbConnectionSource.OpenConnection())
+                using (var connection = await this.mySqlConnectionSource.OpenConnection())
                 {
                     user = await this.userDataProvider.GetUser(connection, userId.Value);
                 }

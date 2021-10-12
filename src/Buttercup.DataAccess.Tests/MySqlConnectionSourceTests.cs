@@ -6,14 +6,14 @@ using Xunit;
 namespace Buttercup.DataAccess
 {
     [Collection("Database collection")]
-    public class DbConnectionSourceTests
+    public class MySqlConnectionSourceTests
     {
         [Fact]
         public async Task ReturnsOpenConnectionToDatabase()
         {
             var connectionString = TestDatabase.BuildConnectionString();
 
-            var connectionSource = new DbConnectionSource(
+            var connectionSource = new MySqlConnectionSource(
                 Options.Create(new DataAccessOptions { ConnectionString = connectionString }));
 
             var connection = await connectionSource.OpenConnection();
