@@ -1,5 +1,6 @@
 using System.Data;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Buttercup.DataAccess
@@ -12,7 +13,8 @@ namespace Buttercup.DataAccess
         {
             var connectionString = TestDatabase.BuildConnectionString();
 
-            var connectionSource = new DbConnectionSource(connectionString);
+            var connectionSource = new DbConnectionSource(
+                Options.Create(new DataAccessOptions { ConnectionString = connectionString }));
 
             var connection = await connectionSource.OpenConnection();
 

@@ -1,5 +1,7 @@
+using System;
 using System.Data.Common;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace Buttercup.DataAccess
@@ -9,27 +11,30 @@ namespace Buttercup.DataAccess
     /// </summary>
     internal class DbConnectionSource : IDbConnectionSource
     {
+        private readonly string connectionString;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DbConnectionSource" /> class.
         /// </summary>
-        /// <param name="connectionString">
-        /// The connection string.
+        /// <param name="optionsAccessor">
+        /// The data access options accessor.
         /// </param>
-        public DbConnectionSource(string connectionString) =>
-            this.ConnectionString = connectionString;
+        public DbConnectionSource(IOptions<DataAccessOptions> optionsAccessor)
+        {
+            if (string.IsNullOrEmpty(optionsAccessor.Value.ConnectionString))
+            {
+                throw new ArgumentException(
+                    "ConnectionString must not be null or empty",
+                    nameof(optionsAccessor));
+            }
 
-        /// <summary>
-        /// Gets the connection string.
-        /// </summary>
-        /// <value>
-        /// The connection string.
-        /// </value>
-        public string ConnectionString { get; }
+            this.connectionString = optionsAccessor.Value.ConnectionString;
+        }
 
         /// <inheritdoc />
         public async Task<DbConnection> OpenConnection()
         {
-            var connection = new MySqlConnection(this.ConnectionString);
+            var connection = new MySqlConnection(this.connectionString);
 
             await connection.OpenAsync();
 
