@@ -27,7 +27,11 @@ namespace Buttercup.DataAccess
                     nameof(optionsAccessor));
             }
 
-            this.connectionString = optionsAccessor.Value.ConnectionString;
+            this.connectionString = new MySqlConnectionStringBuilder(
+                optionsAccessor.Value.ConnectionString)
+            {
+                DateTimeKind = MySqlDateTimeKind.Utc,
+            }.ToString();
         }
 
         /// <inheritdoc />
