@@ -108,15 +108,15 @@ namespace Buttercup.DataAccess
 
         private static void AddInsertUpdateParameters(MySqlCommand command, Recipe recipe)
         {
-            command.AddParameterWithStringValue("@title", recipe.Title);
+            command.Parameters.AddWithStringValue("@title", recipe.Title);
             command.Parameters.AddWithValue("@preparation_minutes", recipe.PreparationMinutes);
             command.Parameters.AddWithValue("@cooking_minutes", recipe.CookingMinutes);
             command.Parameters.AddWithValue("@servings", recipe.Servings);
-            command.AddParameterWithStringValue("@ingredients", recipe.Ingredients);
-            command.AddParameterWithStringValue("@method", recipe.Method);
-            command.AddParameterWithStringValue("@suggestions", recipe.Suggestions);
-            command.AddParameterWithStringValue("@remarks", recipe.Remarks);
-            command.AddParameterWithStringValue("@source", recipe.Source);
+            command.Parameters.AddWithStringValue("@ingredients", recipe.Ingredients);
+            command.Parameters.AddWithStringValue("@method", recipe.Method);
+            command.Parameters.AddWithStringValue("@suggestions", recipe.Suggestions);
+            command.Parameters.AddWithStringValue("@remarks", recipe.Remarks);
+            command.Parameters.AddWithStringValue("@source", recipe.Source);
         }
 
         private static async Task<Exception> ConcurrencyOrNotFoundException(

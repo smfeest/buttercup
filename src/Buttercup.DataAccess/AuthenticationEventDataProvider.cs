@@ -23,9 +23,9 @@ namespace Buttercup.DataAccess
                 VALUES (@time, @event, @user_id, @email)";
 
             command.Parameters.AddWithValue("@time", time);
-            command.AddParameterWithStringValue("@event", eventName);
+            command.Parameters.AddWithStringValue("@event", eventName);
             command.Parameters.AddWithValue("@user_id", userId);
-            command.AddParameterWithStringValue("@email", email);
+            command.Parameters.AddWithStringValue("@email", email);
 
             await command.ExecuteNonQueryAsync();
 
