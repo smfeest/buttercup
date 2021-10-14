@@ -1,15 +1,13 @@
 using System;
-using System.Data.Common;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
     /// <summary>
-    /// Provides extension methods for <see cref="DbDataReader" />.
+    /// Provides extension methods for <see cref="MySqlDataReader" />.
     /// </summary>
-    internal static class DbDataReaderExtensions
+    internal static class MySqlDataReaderExtensions
     {
-        private delegate T ReadValue<T>(int ordinal);
-
         /// <summary>
         /// Gets the value in a column as a <see cref="DateTime" /> value.
         /// </summary>
@@ -33,51 +31,8 @@ namespace Buttercup.DataAccess
         /// The specified cast is not valid.
         /// </exception>
         public static DateTime GetDateTime(
-            this DbDataReader reader, string columnName, DateTimeKind kind) =>
-            reader.GetValue(
-                i => DateTime.SpecifyKind(reader.GetDateTime(i), kind), columnName, false);
-
-        /// <summary>
-        /// Gets the value in a column as a 32-bit signed integer.
-        /// </summary>
-        /// <param name="reader">
-        /// The data reader.
-        /// </param>
-        /// <param name="columnName">
-        /// The column name.
-        /// </param>
-        /// <returns>
-        /// The value.
-        /// </returns>
-        /// <exception cref="IndexOutOfRangeException">
-        /// No column with the specified name was found.
-        /// </exception>
-        /// <exception cref="InvalidCastException">
-        /// The specified cast is not valid.
-        /// </exception>
-        public static int GetInt32(this DbDataReader reader, string columnName) =>
-            reader.GetValue(reader.GetInt32, columnName, false);
-
-        /// <summary>
-        /// Gets the value in a column as a 64-bit signed integer.
-        /// </summary>
-        /// <param name="reader">
-        /// The data reader.
-        /// </param>
-        /// <param name="columnName">
-        /// The column name.
-        /// </param>
-        /// <returns>
-        /// The value.
-        /// </returns>
-        /// <exception cref="IndexOutOfRangeException">
-        /// No column with the specified name was found.
-        /// </exception>
-        /// <exception cref="InvalidCastException">
-        /// The specified cast is not valid.
-        /// </exception>
-        public static long GetInt64(this DbDataReader reader, string columnName) =>
-            reader.GetValue(reader.GetInt64, columnName, false);
+            this MySqlDataReader reader, string columnName, DateTimeKind kind) =>
+            DateTime.SpecifyKind(reader.GetDateTime(columnName), kind);
 
         /// <summary>
         /// Gets the value in a column as a nullable <see cref="DateTime" /> value.
@@ -102,11 +57,8 @@ namespace Buttercup.DataAccess
         /// The specified cast is not valid.
         /// </exception>
         public static DateTime? GetNullableDateTime(
-            this DbDataReader reader, string columnName, DateTimeKind kind) =>
-            reader.GetValue<DateTime?>(
-                ordinal => DateTime.SpecifyKind(reader.GetDateTime(ordinal), kind),
-                columnName,
-                true);
+            this MySqlDataReader reader, string columnName, DateTimeKind kind) =>
+            reader.IsDBNull(columnName) ? null : reader.GetDateTime(columnName, kind);
 
         /// <summary>
         /// Gets the value in a column as a nullable 32-bit signed integer.
@@ -126,8 +78,8 @@ namespace Buttercup.DataAccess
         /// <exception cref="InvalidCastException">
         /// The specified cast is not valid.
         /// </exception>
-        public static int? GetNullableInt32(this DbDataReader reader, string columnName) =>
-            reader.GetValue<int?>(ordinal => reader.GetInt32(ordinal), columnName, true);
+        public static int? GetNullableInt32(this MySqlDataReader reader, string columnName) =>
+            reader.IsDBNull(columnName) ? null : reader.GetInt32(columnName);
 
         /// <summary>
         /// Gets the value in a column as a nullable 64-bit signed integer.
@@ -147,8 +99,8 @@ namespace Buttercup.DataAccess
         /// <exception cref="InvalidCastException">
         /// The specified cast is not valid.
         /// </exception>
-        public static long? GetNullableInt64(this DbDataReader reader, string columnName) =>
-            reader.GetValue<long?>(ordinal => reader.GetInt64(ordinal), columnName, true);
+        public static long? GetNullableInt64(this MySqlDataReader reader, string columnName) =>
+            reader.IsDBNull(columnName) ? null : reader.GetInt64(columnName);
 
         /// <summary>
         /// Gets the value in a column as a string.
@@ -168,15 +120,10 @@ namespace Buttercup.DataAccess
         /// <exception cref="InvalidCastException">
         /// The specified cast is not valid.
         /// </exception>
-        public static string? GetString(this DbDataReader reader, string columnName) =>
-            reader.GetValue(reader.GetString, columnName, true);
+        public static string? GetNullableString(this MySqlDataReader reader, string columnName) =>
+            reader.IsDBNull(columnName) ? null : reader.GetString(columnName);
 
-        private static T? GetValue<T>(
-            this DbDataReader reader, ReadValue<T> readValue, string columnName, bool canBeNull)
-        {
-            var ordinal = reader.GetOrdinal(columnName);
-
-            return canBeNull && reader.IsDBNull(ordinal) ? default : readValue(ordinal);
-        }
+        private static bool IsDBNull(this MySqlDataReader reader, string columnName) =>
+            reader.IsDBNull(reader.GetOrdinal(columnName));
     }
 }

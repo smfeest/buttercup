@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Buttercup.Models;
@@ -157,7 +156,7 @@ namespace Buttercup.DataAccess
             return recipes;
         }
 
-        private static Recipe ReadRecipe(DbDataReader reader) =>
+        private static Recipe ReadRecipe(MySqlDataReader reader) =>
             new()
             {
                 Id = reader.GetInt64("id"),
@@ -167,9 +166,9 @@ namespace Buttercup.DataAccess
                 Servings = reader.GetNullableInt32("servings"),
                 Ingredients = reader.GetString("ingredients"),
                 Method = reader.GetString("method"),
-                Suggestions = reader.GetString("suggestions"),
-                Remarks = reader.GetString("remarks"),
-                Source = reader.GetString("source"),
+                Suggestions = reader.GetNullableString("suggestions"),
+                Remarks = reader.GetNullableString("remarks"),
+                Source = reader.GetNullableString("source"),
                 Created = reader.GetDateTime("created", DateTimeKind.Utc),
                 CreatedByUserId = reader.GetNullableInt64("created_by_user_id"),
                 Modified = reader.GetDateTime("modified", DateTimeKind.Utc),

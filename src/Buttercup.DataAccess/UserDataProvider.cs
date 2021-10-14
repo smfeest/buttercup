@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
 using MySqlConnector;
@@ -86,13 +85,13 @@ namespace Buttercup.DataAccess
             }
         }
 
-        private static User ReadUser(DbDataReader reader) =>
+        private static User ReadUser(MySqlDataReader reader) =>
             new()
             {
                 Id = reader.GetInt64("id"),
                 Name = reader.GetString("name"),
                 Email = reader.GetString("email"),
-                HashedPassword = reader.GetString("hashed_password"),
+                HashedPassword = reader.GetNullableString("hashed_password"),
                 PasswordCreated = reader.GetNullableDateTime("password_created", DateTimeKind.Utc),
                 SecurityStamp = reader.GetString("security_stamp"),
                 TimeZone = reader.GetString("time_zone"),
