@@ -9,32 +9,6 @@ namespace Buttercup.DataAccess
     internal static class MySqlDataReaderExtensions
     {
         /// <summary>
-        /// Gets the value in a column as a <see cref="DateTime" /> value.
-        /// </summary>
-        /// <param name="reader">
-        /// The data reader.
-        /// </param>
-        /// <param name="columnName">
-        /// The column name.
-        /// </param>
-        /// <param name="kind">
-        /// A value that indicates whether the value represents a local or UTC date and time, or
-        /// neither.
-        /// </param>
-        /// <returns>
-        /// The value.
-        /// </returns>
-        /// <exception cref="IndexOutOfRangeException">
-        /// No column with the specified name was found.
-        /// </exception>
-        /// <exception cref="InvalidCastException">
-        /// The specified cast is not valid.
-        /// </exception>
-        public static DateTime GetDateTime(
-            this MySqlDataReader reader, string columnName, DateTimeKind kind) =>
-            DateTime.SpecifyKind(reader.GetDateTime(columnName), kind);
-
-        /// <summary>
         /// Gets the value in a column as a nullable <see cref="DateTime" /> value.
         /// </summary>
         /// <param name="reader">
@@ -42,10 +16,6 @@ namespace Buttercup.DataAccess
         /// </param>
         /// <param name="columnName">
         /// The column name.
-        /// </param>
-        /// <param name="kind">
-        /// A value that indicates whether the value represents a local or UTC date and time, or
-        /// neither.
         /// </param>
         /// <returns>
         /// The value.
@@ -57,8 +27,8 @@ namespace Buttercup.DataAccess
         /// The specified cast is not valid.
         /// </exception>
         public static DateTime? GetNullableDateTime(
-            this MySqlDataReader reader, string columnName, DateTimeKind kind) =>
-            reader.IsDBNull(columnName) ? null : reader.GetDateTime(columnName, kind);
+            this MySqlDataReader reader, string columnName) =>
+            reader.IsDBNull(columnName) ? null : reader.GetDateTime(columnName);
 
         /// <summary>
         /// Gets the value in a column as a nullable 32-bit signed integer.

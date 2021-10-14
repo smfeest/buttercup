@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,39 +6,10 @@ namespace Buttercup.DataAccess
     [Collection("Database collection")]
     public class MySqlDataReaderExtensionsTests
     {
-        #region GetDateTime
-
-        [Theory]
-        [InlineData(DateTimeKind.Local)]
-        [InlineData(DateTimeKind.Unspecified)]
-        [InlineData(DateTimeKind.Utc)]
-        public async Task GetDateTimeReturnsValueWithDateTimeKind(DateTimeKind kind)
-        {
-            using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-            using var command = connection.CreateCommand();
-
-            command.CommandText = "SELECT '2000-01-02 03:04:05' column_name";
-
-            using var reader = await command.ExecuteReaderAsync();
-
-            await reader.ReadAsync();
-
-            var result = reader.GetDateTime("column_name", kind);
-
-            Assert.Equal(new(2000, 1, 2, 3, 4, 5), result);
-            Assert.Equal(kind, result.Kind);
-        }
-
-        #endregion
-
         #region GetNullableDateTime
 
-        [Theory]
-        [InlineData(DateTimeKind.Local)]
-        [InlineData(DateTimeKind.Unspecified)]
-        [InlineData(DateTimeKind.Utc)]
-        public async Task GetNullableDateTimeReturnsValueWhenNotDbNull(DateTimeKind kind)
+        [Fact]
+        public async Task GetNullableDateTimeReturnsValueWhenNotDbNull()
         {
             using var connection = await TestDatabase.OpenConnectionWithRollback();
 
@@ -51,10 +21,9 @@ namespace Buttercup.DataAccess
 
             await reader.ReadAsync();
 
-            var result = reader.GetNullableDateTime("column_name", kind);
+            var result = reader.GetNullableDateTime("column_name");
 
             Assert.Equal(new(2000, 1, 2, 3, 4, 5), result);
-            Assert.Equal(kind, result!.Value.Kind);
         }
 
         [Fact]

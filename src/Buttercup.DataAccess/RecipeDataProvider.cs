@@ -169,9 +169,9 @@ namespace Buttercup.DataAccess
                 Suggestions = reader.GetNullableString("suggestions"),
                 Remarks = reader.GetNullableString("remarks"),
                 Source = reader.GetNullableString("source"),
-                Created = reader.GetDateTime("created", DateTimeKind.Utc),
+                Created = reader.GetDateTime("created"),
                 CreatedByUserId = reader.GetNullableInt64("created_by_user_id"),
-                Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
+                Modified = reader.GetDateTime("modified"),
                 ModifiedByUserId = reader.GetNullableInt64("modified_by_user_id"),
                 Revision = reader.GetInt32("revision"),
             };

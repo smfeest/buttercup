@@ -424,10 +424,8 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Remarks, actual.Remarks);
             Assert.Equal(expected.Source, actual.Source);
             Assert.Equal(expected.Created, actual.Created);
-            Assert.Equal(DateTimeKind.Utc, actual.Created.Kind);
             Assert.Equal(expected.CreatedByUserId, actual.CreatedByUserId);
             Assert.Equal(expected.Modified, actual.Modified);
-            Assert.Equal(DateTimeKind.Utc, actual.Modified.Kind);
             Assert.Equal(expected.ModifiedByUserId, actual.ModifiedByUserId);
             Assert.Equal(expected.Revision, actual.Revision);
         }

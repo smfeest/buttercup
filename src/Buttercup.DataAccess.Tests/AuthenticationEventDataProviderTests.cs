@@ -32,9 +32,7 @@ namespace Buttercup.DataAccess
 
             await reader.ReadAsync();
 
-            Assert.Equal(
-                new(2000, 1, 2, 3, 4, 5),
-                reader.GetDateTime("time", DateTimeKind.Utc));
+            Assert.Equal(new(2000, 1, 2, 3, 4, 5), reader.GetDateTime("time"));
             Assert.Equal("sample-event", reader.GetString("event"));
             Assert.Equal(8, reader.GetInt64("user_id"));
             Assert.Equal("sample@example.com", reader.GetString("email"));
