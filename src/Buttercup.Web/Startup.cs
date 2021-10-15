@@ -86,8 +86,7 @@ namespace Buttercup.Web
             services
                 .AddCoreServices()
                 .AddDataAccessServices(this.configuration.GetSection("DataAccess"))
-                .AddEmailServices()
-                .Configure<EmailOptions>(this.configuration.GetSection("Email"));
+                .AddEmailServices(this.configuration.GetSection("Email"));
 
             services
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
