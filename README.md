@@ -66,15 +66,10 @@
 
       dotnet test
 
-- To run all Jasmine tests using Headless Chrome:
+- To run all TypeScript tests:
 
       cd src/Buttercup.Web
-      npx karma start
-
-- To run all Jasmine tests in a Chrome window (for interactive debugging):
-
-      cd src/Buttercup.Web
-      npx karma start --browsers Chrome
+      npx jest
 
 ## Linting
 

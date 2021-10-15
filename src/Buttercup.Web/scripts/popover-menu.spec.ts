@@ -1,5 +1,7 @@
 import PopoverMenu, { Options } from './popover-menu';
 
+import { jest } from '@jest/globals';
+
 describe('PopoverMenu', () => {
   let fixture: HTMLElement;
   let button: HTMLButtonElement;
@@ -35,7 +37,8 @@ describe('PopoverMenu', () => {
 
   const triggerClick = (target: HTMLElement) => {
     const event = new MouseEvent('click', { bubbles: true });
-    spyOn(event, 'preventDefault');
+
+    jest.spyOn(event, 'preventDefault');
 
     target.dispatchEvent(event);
 
@@ -48,7 +51,7 @@ describe('PopoverMenu', () => {
       bubbles: true,
       ...properties,
     });
-    spyOn(event, 'preventDefault');
+    jest.spyOn(event, 'preventDefault');
 
     document.activeElement!.dispatchEvent(event);
 
