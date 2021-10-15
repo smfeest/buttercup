@@ -69,12 +69,12 @@
 - To run all Jasmine tests using Headless Chrome:
 
       cd src/Buttercup.Web
-      npx gulp test
+      npx karma start
 
 - To run all Jasmine tests in a Chrome window (for interactive debugging):
 
       cd src/Buttercup.Web
-      npx gulp testDebug
+      npx karma start --browsers Chrome
 
 ## Linting
 
