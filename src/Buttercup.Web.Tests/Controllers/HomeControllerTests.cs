@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Controllers
@@ -24,10 +24,10 @@ namespace Buttercup.Web.Controllers
             IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
 
             fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyAddedRecipes(fixture.DbConnection))
+                .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))
                 .ReturnsAsync(recentlyAddedRecipes);
             fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.DbConnection))
+                .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.MySqlConnection))
                 .ReturnsAsync(recentlyUpdatedRecipes);
 
             var result = await fixture.HomeController.Index();
@@ -45,15 +45,15 @@ namespace Buttercup.Web.Controllers
         {
             public HomeControllerFixture()
             {
-                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
-                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
+                var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
-                this.HomeController = new(dbConnectionSource, this.MockRecipeDataProvider.Object);
+                this.HomeController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
             }
 
             public HomeController HomeController { get; }
 
-            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+            public MySqlConnection MySqlConnection { get; } = new();
 
             public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 

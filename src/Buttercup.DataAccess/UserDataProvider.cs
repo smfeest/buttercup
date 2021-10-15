@@ -1,7 +1,7 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.Models;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -11,12 +11,12 @@ namespace Buttercup.DataAccess
     internal sealed class UserDataProvider : IUserDataProvider
     {
         /// <inheritdoc />
-        public async Task<User?> FindUserByEmail(DbConnection connection, string email)
+        public async Task<User?> FindUserByEmail(MySqlConnection connection, string email)
         {
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM user WHERE email = @email";
-            command.AddParameterWithValue("@email", email);
+            command.Parameters.AddWithValue("@email", email);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -24,12 +24,12 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task<User> GetUser(DbConnection connection, long id)
+        public async Task<User> GetUser(MySqlConnection connection, long id)
         {
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM user WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -38,7 +38,7 @@ namespace Buttercup.DataAccess
 
         /// <inheritdoc />
         public async Task UpdatePassword(
-            DbConnection connection,
+            MySqlConnection connection,
             long userId,
             string hashedPassword,
             string securityStamp,
@@ -53,10 +53,10 @@ namespace Buttercup.DataAccess
                     modified = @time,
                     revision = revision + 1
                 WHERE id = @id";
-            command.AddParameterWithValue("@id", userId);
-            command.AddParameterWithValue("@hashed_password", hashedPassword);
-            command.AddParameterWithValue("@security_stamp", securityStamp);
-            command.AddParameterWithValue("@time", time);
+            command.Parameters.AddWithValue("@id", userId);
+            command.Parameters.AddWithValue("@hashed_password", hashedPassword);
+            command.Parameters.AddWithValue("@security_stamp", securityStamp);
+            command.Parameters.AddWithValue("@time", time);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -66,7 +66,7 @@ namespace Buttercup.DataAccess
 
         /// <inheritdoc />
         public async Task UpdatePreferences(
-            DbConnection connection, long userId, string timeZone, DateTime time)
+            MySqlConnection connection, long userId, string timeZone, DateTime time)
         {
             using var command = connection.CreateCommand();
 
@@ -75,9 +75,9 @@ namespace Buttercup.DataAccess
                     modified = @time,
                     revision = revision + 1
                 WHERE id = @id";
-            command.AddParameterWithValue("@id", userId);
-            command.AddParameterWithValue("@time_zone", timeZone);
-            command.AddParameterWithValue("@time", time);
+            command.Parameters.AddWithValue("@id", userId);
+            command.Parameters.AddWithValue("@time_zone", timeZone);
+            command.Parameters.AddWithValue("@time", time);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -85,18 +85,18 @@ namespace Buttercup.DataAccess
             }
         }
 
-        private static User ReadUser(DbDataReader reader) =>
+        private static User ReadUser(MySqlDataReader reader) =>
             new()
             {
                 Id = reader.GetInt64("id"),
                 Name = reader.GetString("name"),
                 Email = reader.GetString("email"),
-                HashedPassword = reader.GetString("hashed_password"),
-                PasswordCreated = reader.GetNullableDateTime("password_created", DateTimeKind.Utc),
+                HashedPassword = reader.GetNullableString("hashed_password"),
+                PasswordCreated = reader.GetNullableDateTime("password_created"),
                 SecurityStamp = reader.GetString("security_stamp"),
                 TimeZone = reader.GetString("time_zone"),
-                Created = reader.GetDateTime("created", DateTimeKind.Utc),
-                Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
+                Created = reader.GetDateTime("created"),
+                Modified = reader.GetDateTime("modified"),
                 Revision = reader.GetInt32("revision"),
             };
 

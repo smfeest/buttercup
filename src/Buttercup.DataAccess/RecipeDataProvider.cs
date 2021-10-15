@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Buttercup.Models;
@@ -14,16 +13,16 @@ namespace Buttercup.DataAccess
     internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         /// <inheritdoc />
-        public async Task<long> AddRecipe(DbConnection connection, Recipe recipe)
+        public async Task<long> AddRecipe(MySqlConnection connection, Recipe recipe)
         {
-            using var command = (MySqlCommand)connection.CreateCommand();
+            using var command = connection.CreateCommand();
 
             command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
                 VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
 
             AddInsertUpdateParameters(command, recipe);
-            command.AddParameterWithValue("@created", recipe.Created);
-            command.AddParameterWithValue("@created_by_user_id", recipe.CreatedByUserId);
+            command.Parameters.AddWithValue("@created", recipe.Created);
+            command.Parameters.AddWithValue("@created_by_user_id", recipe.CreatedByUserId);
 
             await command.ExecuteNonQueryAsync();
 
@@ -31,13 +30,13 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task DeleteRecipe(DbConnection connection, long id, int revision)
+        public async Task DeleteRecipe(MySqlConnection connection, long id, int revision)
         {
             using var command = connection.CreateCommand();
 
             command.CommandText = "DELETE FROM recipe WHERE id = @id AND revision = @revision";
-            command.AddParameterWithValue("@id", id);
-            command.AddParameterWithValue("@revision", revision);
+            command.Parameters.AddWithValue("@id", id);
+            command.Parameters.AddWithValue("@revision", revision);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -46,12 +45,12 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task<Recipe> GetRecipe(DbConnection connection, long id)
+        public async Task<Recipe> GetRecipe(MySqlConnection connection, long id)
         {
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM recipe WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -61,15 +60,15 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public Task<IList<Recipe>> GetRecipes(DbConnection connection) =>
+        public Task<IList<Recipe>> GetRecipes(MySqlConnection connection) =>
             GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
 
         /// <inheritdoc />
-        public Task<IList<Recipe>> GetRecentlyAddedRecipes(DbConnection connection) =>
+        public Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection) =>
             GetRecipes(connection, "SELECT * FROM recipe ORDER BY created DESC LIMIT 10");
 
         /// <inheritdoc />
-        public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(DbConnection connection)
+        public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection)
         {
             var query = @"SELECT *
                 FROM recipe
@@ -81,7 +80,7 @@ namespace Buttercup.DataAccess
         }
 
         /// <inheritdoc />
-        public async Task UpdateRecipe(DbConnection connection, Recipe recipe)
+        public async Task UpdateRecipe(MySqlConnection connection, Recipe recipe)
         {
             using var command = connection.CreateCommand();
 
@@ -94,10 +93,10 @@ namespace Buttercup.DataAccess
                 WHERE id = @id AND revision = @revision";
 
             AddInsertUpdateParameters(command, recipe);
-            command.AddParameterWithValue("@id", recipe.Id);
-            command.AddParameterWithValue("@modified", recipe.Modified);
-            command.AddParameterWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
-            command.AddParameterWithValue("@revision", recipe.Revision);
+            command.Parameters.AddWithValue("@id", recipe.Id);
+            command.Parameters.AddWithValue("@modified", recipe.Modified);
+            command.Parameters.AddWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
+            command.Parameters.AddWithValue("@revision", recipe.Revision);
 
             if (await command.ExecuteNonQueryAsync() == 0)
             {
@@ -106,26 +105,26 @@ namespace Buttercup.DataAccess
             }
         }
 
-        private static void AddInsertUpdateParameters(DbCommand command, Recipe recipe)
+        private static void AddInsertUpdateParameters(MySqlCommand command, Recipe recipe)
         {
-            command.AddParameterWithStringValue("@title", recipe.Title);
-            command.AddParameterWithValue("@preparation_minutes", recipe.PreparationMinutes);
-            command.AddParameterWithValue("@cooking_minutes", recipe.CookingMinutes);
-            command.AddParameterWithValue("@servings", recipe.Servings);
-            command.AddParameterWithStringValue("@ingredients", recipe.Ingredients);
-            command.AddParameterWithStringValue("@method", recipe.Method);
-            command.AddParameterWithStringValue("@suggestions", recipe.Suggestions);
-            command.AddParameterWithStringValue("@remarks", recipe.Remarks);
-            command.AddParameterWithStringValue("@source", recipe.Source);
+            command.Parameters.AddWithStringValue("@title", recipe.Title);
+            command.Parameters.AddWithValue("@preparation_minutes", recipe.PreparationMinutes);
+            command.Parameters.AddWithValue("@cooking_minutes", recipe.CookingMinutes);
+            command.Parameters.AddWithValue("@servings", recipe.Servings);
+            command.Parameters.AddWithStringValue("@ingredients", recipe.Ingredients);
+            command.Parameters.AddWithStringValue("@method", recipe.Method);
+            command.Parameters.AddWithStringValue("@suggestions", recipe.Suggestions);
+            command.Parameters.AddWithStringValue("@remarks", recipe.Remarks);
+            command.Parameters.AddWithStringValue("@source", recipe.Source);
         }
 
         private static async Task<Exception> ConcurrencyOrNotFoundException(
-            DbConnection connection, long id, int revision)
+            MySqlConnection connection, long id, int revision)
         {
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT revision FROM recipe WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             var currentRevision = await command.ExecuteScalarAsync();
 
@@ -139,7 +138,7 @@ namespace Buttercup.DataAccess
             "Security",
             "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
             Justification = "Command text does not contain user input")]
-        private static async Task<IList<Recipe>> GetRecipes(DbConnection connection, string query)
+        private static async Task<IList<Recipe>> GetRecipes(MySqlConnection connection, string query)
         {
             using var command = connection.CreateCommand();
 
@@ -157,7 +156,7 @@ namespace Buttercup.DataAccess
             return recipes;
         }
 
-        private static Recipe ReadRecipe(DbDataReader reader) =>
+        private static Recipe ReadRecipe(MySqlDataReader reader) =>
             new()
             {
                 Id = reader.GetInt64("id"),
@@ -167,12 +166,12 @@ namespace Buttercup.DataAccess
                 Servings = reader.GetNullableInt32("servings"),
                 Ingredients = reader.GetString("ingredients"),
                 Method = reader.GetString("method"),
-                Suggestions = reader.GetString("suggestions"),
-                Remarks = reader.GetString("remarks"),
-                Source = reader.GetString("source"),
-                Created = reader.GetDateTime("created", DateTimeKind.Utc),
+                Suggestions = reader.GetNullableString("suggestions"),
+                Remarks = reader.GetNullableString("remarks"),
+                Source = reader.GetNullableString("source"),
+                Created = reader.GetDateTime("created"),
                 CreatedByUserId = reader.GetNullableInt64("created_by_user_id"),
-                Modified = reader.GetDateTime("modified", DateTimeKind.Utc),
+                Modified = reader.GetDateTime("modified"),
                 ModifiedByUserId = reader.GetNullableInt64("modified_by_user_id"),
                 Revision = reader.GetInt32("revision"),
             };

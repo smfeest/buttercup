@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Moq;
+using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Controllers
@@ -163,7 +163,7 @@ namespace Buttercup.Web.Controllers
 
             fixture.MockUserDataProvider
                 .Setup(x => x.UpdatePreferences(
-                    fixture.DbConnection, 21, viewModel.TimeZone, fixture.UtcNow))
+                    fixture.MySqlConnection, 21, viewModel.TimeZone, fixture.UtcNow))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
@@ -182,12 +182,12 @@ namespace Buttercup.Web.Controllers
             public AccountControllerFixture()
             {
                 var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
-                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
+                var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
                 this.AccountController = new(
                     clock,
-                    dbConnectionSource,
+                    mySqlConnectionSource,
                     this.MockUserDataProvider.Object,
                     this.MockAuthenticationManager.Object,
                     this.MockLocalizer.Object)
@@ -203,7 +203,7 @@ namespace Buttercup.Web.Controllers
 
             public DefaultHttpContext HttpContext { get; } = new();
 
-            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+            public MySqlConnection MySqlConnection { get; } = new();
 
             public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 

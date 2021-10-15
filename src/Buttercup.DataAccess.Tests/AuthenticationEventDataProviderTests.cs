@@ -26,15 +26,13 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 
             await reader.ReadAsync();
 
-            Assert.Equal(
-                new(2000, 1, 2, 3, 4, 5),
-                reader.GetDateTime("time", DateTimeKind.Utc));
+            Assert.Equal(new(2000, 1, 2, 3, 4, 5), reader.GetDateTime("time"));
             Assert.Equal("sample-event", reader.GetString("event"));
             Assert.Equal(8, reader.GetInt64("user_id"));
             Assert.Equal("sample@example.com", reader.GetString("email"));
@@ -51,7 +49,7 @@ namespace Buttercup.DataAccess
             using var command = connection.CreateCommand();
 
             command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
-            command.AddParameterWithValue("@id", id);
+            command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
 

@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Authentication
@@ -111,7 +111,7 @@ namespace Buttercup.Web.Authentication
                 this.User = user;
 
                 this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.Email))
+                    .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.Email))
                     .ReturnsAsync(user);
             }
 
@@ -213,7 +213,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ChangePassword();
 
             fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                fixture.DbConnection,
+                fixture.MySqlConnection,
                 fixture.User.Id,
                 fixture.HashedNewPassword,
                 fixture.NewSecurityStamp,
@@ -228,7 +228,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ChangePassword();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.User.Id));
+                x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.User.Id));
         }
 
         [Fact]
@@ -366,7 +366,7 @@ namespace Buttercup.Web.Authentication
             await fixture.PasswordResetTokenIsValid();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(fixture.DbConnection, fixture.UtcNow.AddDays(-1)));
+                x => x.DeleteExpiredTokens(fixture.MySqlConnection, fixture.UtcNow.AddDays(-1)));
         }
 
         [Fact]
@@ -378,7 +378,7 @@ namespace Buttercup.Web.Authentication
 
             fixture.MockAuthenticationEventDataProvider.Verify(
                 x => x.LogEvent(
-                    fixture.DbConnection,
+                    fixture.MySqlConnection,
                     fixture.UtcNow,
                     "password_reset_failure:invalid_token",
                     null,
@@ -441,7 +441,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ResetPassword();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteExpiredTokens(fixture.DbConnection, fixture.UtcNow.AddDays(-1)));
+                x => x.DeleteExpiredTokens(fixture.MySqlConnection, fixture.UtcNow.AddDays(-1)));
         }
 
         [Fact]
@@ -476,7 +476,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ResetPassword();
 
             fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-                fixture.DbConnection,
+                fixture.MySqlConnection,
                 fixture.UserId!.Value,
                 fixture.NewHashedPassword,
                 fixture.NewSecurityStamp,
@@ -491,7 +491,7 @@ namespace Buttercup.Web.Authentication
             await fixture.ResetPassword();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(
-                x => x.DeleteTokensForUser(fixture.DbConnection, fixture.UserId!.Value));
+                x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.UserId!.Value));
         }
 
         [Fact]
@@ -582,7 +582,7 @@ namespace Buttercup.Web.Authentication
             await fixture.SendPasswordResetLink();
 
             fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-                fixture.DbConnection, fixture.User!.Id, fixture.Token, fixture.UtcNow));
+                fixture.MySqlConnection, fixture.User!.Id, fixture.Token, fixture.UtcNow));
         }
 
         [Fact]
@@ -640,7 +640,7 @@ namespace Buttercup.Web.Authentication
                     .Returns(this.MockUrlHelper.Object);
 
                 this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.DbConnection, this.SuppliedEmail))
+                    .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.SuppliedEmail))
                     .ReturnsAsync(user);
             }
 
@@ -795,7 +795,7 @@ namespace Buttercup.Web.Authentication
             await fixture.SignOut();
 
             fixture.MockAuthenticationEventDataProvider.Verify(
-                x => x.LogEvent(fixture.DbConnection, fixture.UtcNow, "sign_out", null, null),
+                x => x.LogEvent(fixture.MySqlConnection, fixture.UtcNow, "sign_out", null, null),
                 Times.Never);
         }
 
@@ -937,15 +937,15 @@ namespace Buttercup.Web.Authentication
             public AuthenticationManagerFixture()
             {
                 var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-                var dbConnectionSource = Mock.Of<IDbConnectionSource>(
-                    x => x.OpenConnection() == Task.FromResult(this.DbConnection));
+                var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+                    x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
                 this.AuthenticationManager = new(
                     this.MockAuthenticationEventDataProvider.Object,
                     this.MockAuthenticationMailer.Object,
                     this.MockAuthenticationService.Object,
                     clock,
-                    dbConnectionSource,
+                    mySqlConnectionSource,
                     Mock.Of<ILogger<AuthenticationManager>>(),
                     this.MockPasswordHasher.Object,
                     this.MockPasswordResetTokenDataProvider.Object,
@@ -958,7 +958,7 @@ namespace Buttercup.Web.Authentication
 
             public AuthenticationManager AuthenticationManager { get; }
 
-            public DbConnection DbConnection { get; } = Mock.Of<DbConnection>();
+            public MySqlConnection MySqlConnection { get; } = new();
 
             public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
 
@@ -978,18 +978,18 @@ namespace Buttercup.Web.Authentication
 
             public void SetupGetUser(long id, User user) =>
                 this.MockUserDataProvider
-                    .Setup(x => x.GetUser(this.DbConnection, id))
+                    .Setup(x => x.GetUser(this.MySqlConnection, id))
                     .ReturnsAsync(user);
 
             public void SetupGetUserIdForToken(string token, long? userId) =>
                 this.MockPasswordResetTokenDataProvider
-                    .Setup(x => x.GetUserIdForToken(this.DbConnection, token))
+                    .Setup(x => x.GetUserIdForToken(this.MySqlConnection, token))
                     .ReturnsAsync(userId);
 
             public void VerifyEventLogged(
                 string eventName, long? userId = null, string? email = null) =>
                 this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                    this.DbConnection, this.UtcNow, eventName, userId, email));
+                    this.MySqlConnection, this.UtcNow, eventName, userId, email));
         }
     }
 }

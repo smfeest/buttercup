@@ -10,62 +10,6 @@ namespace Buttercup.DataAccess
     internal static class DbCommandExtensions
     {
         /// <summary>
-        /// Appends a new parameter to the command with a name and value.
-        /// </summary>
-        /// <param name="command">
-        /// The command.
-        /// </param>
-        /// <param name="name">
-        /// The parameter name.
-        /// </param>
-        /// <param name="value">
-        /// The parameter value.
-        /// </param>
-        /// <returns>
-        /// The new parameter.
-        /// </returns>
-        public static DbParameter AddParameterWithValue(
-            this DbCommand command, string name, object? value)
-        {
-            var parameter = command.CreateParameter();
-
-            parameter.ParameterName = name;
-            parameter.Value = value ?? DBNull.Value;
-
-            command.Parameters.Add(parameter);
-
-            return parameter;
-        }
-
-        /// <summary>
-        /// Appends a new parameter to the command with a name and string value.
-        /// </summary>
-        /// <remarks>
-        /// Unlike <see cref="AddParameterWithValue"/>, this method trims whitespace from the start
-        /// and end of <paramref name="value"/> and treats strings containing only white space as
-        /// null.
-        /// </remarks>
-        /// <param name="command">
-        /// The command.
-        /// </param>
-        /// <param name="name">
-        /// The parameter name.
-        /// </param>
-        /// <param name="value">
-        /// The parameter value.
-        /// </param>
-        /// <returns>
-        /// The new parameter.
-        /// </returns>
-        public static DbParameter AddParameterWithStringValue(
-            this DbCommand command, string name, string? value)
-        {
-            value = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-            return command.AddParameterWithValue(name, value);
-        }
-
-        /// <summary>
         /// Executes the command and gets the value in the first column of the first row in the
         /// result set.
         /// </summary>

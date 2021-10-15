@@ -1,6 +1,6 @@
 using System;
-using System.Data.Common;
 using System.Threading.Tasks;
+using MySqlConnector;
 
 namespace Buttercup.DataAccess
 {
@@ -21,7 +21,7 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task DeleteExpiredTokens(DbConnection connection, DateTime cutOff);
+        Task DeleteExpiredTokens(MySqlConnection connection, DateTime cutOff);
 
         /// <summary>
         /// Deletes all password reset tokens belonging to a user.
@@ -35,7 +35,7 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task DeleteTokensForUser(DbConnection connection, long userId);
+        Task DeleteTokensForUser(MySqlConnection connection, long userId);
 
         /// <summary>
         /// Tries to get the user ID associated with a password reset token.
@@ -50,7 +50,7 @@ namespace Buttercup.DataAccess
         /// A task for the operation. The result is the user ID, or a null reference if no matching
         /// token is found.
         /// </returns>
-        Task<long?> GetUserIdForToken(DbConnection connection, string token);
+        Task<long?> GetUserIdForToken(MySqlConnection connection, string token);
 
         /// <summary>
         /// Inserts a password reset token.
@@ -70,6 +70,6 @@ namespace Buttercup.DataAccess
         /// <returns>
         /// A task for the operation.
         /// </returns>
-        Task InsertToken(DbConnection connection, long userId, string token, DateTime created);
+        Task InsertToken(MySqlConnection connection, long userId, string token, DateTime created);
     }
 }

@@ -160,7 +160,7 @@ namespace Buttercup.DataAccess
         {
             using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-            var expected = SampleUsers.CreateSampleUser();
+            var expected = SampleUsers.CreateSampleUser(includeOptionalAttributes: true);
 
             await SampleUsers.InsertSampleUser(connection, expected);
 
@@ -171,14 +171,26 @@ namespace Buttercup.DataAccess
             Assert.Equal(expected.Email, actual.Email);
             Assert.Equal(expected.HashedPassword, actual.HashedPassword);
             Assert.Equal(expected.PasswordCreated, actual.PasswordCreated);
-            Assert.Equal(DateTimeKind.Utc, actual.PasswordCreated!.Value.Kind);
             Assert.Equal(expected.SecurityStamp, actual.SecurityStamp);
             Assert.Equal(expected.TimeZone, actual.TimeZone);
             Assert.Equal(expected.Created, actual.Created);
-            Assert.Equal(DateTimeKind.Utc, actual.Created.Kind);
             Assert.Equal(expected.Modified, actual.Modified);
-            Assert.Equal(DateTimeKind.Utc, actual.Modified.Kind);
             Assert.Equal(expected.Revision, actual.Revision);
+        }
+
+        [Fact]
+        public async Task ReadUserHandlesNullAttributes()
+        {
+            using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+            var expected = SampleUsers.CreateSampleUser(includeOptionalAttributes: false);
+
+            await SampleUsers.InsertSampleUser(connection, expected);
+
+            var actual = await new UserDataProvider().GetUser(connection, expected.Id);
+
+            Assert.Null(actual.HashedPassword);
+            Assert.Null(actual.PasswordCreated);
         }
 
         #endregion

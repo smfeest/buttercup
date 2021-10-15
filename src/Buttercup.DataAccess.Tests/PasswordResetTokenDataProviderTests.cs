@@ -136,7 +136,7 @@ namespace Buttercup.DataAccess
             await reader.ReadAsync();
 
             Assert.Equal(6, reader.GetInt64("user_id"));
-            Assert.Equal(time, reader.GetDateTime("created", DateTimeKind.Utc));
+            Assert.Equal(time, reader.GetDateTime("created"));
         }
 
         #endregion
