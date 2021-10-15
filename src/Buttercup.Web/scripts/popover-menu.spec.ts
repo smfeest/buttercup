@@ -224,7 +224,7 @@ describe('PopoverMenu', () => {
           expect(popoverMenu.isOpen).toBe(true);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('ArrowDown');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -238,7 +238,7 @@ describe('PopoverMenu', () => {
           expect(popoverMenu.isOpen).toBe(true);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('ArrowDown');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -306,7 +306,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[0]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('ArrowDown');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -320,7 +320,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[2]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('ArrowDown');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -334,7 +334,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[0]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('Tab');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -348,7 +348,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[2]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('Tab', { shiftKey: true });
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -380,7 +380,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[2]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('ArrowDown');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -394,7 +394,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[0]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('ArrowDown');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -408,7 +408,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[2]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('Tab');
 
           expect(event.preventDefault).toHaveBeenCalled();
@@ -422,7 +422,7 @@ describe('PopoverMenu', () => {
           expect(document.activeElement).toBe(menuItems[0]);
         });
 
-        it('suppresses the default down key behaviour', () => {
+        it('suppresses the default key down behaviour', () => {
           const event = triggerKeyDown('Tab', { shiftKey: true });
 
           expect(event.preventDefault).toHaveBeenCalled();
