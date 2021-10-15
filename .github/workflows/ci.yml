@@ -40,7 +40,7 @@ jobs:
       - name: Run .NET tests
         run: dotnet test --no-build --verbosity normal --configuration Release
       - name: Run Jest tests
-        run: npx jest
+        run: npx jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Check formatting
         run: npx prettier -c .
