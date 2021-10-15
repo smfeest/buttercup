@@ -244,6 +244,14 @@ describe('PopoverMenu', () => {
           expect(event.preventDefault).toHaveBeenCalled();
         });
       });
+
+      describe('pressing any other key', () => {
+        it('does not suppress the default key down behaviour', () => {
+          const event = triggerKeyDown('ArrowLeft');
+
+          expect(event.preventDefault).not.toHaveBeenCalled();
+        });
+      });
     });
   });
 
