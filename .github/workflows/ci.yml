@@ -39,8 +39,8 @@ jobs:
         run: mysql -uroot -proot < db/dev-user.sql
       - name: Run .NET tests
         run: dotnet test --no-build --verbosity normal --configuration Release
-      - name: Run Karma tests
-        run: npx karma start --single-run
+      - name: Run Jest tests
+        run: npx jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Check formatting
         run: npx prettier -c .

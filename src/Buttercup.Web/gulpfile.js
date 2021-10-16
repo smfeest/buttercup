@@ -1,7 +1,6 @@
 const cleanCss = require('gulp-clean-css');
 const del = require('del');
 const { dest, parallel, series, src, watch } = require('gulp');
-const karma = require('karma');
 const less = require('gulp-less');
 const rev = require('gulp-rev');
 const revReplace = require('gulp-rev-replace');
@@ -69,15 +68,6 @@ function revisionStyles() {
   );
 }
 
-function test(browser) {
-  return (doneCallback) => {
-    const config = karma.config.parseConfig(`${__dirname}/karma.conf.js`, {
-      browsers: [browser],
-    });
-    new karma.Server(config, doneCallback).start();
-  };
-}
-
 function watchScripts() {
   return webpackDevScripts({
     watch: true,
@@ -136,6 +126,4 @@ exports.default = build;
 exports.build = build;
 exports.clean = clean;
 exports.rebuild = series(clean, build);
-exports.test = test('ChromeHeadless');
-exports.testDebug = test('Chrome');
 exports.watch = parallel(bundleStyles, watchScripts, watchStyles);
