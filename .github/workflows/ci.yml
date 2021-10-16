@@ -21,6 +21,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Set SHORT_COMMIT_SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Restore .NET tools
+        run: dotnet tool restore
       - name: Restore .NET dependencies
         run: dotnet restore
       - name: Restore npm cache
@@ -38,7 +40,12 @@ jobs:
       - name: Create MySQL users
         run: mysql -uroot -proot < db/dev-user.sql
       - name: Run .NET tests
-        run: dotnet test --no-build --verbosity normal --configuration Release
+        run: dotnet test --no-build --verbosity normal --configuration Release --collect "XPlat Code Coverage"
+      - name: Report .NET test coverage
+        if: ${{ hashFiles('**/coverage.cobertura.xml') }}
+        run: |
+          dotnet reportgenerator -reports:**/coverage.cobertura.xml -targetdir:CoverageReports -reporttypes:TextSummary
+          cat CoverageReports/Summary.txt
       - name: Run Jest tests
         run: npx jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}

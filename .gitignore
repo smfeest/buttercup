@@ -2,6 +2,7 @@ bin/
 coverage/
 node_modules/
 obj/
+TestResults/
 **/assets/scripts
 **/assets/styles
 prod-assets/
