@@ -4,6 +4,7 @@ using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
+using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
