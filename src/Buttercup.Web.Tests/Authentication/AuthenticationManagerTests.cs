@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -23,14 +24,19 @@ namespace Buttercup.Web.Authentication
         #region Authenticate
 
         [Fact]
-        public async Task AuthenticateLogsEventOnSuccess()
+        public async Task AuthenticateLogsOnSuccess()
         {
             var fixture = AuthenticateFixture.ForSuccess();
 
             await fixture.Authenticate();
 
-            fixture.VerifyEventLogged(
-                "authentication_success", fixture.User!.Id, fixture.Email);
+            var user = fixture.User!;
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information, $"User {user.Id} ({user.Email}) successfully authenticated");
+
+            fixture.AssertAuthenticationEventLogged(
+                "authentication_success", user.Id, fixture.SuppliedEmail);
         }
 
         [Fact]
@@ -44,14 +50,18 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task AuthenticateLogsEventIfEmailIsUnrecognized()
+        public async Task AuthenticateLogsIfEmailIsUnrecognized()
         {
             var fixture = AuthenticateFixture.ForEmailNotFound();
 
             await fixture.Authenticate();
 
-            fixture.VerifyEventLogged(
-                "authentication_failure:unrecognized_email", null, fixture.Email);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Authentication failed; no user with email {fixture.SuppliedEmail}");
+
+            fixture.AssertAuthenticationEventLogged(
+                "authentication_failure:unrecognized_email", null, fixture.SuppliedEmail);
         }
 
         [Fact]
@@ -63,14 +73,20 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task AuthenticateLogsEventIfUserHasNoPassword()
+        public async Task AuthenticateLogsIfUserHasNoPassword()
         {
             var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
             await fixture.Authenticate();
 
-            fixture.VerifyEventLogged(
-                "authentication_failure:no_password_set", fixture.User!.Id, fixture.Email);
+            var user = fixture.User!;
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Authentication failed; no password set for user {user.Id} ({user.Email})");
+
+            fixture.AssertAuthenticationEventLogged(
+                "authentication_failure:no_password_set", user.Id, fixture.SuppliedEmail);
         }
 
         [Fact]
@@ -82,14 +98,20 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task AuthenticateLogsEventIfPasswordIsIncorrect()
+        public async Task AuthenticateLogsIfPasswordIsIncorrect()
         {
             var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
             await fixture.Authenticate();
 
-            fixture.VerifyEventLogged(
-                "authentication_failure:incorrect_password", fixture.User!.Id, fixture.Email);
+            var user = fixture.User!;
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
+
+            fixture.AssertAuthenticationEventLogged(
+                "authentication_failure:incorrect_password", user.Id, fixture.SuppliedEmail);
         }
 
         [Fact]
@@ -103,6 +125,7 @@ namespace Buttercup.Web.Authentication
         private class AuthenticateFixture : AuthenticationManagerFixture
         {
             private const long UserId = 29;
+            private const string UserEmail = "user-email@example.com";
             private const string Password = "user-password";
             private const string HashedPassword = "hashed-password";
 
@@ -111,11 +134,11 @@ namespace Buttercup.Web.Authentication
                 this.User = user;
 
                 this.MockUserDataProvider
-                    .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.Email))
+                    .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.SuppliedEmail))
                     .ReturnsAsync(user);
             }
 
-            public string Email { get; } = "user@example.com";
+            public string SuppliedEmail { get; } = "supplied-email@example.com";
 
             public User? User { get; }
 
@@ -124,19 +147,18 @@ namespace Buttercup.Web.Authentication
 
             public static AuthenticateFixture ForEmailNotFound() => new(null);
 
-            public static AuthenticateFixture ForUserHasNoPassword() =>
-                new(new User { Id = UserId, HashedPassword = null });
+            public static AuthenticateFixture ForUserHasNoPassword() => new(BuildUser(false));
 
             public static AuthenticateFixture ForPasswordIncorrect() =>
                 ForPasswordVerificationResult(PasswordVerificationResult.Failed);
 
             public Task<User?> Authenticate() =>
-                this.AuthenticationManager.Authenticate(this.Email, Password);
+                this.AuthenticationManager.Authenticate(this.SuppliedEmail, Password);
 
             private static AuthenticateFixture ForPasswordVerificationResult(
                 PasswordVerificationResult result)
             {
-                var user = new User { Id = UserId, HashedPassword = HashedPassword };
+                var user = BuildUser(true);
 
                 var fixture = new AuthenticateFixture(user);
 
@@ -146,6 +168,13 @@ namespace Buttercup.Web.Authentication
 
                 return fixture;
             }
+
+            private static User BuildUser(bool hasPassword) => new()
+            {
+                Id = UserId,
+                Email = UserEmail,
+                HashedPassword = hasPassword ? HashedPassword : null,
+            };
         }
 
         #endregion
@@ -165,7 +194,7 @@ namespace Buttercup.Web.Authentication
             {
             }
 
-            fixture.VerifyEventLogged("password_change_failure:no_password_set", fixture.User.Id);
+            fixture.AssertAuthenticationEventLogged("password_change_failure:no_password_set", fixture.User.Id);
         }
 
         [Fact]
@@ -177,13 +206,17 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordLogsEventIfCurrentPasswordDoesNotMatch()
+        public async Task ChangePasswordLogsIfCurrentPasswordDoesNotMatch()
         {
             var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
             await fixture.ChangePassword();
 
-            fixture.VerifyEventLogged("password_change_failure:incorrect_password", fixture.User.Id);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Password change denied for user {fixture.User.Id} ({fixture.User.Email}); current password is incorrect");
+
+            fixture.AssertAuthenticationEventLogged("password_change_failure:incorrect_password", fixture.User.Id);
         }
 
         [Fact]
@@ -206,7 +239,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordUpdatesUser()
+        public async Task ChangePasswordUpdatesUserOnSuccess()
         {
             var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -221,7 +254,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordDeletesPasswordResetTokens()
+        public async Task ChangePasswordDeletesPasswordResetTokensOnSuccess()
         {
             var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -232,7 +265,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordSendsPasswordChangeNotification()
+        public async Task ChangePasswordSendsPasswordChangeNotificationOnSuccess()
         {
             var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -243,17 +276,21 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordLogsEvent()
+        public async Task ChangePasswordLogsOnSuccess()
         {
             var fixture = ChangePasswordFixture.ForSuccess();
 
             await fixture.ChangePassword();
 
-            fixture.VerifyEventLogged("password_change_success", fixture.User.Id);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Password successfully changed for user {fixture.User.Id} ({fixture.User.Email})");
+
+            fixture.AssertAuthenticationEventLogged("password_change_success", fixture.User.Id);
         }
 
         [Fact]
-        public async Task ChangePasswordSignsInUpdatedPrincipal()
+        public async Task ChangePasswordSignsInUpdatedPrincipalOnSuccess()
         {
             var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -287,7 +324,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ChangePasswordReturnsTrue()
+        public async Task ChangePasswordReturnsTrueOnSuccess()
         {
             var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -370,20 +407,15 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task PasswordResetTokenIsValidDoesNotLogEventIfValid()
+        public async Task PasswordResetTokenIsValidLogsIfValid()
         {
             var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
 
             await fixture.PasswordResetTokenIsValid();
 
-            fixture.MockAuthenticationEventDataProvider.Verify(
-                x => x.LogEvent(
-                    fixture.MySqlConnection,
-                    fixture.UtcNow,
-                    "password_reset_failure:invalid_token",
-                    null,
-                    null),
-                Times.Never);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Debug,
+                $"Password reset token '{fixture.RedactedToken}' is valid and belongs to user {fixture.UserId}");
         }
 
         [Fact]
@@ -395,13 +427,17 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task PasswordResetTokenIsValidLogsEventIfInvalid()
+        public async Task PasswordResetTokenIsValidLogsIfInvalid()
         {
             var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
 
             await fixture.PasswordResetTokenIsValid();
 
-            fixture.VerifyEventLogged("password_reset_failure:invalid_token");
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Debug,
+                $"Password reset token '{fixture.RedactedToken}' is no longer valid");
+
+            fixture.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
         }
 
         [Fact]
@@ -418,8 +454,15 @@ namespace Buttercup.Web.Authentication
         {
             private const string Token = "password-reset-token";
 
-            private PasswordResetTokenIsValidFixture(long? userId) =>
+            private PasswordResetTokenIsValidFixture(long? userId)
+            {
+                this.UserId = userId;
                 this.SetupGetUserIdForToken(Token, userId);
+            }
+
+            public string RedactedToken { get; } = "passwo…";
+
+            public long? UserId { get; }
 
             public static PasswordResetTokenIsValidFixture ForValidToken() => new(43);
 
@@ -445,7 +488,7 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordLogsEventIfTokenIsInvalid()
+        public async Task ResetPasswordLogsIfTokenIsInvalid()
         {
             var fixture = ResetPasswordFixture.ForInvalidToken();
 
@@ -457,7 +500,11 @@ namespace Buttercup.Web.Authentication
             {
             }
 
-            fixture.VerifyEventLogged("password_reset_failure:invalid_token");
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Unable to reset password; password reset token {fixture.RedactedToken} is invalid");
+
+            fixture.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
         }
 
         [Fact]
@@ -506,13 +553,17 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task ResetPasswordLogsEventOnSuccess()
+        public async Task ResetPasswordLogsOnSuccess()
         {
             var fixture = ResetPasswordFixture.ForSuccess();
 
             await fixture.ResetPassword();
 
-            fixture.VerifyEventLogged("password_reset_success", fixture.UserId);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Password reset for user {fixture.UserId} using token {fixture.RedactedToken}");
+
+            fixture.AssertAuthenticationEventLogged("password_reset_success", fixture.UserId);
         }
 
         [Fact]
@@ -528,11 +579,12 @@ namespace Buttercup.Web.Authentication
         private class ResetPasswordFixture : AuthenticationManagerFixture
         {
             private const string NewPassword = "new-password";
+            private const string Token = "password-reset-token";
 
             private ResetPasswordFixture(long? userId)
             {
                 this.UserId = userId;
-                this.SetupGetUserIdForToken(this.Token, userId);
+                this.SetupGetUserIdForToken(Token, userId);
             }
 
             private ResetPasswordFixture(long userId, User user)
@@ -551,7 +603,7 @@ namespace Buttercup.Web.Authentication
                     .Returns(this.NewSecurityStamp);
             }
 
-            public string Token { get; } = "password-reset-token";
+            public string RedactedToken { get; } = "passwo…";
 
             public long? UserId { get; }
 
@@ -567,7 +619,7 @@ namespace Buttercup.Web.Authentication
                 new(23, new() { Email = "user@example.com" });
 
             public Task<User> ResetPassword() =>
-                this.AuthenticationManager.ResetPassword(this.Token, NewPassword);
+                this.AuthenticationManager.ResetPassword(Token, NewPassword);
         }
 
         #endregion
@@ -597,14 +649,18 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task SendPasswordResetLinkLogsEventOnSuccess()
+        public async Task SendPasswordResetLinkLogsOnSuccess()
         {
             var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
             await fixture.SendPasswordResetLink();
 
-            fixture.VerifyEventLogged(
-                "password_reset_link_sent", fixture.User!.Id, fixture.User.Email);
+            var user = fixture.User!;
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information, $"Password reset link sent to user {user.Id} ({user.Email})");
+
+            fixture.AssertAuthenticationEventLogged("password_reset_link_sent", user.Id, user.Email);
         }
 
         [Fact]
@@ -619,14 +675,31 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task SendPasswordResetLinkLogsEventIfEmailIsUnrecognized()
+        public async Task SendPasswordResetLinkLogsIfEmailIsUnrecognized()
         {
             var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
             await fixture.SendPasswordResetLink();
 
-            fixture.VerifyEventLogged(
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Unable to send password reset link; No user with email {fixture.SuppliedEmail}");
+
+            fixture.AssertAuthenticationEventLogged(
                 "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
+        }
+
+        public async Task SendPasswordResetLinkLogsIfMailerThrowsException()
+        {
+            var fixture = SendPasswordResetLinkFixture.ForMailerException();
+
+            await fixture.SendPasswordResetLink();
+
+            var user = fixture.User!;
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Error sending password reset link to user {user.Id} ({user.Email})");
         }
 
         private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
@@ -656,7 +729,26 @@ namespace Buttercup.Web.Authentication
 
             public string Link { get; } = "https://example.com/reset-password/token";
 
-            public static SendPasswordResetLinkFixture ForSuccess()
+            public static SendPasswordResetLinkFixture ForSuccess() => ForMatchingUser();
+
+            public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
+
+            public static SendPasswordResetLinkFixture ForMailerException()
+            {
+                var fixture = ForMatchingUser();
+
+                fixture.MockAuthenticationMailer
+                    .Setup(x => x.SendPasswordResetLink(fixture.User!.Email!, fixture.Link))
+                    .Throws<InvalidOperationException>();
+
+                return fixture;
+            }
+
+            public Task SendPasswordResetLink() =>
+                this.AuthenticationManager.SendPasswordResetLink(
+                    this.ActionContext, this.SuppliedEmail);
+
+            private static SendPasswordResetLinkFixture ForMatchingUser()
             {
                 var fixture = new SendPasswordResetLinkFixture(
                     new() { Id = 31, Email = "user-email@example.com" });
@@ -674,12 +766,6 @@ namespace Buttercup.Web.Authentication
 
                 return fixture;
             }
-
-            public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
-
-            public Task SendPasswordResetLink() =>
-                this.AuthenticationManager.SendPasswordResetLink(
-                    this.ActionContext, this.SuppliedEmail);
         }
 
         #endregion
@@ -737,7 +823,10 @@ namespace Buttercup.Web.Authentication
 
             await fixture.SignIn();
 
-            fixture.VerifyEventLogged("sign_in", fixture.UserId);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information, $"User {fixture.UserId} ({fixture.Email}) signed in");
+
+            fixture.AssertAuthenticationEventLogged("sign_in", fixture.UserId);
         }
 
         private class SignInFixture : AuthenticationManagerFixture
@@ -778,17 +867,20 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
-        public async Task SignOutLogsEventIfUserPreviouslySignedIn()
+        public async Task SignOutLogsIfUserPreviouslySignedIn()
         {
             var fixture = SignOutFixture.ForUserSignedIn();
 
             await fixture.SignOut();
 
-            fixture.VerifyEventLogged("sign_out", fixture.UserId);
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information, $"User {fixture.UserId} ({fixture.Email}) signed out");
+
+            fixture.AssertAuthenticationEventLogged("sign_out", fixture.UserId);
         }
 
         [Fact]
-        public async Task SignOutDoesNotLogsEventIfUserPreviouslySignedOut()
+        public async Task SignOutDoesNotLogsIfNoUserPreviouslySignedIn()
         {
             var fixture = SignOutFixture.ForNoUserSignedIn();
 
@@ -807,16 +899,22 @@ namespace Buttercup.Web.Authentication
 
             public long? UserId { get; }
 
+            public string Email { get; } = "sample@example.com";
+
             public static SignOutFixture ForNoUserSignedIn() => new(null);
 
             public static SignOutFixture ForUserSignedIn()
             {
                 var fixture = new SignOutFixture(76);
 
+                var claims = new Claim[]
+                {
+                    new(ClaimTypes.NameIdentifier, "76"),
+                    new(ClaimTypes.Email, fixture.Email),
+                };
+
                 fixture.HttpContext.User = new ClaimsPrincipal(
-                    new ClaimsIdentity(
-                        new[] { new Claim(ClaimTypes.NameIdentifier, "76") },
-                        CookieAuthenticationDefaults.AuthenticationScheme));
+                    new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
 
                 return fixture;
             }
@@ -859,6 +957,30 @@ namespace Buttercup.Web.Authentication
         }
 
         [Fact]
+        public async Task ValidatePrincipalLogsWhenStampIsCorrect()
+        {
+            var fixture = ValidatePrincipalFixture.ForCorrectStamp();
+
+            await fixture.ValidatePrincipal();
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Debug,
+                $"Principal successfully validated for user {fixture.User.Id} ({fixture.User.Email})");
+        }
+
+        [Fact]
+        public async Task ValidatePrincipalLogsWhenStampIsIncorrect()
+        {
+            var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+
+            await fixture.ValidatePrincipal();
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information,
+                $"Incorrect security stamp for user {fixture.User.Id} ({fixture.User.Email})");
+        }
+
+        [Fact]
         public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
         {
             var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
@@ -884,6 +1006,7 @@ namespace Buttercup.Web.Authentication
 
         private class ValidatePrincipalFixture : AuthenticationManagerFixture
         {
+            private const long UserId = 34;
             private const string UserSecurityStamp = "user-security-stamp";
 
             private ValidatePrincipalFixture(params Claim[] claims)
@@ -905,7 +1028,12 @@ namespace Buttercup.Web.Authentication
 
             public CookieValidatePrincipalContext CookieContext { get; }
 
-            public User User { get; } = new() { SecurityStamp = UserSecurityStamp };
+            public User User { get; } = new()
+            {
+                Id = UserId,
+                Email = "user@example.com",
+                SecurityStamp = UserSecurityStamp,
+            };
 
             public static ValidatePrincipalFixture ForUnauthenticated() => new();
 
@@ -921,10 +1049,10 @@ namespace Buttercup.Web.Authentication
             private static ValidatePrincipalFixture ForAuthenticated(string principalSecurityStamp)
             {
                 var fixture = new ValidatePrincipalFixture(
-                    new(ClaimTypes.NameIdentifier, "34"),
+                    new(ClaimTypes.NameIdentifier, UserId.ToString(CultureInfo.InvariantCulture)),
                     new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
 
-                fixture.SetupGetUser(34, fixture.User);
+                fixture.SetupGetUser(UserId, fixture.User);
 
                 return fixture;
             }
@@ -946,7 +1074,7 @@ namespace Buttercup.Web.Authentication
                     this.MockAuthenticationService.Object,
                     clock,
                     mySqlConnectionSource,
-                    Mock.Of<ILogger<AuthenticationManager>>(),
+                    this.Logger,
                     this.MockPasswordHasher.Object,
                     this.MockPasswordResetTokenDataProvider.Object,
                     this.MockRandomTokenGenerator.Object,
@@ -957,6 +1085,8 @@ namespace Buttercup.Web.Authentication
             public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
 
             public AuthenticationManager AuthenticationManager { get; }
+
+            public ListLogger<AuthenticationManager> Logger { get; } = new();
 
             public MySqlConnection MySqlConnection { get; } = new();
 
@@ -986,7 +1116,7 @@ namespace Buttercup.Web.Authentication
                     .Setup(x => x.GetUserIdForToken(this.MySqlConnection, token))
                     .ReturnsAsync(userId);
 
-            public void VerifyEventLogged(
+            public void AssertAuthenticationEventLogged(
                 string eventName, long? userId = null, string? email = null) =>
                 this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
                     this.MySqlConnection, this.UtcNow, eventName, userId, email));

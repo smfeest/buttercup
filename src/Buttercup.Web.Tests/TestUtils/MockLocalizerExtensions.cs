@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Localization;
 using Moq;
 
-namespace Buttercup.Web
+namespace Buttercup.Web.TestUtils
 {
     internal static class MockLocalizerExtensions
     {

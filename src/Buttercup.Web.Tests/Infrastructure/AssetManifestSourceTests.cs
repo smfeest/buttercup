@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,17 @@ namespace Buttercup.Web.Infrastructure
     public class AssetManifestSourceTests
     {
         #region ProductionManifest
+
+        [Fact]
+        public void ProductionManifestLogsManifestLocation()
+        {
+            var fixture = new AssetManifestSourceFixture();
+
+            _ = fixture.ManifestSource.ProductionManifest;
+
+            fixture.Logger.AssertSingleEntry(
+                LogLevel.Information, $"Loading asset manifest {fixture.ManifestPath}");
+        }
 
         [Fact]
         public void ProductionManifestReturnsManifestAsReadOnlyDictionary()
@@ -41,21 +53,18 @@ namespace Buttercup.Web.Infrastructure
         {
             public AssetManifestSourceFixture()
             {
-                var path = Path.Combine("prod-assets", "manifest.json");
-
                 var stream = Mock.Of<Stream>();
                 var fileInfo = Mock.Of<IFileInfo>(x => x.CreateReadStream() == stream);
-                var fileProvider = Mock.Of<IFileProvider>(x => x.GetFileInfo(path) == fileInfo);
+                var fileProvider = Mock.Of<IFileProvider>(
+                    x => x.GetFileInfo(this.ManifestPath) == fileInfo);
                 var hostEnvironment = Mock.Of<IWebHostEnvironment>(
                     x => x.WebRootFileProvider == fileProvider);
-                var logger = Mock.Of<ILogger<AssetManifestSource>>();
-
                 this.MockManifestReader
                     .Setup(x => x.ReadManifest(stream))
                     .Returns(this.ExpectedManifest);
 
                 this.ManifestSource = new AssetManifestSource(
-                    hostEnvironment, logger, this.MockManifestReader.Object);
+                    hostEnvironment, this.Logger, this.MockManifestReader.Object);
             }
 
             public IDictionary<string, string> ExpectedManifest { get; } =
@@ -63,7 +72,11 @@ namespace Buttercup.Web.Infrastructure
 
             public AssetManifestSource ManifestSource { get; }
 
+            public ListLogger<AssetManifestSource> Logger { get; } = new();
+
             public Mock<IAssetManifestReader> MockManifestReader { get; } = new();
+
+            public string ManifestPath { get; } = Path.Combine("prod-assets", "manifest.json");
         }
     }
 }
