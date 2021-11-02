@@ -3,8 +3,8 @@ updates:
   - package-ecosystem: nuget
     directory: /
     schedule:
-      interval: daily
+      interval: monthly
   - package-ecosystem: npm
     directory: /src/Buttercup.Web
     schedule:
-      interval: daily
+      interval: monthly
