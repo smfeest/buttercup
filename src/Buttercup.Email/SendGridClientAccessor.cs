@@ -14,8 +14,16 @@ namespace Buttercup.Email
         /// <param name="optionsAccessor">
         /// The email options accessor.
         /// </param>
-        public SendGridClientAccessor(IOptions<EmailOptions> optionsAccessor) =>
-            this.SendGridClient = new SendGridClient(optionsAccessor.Value.ApiKey);
+        public SendGridClientAccessor(IOptions<EmailOptions> optionsAccessor)
+        {
+            var options = new SendGridClientOptions
+            {
+                ApiKey = optionsAccessor.Value.ApiKey,
+                HttpErrorAsException = true,
+            };
+
+            this.SendGridClient = new SendGridClient(options);
+        }
 
         /// <inheritdoc />
         public ISendGridClient SendGridClient { get; }

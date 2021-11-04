@@ -262,28 +262,15 @@ namespace Buttercup.Web.Authentication
             var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
             var link = urlHelper.Link("ResetPassword", new { token })!;
 
-            try
-            {
-                await this.authenticationMailer.SendPasswordResetLink(email, link);
+            await this.authenticationMailer.SendPasswordResetLink(email, link);
 
-                this.logger.LogInformation(
-                    "Password reset link sent to user {userId} ({email})",
-                    user.Id,
-                    email);
+            this.logger.LogInformation(
+                "Password reset link sent to user {userId} ({email})",
+                user.Id,
+                email);
 
-                await this.authenticationEventDataProvider.LogEvent(
-                    connection, this.clock.UtcNow, "password_reset_link_sent", user.Id, email);
-            }
-#pragma warning disable CA1031
-            catch (Exception e)
-            {
-                this.logger.LogError(
-                    e,
-                    "Error sending password reset link to user {userId} ({email})",
-                    user.Id,
-                    email);
-            }
-#pragma warning restore CA1031
+            await this.authenticationEventDataProvider.LogEvent(
+                connection, this.clock.UtcNow, "password_reset_link_sent", user.Id, email);
         }
 
         public async Task SignIn(HttpContext httpContext, User user)

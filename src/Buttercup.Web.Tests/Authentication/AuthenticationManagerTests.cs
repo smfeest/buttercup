@@ -689,19 +689,6 @@ namespace Buttercup.Web.Authentication
                 "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
         }
 
-        public async Task SendPasswordResetLinkLogsIfMailerThrowsException()
-        {
-            var fixture = SendPasswordResetLinkFixture.ForMailerException();
-
-            await fixture.SendPasswordResetLink();
-
-            var user = fixture.User!;
-
-            fixture.Logger.AssertSingleEntry(
-                LogLevel.Information,
-                $"Error sending password reset link to user {user.Id} ({user.Email})");
-        }
-
         private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
         {
             private SendPasswordResetLinkFixture(User? user)
@@ -729,26 +716,7 @@ namespace Buttercup.Web.Authentication
 
             public string Link { get; } = "https://example.com/reset-password/token";
 
-            public static SendPasswordResetLinkFixture ForSuccess() => ForMatchingUser();
-
-            public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
-
-            public static SendPasswordResetLinkFixture ForMailerException()
-            {
-                var fixture = ForMatchingUser();
-
-                fixture.MockAuthenticationMailer
-                    .Setup(x => x.SendPasswordResetLink(fixture.User!.Email!, fixture.Link))
-                    .Throws<InvalidOperationException>();
-
-                return fixture;
-            }
-
-            public Task SendPasswordResetLink() =>
-                this.AuthenticationManager.SendPasswordResetLink(
-                    this.ActionContext, this.SuppliedEmail);
-
-            private static SendPasswordResetLinkFixture ForMatchingUser()
+            public static SendPasswordResetLinkFixture ForSuccess()
             {
                 var fixture = new SendPasswordResetLinkFixture(
                     new() { Id = 31, Email = "user-email@example.com" });
@@ -766,6 +734,12 @@ namespace Buttercup.Web.Authentication
 
                 return fixture;
             }
+
+            public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
+
+            public Task SendPasswordResetLink() =>
+                this.AuthenticationManager.SendPasswordResetLink(
+                    this.ActionContext, this.SuppliedEmail);
         }
 
         #endregion
