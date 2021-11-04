@@ -5,6 +5,9 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);package.json;package-lock.json;tsconfig.json</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Bugsnag.AspNet.Core" Version="2.2.3" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
     <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
     <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />

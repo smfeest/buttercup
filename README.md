@@ -29,14 +29,21 @@
     Once the application is running, you'll be able to use the password reset
     flow to set a password.
 
-## Setting up SendGrid
+## Setting user secrets
 
-1.  Create a [SendGrid API Key](https://app.sendgrid.com/settings/api_keys) with
-    full access to _Mail Send_ > _Mail Send_ only
+1.  Change to the web project directory
 
-2.  Add the API key to the user secrets for the application:
+        cd src/Buttercup.Web
 
-        dotnet user-secrets set "Email:ApiKey" "<your-api-key>" --project src/Buttercup.Web
+1.  Create a [SendGrid API key](https://app.sendgrid.com/settings/api_keys) with
+    full access to _Mail Send_ > _Mail Send_ only, and add it as a user secret:
+
+        dotnet user-secrets set "Email:ApiKey" "<replace-with-api-key>"
+
+1.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
+    add the corresponding notifier API key as a user secret:
+
+        dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>"
 
 ## Running the app
 

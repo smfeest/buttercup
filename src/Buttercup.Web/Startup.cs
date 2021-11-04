@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Bugsnag.AspNet.Core;
 using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.Models;
@@ -101,6 +102,9 @@ namespace Buttercup.Web
                     options.EventsType = typeof(CookieAuthenticationEventsHandler);
                     options.LoginPath = "/sign-in";
                 });
+
+            services.AddBugsnag(
+                configuration => configuration.ApiKey = this.configuration["Bugsnag:ApiKey"]);
 
             services
                 .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
