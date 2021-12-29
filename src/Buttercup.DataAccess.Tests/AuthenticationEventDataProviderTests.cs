@@ -55,8 +55,8 @@ namespace Buttercup.DataAccess
 
             await reader.ReadAsync();
 
-            Assert.True(reader.IsDBNull(reader.GetOrdinal("user_id")));
-            Assert.True(reader.IsDBNull(reader.GetOrdinal("email")));
+            Assert.True(await reader.IsDBNullAsync(reader.GetOrdinal("user_id")));
+            Assert.True(await reader.IsDBNullAsync(reader.GetOrdinal("email")));
         }
 
         #endregion
