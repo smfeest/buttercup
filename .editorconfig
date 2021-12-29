@@ -21,7 +21,6 @@ csharp_style_var_when_type_is_apparent = true
 # Code style analysis rules
 dotnet_analyzer_diagnostic.category-Style.severity = warning
 dotnet_diagnostic.IDE0058.severity = none # Remove unnecessary expression value
-dotnet_diagnostic.IDE0130.severity = none # Match folder and namespace
 
 [src/Buttercup.Web/**.cs]
 
