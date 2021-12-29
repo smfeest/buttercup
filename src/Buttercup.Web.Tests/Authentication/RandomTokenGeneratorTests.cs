@@ -31,14 +31,12 @@ namespace Buttercup.Web.Authentication
                 .Setup(x => x.GetBytes(It.IsAny<byte[]>()))
                 .Callback((byte[] bytes) =>
                 {
-#pragma warning disable SA1117
                     var generatedBytes = new byte[]
                     {
                         0xd1, 0xa0, 0x7e,
                         0xd5, 0xc0, 0xde,
                         0xff, 0x61, 0x60,
                     };
-#pragma warning restore SA1117
 
                     Array.Copy(generatedBytes, bytes, 9);
                 });

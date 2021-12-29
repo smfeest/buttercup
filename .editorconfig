@@ -27,9 +27,6 @@ dotnet_analyzer_diagnostic.category-Style.severity = warning
 dotnet_diagnostic.IDE0058.severity = none # Remove unnecessary expression value
 dotnet_diagnostic.IDE0130.severity = none # Match folder and namespace
 
-# StyleCop rules
-dotnet_diagnostic.SA1633.severity = none # FileMustHaveHeader
-
 [src/Buttercup.Web/**.cs]
 
 # Compiler warnings
@@ -38,9 +35,6 @@ dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visi
 # Code quality analysis rules
 dotnet_diagnostic.CA1054.severity = none # URI parameters should not be strings
 
-# StyleCop rules
-dotnet_diagnostic.SA1600.severity = none # ElementsMustBeDocumented
-
 [src/*.Tests/**.cs]
 
 # Compiler warnings
@@ -48,11 +42,6 @@ dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visi
 
 # Code quality analysis rules
 dotnet_diagnostic.CA1822.severity = none # Mark members as static
-
-# StyleCop rules
-dotnet_diagnostic.SA1124.severity = none # DoNotUseRegions
-dotnet_diagnostic.SA1201.severity = none # ElementsMustAppearInTheCorrectOrder
-dotnet_diagnostic.SA1600.severity = none # ElementsMustBeDocumented
 
 [*.sln]
 indent_style = tab
