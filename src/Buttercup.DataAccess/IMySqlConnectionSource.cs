@@ -1,18 +1,17 @@
 using MySqlConnector;
 
-namespace Buttercup.DataAccess
+namespace Buttercup.DataAccess;
+
+/// <summary>
+/// Defines the contract for the database connection source.
+/// </summary>
+public interface IMySqlConnectionSource
 {
     /// <summary>
-    /// Defines the contract for the database connection source.
+    /// Opens a database connection.
     /// </summary>
-    public interface IMySqlConnectionSource
-    {
-        /// <summary>
-        /// Opens a database connection.
-        /// </summary>
-        /// <returns>
-        /// The database connection.
-        /// </returns>
-        Task<MySqlConnection> OpenConnection();
-    }
+    /// <returns>
+    /// The database connection.
+    /// </returns>
+    Task<MySqlConnection> OpenConnection();
 }

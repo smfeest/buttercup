@@ -6,60 +6,59 @@ using Moq;
 using MySqlConnector;
 using Xunit;
 
-namespace Buttercup.Web.Controllers
+namespace Buttercup.Web.Controllers;
+
+public class HomeControllerTests
 {
-    public class HomeControllerTests
+    #region Index
+
+    [Fact]
+    public async Task IndexReturnsViewResultWithRecentlyAddedRecipes()
     {
-        #region Index
+        using var fixture = new HomeControllerFixture();
 
-        [Fact]
-        public async Task IndexReturnsViewResultWithRecentlyAddedRecipes()
+        IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
+        IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
+
+        fixture.MockRecipeDataProvider
+            .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))
+            .ReturnsAsync(recentlyAddedRecipes);
+        fixture.MockRecipeDataProvider
+            .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.MySqlConnection))
+            .ReturnsAsync(recentlyUpdatedRecipes);
+
+        var result = await fixture.HomeController.Index();
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
+
+        Assert.Same(recentlyAddedRecipes, viewModel.RecentlyAddedRecipes);
+        Assert.Same(recentlyUpdatedRecipes, viewModel.RecentlyUpdatedRecipes);
+    }
+
+    #endregion
+
+    private class HomeControllerFixture : IDisposable
+    {
+        public HomeControllerFixture()
         {
-            using var fixture = new HomeControllerFixture();
+            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
-            IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
-            IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
-
-            fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))
-                .ReturnsAsync(recentlyAddedRecipes);
-            fixture.MockRecipeDataProvider
-                .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.MySqlConnection))
-                .ReturnsAsync(recentlyUpdatedRecipes);
-
-            var result = await fixture.HomeController.Index();
-
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
-
-            Assert.Same(recentlyAddedRecipes, viewModel.RecentlyAddedRecipes);
-            Assert.Same(recentlyUpdatedRecipes, viewModel.RecentlyUpdatedRecipes);
+            this.HomeController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
         }
 
-        #endregion
+        public HomeController HomeController { get; }
 
-        private class HomeControllerFixture : IDisposable
+        public MySqlConnection MySqlConnection { get; } = new();
+
+        public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
+
+        public void Dispose()
         {
-            public HomeControllerFixture()
+            if (this.HomeController != null)
             {
-                var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                    x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
-
-                this.HomeController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
-            }
-
-            public HomeController HomeController { get; }
-
-            public MySqlConnection MySqlConnection { get; } = new();
-
-            public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
-
-            public void Dispose()
-            {
-                if (this.HomeController != null)
-                {
-                    this.HomeController.Dispose();
-                }
+                this.HomeController.Dispose();
             }
         }
     }

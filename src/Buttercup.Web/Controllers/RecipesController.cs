@@ -5,116 +5,115 @@ using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Buttercup.Web.Controllers
+namespace Buttercup.Web.Controllers;
+
+[Authorize]
+[HandleNotFoundExceptionAttribute]
+[Route("recipes")]
+public class RecipesController : Controller
 {
-    [Authorize]
-    [HandleNotFoundExceptionAttribute]
-    [Route("recipes")]
-    public class RecipesController : Controller
+    private readonly IClock clock;
+    private readonly IMySqlConnectionSource mySqlConnectionSource;
+    private readonly IRecipeDataProvider recipeDataProvider;
+
+    public RecipesController(
+        IClock clock,
+        IMySqlConnectionSource mySqlConnectionSource,
+        IRecipeDataProvider recipeDataProvider)
     {
-        private readonly IClock clock;
-        private readonly IMySqlConnectionSource mySqlConnectionSource;
-        private readonly IRecipeDataProvider recipeDataProvider;
+        this.clock = clock;
+        this.mySqlConnectionSource = mySqlConnectionSource;
+        this.recipeDataProvider = recipeDataProvider;
+    }
 
-        public RecipesController(
-            IClock clock,
-            IMySqlConnectionSource mySqlConnectionSource,
-            IRecipeDataProvider recipeDataProvider)
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
+
+        return this.View(await this.recipeDataProvider.GetRecipes(connection));
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Show(long id)
+    {
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
+
+        return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
+    }
+
+    [HttpGet("new")]
+    public IActionResult New() => this.View();
+
+    [HttpPost("new")]
+    public async Task<IActionResult> New(RecipeEditModel model)
+    {
+        if (!this.ModelState.IsValid)
         {
-            this.clock = clock;
-            this.mySqlConnectionSource = mySqlConnectionSource;
-            this.recipeDataProvider = recipeDataProvider;
+            return this.View(model);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
+        var recipe = model.ToRecipe();
 
-            return this.View(await this.recipeDataProvider.GetRecipes(connection));
+        recipe.Created = this.clock.UtcNow;
+        recipe.CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id;
+
+        long id;
+
+        using (var connection = await this.mySqlConnectionSource.OpenConnection())
+        {
+            id = await this.recipeDataProvider.AddRecipe(connection, recipe);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Show(long id)
-        {
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
+        return this.RedirectToAction(nameof(this.Show), new { id });
+    }
 
-            return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
+    [HttpGet("{id}/edit")]
+    public async Task<IActionResult> Edit(long id)
+    {
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
+
+        return this.View(new RecipeEditModel(
+            await this.recipeDataProvider.GetRecipe(connection, id)));
+    }
+
+    [HttpPost("{id}/edit")]
+    public async Task<IActionResult> Edit(long id, RecipeEditModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
         }
 
-        [HttpGet("new")]
-        public IActionResult New() => this.View();
+        var recipe = model.ToRecipe();
 
-        [HttpPost("new")]
-        public async Task<IActionResult> New(RecipeEditModel model)
+        recipe.Id = id;
+        recipe.Modified = this.clock.UtcNow;
+        recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id;
+
+        using (var connection = await this.mySqlConnectionSource.OpenConnection())
         {
-            if (!this.ModelState.IsValid)
-            {
-                return this.View(model);
-            }
-
-            var recipe = model.ToRecipe();
-
-            recipe.Created = this.clock.UtcNow;
-            recipe.CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id;
-
-            long id;
-
-            using (var connection = await this.mySqlConnectionSource.OpenConnection())
-            {
-                id = await this.recipeDataProvider.AddRecipe(connection, recipe);
-            }
-
-            return this.RedirectToAction(nameof(this.Show), new { id });
+            await this.recipeDataProvider.UpdateRecipe(connection, recipe);
         }
 
-        [HttpGet("{id}/edit")]
-        public async Task<IActionResult> Edit(long id)
-        {
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
+        return this.RedirectToAction(nameof(this.Show), new { id });
+    }
 
-            return this.View(new RecipeEditModel(
-                await this.recipeDataProvider.GetRecipe(connection, id)));
-        }
+    [HttpGet("{id}/delete")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        [HttpPost("{id}/edit")]
-        public async Task<IActionResult> Edit(long id, RecipeEditModel model)
-        {
-            if (!this.ModelState.IsValid)
-            {
-                return this.View(model);
-            }
+        return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
+    }
 
-            var recipe = model.ToRecipe();
+    [HttpPost("{id}/delete")]
+    public async Task<IActionResult> Delete(long id, int revision)
+    {
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-            recipe.Id = id;
-            recipe.Modified = this.clock.UtcNow;
-            recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id;
+        await this.recipeDataProvider.DeleteRecipe(connection, id, revision);
 
-            using (var connection = await this.mySqlConnectionSource.OpenConnection())
-            {
-                await this.recipeDataProvider.UpdateRecipe(connection, recipe);
-            }
-
-            return this.RedirectToAction(nameof(this.Show), new { id });
-        }
-
-        [HttpGet("{id}/delete")]
-        public async Task<IActionResult> Delete(long id)
-        {
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
-
-            return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
-        }
-
-        [HttpPost("{id}/delete")]
-        public async Task<IActionResult> Delete(long id, int revision)
-        {
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
-
-            await this.recipeDataProvider.DeleteRecipe(connection, id, revision);
-
-            return this.RedirectToAction(nameof(this.Index));
-        }
+        return this.RedirectToAction(nameof(this.Index));
     }
 }

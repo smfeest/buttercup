@@ -7,53 +7,52 @@ using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
-namespace Buttercup.Web.TagHelpers
+namespace Buttercup.Web.TagHelpers;
+
+public class RequiredLabelTagHelperTests
 {
-    public class RequiredLabelTagHelperTests
+    [Theory]
+    [InlineData(null, false, false)]
+    [InlineData(null, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public void AddsRequiredLabelWhenModelValueIsRequired(
+        bool? showRequiredLabel, bool isRequired, bool requiredLabelExpected)
     {
-        [Theory]
-        [InlineData(null, false, false)]
-        [InlineData(null, true, true)]
-        [InlineData(false, false, false)]
-        [InlineData(false, true, false)]
-        [InlineData(true, false, true)]
-        [InlineData(true, true, true)]
-        public void AddsRequiredLabelWhenModelValueIsRequired(
-            bool? showRequiredLabel, bool isRequired, bool requiredLabelExpected)
+        var localizer = Mock.Of<IStringLocalizer<RequiredLabelTagHelper>>(
+            x => x["Label_Required"] == new LocalizedString(string.Empty, "required"));
+
+        var mockMetadata = new Mock<ModelMetadata>(
+            ModelMetadataIdentity.ForType(typeof(object)));
+        mockMetadata.SetupGet(x => x.IsRequired).Returns(isRequired);
+
+        var modelExplorer = new ModelExplorer(mockMetadata.Object, mockMetadata.Object, null);
+
+        var tagHelper = new RequiredLabelTagHelper(localizer)
         {
-            var localizer = Mock.Of<IStringLocalizer<RequiredLabelTagHelper>>(
-                x => x["Label_Required"] == new LocalizedString(string.Empty, "required"));
+            For = new("SampleProperty", modelExplorer),
+            ShowRequiredLabel = showRequiredLabel,
+        };
 
-            var mockMetadata = new Mock<ModelMetadata>(
-                ModelMetadataIdentity.ForType(typeof(object)));
-            mockMetadata.SetupGet(x => x.IsRequired).Returns(isRequired);
+        var context = new TagHelperContext(
+            "label", new(), new Dictionary<object, object>(), "test");
 
-            var modelExplorer = new ModelExplorer(mockMetadata.Object, mockMetadata.Object, null);
+        var output = new TagHelperOutput("label", new(), GetChildContent);
 
-            var tagHelper = new RequiredLabelTagHelper(localizer)
-            {
-                For = new("SampleProperty", modelExplorer),
-                ShowRequiredLabel = showRequiredLabel,
-            };
+        output.Content.Append("initial-content");
 
-            var context = new TagHelperContext(
-                "label", new(), new Dictionary<object, object>(), "test");
+        tagHelper.Process(context, output);
 
-            var output = new TagHelperOutput("label", new(), GetChildContent);
+        var expected = requiredLabelExpected ?
+            "initial-content<span class=\"form-field__required-label\">required</span>" :
+            "initial-content";
 
-            output.Content.Append("initial-content");
-
-            tagHelper.Process(context, output);
-
-            var expected = requiredLabelExpected ?
-                "initial-content<span class=\"form-field__required-label\">required</span>" :
-                "initial-content";
-
-            Assert.Equal(expected, output.Content.GetContent());
-        }
-
-        private static Task<TagHelperContent> GetChildContent(
-            bool useCachedResult, HtmlEncoder encoder) =>
-                Task.FromResult<TagHelperContent>(new DefaultTagHelperContent());
+        Assert.Equal(expected, output.Content.GetContent());
     }
+
+    private static Task<TagHelperContent> GetChildContent(
+        bool useCachedResult, HtmlEncoder encoder) =>
+            Task.FromResult<TagHelperContent>(new DefaultTagHelperContent());
 }

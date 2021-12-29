@@ -4,110 +4,109 @@ using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 
-namespace Buttercup.Web.Controllers
+namespace Buttercup.Web.Controllers;
+
+public class AuthenticationController : Controller
 {
-    public class AuthenticationController : Controller
+    private readonly IAuthenticationManager authenticationManager;
+    private readonly IStringLocalizer<AuthenticationController> localizer;
+
+    public AuthenticationController(
+        IAuthenticationManager authenticationManager,
+        IStringLocalizer<AuthenticationController> localizer)
     {
-        private readonly IAuthenticationManager authenticationManager;
-        private readonly IStringLocalizer<AuthenticationController> localizer;
+        this.authenticationManager = authenticationManager;
+        this.localizer = localizer;
+    }
 
-        public AuthenticationController(
-            IAuthenticationManager authenticationManager,
-            IStringLocalizer<AuthenticationController> localizer)
+    [HttpGet("reset-password")]
+    public IActionResult RequestPasswordReset() => this.View();
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetViewModel model)
+    {
+        if (!this.ModelState.IsValid)
         {
-            this.authenticationManager = authenticationManager;
-            this.localizer = localizer;
+            return this.View(model);
         }
 
-        [HttpGet("reset-password")]
-        public IActionResult RequestPasswordReset() => this.View();
+        await this.authenticationManager.SendPasswordResetLink(
+            this.ControllerContext, model.Email!);
 
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetViewModel model)
+        return this.View("RequestPasswordResetConfirmation", model);
+    }
+
+    [HttpGet("reset-password/{token}", Name = "ResetPassword")]
+    [EnsureSignedOut]
+    public async Task<IActionResult> ResetPassword(string token) =>
+        await this.authenticationManager.PasswordResetTokenIsValid(token) ?
+            this.View() :
+            this.View("ResetPasswordInvalidToken");
+
+    [HttpPost("reset-password/{token}")]
+    public async Task<IActionResult> ResetPassword(string token, ResetPasswordViewModel model)
+    {
+        if (!this.ModelState.IsValid)
         {
-            if (!this.ModelState.IsValid)
-            {
-                return this.View(model);
-            }
-
-            await this.authenticationManager.SendPasswordResetLink(
-                this.ControllerContext, model.Email!);
-
-            return this.View("RequestPasswordResetConfirmation", model);
+            return this.View(model);
         }
 
-        [HttpGet("reset-password/{token}", Name = "ResetPassword")]
-        [EnsureSignedOut]
-        public async Task<IActionResult> ResetPassword(string token) =>
-            await this.authenticationManager.PasswordResetTokenIsValid(token) ?
-                this.View() :
-                this.View("ResetPasswordInvalidToken");
-
-        [HttpPost("reset-password/{token}")]
-        public async Task<IActionResult> ResetPassword(string token, ResetPasswordViewModel model)
+        try
         {
-            if (!this.ModelState.IsValid)
-            {
-                return this.View(model);
-            }
-
-            try
-            {
-                var user = await this.authenticationManager.ResetPassword(token, model.Password!);
-
-                await this.authenticationManager.SignIn(this.HttpContext, user);
-
-                return this.RedirectToHome();
-            }
-            catch (InvalidTokenException)
-            {
-                return this.View("ResetPasswordInvalidToken");
-            }
-        }
-
-        [HttpGet("sign-in")]
-        [EnsureSignedOut]
-        public IActionResult SignIn() => this.View();
-
-        [HttpPost("sign-in")]
-        public async Task<IActionResult> SignIn(SignInViewModel model, string? returnUrl = null)
-        {
-            if (!this.ModelState.IsValid)
-            {
-                return this.View(model);
-            }
-
-            var user = await this.authenticationManager.Authenticate(model.Email!, model.Password!);
-
-            if (user == null)
-            {
-                this.ModelState.AddModelError(
-                    string.Empty, this.localizer["Error_WrongEmailOrPassword"]!);
-
-                return this.View(model);
-            }
+            var user = await this.authenticationManager.ResetPassword(token, model.Password!);
 
             await this.authenticationManager.SignIn(this.HttpContext, user);
 
-            return this.Url.IsLocalUrl(returnUrl) ?
-                this.Redirect(returnUrl) :
-                this.RedirectToHome();
+            return this.RedirectToHome();
         }
-
-        [HttpGet("sign-out")]
-        public async Task<IActionResult> SignOut(string? returnUrl = null)
+        catch (InvalidTokenException)
         {
-            await this.authenticationManager.SignOut(this.HttpContext);
+            return this.View("ResetPasswordInvalidToken");
+        }
+    }
 
-            this.HttpContext.Response.GetTypedHeaders().CacheControl =
-                new() { NoCache = true, NoStore = true };
+    [HttpGet("sign-in")]
+    [EnsureSignedOut]
+    public IActionResult SignIn() => this.View();
 
-            return this.Url.IsLocalUrl(returnUrl) ?
-                this.Redirect(returnUrl) :
-                this.RedirectToHome();
+    [HttpPost("sign-in")]
+    public async Task<IActionResult> SignIn(SignInViewModel model, string? returnUrl = null)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
         }
 
-        private RedirectToActionResult RedirectToHome() =>
-            this.RedirectToAction(nameof(HomeController.Index), "Home");
+        var user = await this.authenticationManager.Authenticate(model.Email!, model.Password!);
+
+        if (user == null)
+        {
+            this.ModelState.AddModelError(
+                string.Empty, this.localizer["Error_WrongEmailOrPassword"]!);
+
+            return this.View(model);
+        }
+
+        await this.authenticationManager.SignIn(this.HttpContext, user);
+
+        return this.Url.IsLocalUrl(returnUrl) ?
+            this.Redirect(returnUrl) :
+            this.RedirectToHome();
     }
+
+    [HttpGet("sign-out")]
+    public async Task<IActionResult> SignOut(string? returnUrl = null)
+    {
+        await this.authenticationManager.SignOut(this.HttpContext);
+
+        this.HttpContext.Response.GetTypedHeaders().CacheControl =
+            new() { NoCache = true, NoStore = true };
+
+        return this.Url.IsLocalUrl(returnUrl) ?
+            this.Redirect(returnUrl) :
+            this.RedirectToHome();
+    }
+
+    private RedirectToActionResult RedirectToHome() =>
+        this.RedirectToAction(nameof(HomeController.Index), "Home");
 }

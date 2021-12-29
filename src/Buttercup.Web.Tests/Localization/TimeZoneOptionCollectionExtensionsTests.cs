@@ -1,22 +1,21 @@
 using Xunit;
 
-namespace Buttercup.Web.Localization
+namespace Buttercup.Web.Localization;
+
+public class TimeZoneOptionCollectionExtensionsTests
 {
-    public class TimeZoneOptionCollectionExtensionsTests
+    #region AsSelectListItems
+
+    public void AsSelectListItemsConvertsTimeZoneOptionsToSelectListItems()
     {
-        #region AsSelectListItems
+        var timeZoneOption = new TimeZoneOption(
+            "Sample/Time_Zone", TimeSpan.Zero, "Sample-Offset", "Sample-City");
 
-        public void AsSelectListItemsConvertsTimeZoneOptionsToSelectListItems()
-        {
-            var timeZoneOption = new TimeZoneOption(
-                "Sample/Time_Zone", TimeSpan.Zero, "Sample-Offset", "Sample-City");
+        var selectListItem = new[] { timeZoneOption }.AsSelectListItems().First();
 
-            var selectListItem = new[] { timeZoneOption }.AsSelectListItems().First();
-
-            Assert.Equal(selectListItem.Value, timeZoneOption.Id);
-            Assert.Equal(selectListItem.Text, timeZoneOption.Description);
-        }
-
-        #endregion
+        Assert.Equal(selectListItem.Value, timeZoneOption.Id);
+        Assert.Equal(selectListItem.Text, timeZoneOption.Description);
     }
+
+    #endregion
 }
