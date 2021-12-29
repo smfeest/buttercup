@@ -37,7 +37,7 @@ namespace Buttercup.Web.Infrastructure
                         {
                             var path = Path.Combine("prod-assets", "manifest.json");
 
-                            this.logger.LogInformation("Loading asset manifest {path}", path);
+                            this.logger.LogInformation("Loading asset manifest {Path}", path);
 
                             var fileInfo = this.fileProvider.GetFileInfo(path);
 

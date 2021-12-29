@@ -64,7 +64,7 @@ namespace Buttercup.Web.Authentication
             if (user == null)
             {
                 this.logger.LogInformation(
-                    "Authentication failed; no user with email {email}", email);
+                    "Authentication failed; no user with email {Email}", email);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -79,7 +79,7 @@ namespace Buttercup.Web.Authentication
             if (user.HashedPassword == null)
             {
                 this.logger.LogInformation(
-                    "Authentication failed; no password set for user {userId} ({email})",
+                    "Authentication failed; no password set for user {UserId} ({Email})",
                     user.Id,
                     user.Email);
 
@@ -96,7 +96,7 @@ namespace Buttercup.Web.Authentication
             if (!this.VerifyPassword(user, password))
             {
                 this.logger.LogInformation(
-                    "Authentication failed; incorrect password for user {userId} ({email})",
+                    "Authentication failed; incorrect password for user {UserId} ({Email})",
                     user.Id,
                     user.Email);
 
@@ -111,7 +111,7 @@ namespace Buttercup.Web.Authentication
             }
 
             this.logger.LogInformation(
-                "User {userId} ({email}) successfully authenticated", user.Id, user.Email);
+                "User {UserId} ({Email}) successfully authenticated", user.Id, user.Email);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, this.clock.UtcNow, "authentication_success", user.Id, email);
@@ -141,7 +141,7 @@ namespace Buttercup.Web.Authentication
             if (!this.VerifyPassword(user, currentPassword))
             {
                 this.logger.LogInformation(
-                    "Password change denied for user {userId} ({email}); current password is incorrect",
+                    "Password change denied for user {UserId} ({Email}); current password is incorrect",
                     user.Id,
                     user.Email);
 
@@ -157,7 +157,7 @@ namespace Buttercup.Web.Authentication
             user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
             this.logger.LogInformation(
-                "Password successfully changed for user {userId} ({email})",
+                "Password successfully changed for user {UserId} ({Email})",
                 user.Id,
                 user.Email);
 
@@ -180,14 +180,14 @@ namespace Buttercup.Web.Authentication
             if (userId.HasValue)
             {
                 this.logger.LogDebug(
-                    "Password reset token '{token}' is valid and belongs to user {userId}",
+                    "Password reset token '{Token}' is valid and belongs to user {UserId}",
                     RedactToken(token),
                     userId);
             }
             else
             {
                 this.logger.LogDebug(
-                    "Password reset token '{token}' is no longer valid", RedactToken(token));
+                    "Password reset token '{Token}' is no longer valid", RedactToken(token));
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
@@ -205,7 +205,7 @@ namespace Buttercup.Web.Authentication
             if (!userId.HasValue)
             {
                 this.logger.LogInformation(
-                    "Unable to reset password; password reset token {token} is invalid",
+                    "Unable to reset password; password reset token {Token} is invalid",
                     RedactToken(token));
 
                 await this.authenticationEventDataProvider.LogEvent(
@@ -217,7 +217,7 @@ namespace Buttercup.Web.Authentication
             await this.SetPassword(connection, userId.Value, newPassword);
 
             this.logger.LogInformation(
-                "Password reset for user {userId} using token {token}",
+                "Password reset for user {UserId} using token {Token}",
                 userId,
                 RedactToken(token));
 
@@ -240,7 +240,7 @@ namespace Buttercup.Web.Authentication
             if (user == null)
             {
                 this.logger.LogInformation(
-                    "Unable to send password reset link; No user with email {email}", email);
+                    "Unable to send password reset link; No user with email {Email}", email);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -265,7 +265,7 @@ namespace Buttercup.Web.Authentication
             await this.authenticationMailer.SendPasswordResetLink(email, link);
 
             this.logger.LogInformation(
-                "Password reset link sent to user {userId} ({email})",
+                "Password reset link sent to user {UserId} ({Email})",
                 user.Id,
                 email);
 
@@ -279,7 +279,7 @@ namespace Buttercup.Web.Authentication
 
             httpContext.SetCurrentUser(user);
 
-            this.logger.LogInformation("User {userId} ({email}) signed in", user.Id, user.Email);
+            this.logger.LogInformation("User {UserId} ({Email}) signed in", user.Id, user.Email);
 
             using var connection = await this.mySqlConnectionSource.OpenConnection();
 
@@ -297,7 +297,7 @@ namespace Buttercup.Web.Authentication
             {
                 var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
-                this.logger.LogInformation("User {userId} ({email}) signed out", userId, email);
+                this.logger.LogInformation("User {UserId} ({Email}) signed out", userId, email);
 
                 using var connection = await this.mySqlConnectionSource.OpenConnection();
 
@@ -328,14 +328,14 @@ namespace Buttercup.Web.Authentication
                     context.HttpContext.SetCurrentUser(user);
 
                     this.logger.LogDebug(
-                        "Principal successfully validated for user {userId} ({email})",
+                        "Principal successfully validated for user {UserId} ({Email})",
                         user.Id,
                         user.Email);
                 }
                 else
                 {
                     this.logger.LogInformation(
-                        "Incorrect security stamp for user {userId} ({email})",
+                        "Incorrect security stamp for user {UserId} ({Email})",
                         user.Id,
                         user.Email);
 
