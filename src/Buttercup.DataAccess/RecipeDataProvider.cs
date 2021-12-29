@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Buttercup.Models;
 using MySqlConnector;
@@ -134,10 +133,6 @@ namespace Buttercup.DataAccess
                     $"Revision {revision} does not match current revision {currentRevision}");
         }
 
-        [SuppressMessage(
-            "Security",
-            "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
-            Justification = "Command text does not contain user input")]
         private static async Task<IList<Recipe>> GetRecipes(MySqlConnection connection, string query)
         {
             using var command = connection.CreateCommand();

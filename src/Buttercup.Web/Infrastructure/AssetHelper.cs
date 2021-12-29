@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -23,10 +22,6 @@ namespace Buttercup.Web.Infrastructure
             this.urlHelperFactory = urlHelperFactory;
         }
 
-        [SuppressMessage(
-            "Design",
-            "CA1055:UriReturnValuesShouldNotBeStrings",
-            Justification = "IUrlHelper.Content uses strings for paths")]
         public string Url(ActionContext context, string path)
         {
             if (context == null)

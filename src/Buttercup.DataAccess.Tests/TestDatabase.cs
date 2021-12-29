@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using MySqlConnector;
@@ -84,10 +83,6 @@ namespace Buttercup.DataAccess
             await ExecuteCommand(connection, commandText);
         }
 
-        [SuppressMessage(
-            "Microsoft.Security",
-            "CA2100:ReviewSqlQueriesForSecurityVulnerabilities",
-            Justification = "Command text does not contain user input")]
         private static async Task ExecuteCommand(MySqlConnection connection, string commandText)
         {
             using var command = connection.CreateCommand();
