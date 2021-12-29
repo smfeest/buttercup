@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;

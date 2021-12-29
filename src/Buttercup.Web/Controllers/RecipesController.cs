@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Filters;

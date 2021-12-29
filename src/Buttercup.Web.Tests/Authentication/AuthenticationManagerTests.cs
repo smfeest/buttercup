@@ -1,7 +1,5 @@
-using System;
 using System.Globalization;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.TestUtils;

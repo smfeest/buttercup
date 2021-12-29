@@ -1,8 +1,5 @@
-using System;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.Extensions.Hosting;
 
 namespace Buttercup.Web.Infrastructure
 {

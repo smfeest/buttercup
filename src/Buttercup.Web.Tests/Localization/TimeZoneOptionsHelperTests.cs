@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Buttercup.Web.TestUtils;
 using Microsoft.Extensions.Localization;
 using Moq;

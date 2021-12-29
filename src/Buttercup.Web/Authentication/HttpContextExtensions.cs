@@ -1,5 +1,4 @@
 using Buttercup.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace Buttercup.Web.Authentication
 {

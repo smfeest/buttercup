@@ -1,8 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using Buttercup.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Authentication

@@ -1,5 +1,3 @@
-using System;
-
 namespace Buttercup.Web.Localization
 {
     /// <summary>

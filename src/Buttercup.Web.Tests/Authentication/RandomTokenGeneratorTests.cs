@@ -1,4 +1,3 @@
-using System;
 using System.Security.Cryptography;
 using Moq;
 using Xunit;

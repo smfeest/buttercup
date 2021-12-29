@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using Buttercup.Web.Localization;
 using Microsoft.AspNetCore.Mvc.Rendering;

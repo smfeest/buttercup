@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Buttercup.Models;
 
 namespace Buttercup.Web.Models

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
 using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;

@@ -1,6 +1,4 @@
-using System;
 using Buttercup.Web.Controllers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 

@@ -1,6 +1,4 @@
-using System;
 using Buttercup.Web.Authentication;
-using Microsoft.AspNetCore.Http;
 
 namespace Buttercup.Web.Localization
 {

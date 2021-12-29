@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Buttercup.Email;
 using Buttercup.Web.TestUtils;
 using Microsoft.Extensions.Localization;

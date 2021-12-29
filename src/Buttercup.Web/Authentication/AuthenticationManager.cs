@@ -1,16 +1,12 @@
-using System;
 using System.Globalization;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.Extensions.Logging;
 using MySqlConnector;
 
 namespace Buttercup.Web.Authentication

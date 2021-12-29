@@ -1,5 +1,4 @@
 using System.Data;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using Xunit;

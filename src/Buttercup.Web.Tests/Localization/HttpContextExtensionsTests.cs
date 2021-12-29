@@ -1,4 +1,3 @@
-using System;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
 using Xunit;
