@@ -353,7 +353,7 @@ namespace Buttercup.Web.Authentication
             return claimValue == null ? null : long.Parse(claimValue, CultureInfo.InvariantCulture);
         }
 
-        private static string RedactToken(string token) => $"{token.Substring(0, 6)}…";
+        private static string RedactToken(string token) => $"{token[..6]}…";
 
         private async Task<string> SetPassword(
             MySqlConnection connection, long userId, string newPassword)
