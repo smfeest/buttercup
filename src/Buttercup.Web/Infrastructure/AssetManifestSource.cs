@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -37,7 +38,7 @@ namespace Buttercup.Web.Infrastructure
                         {
                             var path = Path.Combine("prod-assets", "manifest.json");
 
-                            this.logger.LogInformation("Loading asset manifest {Path}", path);
+                            LoggerMessages.LoadingManifest(this.logger, path, null);
 
                             var fileInfo = this.fileProvider.GetFileInfo(path);
 
@@ -51,6 +52,13 @@ namespace Buttercup.Web.Infrastructure
 
                 return this.productionManifest;
             }
+        }
+
+        private static class LoggerMessages
+        {
+            public static readonly Action<ILogger, string, Exception?> LoadingManifest =
+                LoggerMessage.Define<string>(
+                    LogLevel.Information, 100, "Loading asset manifest {Path}");
         }
     }
 }

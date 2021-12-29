@@ -63,8 +63,7 @@ namespace Buttercup.Web.Authentication
 
             if (user == null)
             {
-                this.logger.LogInformation(
-                    "Authentication failed; no user with email {Email}", email);
+                AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -78,10 +77,7 @@ namespace Buttercup.Web.Authentication
 
             if (user.HashedPassword == null)
             {
-                this.logger.LogInformation(
-                    "Authentication failed; no password set for user {UserId} ({Email})",
-                    user.Id,
-                    user.Email);
+                AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email!, null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -95,10 +91,7 @@ namespace Buttercup.Web.Authentication
 
             if (!this.VerifyPassword(user, password))
             {
-                this.logger.LogInformation(
-                    "Authentication failed; incorrect password for user {UserId} ({Email})",
-                    user.Id,
-                    user.Email);
+                AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email!, null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -110,8 +103,7 @@ namespace Buttercup.Web.Authentication
                 return null;
             }
 
-            this.logger.LogInformation(
-                "User {UserId} ({Email}) successfully authenticated", user.Id, user.Email);
+            AuthenticateLogMessages.Success(this.logger, user.Id, user.Email!, null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, this.clock.UtcNow, "authentication_success", user.Id, email);
@@ -140,10 +132,8 @@ namespace Buttercup.Web.Authentication
 
             if (!this.VerifyPassword(user, currentPassword))
             {
-                this.logger.LogInformation(
-                    "Password change denied for user {UserId} ({Email}); current password is incorrect",
-                    user.Id,
-                    user.Email);
+                ChangePasswordLogMessages.IncorrectPassword(
+                    this.logger, user.Id, user.Email!, null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -156,10 +146,7 @@ namespace Buttercup.Web.Authentication
 
             user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
-            this.logger.LogInformation(
-                "Password successfully changed for user {UserId} ({Email})",
-                user.Id,
-                user.Email);
+            ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email!, null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, this.clock.UtcNow, "password_change_success", user.Id);
@@ -179,15 +166,12 @@ namespace Buttercup.Web.Authentication
 
             if (userId.HasValue)
             {
-                this.logger.LogDebug(
-                    "Password reset token '{Token}' is valid and belongs to user {UserId}",
-                    RedactToken(token),
-                    userId);
+                PasswordResetTokenIsValidLogMessages.Valid(
+                    this.logger, RedactToken(token), userId.Value, null);
             }
             else
             {
-                this.logger.LogDebug(
-                    "Password reset token '{Token}' is no longer valid", RedactToken(token));
+                PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
@@ -204,9 +188,7 @@ namespace Buttercup.Web.Authentication
 
             if (!userId.HasValue)
             {
-                this.logger.LogInformation(
-                    "Unable to reset password; password reset token {Token} is invalid",
-                    RedactToken(token));
+                ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
@@ -216,10 +198,7 @@ namespace Buttercup.Web.Authentication
 
             await this.SetPassword(connection, userId.Value, newPassword);
 
-            this.logger.LogInformation(
-                "Password reset for user {UserId} using token {Token}",
-                userId,
-                RedactToken(token));
+            ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, this.clock.UtcNow, "password_reset_success", userId.Value);
@@ -239,8 +218,7 @@ namespace Buttercup.Web.Authentication
 
             if (user == null)
             {
-                this.logger.LogInformation(
-                    "Unable to send password reset link; No user with email {Email}", email);
+                SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
 
                 await this.authenticationEventDataProvider.LogEvent(
                     connection,
@@ -264,10 +242,7 @@ namespace Buttercup.Web.Authentication
 
             await this.authenticationMailer.SendPasswordResetLink(email, link);
 
-            this.logger.LogInformation(
-                "Password reset link sent to user {UserId} ({Email})",
-                user.Id,
-                email);
+            SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, this.clock.UtcNow, "password_reset_link_sent", user.Id, email);
@@ -279,7 +254,7 @@ namespace Buttercup.Web.Authentication
 
             httpContext.SetCurrentUser(user);
 
-            this.logger.LogInformation("User {UserId} ({Email}) signed in", user.Id, user.Email);
+            SignInLogMessages.SignedIn(this.logger, user.Id, user.Email!, null);
 
             using var connection = await this.mySqlConnectionSource.OpenConnection();
 
@@ -297,7 +272,7 @@ namespace Buttercup.Web.Authentication
             {
                 var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
-                this.logger.LogInformation("User {UserId} ({Email}) signed out", userId, email);
+                SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
 
                 using var connection = await this.mySqlConnectionSource.OpenConnection();
 
@@ -327,17 +302,12 @@ namespace Buttercup.Web.Authentication
                 {
                     context.HttpContext.SetCurrentUser(user);
 
-                    this.logger.LogDebug(
-                        "Principal successfully validated for user {UserId} ({Email})",
-                        user.Id,
-                        user.Email);
+                    ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email!, null);
                 }
                 else
                 {
-                    this.logger.LogInformation(
-                        "Incorrect security stamp for user {UserId} ({Email})",
-                        user.Id,
-                        user.Email);
+                    ValidatePrincipalLogMessages.IncorrectSecurityStamp(
+                        this.logger, user.Id, user.Email!, null);
 
                     context.RejectPrincipal();
 
@@ -402,5 +372,119 @@ namespace Buttercup.Web.Authentication
         private bool VerifyPassword(User user, string password) =>
             this.passwordHasher.VerifyHashedPassword(user, user.HashedPassword, password) ==
                 PasswordVerificationResult.Success;
+
+        private static class AuthenticateLogMessages
+        {
+            public static readonly Action<ILogger, long, string, Exception?> IncorrectPassword =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    200,
+                    "Authentication failed; incorrect password for user {UserId} ({Email})");
+
+            public static readonly Action<ILogger, long, string, Exception?> NoPasswordSet =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    201,
+                    "Authentication failed; no password set for user {UserId} ({Email})");
+
+            public static readonly Action<ILogger, long, string, Exception?> Success =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    202,
+                    "User {UserId} ({Email}) successfully authenticated");
+
+            public static readonly Action<ILogger, string, Exception?> UnrecognizedEmail =
+                LoggerMessage.Define<string>(
+                    LogLevel.Information,
+                    203,
+                    "Authentication failed; no user with email {Email}");
+        }
+
+        private static class ChangePasswordLogMessages
+        {
+            public static readonly Action<ILogger, long, string, Exception?> IncorrectPassword =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    204,
+                    "Password change denied for user {UserId} ({Email}); current password is incorrect");
+
+            public static readonly Action<ILogger, long, string, Exception?> Success =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    205,
+                    "Password successfully changed for user {UserId} ({Email})");
+        }
+
+        private static class PasswordResetTokenIsValidLogMessages
+        {
+            public static readonly Action<ILogger, string, Exception?> Invalid =
+                LoggerMessage.Define<string>(
+                    LogLevel.Debug, 206, "Password reset token '{Token}' is no longer valid");
+
+            public static readonly Action<ILogger, string, long, Exception?> Valid =
+                LoggerMessage.Define<string, long>(
+                    LogLevel.Debug,
+                    207,
+                    "Password reset token '{Token}' is valid and belongs to user {UserId}");
+        }
+
+        private static class ResetPasswordLogMessages
+        {
+            public static readonly Action<ILogger, string, Exception?> InvalidToken =
+                LoggerMessage.Define<string>(
+                    LogLevel.Information,
+                    208,
+                    "Unable to reset password; password reset token {Token} is invalid");
+
+            public static readonly Action<ILogger, long, string, Exception?> Success =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    209,
+                    "Password reset for user {UserId} using token {Token}");
+        }
+
+        private static class SendPasswordResetLinkLogMessages
+        {
+            public static readonly Action<ILogger, long, string, Exception?> Success =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    210,
+                    "Password reset link sent to user {UserId} ({Email})");
+
+            public static readonly Action<ILogger, string, Exception?> UnrecognizedEmail =
+                LoggerMessage.Define<string>(
+                    LogLevel.Information,
+                    211,
+                    "Unable to send password reset link; No user with email {Email}");
+        }
+
+        private static class SignInLogMessages
+        {
+            public static readonly Action<ILogger, long, string, Exception?> SignedIn =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information, 212, "User {UserId} ({Email}) signed in");
+        }
+
+        private static class SignOutLogMessages
+        {
+            public static readonly Action<ILogger, long, string, Exception?> SignedOut =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information, 213, "User {UserId} ({Email}) signed out");
+        }
+
+        private static class ValidatePrincipalLogMessages
+        {
+            public static readonly Action<ILogger, long, string, Exception?> IncorrectSecurityStamp =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Information,
+                    214,
+                    "Incorrect security stamp for user {UserId} ({Email})");
+
+            public static readonly Action<ILogger, long, string, Exception?> Success =
+                LoggerMessage.Define<long, string>(
+                    LogLevel.Debug,
+                    215,
+                    "Principal successfully validated for user {UserId} ({Email})");
+        }
     }
 }
