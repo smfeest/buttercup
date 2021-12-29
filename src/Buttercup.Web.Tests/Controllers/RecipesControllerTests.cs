@@ -94,7 +94,7 @@ namespace Buttercup.Web.Controllers
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
-            Assert.Equal(5L, redirectResult.RouteValues["id"]);
+            Assert.Equal(5L, redirectResult.RouteValues!["id"]);
         }
 
         [Fact]
@@ -162,7 +162,7 @@ namespace Buttercup.Web.Controllers
 
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
-            Assert.Equal(3L, redirectResult.RouteValues["id"]);
+            Assert.Equal(3L, redirectResult.RouteValues!["id"]);
         }
 
         [Fact]

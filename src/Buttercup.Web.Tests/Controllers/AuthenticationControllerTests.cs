@@ -208,7 +208,7 @@ namespace Buttercup.Web.Controllers
             await fixture.SignInPost();
 
             var error = Assert.Single(
-                fixture.AuthenticationController.ModelState[string.Empty].Errors);
+                fixture.AuthenticationController.ModelState[string.Empty]!.Errors);
 
             Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
         }
@@ -313,7 +313,7 @@ namespace Buttercup.Web.Controllers
 
             var result = fixture.AuthenticationController.SignOut();
 
-            var cacheControlHeader = fixture.HttpContext.Response.GetTypedHeaders().CacheControl;
+            var cacheControlHeader = fixture.HttpContext.Response.GetTypedHeaders().CacheControl!;
 
             Assert.True(cacheControlHeader.NoCache);
             Assert.True(cacheControlHeader.NoStore);

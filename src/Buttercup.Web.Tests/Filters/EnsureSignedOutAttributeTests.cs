@@ -34,7 +34,7 @@ namespace Buttercup.Web.Filters
 
             Assert.Equal("Authentication", redirectResult.ControllerName);
             Assert.Equal(nameof(AuthenticationController.SignOut), redirectResult.ActionName);
-            Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues["returnUrl"]);
+            Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues!["returnUrl"]);
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace Buttercup.Web.Filters
             var actionExecutingContext = CallOnActionExecuting(null);
 
             var cacheControlHeader =
-                actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl;
+                actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl!;
 
             Assert.True(cacheControlHeader.NoCache);
             Assert.True(cacheControlHeader.NoStore);
@@ -64,7 +64,7 @@ namespace Buttercup.Web.Filters
             var actionExecutingContext = new ActionExecutingContext(
                 new(httpContext, new(), new()),
                 Array.Empty<IFilterMetadata>(),
-                new Dictionary<string, object>(),
+                new Dictionary<string, object?>(),
                 new());
 
             new EnsureSignedOutAttribute().OnActionExecuting(actionExecutingContext);

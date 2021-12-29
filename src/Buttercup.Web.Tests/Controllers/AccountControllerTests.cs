@@ -73,7 +73,7 @@ namespace Buttercup.Web.Controllers
 
             var errors = fixture
                 .AccountController
-                .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]
+                .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]!
                 .Errors;
 
             var error = Assert.Single(errors);
