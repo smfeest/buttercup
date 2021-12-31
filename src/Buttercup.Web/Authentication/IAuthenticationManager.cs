@@ -82,13 +82,7 @@ public interface IAuthenticationManager
     /// Sends a password reset link to the user with a given email address.
     /// </summary>
     /// <remarks>
-    /// <para>
     /// No email is sent if there is no user with the specified email address.
-    /// </para>
-    /// <para>
-    /// To reduce the risk of revealing the existence of a matching user, any exception raised while
-    /// sending the email is caught, logged and not rethrown.
-    /// </para>
     /// </remarks>
     /// <param name="actionContext">
     /// The current action context.
