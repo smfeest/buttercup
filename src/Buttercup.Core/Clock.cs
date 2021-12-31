@@ -1,7 +1,7 @@
 namespace Buttercup;
 
 /// <summary>
-/// Defines the contract for the clock service.
+/// The default implementation of <see cref="IClock" />.
 /// </summary>
 public class Clock : IClock
 {
