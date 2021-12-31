@@ -1,38 +1,37 @@
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
-namespace Buttercup.Web.TagHelpers
+namespace Buttercup.Web.TagHelpers;
+
+/// <summary>
+/// A tag helper that adds a list item for each non-empty line in a string.
+/// </summary>
+[HtmlTargetElement(Attributes = InputAttributeName)]
+public class ListFromLinesTagHelper : TagHelper
 {
+    private const string InputAttributeName = "lines-in";
+
     /// <summary>
-    /// A tag helper that adds a list item for each non-empty line in a string.
+    /// Gets or sets the input string.
     /// </summary>
-    [HtmlTargetElement(Attributes = InputAttributeName)]
-    public class ListFromLinesTagHelper : TagHelper
+    /// <value>
+    /// The input string.
+    /// </value>
+    [HtmlAttributeName(InputAttributeName)]
+    public string? Input { get; set; }
+
+    public override void Process(TagHelperContext context, TagHelperOutput output)
     {
-        private const string InputAttributeName = "lines-in";
-
-        /// <summary>
-        /// Gets or sets the input string.
-        /// </summary>
-        /// <value>
-        /// The input string.
-        /// </value>
-        [HtmlAttributeName(InputAttributeName)]
-        public string? Input { get; set; }
-
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        if (string.IsNullOrWhiteSpace(this.Input))
         {
-            if (string.IsNullOrWhiteSpace(this.Input))
-            {
-                output.SuppressOutput();
-                return;
-            }
+            output.SuppressOutput();
+            return;
+        }
 
-            foreach (var line in this.Input.Split(new[] { '\n', '\r' }))
+        foreach (var line in this.Input.Split(new[] { '\n', '\r' }))
+        {
+            if (!string.IsNullOrWhiteSpace(line))
             {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    output.Content.AppendHtml("<li>").Append(line).AppendHtml("</li>");
-                }
+                output.Content.AppendHtml("<li>").Append(line).AppendHtml("</li>");
             }
         }
     }

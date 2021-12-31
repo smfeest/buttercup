@@ -1,21 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Buttercup
+namespace Buttercup;
+
+public class ServiceCollectionExtensionsTests
 {
-    public class ServiceCollectionExtensionsTests
-    {
-        #region AddCoreServices
+    #region AddCoreServices
 
-        [Fact]
-        public void AddCoreServicesAddsClock() =>
-            Assert.Contains(
-                new ServiceCollection().AddCoreServices(),
-                serviceDescriptor =>
-                    serviceDescriptor.ServiceType == typeof(IClock) &&
-                    serviceDescriptor.ImplementationType == typeof(Clock) &&
-                    serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+    [Fact]
+    public void AddCoreServicesAddsClock() =>
+        Assert.Contains(
+            new ServiceCollection().AddCoreServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IClock) &&
+                serviceDescriptor.ImplementationType == typeof(Clock) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
-        #endregion
-    }
+    #endregion
 }

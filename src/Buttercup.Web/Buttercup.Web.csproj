@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>1b20fb70-92de-4af7-9518-6cfe3805821e</UserSecretsId>
     <DefaultItemExcludes>$(DefaultItemExcludes);coverage/*;.prettierrc.json;package.json;package-lock.json;tsconfig.json</DefaultItemExcludes>
   </PropertyGroup>

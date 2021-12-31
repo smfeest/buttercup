@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using Buttercup.Web.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -8,68 +6,66 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Xunit;
 
-namespace Buttercup.Web.Filters
+namespace Buttercup.Web.Filters;
+
+public class EnsureSignedOutAttributeTests
 {
-    public class EnsureSignedOutAttributeTests
+    private const string RequestPath = "/path/to/action";
+
+    #region OnActionExecuting
+
+    [Fact]
+    public void OnActionExecutingDoesNotRedirectIfUnauthenticated()
     {
-        private const string RequestPath = "/path/to/action";
+        var actionExecutingContext = CallOnActionExecuting(null);
 
-        #region OnActionExecuting
+        Assert.Null(actionExecutingContext.Result);
+    }
 
-        [Fact]
-        public void OnActionExecutingDoesNotRedirectIfUnauthenticated()
-        {
-            var actionExecutingContext = CallOnActionExecuting(null);
+    [Fact]
+    public void OnActionExecutingRedirectsToSignOutIfAuthenticated()
+    {
+        var actionExecutingContext = CallOnActionExecuting("authentication-type");
 
-            Assert.Null(actionExecutingContext.Result);
-        }
+        var redirectResult = Assert.IsType<RedirectToActionResult>(actionExecutingContext.Result);
 
-        [Fact]
-        public void OnActionExecutingRedirectsToSignOutIfAuthenticated()
-        {
-            var actionExecutingContext = CallOnActionExecuting("authentication-type");
+        Assert.Equal("Authentication", redirectResult.ControllerName);
+        Assert.Equal(nameof(AuthenticationController.SignOut), redirectResult.ActionName);
+        Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues!["returnUrl"]);
+    }
 
-            var redirectResult = Assert.IsType<RedirectToActionResult>(
-                actionExecutingContext.Result);
+    [Fact]
+    public void OnActionExecutingSetsCacheControlHeader()
+    {
+        var actionExecutingContext = CallOnActionExecuting(null);
 
-            Assert.Equal("Authentication", redirectResult.ControllerName);
-            Assert.Equal(nameof(AuthenticationController.SignOut), redirectResult.ActionName);
-            Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues["returnUrl"]);
-        }
+        var cacheControlHeader =
+            actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl!;
 
-        [Fact]
-        public void OnActionExecutingSetsCacheControlHeader()
-        {
-            var actionExecutingContext = CallOnActionExecuting(null);
+        Assert.True(cacheControlHeader.NoCache);
+        Assert.True(cacheControlHeader.NoStore);
+    }
 
-            var cacheControlHeader =
-                actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl;
+    #endregion
 
-            Assert.True(cacheControlHeader.NoCache);
-            Assert.True(cacheControlHeader.NoStore);
-        }
+    private static ActionExecutingContext CallOnActionExecuting(string? authenticationType)
+    {
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(Array.Empty<Claim>(), authenticationType));
 
-        #endregion
+        var httpContext = new DefaultHttpContext { User = user };
 
-        private static ActionExecutingContext CallOnActionExecuting(string? authenticationType)
-        {
-            var user = new ClaimsPrincipal(
-                new ClaimsIdentity(Array.Empty<Claim>(), authenticationType));
+        httpContext.Features.Set<IHttpRequestFeature>(
+            new HttpRequestFeature { Path = RequestPath });
 
-            var httpContext = new DefaultHttpContext { User = user };
+        var actionExecutingContext = new ActionExecutingContext(
+            new(httpContext, new(), new()),
+            Array.Empty<IFilterMetadata>(),
+            new Dictionary<string, object?>(),
+            new());
 
-            httpContext.Features.Set<IHttpRequestFeature>(
-                new HttpRequestFeature { Path = RequestPath });
+        new EnsureSignedOutAttribute().OnActionExecuting(actionExecutingContext);
 
-            var actionExecutingContext = new ActionExecutingContext(
-                new(httpContext, new(), new()),
-                Array.Empty<IFilterMetadata>(),
-                new Dictionary<string, object>(),
-                new());
-
-            new EnsureSignedOutAttribute().OnActionExecuting(actionExecutingContext);
-
-            return actionExecutingContext;
-        }
+        return actionExecutingContext;
     }
 }

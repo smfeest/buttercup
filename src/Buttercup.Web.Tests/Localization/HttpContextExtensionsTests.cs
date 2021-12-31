@@ -1,49 +1,46 @@
-using System;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
-namespace Buttercup.Web.Localization
+namespace Buttercup.Web.Localization;
+
+public class HttpContextExtensionsTests
 {
-    public class HttpContextExtensionsTests
+    #region ToUserTime
+
+    [Fact]
+    public void ToUserTimeReturnsTimeInUserTimeZone()
     {
-        #region ToUserTime
+        var httpContext = new DefaultHttpContext();
 
-        [Fact]
-        public void ToUserTimeReturnsTimeInUserTimeZone()
-        {
-            var httpContext = new DefaultHttpContext();
+        httpContext.SetCurrentUser(new() { TimeZone = "Etc/GMT+10" });
 
-            httpContext.SetCurrentUser(new() { TimeZone = "Etc/GMT+10" });
+        var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
 
-            var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
+        var userDateTime = httpContext.ToUserTime(utcDateTime);
 
-            var userDateTime = httpContext.ToUserTime(utcDateTime);
-
-            Assert.Equal(utcDateTime, userDateTime.UtcDateTime);
-            Assert.Equal(new TimeSpan(-10, 0, 0), userDateTime.Offset);
-        }
-
-        [Fact]
-        public void ToUserTimeReturnsUtcTimeWhenUnauthenticated()
-        {
-            var httpContext = new DefaultHttpContext();
-
-            var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
-
-            var userDateTime = httpContext.ToUserTime(utcDateTime);
-
-            Assert.Equal(utcDateTime, userDateTime.UtcDateTime);
-            Assert.Equal(TimeSpan.Zero, userDateTime.Offset);
-        }
-
-        [Theory]
-        [InlineData(DateTimeKind.Local)]
-        [InlineData(DateTimeKind.Unspecified)]
-        public void ToUserTimeThrowsWhenDateTimeKindIsNotUtc(DateTimeKind kind) =>
-            Assert.Throws<ArgumentException>(
-                () => new DefaultHttpContext().ToUserTime(new(0, kind)));
-
-        #endregion
+        Assert.Equal(utcDateTime, userDateTime.UtcDateTime);
+        Assert.Equal(new TimeSpan(-10, 0, 0), userDateTime.Offset);
     }
+
+    [Fact]
+    public void ToUserTimeReturnsUtcTimeWhenUnauthenticated()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
+
+        var userDateTime = httpContext.ToUserTime(utcDateTime);
+
+        Assert.Equal(utcDateTime, userDateTime.UtcDateTime);
+        Assert.Equal(TimeSpan.Zero, userDateTime.Offset);
+    }
+
+    [Theory]
+    [InlineData(DateTimeKind.Local)]
+    [InlineData(DateTimeKind.Unspecified)]
+    public void ToUserTimeThrowsWhenDateTimeKindIsNotUtc(DateTimeKind kind) =>
+        Assert.Throws<ArgumentException>(() => new DefaultHttpContext().ToUserTime(new(0, kind)));
+
+    #endregion
 }

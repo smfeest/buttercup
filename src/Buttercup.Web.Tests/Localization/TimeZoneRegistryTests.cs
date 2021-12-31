@@ -1,31 +1,29 @@
-using System;
 using Xunit;
 
-namespace Buttercup.Web.Localization
+namespace Buttercup.Web.Localization;
+
+public class TimeZoneRegistryTests
 {
-    public class TimeZoneRegistryTests
+    #region GetSupportedTimeZones
+
+    [Fact]
+    public void GetSupportedTimeZonesReturnsSupportedTimeZones() =>
+        Assert.Equal(
+            TimeZoneInfo.GetSystemTimeZones(), new TimeZoneRegistry().GetSupportedTimeZones());
+
+    #endregion
+
+    #region GetTimeZone
+
+    [Fact]
+    public void GetTimeZoneReturnsRequestedTimeZone()
     {
-        #region GetSupportedTimeZones
+        const string id = "Etc/GMT-8";
 
-        [Fact]
-        public void GetSupportedTimeZonesReturnsSupportedTimeZones() =>
-            Assert.Equal(
-                TimeZoneInfo.GetSystemTimeZones(), new TimeZoneRegistry().GetSupportedTimeZones());
+        var timeZone = new TimeZoneRegistry().GetTimeZone(id);
 
-        #endregion
-
-        #region GetTimeZone
-
-        [Fact]
-        public void GetTimeZoneReturnsRequestedTimeZone()
-        {
-            const string id = "Etc/GMT-8";
-
-            var timeZone = new TimeZoneRegistry().GetTimeZone(id);
-
-            Assert.Equal(id, timeZone.Id);
-        }
-
-        #endregion
+        Assert.Equal(id, timeZone.Id);
     }
+
+    #endregion
 }

@@ -1,7 +1,7 @@
 ﻿@inject IViewLocalizer Localizer
 @model RecipeEditModel
 @{
-  ViewData["Title"] = Localizer["Title_EditRecipe", Model.Title];
+  ViewData["Title"] = Localizer["Title_EditRecipe", Model!.Title!];
 }
 <h1>@Localizer["Heading_EditRecipe"]</h1>
 <form method="post">

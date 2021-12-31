@@ -7,7 +7,7 @@
 <h1>@Localizer["Title_Error"]</h1>
 <p>@Localizer["Message_GeneralError"]</p>
 
-@if (Model.ShowRequestId)
+@if (Model!.ShowRequestId)
 {
     <p>
         <strong>@Localizer["Label_RequestId"]:</strong> <code>@Model.RequestId</code>

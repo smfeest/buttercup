@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
@@ -12,214 +10,212 @@ using Moq;
 using MySqlConnector;
 using Xunit;
 
-namespace Buttercup.Web.Controllers
+namespace Buttercup.Web.Controllers;
+
+public class AccountControllerTests
 {
-    public class AccountControllerTests
+    #region Show (GET)
+
+    [Fact]
+    public void ShowReturnsViewResultWithCurrentUser()
     {
-        #region Show (GET)
+        using var fixture = new AccountControllerFixture();
 
-        [Fact]
-        public void ShowReturnsViewResultWithCurrentUser()
+        var user = new User();
+
+        fixture.HttpContext.SetCurrentUser(user);
+
+        var result = fixture.AccountController.Show();
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Same(user, viewResult.Model);
+    }
+
+    #endregion
+
+    #region ChangePassword (GET)
+
+    [Fact]
+    public void ChangePasswordGetReturnsViewResult()
+    {
+        using var fixture = new AccountControllerFixture();
+
+        var result = fixture.AccountController.ChangePassword();
+        Assert.IsType<ViewResult>(result);
+    }
+
+    #endregion
+
+    #region ChangePassword (POST)
+
+    [Fact]
+    public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
+    {
+        using var fixture = new ChangePasswordPostFixture();
+
+        fixture.AccountController.ModelState.AddModelError("test", "test");
+
+        var result = await fixture.ChangePasswordPost();
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Same(fixture.Model, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
+    {
+        using var fixture = new ChangePasswordPostFixture();
+
+        fixture.SetupChangePassword(false);
+
+        await fixture.ChangePasswordPost();
+
+        var errors = fixture
+            .AccountController
+            .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]!
+            .Errors;
+
+        var error = Assert.Single(errors);
+
+        Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
+    {
+        using var fixture = new ChangePasswordPostFixture();
+
+        fixture.SetupChangePassword(false);
+
+        var result = await fixture.ChangePasswordPost();
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Same(fixture.Model, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
+    {
+        using var fixture = new ChangePasswordPostFixture();
+
+        fixture.SetupChangePassword(true);
+
+        var result = await fixture.ChangePasswordPost();
+
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
+    }
+
+    private class ChangePasswordPostFixture : AccountControllerFixture
+    {
+        public ChangePasswordPostFixture() =>
+            this.MockLocalizer.SetupLocalizedString(
+                "Error_WrongPassword", "translated-wrong-password-error");
+
+        public ChangePasswordViewModel Model { get; } = new()
         {
-            using var fixture = new AccountControllerFixture();
+            CurrentPassword = "current-password",
+            NewPassword = "new-password",
+        };
 
-            var user = new User();
+        public void SetupChangePassword(bool result) =>
+            this.MockAuthenticationManager
+                .Setup(x => x.ChangePassword(this.HttpContext, "current-password", "new-password"))
+                .ReturnsAsync(result);
 
-            fixture.HttpContext.SetCurrentUser(user);
+        public Task<IActionResult> ChangePasswordPost() =>
+            this.AccountController.ChangePassword(this.Model);
+    }
 
-            var result = fixture.AccountController.Show();
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(user, viewResult.Model);
-        }
+    #endregion
 
-        #endregion
+    #region Preferences (GET)
 
-        #region ChangePassword (GET)
+    [Fact]
+    public void PreferencesGetReturnsViewResultWithViewModel()
+    {
+        using var fixture = new AccountControllerFixture();
 
-        [Fact]
-        public void ChangePasswordGetReturnsViewResult()
+        var user = new User { TimeZone = "time-zone" };
+
+        fixture.HttpContext.SetCurrentUser(user);
+
+        var result = fixture.AccountController.Preferences();
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
+        Assert.Equal(user.TimeZone, viewModel.TimeZone);
+    }
+
+    #endregion
+
+    #region Preferences (POST)
+
+    [Fact]
+    public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
+    {
+        using var fixture = new AccountControllerFixture();
+
+        fixture.HttpContext.SetCurrentUser(new() { Id = 21 });
+
+        var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
+
+        fixture.MockUserDataProvider
+            .Setup(x => x.UpdatePreferences(
+                fixture.MySqlConnection, 21, viewModel.TimeZone, fixture.UtcNow))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
+
+        var result = await fixture.AccountController.Preferences(viewModel);
+
+        fixture.MockUserDataProvider.Verify();
+
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
+    }
+
+    #endregion
+
+    private class AccountControllerFixture : IDisposable
+    {
+        public AccountControllerFixture()
         {
-            using var fixture = new AccountControllerFixture();
+            var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
+            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
-            var result = fixture.AccountController.ChangePassword();
-            Assert.IsType<ViewResult>(result);
-        }
-
-        #endregion
-
-        #region ChangePassword (POST)
-
-        [Fact]
-        public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
-        {
-            using var fixture = new ChangePasswordPostFixture();
-
-            fixture.AccountController.ModelState.AddModelError("test", "test");
-
-            var result = await fixture.ChangePasswordPost();
-
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(fixture.Model, viewResult.Model);
-        }
-
-        [Fact]
-        public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
-        {
-            using var fixture = new ChangePasswordPostFixture();
-
-            fixture.SetupChangePassword(false);
-
-            await fixture.ChangePasswordPost();
-
-            var errors = fixture
-                .AccountController
-                .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]
-                .Errors;
-
-            var error = Assert.Single(errors);
-
-            Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
-        }
-
-        [Fact]
-        public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
-        {
-            using var fixture = new ChangePasswordPostFixture();
-
-            fixture.SetupChangePassword(false);
-
-            var result = await fixture.ChangePasswordPost();
-
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Same(fixture.Model, viewResult.Model);
-        }
-
-        [Fact]
-        public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
-        {
-            using var fixture = new ChangePasswordPostFixture();
-
-            fixture.SetupChangePassword(true);
-
-            var result = await fixture.ChangePasswordPost();
-
-            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
-        }
-
-        private class ChangePasswordPostFixture : AccountControllerFixture
-        {
-            public ChangePasswordPostFixture() =>
-                this.MockLocalizer.SetupLocalizedString(
-                    "Error_WrongPassword", "translated-wrong-password-error");
-
-            public ChangePasswordViewModel Model { get; } = new()
+            this.AccountController = new(
+                clock,
+                mySqlConnectionSource,
+                this.MockUserDataProvider.Object,
+                this.MockAuthenticationManager.Object,
+                this.MockLocalizer.Object)
             {
-                CurrentPassword = "current-password",
-                NewPassword = "new-password",
+                ControllerContext = new()
+                {
+                    HttpContext = this.HttpContext,
+                },
             };
-
-            public void SetupChangePassword(bool result) =>
-                this.MockAuthenticationManager
-                    .Setup(x => x.ChangePassword(
-                        this.HttpContext, "current-password", "new-password"))
-                    .ReturnsAsync(result);
-
-            public Task<IActionResult> ChangePasswordPost() =>
-                this.AccountController.ChangePassword(this.Model);
         }
 
-        #endregion
+        public AccountController AccountController { get; }
 
-        #region Preferences (GET)
+        public DefaultHttpContext HttpContext { get; } = new();
 
-        [Fact]
-        public void PreferencesGetReturnsViewResultWithViewModel()
+        public MySqlConnection MySqlConnection { get; } = new();
+
+        public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
+
+        public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
+
+        public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
+
+        public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+
+        public void Dispose()
         {
-            using var fixture = new AccountControllerFixture();
-
-            var user = new User { TimeZone = "time-zone" };
-
-            fixture.HttpContext.SetCurrentUser(user);
-
-            var result = fixture.AccountController.Preferences();
-
-            var viewResult = Assert.IsType<ViewResult>(result);
-            var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
-            Assert.Equal(user.TimeZone, viewModel.TimeZone);
-        }
-
-        #endregion
-
-        #region Preferences (POST)
-
-        [Fact]
-        public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
-        {
-            using var fixture = new AccountControllerFixture();
-
-            fixture.HttpContext.SetCurrentUser(new() { Id = 21 });
-
-            var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
-
-            fixture.MockUserDataProvider
-                .Setup(x => x.UpdatePreferences(
-                    fixture.MySqlConnection, 21, viewModel.TimeZone, fixture.UtcNow))
-                .Returns(Task.CompletedTask)
-                .Verifiable();
-
-            var result = await fixture.AccountController.Preferences(viewModel);
-
-            fixture.MockUserDataProvider.Verify();
-
-            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
-        }
-
-        #endregion
-
-        private class AccountControllerFixture : IDisposable
-        {
-            public AccountControllerFixture()
+            if (this.AccountController != null)
             {
-                var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-                var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                    x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
-
-                this.AccountController = new(
-                    clock,
-                    mySqlConnectionSource,
-                    this.MockUserDataProvider.Object,
-                    this.MockAuthenticationManager.Object,
-                    this.MockLocalizer.Object)
-                {
-                    ControllerContext = new()
-                    {
-                        HttpContext = this.HttpContext,
-                    },
-                };
-            }
-
-            public AccountController AccountController { get; }
-
-            public DefaultHttpContext HttpContext { get; } = new();
-
-            public MySqlConnection MySqlConnection { get; } = new();
-
-            public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
-
-            public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
-
-            public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
-
-            public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
-
-            public void Dispose()
-            {
-                if (this.AccountController != null)
-                {
-                    this.AccountController.Dispose();
-                }
+                this.AccountController.Dispose();
             }
         }
     }

@@ -1,21 +1,15 @@
+using System.Security.Cryptography;
 using Xunit;
 
-namespace Buttercup.Web.Authentication
+namespace Buttercup.Web.Authentication;
+
+public class RandomNumberGeneratorFactoryTests
 {
-    public class RandomNumberGeneratorFactoryTests
-    {
-        #region Create
+    #region Create
 
-        [Fact]
-        public void CreateReturnsNewRandomNumberGenerator()
-        {
-            var randomNumberGeneratorFactory = new RandomNumberGeneratorFactory();
+    [Fact]
+    public void CreateReturnsRandomNumberGenerator() =>
+        Assert.IsAssignableFrom<RandomNumberGenerator>(new RandomNumberGeneratorFactory().Create());
 
-            Assert.NotSame(
-                randomNumberGeneratorFactory.Create(),
-                randomNumberGeneratorFactory.Create());
-        }
-
-        #endregion
-    }
+    #endregion
 }

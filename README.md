@@ -2,7 +2,7 @@
 
 ## Required software
 
-- [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
+- [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
 - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
 - [Node.js](https://nodejs.org)
 - [Visual Studio Code](https://code.visualstudio.com/) with [recommended

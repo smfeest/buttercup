@@ -1,31 +1,30 @@
 using Microsoft.Extensions.Options;
 using SendGrid;
 
-namespace Buttercup.Email
+namespace Buttercup.Email;
+
+/// <summary>
+/// The default implementation of <see cref="ISendGridClientAccessor" />.
+/// </summary>
+internal class SendGridClientAccessor : ISendGridClientAccessor
 {
     /// <summary>
-    /// The default implementation of <see cref="ISendGridClientAccessor" />.
+    /// Initializes a new instance of the <see cref="SendGridClientAccessor" /> class.
     /// </summary>
-    internal class SendGridClientAccessor : ISendGridClientAccessor
+    /// <param name="optionsAccessor">
+    /// The email options accessor.
+    /// </param>
+    public SendGridClientAccessor(IOptions<EmailOptions> optionsAccessor)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SendGridClientAccessor" /> class.
-        /// </summary>
-        /// <param name="optionsAccessor">
-        /// The email options accessor.
-        /// </param>
-        public SendGridClientAccessor(IOptions<EmailOptions> optionsAccessor)
+        var options = new SendGridClientOptions
         {
-            var options = new SendGridClientOptions
-            {
-                ApiKey = optionsAccessor.Value.ApiKey,
-                HttpErrorAsException = true,
-            };
+            ApiKey = optionsAccessor.Value.ApiKey,
+            HttpErrorAsException = true,
+        };
 
-            this.SendGridClient = new SendGridClient(options);
-        }
-
-        /// <inheritdoc />
-        public ISendGridClient SendGridClient { get; }
+        this.SendGridClient = new SendGridClient(options);
     }
+
+    /// <inheritdoc />
+    public ISendGridClient SendGridClient { get; }
 }

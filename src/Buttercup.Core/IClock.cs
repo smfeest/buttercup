@@ -1,18 +1,15 @@
-using System;
+namespace Buttercup;
 
-namespace Buttercup
+/// <summary>
+/// Defines the contract for the clock service.
+/// </summary>
+public interface IClock
 {
     /// <summary>
-    /// Defines the contract for the clock service.
+    /// Gets the time now in Coordinated Universal Time (UTC).
     /// </summary>
-    public interface IClock
-    {
-        /// <summary>
-        /// Gets the time now in Coordinated Universal Time (UTC).
-        /// </summary>
-        /// <value>
-        /// The time now in Coordinated Universal Time (UTC).
-        /// </value>
-        DateTime UtcNow { get; }
-    }
+    /// <value>
+    /// The time now in Coordinated Universal Time (UTC).
+    /// </value>
+    DateTime UtcNow { get; }
 }

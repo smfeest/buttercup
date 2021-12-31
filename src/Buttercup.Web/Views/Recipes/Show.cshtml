@@ -2,7 +2,7 @@
 @inject IViewLocalizer Localizer
 @model Recipe
 @{
-  ViewData["Title"] = Model.Title;
+  ViewData["Title"] = Model!.Title;
 }
 <h1>@Model.Title</h1>
 

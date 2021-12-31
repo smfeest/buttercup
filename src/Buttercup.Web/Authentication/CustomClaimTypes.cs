@@ -1,7 +1,6 @@
-namespace Buttercup.Web.Authentication
+namespace Buttercup.Web.Authentication;
+
+public static class CustomClaimTypes
 {
-    public static class CustomClaimTypes
-    {
-        public const string SecurityStamp = "http://schemas.smf.me.uk/buttercup/security-stamp";
-    }
+    public const string SecurityStamp = "http://schemas.smf.me.uk/buttercup/security-stamp";
 }

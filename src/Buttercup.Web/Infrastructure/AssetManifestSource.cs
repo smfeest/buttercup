@@ -1,56 +1,58 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 
-namespace Buttercup.Web.Infrastructure
+namespace Buttercup.Web.Infrastructure;
+
+public class AssetManifestSource : IAssetManifestSource
 {
-    public class AssetManifestSource : IAssetManifestSource
+    private readonly IFileProvider fileProvider;
+    private readonly IAssetManifestReader manifestReader;
+    private readonly object loadLock = new();
+    private readonly ILogger logger;
+    private IDictionary<string, string>? productionManifest;
+
+    public AssetManifestSource(
+        IWebHostEnvironment hostEnvironment,
+        ILogger<AssetManifestSource> logger,
+        IAssetManifestReader manifestReader)
     {
-        private readonly IFileProvider fileProvider;
-        private readonly IAssetManifestReader manifestReader;
-        private readonly object loadLock = new();
-        private readonly ILogger logger;
-        private IDictionary<string, string>? productionManifest;
+        this.fileProvider = hostEnvironment.WebRootFileProvider;
+        this.logger = logger;
+        this.manifestReader = manifestReader;
+    }
 
-        public AssetManifestSource(
-            IWebHostEnvironment hostEnvironment,
-            ILogger<AssetManifestSource> logger,
-            IAssetManifestReader manifestReader)
+    public IDictionary<string, string> ProductionManifest
+    {
+        get
         {
-            this.fileProvider = hostEnvironment.WebRootFileProvider;
-            this.logger = logger;
-            this.manifestReader = manifestReader;
-        }
-
-        public IDictionary<string, string> ProductionManifest
-        {
-            get
+            if (this.productionManifest == null)
             {
-                if (this.productionManifest == null)
+                lock (this.loadLock)
                 {
-                    lock (this.loadLock)
+                    if (this.productionManifest == null)
                     {
-                        if (this.productionManifest == null)
-                        {
-                            var path = Path.Combine("prod-assets", "manifest.json");
+                        var path = Path.Combine("prod-assets", "manifest.json");
 
-                            this.logger.LogInformation("Loading asset manifest {path}", path);
+                        LoggerMessages.LoadingManifest(this.logger, path, null);
 
-                            var fileInfo = this.fileProvider.GetFileInfo(path);
+                        var fileInfo = this.fileProvider.GetFileInfo(path);
 
-                            using var stream = fileInfo.CreateReadStream();
+                        using var stream = fileInfo.CreateReadStream();
 
-                            this.productionManifest = new ReadOnlyDictionary<string, string>(
-                                this.manifestReader.ReadManifest(stream));
-                        }
+                        this.productionManifest = new ReadOnlyDictionary<string, string>(
+                            this.manifestReader.ReadManifest(stream));
                     }
                 }
-
-                return this.productionManifest;
             }
+
+            return this.productionManifest;
         }
+    }
+
+    private static class LoggerMessages
+    {
+        public static readonly Action<ILogger, string, Exception?> LoadingManifest =
+            LoggerMessage.Define<string>(
+                LogLevel.Information, 100, "Loading asset manifest {Path}");
     }
 }
