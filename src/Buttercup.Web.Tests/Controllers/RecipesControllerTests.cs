@@ -230,11 +230,11 @@ public class RecipesControllerTests
         using var fixture = new RecipesControllerFixture();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.DeleteRecipe(fixture.MySqlConnection, 6, 12))
+            .Setup(x => x.DeleteRecipe(fixture.MySqlConnection, 6))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var result = await fixture.RecipesController.Delete(6, 12);
+        var result = await fixture.RecipesController.DeletePost(6);
 
         fixture.MockRecipeDataProvider.Verify();
 

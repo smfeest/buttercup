@@ -111,11 +111,11 @@ public class RecipesController : Controller
     }
 
     [HttpPost("{id}/delete")]
-    public async Task<IActionResult> Delete(long id, int revision)
+    public async Task<IActionResult> DeletePost(long id)
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        await this.recipeDataProvider.DeleteRecipe(connection, id, revision);
+        await this.recipeDataProvider.DeleteRecipe(connection, id);
 
         return this.RedirectToAction(nameof(this.Index));
     }

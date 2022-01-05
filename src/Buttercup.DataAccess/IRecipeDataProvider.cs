@@ -35,19 +35,13 @@ public interface IRecipeDataProvider
     /// <param name="id">
     /// The recipe ID.
     /// </param>
-    /// <param name="revision">
-    /// The current revision. Used to prevent lost updates.
-    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
     /// <exception cref="NotFoundException">
     /// No matching recipe was found.
     /// </exception>
-    /// <exception cref="ConcurrencyException">
-    /// <paramref name="revision"/> does not match the revision in the database.
-    /// </exception>
-    Task DeleteRecipe(MySqlConnection connection, long id, int revision);
+    Task DeleteRecipe(MySqlConnection connection, long id);
 
     /// <summary>
     /// Gets a recipe.

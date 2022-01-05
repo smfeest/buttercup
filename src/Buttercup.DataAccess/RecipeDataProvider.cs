@@ -29,17 +29,16 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     }
 
     /// <inheritdoc />
-    public async Task DeleteRecipe(MySqlConnection connection, long id, int revision)
+    public async Task DeleteRecipe(MySqlConnection connection, long id)
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = "DELETE FROM recipe WHERE id = @id AND revision = @revision";
+        command.CommandText = "DELETE FROM recipe WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
-        command.Parameters.AddWithValue("@revision", revision);
 
         if (await command.ExecuteNonQueryAsync() == 0)
         {
-            throw await ConcurrencyOrNotFoundException(connection, id, revision);
+            throw RecipeNotFound(id);
         }
     }
 
