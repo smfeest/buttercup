@@ -53,9 +53,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
 
         using var reader = await command.ExecuteReaderAsync();
 
-        return await reader.ReadAsync() ?
-            ReadRecipe(reader) :
-            throw new NotFoundException($"Recipe {id} not found");
+        return await reader.ReadAsync() ? ReadRecipe(reader) : throw RecipeNotFound(id);
     }
 
     /// <inheritdoc />
@@ -133,7 +131,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         var currentRevision = await command.ExecuteScalarAsync();
 
         return currentRevision == null ?
-            new NotFoundException($"Recipe {id} not found") :
+            RecipeNotFound(id) :
             new ConcurrencyException(
                 $"Revision {revision} does not match current revision {currentRevision}");
     }
@@ -172,4 +170,6 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         reader.GetDateTime("modified"),
         reader.GetNullableInt64("modified_by_user_id"),
         reader.GetInt32("revision"));
+
+    private static NotFoundException RecipeNotFound(long id) => new($"Recipe {id} not found");
 }
