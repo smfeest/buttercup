@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_StaleEdit">
+    <value>Other changes have been made to this recipe since you started editing</value>
+  </data>
+</root>

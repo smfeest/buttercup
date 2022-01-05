@@ -5,6 +5,7 @@ using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
 
@@ -13,13 +14,16 @@ namespace Buttercup.Web.Controllers;
 [Route("recipes")]
 public class RecipesController : Controller
 {
+    private readonly IStringLocalizer<RecipesController> localizer;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly IRecipeDataProvider recipeDataProvider;
 
     public RecipesController(
+        IStringLocalizer<RecipesController> localizer,
         IMySqlConnectionSource mySqlConnectionSource,
         IRecipeDataProvider recipeDataProvider)
     {
+        this.localizer = localizer;
         this.mySqlConnectionSource = mySqlConnectionSource;
         this.recipeDataProvider = recipeDataProvider;
     }
@@ -78,12 +82,22 @@ public class RecipesController : Controller
 
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        await this.recipeDataProvider.UpdateRecipe(
-            connection,
-            id,
-            model.Attributes,
-            model.BaseRevision,
-            this.HttpContext.GetCurrentUser()!.Id);
+        try
+        {
+            await this.recipeDataProvider.UpdateRecipe(
+                connection,
+                id,
+                model.Attributes,
+                model.BaseRevision,
+                this.HttpContext.GetCurrentUser()!.Id);
+        }
+        catch (ConcurrencyException)
+        {
+            this.ModelState.AddModelError(
+                nameof(EditRecipeViewModel.Attributes), this.localizer["Error_StaleEdit"]);
+
+            return this.View(model);
+        }
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }

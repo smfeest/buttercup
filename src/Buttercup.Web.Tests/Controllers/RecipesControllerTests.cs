@@ -3,8 +3,10 @@ using Buttercup.Models;
 using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
+using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Moq;
 using MySqlConnector;
 using Xunit;
@@ -168,6 +170,35 @@ public class RecipesControllerTests
         Assert.Same(editModel, viewResult.Model);
     }
 
+    [Fact]
+    public async Task EditPostReturnsViewResultAndAddsErrorWhenConcurrencyExceptionIsRaised()
+    {
+        using var fixture = new RecipesControllerFixture();
+
+        var editModel = EditRecipeViewModel.ForRecipe(ModelFactory.CreateRecipe());
+
+        fixture.MockLocalizer.SetupLocalizedString(
+            "Error_StaleEdit", "translated-stale-edit-error");
+
+        fixture.MockRecipeDataProvider
+            .Setup(x => x.UpdateRecipe(
+                fixture.MySqlConnection,
+                3,
+                editModel.Attributes,
+                editModel.BaseRevision,
+                fixture.User.Id))
+            .ThrowsAsync(new ConcurrencyException());
+
+        var result = await fixture.RecipesController.Edit(3, editModel);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Same(editModel, viewResult.Model);
+
+        var error = Assert.Single(
+            fixture.RecipesController.ModelState[nameof(EditRecipeViewModel.Attributes)]!.Errors);
+        Assert.Equal("translated-stale-edit-error", error.ErrorMessage);
+    }
+
     #endregion
 
     #region Delete (GET)
@@ -222,7 +253,10 @@ public class RecipesControllerTests
 
             this.HttpContext.SetCurrentUser(this.User);
 
-            this.RecipesController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object)
+            this.RecipesController = new(
+                this.MockLocalizer.Object,
+                mySqlConnectionSource,
+                this.MockRecipeDataProvider.Object)
             {
                 ControllerContext = new() { HttpContext = this.HttpContext },
             };
@@ -235,6 +269,8 @@ public class RecipesControllerTests
         public MySqlConnection MySqlConnection { get; } = new();
 
         public User User { get; } = ModelFactory.CreateUser();
+
+        public Mock<IStringLocalizer<RecipesController>> MockLocalizer { get; } = new();
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
