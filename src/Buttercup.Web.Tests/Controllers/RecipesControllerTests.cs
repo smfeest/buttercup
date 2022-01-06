@@ -122,7 +122,7 @@ public class RecipesControllerTests
         var result = await fixture.RecipesController.Edit(5);
         var viewResult = Assert.IsType<ViewResult>(result);
 
-        var expectedModel = new RecipeEditModel(recipe);
+        var expectedModel = RecipeEditModel.ForRecipe(recipe);
         var actualModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
 
         Assert.Equal(expectedModel, actualModel);
@@ -250,7 +250,8 @@ public class RecipesControllerTests
 
         public DefaultHttpContext HttpContext { get; } = new();
 
-        public RecipeEditModel EditModel { get; } = new(ModelFactory.CreateRecipe());
+        public RecipeEditModel EditModel { get; } =
+            RecipeEditModel.ForRecipe(ModelFactory.CreateRecipe());
 
         public User User { get; } = ModelFactory.CreateUser();
     }

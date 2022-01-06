@@ -70,7 +70,7 @@ public class RecipesController : Controller
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        return this.View(new RecipeEditModel(
+        return this.View(RecipeEditModel.ForRecipe(
             await this.recipeDataProvider.GetRecipe(connection, id)));
     }
 

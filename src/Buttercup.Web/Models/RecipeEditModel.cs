@@ -1,28 +1,9 @@
 using Buttercup.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Buttercup.Web.Models;
 
-public sealed record RecipeEditModel
+public sealed record RecipeEditModel(long Id, RecipeAttributes Attributes, int Revision)
 {
-    public RecipeEditModel()
-    {
-    }
-
-    public RecipeEditModel(Recipe recipe)
-    {
-        this.Id = recipe.Id;
-        this.Attributes = new(recipe);
-        this.Revision = recipe.Revision;
-    }
-
-    [BindNever]
-    public long Id { get; init; }
-
-    public RecipeAttributes Attributes { get; init; } = new();
-
-    public int Revision { get; init; }
-
     public Recipe ToRecipe() => new(
         this.Id,
         this.Attributes.Title,
@@ -39,4 +20,7 @@ public sealed record RecipeEditModel
         new(),
         null,
         this.Revision);
+
+    public static RecipeEditModel ForRecipe(Recipe recipe) => new(
+        recipe.Id, new(recipe), recipe.Revision);
 }
