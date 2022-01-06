@@ -5,11 +5,6 @@ namespace Buttercup.DataAccess;
 [Collection("Database collection")]
 public class PasswordResetTokenDataProviderTests
 {
-    private readonly DatabaseFixture databaseFixture;
-
-    public PasswordResetTokenDataProviderTests(DatabaseFixture databaseFixture) =>
-        this.databaseFixture = databaseFixture;
-
     #region DeleteExpiredTokens
 
     [Fact]
