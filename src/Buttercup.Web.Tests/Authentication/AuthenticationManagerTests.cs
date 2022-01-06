@@ -631,7 +631,7 @@ public class AuthenticationManagerTests
         await fixture.SendPasswordResetLink();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-            fixture.MySqlConnection, fixture.User!.Id, fixture.Token, fixture.UtcNow));
+            fixture.MySqlConnection, fixture.User!.Id, fixture.Token));
     }
 
     [Fact]

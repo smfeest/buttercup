@@ -230,8 +230,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         var token = this.randomTokenGenerator.Generate(12);
 
-        await this.passwordResetTokenDataProvider.InsertToken(
-            connection, user.Id, token, this.clock.UtcNow);
+        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, token);
 
         var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
         var link = urlHelper.Link("ResetPassword", new { token })!;
