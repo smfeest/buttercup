@@ -160,8 +160,7 @@ public class AccountControllerTests
         var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
         fixture.MockUserDataProvider
-            .Setup(x => x.UpdatePreferences(
-                fixture.MySqlConnection, 21, viewModel.TimeZone, fixture.UtcNow))
+            .Setup(x => x.UpdatePreferences(fixture.MySqlConnection, 21, viewModel.TimeZone))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
@@ -179,12 +178,10 @@ public class AccountControllerTests
     {
         public AccountControllerFixture()
         {
-            var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
             var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
                 x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
             this.AccountController = new(
-                clock,
                 mySqlConnectionSource,
                 this.MockUserDataProvider.Object,
                 this.MockAuthenticationManager.Object,
@@ -208,8 +205,6 @@ public class AccountControllerTests
         public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
 
         public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
-
-        public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
         public void Dispose()
         {

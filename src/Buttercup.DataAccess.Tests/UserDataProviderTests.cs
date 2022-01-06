@@ -127,14 +127,12 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: 32, revision: 2));
 
-        var time = new DateTime(2003, 4, 5, 6, 7, 8);
-
-        await this.userDataProvider.UpdatePreferences(connection, 32, "new-time-zone", time);
+        await this.userDataProvider.UpdatePreferences(connection, 32, "new-time-zone");
 
         var actual = await this.userDataProvider.GetUser(connection, 32);
 
         Assert.Equal("new-time-zone", actual.TimeZone);
-        Assert.Equal(time, actual.Modified);
+        Assert.Equal(this.fakeTime, actual.Modified);
         Assert.Equal(3, actual.Revision);
     }
 
@@ -146,8 +144,7 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.UpdatePreferences(
-                connection, 9, "new-time-zone", DateTime.UtcNow));
+            () => this.userDataProvider.UpdatePreferences(connection, 9, "new-time-zone"));
 
         Assert.Equal("User 9 not found", exception.Message);
     }

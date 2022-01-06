@@ -63,8 +63,7 @@ internal sealed class UserDataProvider : IUserDataProvider
     }
 
     /// <inheritdoc />
-    public async Task UpdatePreferences(
-        MySqlConnection connection, long userId, string timeZone, DateTime time)
+    public async Task UpdatePreferences(MySqlConnection connection, long userId, string timeZone)
     {
         using var command = connection.CreateCommand();
 
@@ -75,7 +74,7 @@ internal sealed class UserDataProvider : IUserDataProvider
             WHERE id = @id";
         command.Parameters.AddWithValue("@id", userId);
         command.Parameters.AddWithValue("@time_zone", timeZone);
-        command.Parameters.AddWithValue("@time", time);
+        command.Parameters.AddWithValue("@time", this.clock.UtcNow);
 
         if (await command.ExecuteNonQueryAsync() == 0)
         {

@@ -76,15 +76,11 @@ public interface IUserDataProvider
     /// <param name="timeZone">
     /// The TZ ID of the time zone.
     /// </param>
-    /// <param name="time">
-    /// The date and time of the update.
-    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task UpdatePreferences(
-        MySqlConnection connection, long userId, string timeZone, DateTime time);
+    Task UpdatePreferences(MySqlConnection connection, long userId, string timeZone);
 }

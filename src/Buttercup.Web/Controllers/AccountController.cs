@@ -12,19 +12,16 @@ namespace Buttercup.Web.Controllers;
 public class AccountController : Controller
 {
     private readonly IAuthenticationManager authenticationManager;
-    private readonly IClock clock;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly IStringLocalizer<AccountController> localizer;
     private readonly IUserDataProvider userDataProvider;
 
     public AccountController(
-        IClock clock,
         IMySqlConnectionSource mySqlConnectionSource,
         IUserDataProvider userDataProvider,
         IAuthenticationManager authenticationManager,
         IStringLocalizer<AccountController> localizer)
     {
-        this.clock = clock;
         this.mySqlConnectionSource = mySqlConnectionSource;
         this.userDataProvider = userDataProvider;
         this.authenticationManager = authenticationManager;
@@ -71,8 +68,7 @@ public class AccountController : Controller
 
         var user = this.HttpContext.GetCurrentUser()!;
 
-        await this.userDataProvider.UpdatePreferences(
-            connection, user.Id, model.TimeZone!, this.clock.UtcNow);
+        await this.userDataProvider.UpdatePreferences(connection, user.Id, model.TimeZone!);
 
         return this.RedirectToAction(nameof(this.Show));
     }
