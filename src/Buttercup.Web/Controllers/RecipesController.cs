@@ -12,16 +12,13 @@ namespace Buttercup.Web.Controllers;
 [Route("recipes")]
 public class RecipesController : Controller
 {
-    private readonly IClock clock;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly IRecipeDataProvider recipeDataProvider;
 
     public RecipesController(
-        IClock clock,
         IMySqlConnectionSource mySqlConnectionSource,
         IRecipeDataProvider recipeDataProvider)
     {
-        this.clock = clock;
         this.mySqlConnectionSource = mySqlConnectionSource;
         this.recipeDataProvider = recipeDataProvider;
     }
@@ -87,7 +84,6 @@ public class RecipesController : Controller
         var recipe = model.ToRecipe();
 
         recipe.Id = id;
-        recipe.Modified = this.clock.UtcNow;
         recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id;
 
         using (var connection = await this.mySqlConnectionSource.OpenConnection())

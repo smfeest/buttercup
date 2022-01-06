@@ -146,7 +146,6 @@ public class RecipesControllerTests
             {
                 Assert.Equal(3, recipe.Id);
                 Assert.Equal(fixture.EditModel.Title, recipe.Title);
-                Assert.Equal(fixture.UtcNow, recipe.Modified);
                 Assert.Equal(fixture.User.Id, recipe.ModifiedByUserId);
             })
             .Returns(Task.CompletedTask)
@@ -223,12 +222,10 @@ public class RecipesControllerTests
     {
         public RecipesControllerFixture()
         {
-            var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
             var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
                 x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
-            this.RecipesController = new(
-                clock, mySqlConnectionSource, this.MockRecipeDataProvider.Object);
+            this.RecipesController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
         }
 
         public RecipesController RecipesController { get; }
@@ -236,8 +233,6 @@ public class RecipesControllerTests
         public MySqlConnection MySqlConnection { get; } = new();
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
-
-        public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
         public void Dispose()
         {

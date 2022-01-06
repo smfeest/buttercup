@@ -88,13 +88,13 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
             SET title = @title, preparation_minutes = @preparation_minutes,
                 cooking_minutes = @cooking_minutes, servings = @servings,
                 ingredients = @ingredients, method = @method, suggestions = @suggestions,
-                remarks = @remarks, source = @source, modified = @modified,
+                remarks = @remarks, source = @source, modified = @timestamp,
                 modified_by_user_id = @modified_by_user_id, revision = revision + 1
             WHERE id = @id AND revision = @revision";
 
         AddInsertUpdateParameters(command, recipe);
         command.Parameters.AddWithValue("@id", recipe.Id);
-        command.Parameters.AddWithValue("@modified", recipe.Modified);
+        command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
         command.Parameters.AddWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
         command.Parameters.AddWithValue("@revision", recipe.Revision);
 

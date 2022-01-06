@@ -301,7 +301,7 @@ public class RecipeDataProviderTests
         Assert.Equal(expected.Suggestions, actual.Suggestions);
         Assert.Equal(expected.Remarks, actual.Remarks);
         Assert.Equal(expected.Source, actual.Source);
-        Assert.Equal(expected.Modified, actual.Modified);
+        Assert.Equal(this.fakeTime, actual.Modified);
         Assert.Equal(expected.ModifiedByUserId, actual.ModifiedByUserId);
 
         Assert.Equal(original.Created, actual.Created);
