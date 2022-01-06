@@ -4,6 +4,7 @@
     <PackageReference Include="MySqlConnector" Version="2.1.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
     <ProjectReference Include="..\Buttercup.Models\Buttercup.Models.csproj" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,10 @@ namespace Buttercup.DataAccess;
 /// </summary>
 internal sealed class RecipeDataProvider : IRecipeDataProvider
 {
+    private readonly IClock clock;
+
+    public RecipeDataProvider(IClock clock) => this.clock = clock;
+
     /// <inheritdoc />
     public async Task<long> AddRecipe(MySqlConnection connection, Recipe recipe)
     {

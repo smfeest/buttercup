@@ -1,3 +1,4 @@
+using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -5,6 +6,16 @@ namespace Buttercup.DataAccess;
 [Collection("Database collection")]
 public class RecipeDataProviderTests
 {
+    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly RecipeDataProvider recipeDataProvider;
+
+    public RecipeDataProviderTests()
+    {
+        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
+
+        this.recipeDataProvider = new(clock);
+    }
+
     #region AddRecipe
 
     [Fact]
@@ -12,15 +23,13 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
 
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: expected.CreatedByUserId));
 
-        var id = await recipeDataProvider.AddRecipe(connection, expected);
-        var actual = await recipeDataProvider.GetRecipe(connection, id);
+        var id = await this.recipeDataProvider.AddRecipe(connection, expected);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Equal(expected.Title, actual.Title);
         Assert.Equal(expected.PreparationMinutes, actual.PreparationMinutes);
@@ -43,12 +52,10 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false);
 
-        var id = await recipeDataProvider.AddRecipe(connection, expected);
-        var actual = await recipeDataProvider.GetRecipe(connection, id);
+        var id = await this.recipeDataProvider.AddRecipe(connection, expected);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
@@ -65,8 +72,6 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         var expected = SampleRecipes.CreateSampleRecipe();
 
         expected.Title = " new-recipe-title ";
@@ -76,8 +81,8 @@ public class RecipeDataProviderTests
         expected.Remarks = " ";
         expected.Source = string.Empty;
 
-        var id = await recipeDataProvider.AddRecipe(connection, expected);
-        var actual = await recipeDataProvider.GetRecipe(connection, id);
+        var id = await this.recipeDataProvider.AddRecipe(connection, expected);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Equal("new-recipe-title", actual.Title);
         Assert.Equal("new-recipe-ingredients", actual.Ingredients);
@@ -96,14 +101,12 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         await SampleRecipes.InsertSampleRecipe(
             connection, SampleRecipes.CreateSampleRecipe(id: 5, revision: 1));
 
-        await recipeDataProvider.DeleteRecipe(connection, 5, 1);
+        await this.recipeDataProvider.DeleteRecipe(connection, 5, 1);
 
-        Assert.Empty(await recipeDataProvider.GetRecipes(connection));
+        Assert.Empty(await this.recipeDataProvider.GetRecipes(connection));
     }
 
     [Fact]
@@ -115,7 +118,7 @@ public class RecipeDataProviderTests
             connection, SampleRecipes.CreateSampleRecipe(id: 1));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => new RecipeDataProvider().DeleteRecipe(connection, 2, 0));
+            () => this.recipeDataProvider.DeleteRecipe(connection, 2, 0));
 
         Assert.Equal("Recipe 2 not found", exception.Message);
     }
@@ -129,7 +132,7 @@ public class RecipeDataProviderTests
             connection, SampleRecipes.CreateSampleRecipe(id: 4, revision: 2));
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
-            () => new RecipeDataProvider().DeleteRecipe(connection, 4, 1));
+            () => this.recipeDataProvider.DeleteRecipe(connection, 4, 1));
 
         Assert.Equal("Revision 1 does not match current revision 2", exception.Message);
     }
@@ -147,7 +150,7 @@ public class RecipeDataProviderTests
 
         await SampleRecipes.InsertSampleRecipe(connection, expected);
 
-        var actual = await new RecipeDataProvider().GetRecipe(connection, 5);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, 5);
 
         Assert.Equal(5, actual.Id);
         Assert.Equal(expected.Title, actual.Title);
@@ -162,7 +165,7 @@ public class RecipeDataProviderTests
             connection, SampleRecipes.CreateSampleRecipe(id: 5));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => new RecipeDataProvider().GetRecipe(connection, 3));
+            () => this.recipeDataProvider.GetRecipe(connection, 3));
 
         Assert.Equal("Recipe 3 not found", exception.Message);
     }
@@ -183,7 +186,7 @@ public class RecipeDataProviderTests
         await SampleRecipes.InsertSampleRecipe(
             connection, SampleRecipes.CreateSampleRecipe(title: "recipe-title-a"));
 
-        var recipes = await new RecipeDataProvider().GetRecipes(connection);
+        var recipes = await this.recipeDataProvider.GetRecipes(connection);
 
         Assert.Equal("recipe-title-a", recipes[0].Title);
         Assert.Equal("recipe-title-b", recipes[1].Title);
@@ -206,7 +209,7 @@ public class RecipeDataProviderTests
             await SampleRecipes.InsertSampleRecipe(connection, recipe);
         }
 
-        var recipes = await new RecipeDataProvider().GetRecentlyAddedRecipes(
+        var recipes = await this.recipeDataProvider.GetRecentlyAddedRecipes(
             connection);
 
         Assert.Equal(10, recipes.Count);
@@ -251,7 +254,7 @@ public class RecipeDataProviderTests
             await SampleRecipes.InsertSampleRecipe(connection, recipe);
         }
 
-        var recipes = await new RecipeDataProvider().GetRecentlyUpdatedRecipes(
+        var recipes = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
             connection);
 
         Assert.Equal(10, recipes.Count);
@@ -276,8 +279,6 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         var original = SampleRecipes.CreateSampleRecipe(id: 3, revision: 0);
 
         await SampleRecipes.InsertSampleRecipe(connection, original);
@@ -288,8 +289,8 @@ public class RecipeDataProviderTests
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: expected.ModifiedByUserId));
 
-        await recipeDataProvider.UpdateRecipe(connection, expected);
-        var actual = await recipeDataProvider.GetRecipe(connection, 3);
+        await this.recipeDataProvider.UpdateRecipe(connection, expected);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, 3);
 
         Assert.Equal(expected.Title, actual.Title);
         Assert.Equal(expected.PreparationMinutes, actual.PreparationMinutes);
@@ -312,18 +313,16 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         await SampleRecipes.InsertSampleRecipe(
             connection,
             SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true, id: 7, revision: 3),
             insertRelatedRecords: true);
 
-        await recipeDataProvider.UpdateRecipe(
+        await this.recipeDataProvider.UpdateRecipe(
             connection,
             SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false, id: 7, revision: 3));
 
-        var actual = await recipeDataProvider.GetRecipe(connection, 7);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, 7);
 
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
@@ -339,8 +338,6 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeDataProvider = new RecipeDataProvider();
-
         await SampleRecipes.InsertSampleRecipe(
             connection, SampleRecipes.CreateSampleRecipe(id: 13, revision: 0));
 
@@ -352,8 +349,8 @@ public class RecipeDataProviderTests
         expected.Remarks = " ";
         expected.Source = string.Empty;
 
-        await recipeDataProvider.UpdateRecipe(connection, expected);
-        var actual = await recipeDataProvider.GetRecipe(connection, 13);
+        await this.recipeDataProvider.UpdateRecipe(connection, expected);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, 13);
 
         Assert.Equal("new-recipe-title", actual.Title);
         Assert.Equal("new-recipe-ingredients", actual.Ingredients);
@@ -372,7 +369,7 @@ public class RecipeDataProviderTests
             connection, SampleRecipes.CreateSampleRecipe(id: 5));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => new RecipeDataProvider().UpdateRecipe(
+            () => this.recipeDataProvider.UpdateRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 2)));
 
         Assert.Equal("Recipe 2 not found", exception.Message);
@@ -387,7 +384,7 @@ public class RecipeDataProviderTests
             connection, SampleRecipes.CreateSampleRecipe(id: 6, revision: 4));
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
-            () => new RecipeDataProvider().UpdateRecipe(
+            () => this.recipeDataProvider.UpdateRecipe(
                 connection, SampleRecipes.CreateSampleRecipe(id: 6, revision: 3)));
 
         Assert.Equal("Revision 3 does not match current revision 4", exception.Message);
@@ -407,7 +404,7 @@ public class RecipeDataProviderTests
         await SampleRecipes.InsertSampleRecipe(
             connection, expected, insertRelatedRecords: true);
 
-        var actual = await new RecipeDataProvider().GetRecipe(connection, expected.Id);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
         Assert.Equal(expected.Id, actual.Id);
         Assert.Equal(expected.Title, actual.Title);
@@ -435,7 +432,7 @@ public class RecipeDataProviderTests
 
         await SampleRecipes.InsertSampleRecipe(connection, expected);
 
-        var actual = await new RecipeDataProvider().GetRecipe(connection, expected.Id);
+        var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
