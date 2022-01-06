@@ -8,6 +8,10 @@ namespace Buttercup.DataAccess;
 /// </summary>
 internal sealed class UserDataProvider : IUserDataProvider
 {
+    private readonly IClock clock;
+
+    public UserDataProvider(IClock clock) => this.clock = clock;
+
     /// <inheritdoc />
     public async Task<User?> FindUserByEmail(MySqlConnection connection, string email)
     {

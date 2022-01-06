@@ -1,3 +1,4 @@
+using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -5,6 +6,16 @@ namespace Buttercup.DataAccess;
 [Collection("Database collection")]
 public class UserDataProviderTests
 {
+    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly UserDataProvider userDataProvider;
+
+    public UserDataProviderTests()
+    {
+        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
+
+        this.userDataProvider = new(clock);
+    }
+
     #region FindUserByEmail
 
     [Fact]
@@ -15,7 +26,7 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
 
-        var actual = await new UserDataProvider().FindUserByEmail(connection, "alpha@example.com");
+        var actual = await this.userDataProvider.FindUserByEmail(connection, "alpha@example.com");
 
         Assert.Equal(4, actual!.Id);
         Assert.Equal("alpha@example.com", actual.Email);
@@ -29,7 +40,7 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(email: "alpha@example.com"));
 
-        var actual = await new UserDataProvider().FindUserByEmail(connection, "beta@example.com");
+        var actual = await this.userDataProvider.FindUserByEmail(connection, "beta@example.com");
 
         Assert.Null(actual);
     }
@@ -47,7 +58,7 @@ public class UserDataProviderTests
 
         await SampleUsers.InsertSampleUser(connection, expected);
 
-        var actual = await new UserDataProvider().GetUser(connection, 76);
+        var actual = await this.userDataProvider.GetUser(connection, 76);
 
         Assert.Equal(76, actual.Id);
         Assert.Equal(expected.Email, actual.Email);
@@ -61,7 +72,7 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => new UserDataProvider().GetUser(connection, 7));
+            () => this.userDataProvider.GetUser(connection, 7));
 
         Assert.Equal("User 7 not found", exception.Message);
     }
@@ -75,17 +86,15 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var userDataProvider = new UserDataProvider();
-
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: 41, revision: 5));
 
         var time = new DateTime(2003, 4, 5, 6, 7, 8);
 
-        await userDataProvider.UpdatePassword(
+        await this.userDataProvider.UpdatePassword(
             connection, 41, "new-hashed-password", "newstamp", time);
 
-        var actual = await userDataProvider.GetUser(connection, 41);
+        var actual = await this.userDataProvider.GetUser(connection, 41);
 
         Assert.Equal("new-hashed-password", actual.HashedPassword);
         Assert.Equal(time, actual.PasswordCreated);
@@ -102,7 +111,7 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 23));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => new UserDataProvider().UpdatePassword(
+            () => this.userDataProvider.UpdatePassword(
                 connection, 4, "new-hashed-password", "newstamp", DateTime.UtcNow));
 
         Assert.Equal("User 4 not found", exception.Message);
@@ -117,16 +126,14 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var userDataProvider = new UserDataProvider();
-
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: 32, revision: 2));
 
         var time = new DateTime(2003, 4, 5, 6, 7, 8);
 
-        await userDataProvider.UpdatePreferences(connection, 32, "new-time-zone", time);
+        await this.userDataProvider.UpdatePreferences(connection, 32, "new-time-zone", time);
 
-        var actual = await userDataProvider.GetUser(connection, 32);
+        var actual = await this.userDataProvider.GetUser(connection, 32);
 
         Assert.Equal("new-time-zone", actual.TimeZone);
         Assert.Equal(time, actual.Modified);
@@ -141,7 +148,7 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => new UserDataProvider().UpdatePreferences(
+            () => this.userDataProvider.UpdatePreferences(
                 connection, 9, "new-time-zone", DateTime.UtcNow));
 
         Assert.Equal("User 9 not found", exception.Message);
@@ -160,7 +167,7 @@ public class UserDataProviderTests
 
         await SampleUsers.InsertSampleUser(connection, expected);
 
-        var actual = await new UserDataProvider().GetUser(connection, expected.Id);
+        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
         Assert.Equal(expected.Id, actual.Id);
         Assert.Equal(expected.Name, actual.Name);
@@ -183,7 +190,7 @@ public class UserDataProviderTests
 
         await SampleUsers.InsertSampleUser(connection, expected);
 
-        var actual = await new UserDataProvider().GetUser(connection, expected.Id);
+        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
         Assert.Null(actual.HashedPassword);
         Assert.Null(actual.PasswordCreated);
