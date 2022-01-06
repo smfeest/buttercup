@@ -55,7 +55,6 @@ public class RecipesController : Controller
 
         var recipe = model.ToRecipe();
 
-        recipe.Created = this.clock.UtcNow;
         recipe.CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id;
 
         long id;

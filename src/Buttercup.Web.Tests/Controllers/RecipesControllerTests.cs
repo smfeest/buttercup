@@ -79,7 +79,6 @@ public class RecipesControllerTests
             .Callback((MySqlConnection connection, Recipe recipe) =>
             {
                 Assert.Equal(fixture.EditModel.Title, recipe.Title);
-                Assert.Equal(fixture.UtcNow, recipe.Created);
                 Assert.Equal(fixture.User.Id, recipe.CreatedByUserId);
             })
             .ReturnsAsync(5)
