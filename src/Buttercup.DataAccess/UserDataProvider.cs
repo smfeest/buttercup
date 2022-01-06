@@ -40,11 +40,7 @@ internal sealed class UserDataProvider : IUserDataProvider
 
     /// <inheritdoc />
     public async Task UpdatePassword(
-        MySqlConnection connection,
-        long userId,
-        string hashedPassword,
-        string securityStamp,
-        DateTime time)
+        MySqlConnection connection, long userId, string hashedPassword, string securityStamp)
     {
         using var command = connection.CreateCommand();
 
@@ -58,7 +54,7 @@ internal sealed class UserDataProvider : IUserDataProvider
         command.Parameters.AddWithValue("@id", userId);
         command.Parameters.AddWithValue("@hashed_password", hashedPassword);
         command.Parameters.AddWithValue("@security_stamp", securityStamp);
-        command.Parameters.AddWithValue("@time", time);
+        command.Parameters.AddWithValue("@time", this.clock.UtcNow);
 
         if (await command.ExecuteNonQueryAsync() == 0)
         {

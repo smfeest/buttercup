@@ -329,7 +329,7 @@ public class AuthenticationManager : IAuthenticationManager
         var securityToken = this.randomTokenGenerator.Generate(2);
 
         await this.userDataProvider.UpdatePassword(
-            connection, userId, hashedPassword, securityToken, this.clock.UtcNow);
+            connection, userId, hashedPassword, securityToken);
 
         await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
 

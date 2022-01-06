@@ -89,17 +89,15 @@ public class UserDataProviderTests
         await SampleUsers.InsertSampleUser(
             connection, SampleUsers.CreateSampleUser(id: 41, revision: 5));
 
-        var time = new DateTime(2003, 4, 5, 6, 7, 8);
-
         await this.userDataProvider.UpdatePassword(
-            connection, 41, "new-hashed-password", "newstamp", time);
+            connection, 41, "new-hashed-password", "newstamp");
 
         var actual = await this.userDataProvider.GetUser(connection, 41);
 
         Assert.Equal("new-hashed-password", actual.HashedPassword);
-        Assert.Equal(time, actual.PasswordCreated);
+        Assert.Equal(this.fakeTime, actual.PasswordCreated);
         Assert.Equal("newstamp", actual.SecurityStamp);
-        Assert.Equal(time, actual.Modified);
+        Assert.Equal(this.fakeTime, actual.Modified);
         Assert.Equal(6, actual.Revision);
     }
 
@@ -112,7 +110,7 @@ public class UserDataProviderTests
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
-                connection, 4, "new-hashed-password", "newstamp", DateTime.UtcNow));
+                connection, 4, "new-hashed-password", "newstamp"));
 
         Assert.Equal("User 4 not found", exception.Message);
     }

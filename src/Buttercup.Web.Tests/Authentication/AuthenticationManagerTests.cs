@@ -248,8 +248,7 @@ public class AuthenticationManagerTests
             fixture.MySqlConnection,
             fixture.User.Id,
             fixture.HashedNewPassword,
-            fixture.NewSecurityStamp,
-            fixture.UtcNow));
+            fixture.NewSecurityStamp));
     }
 
     [Fact]
@@ -525,8 +524,7 @@ public class AuthenticationManagerTests
             fixture.MySqlConnection,
             fixture.UserId!.Value,
             fixture.NewHashedPassword,
-            fixture.NewSecurityStamp,
-            fixture.UtcNow));
+            fixture.NewSecurityStamp));
     }
 
     [Fact]
