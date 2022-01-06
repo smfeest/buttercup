@@ -7,6 +7,10 @@ namespace Buttercup.DataAccess;
 /// </summary>
 internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataProvider
 {
+    private readonly IClock clock;
+
+    public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
+
     /// <inheritdoc />
     public async Task DeleteExpiredTokens(MySqlConnection connection, DateTime cutOff)
     {
