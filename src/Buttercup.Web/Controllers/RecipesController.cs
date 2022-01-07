@@ -50,9 +50,10 @@ public class RecipesController : Controller
             return this.View(model);
         }
 
-        var recipe = model.ToRecipe();
-
-        recipe.CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id;
+        var recipe = model.ToRecipe() with
+        {
+            CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id,
+        };
 
         long id;
 
@@ -81,10 +82,11 @@ public class RecipesController : Controller
             return this.View(model);
         }
 
-        var recipe = model.ToRecipe();
-
-        recipe.Id = id;
-        recipe.ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id;
+        var recipe = model.ToRecipe() with
+        {
+            Id = id,
+            ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id,
+        };
 
         using (var connection = await this.mySqlConnectionSource.OpenConnection())
         {

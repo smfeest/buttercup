@@ -73,14 +73,15 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = ModelFactory.CreateRecipe();
-
-        expected.Title = " new-recipe-title ";
-        expected.Ingredients = " new-recipe-ingredients ";
-        expected.Method = " new-recipe-method ";
-        expected.Suggestions = string.Empty;
-        expected.Remarks = " ";
-        expected.Source = string.Empty;
+        var expected = ModelFactory.CreateRecipe() with
+        {
+            Title = " new-recipe-title ",
+            Ingredients = " new-recipe-ingredients ",
+            Method = " new-recipe-method ",
+            Suggestions = string.Empty,
+            Remarks = " ",
+            Source = string.Empty,
+        };
 
         var id = await this.recipeDataProvider.AddRecipe(connection, expected);
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
@@ -206,9 +207,11 @@ public class RecipeDataProviderTests
 
         for (var i = 1; i <= 15; i++)
         {
-            var recipe = ModelFactory.CreateRecipe(title: $"recipe-{i}-title");
-            recipe.Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i);
-            await sampleDataHelper.InsertRecipe(recipe);
+            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            {
+                Title = $"recipe-{i}-title",
+                Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i),
+            });
         }
 
         var recipes = await this.recipeDataProvider.GetRecentlyAddedRecipes(
@@ -235,25 +238,34 @@ public class RecipeDataProviderTests
 
         for (var i = 1; i <= 10; i++)
         {
-            var recipe = ModelFactory.CreateRecipe(title: $"recently-updated-{i}");
-            recipe.Created = new(2010, 1, 2, 3, 4, 5);
-            recipe.Modified = new(2016, 7, i, 9, 10, 11);
-            await sampleDataHelper.InsertRecipe(recipe);
+            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            {
+                Title = $"recently-updated-{i}",
+                Created = new(2010, 1, 2, 3, 4, 5),
+                Modified = new(2016, 7, i, 9, 10, 11),
+            });
         }
 
         for (var i = 1; i <= 5; i++)
         {
-            var recipe = ModelFactory.CreateRecipe(title: $"recently-created-never-updated-{i}");
-            recipe.Created = recipe.Modified = new(2016, 8, i, 9, 10, 11);
-            await sampleDataHelper.InsertRecipe(recipe);
+            var timestamp = new DateTime(2016, 8, i, 9, 10, 11);
+
+            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            {
+                Title = $"recently-created-never-updated-{i}",
+                Created = timestamp,
+                Modified = timestamp,
+            });
         }
 
         for (var i = 1; i <= 15; i++)
         {
-            var recipe = ModelFactory.CreateRecipe(title: $"recently-created-and-updated-{i}");
-            recipe.Created = new(2016, 9, i, 9, 10, 11);
-            recipe.Modified = new(2016, 10, i, 9, 10, 11);
-            await sampleDataHelper.InsertRecipe(recipe);
+            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            {
+                Title = $"recently-created-and-updated-{i}",
+                Created = new(2016, 9, i, 9, 10, 11),
+                Modified = new(2016, 10, i, 9, 10, 11),
+            });
         }
 
         var recipes = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
@@ -342,13 +354,17 @@ public class RecipeDataProviderTests
         await new SampleDataHelper(connection).InsertRecipe(
             ModelFactory.CreateRecipe(id: 13, revision: 0));
 
-        var expected = ModelFactory.CreateRecipe(id: 13, revision: 0);
-        expected.Title = " new-recipe-title ";
-        expected.Ingredients = " new-recipe-ingredients ";
-        expected.Method = " new-recipe-method ";
-        expected.Suggestions = string.Empty;
-        expected.Remarks = " ";
-        expected.Source = string.Empty;
+        var expected = ModelFactory.CreateRecipe() with
+        {
+            Id = 13,
+            Title = " new-recipe-title ",
+            Ingredients = " new-recipe-ingredients ",
+            Method = " new-recipe-method ",
+            Suggestions = string.Empty,
+            Remarks = " ",
+            Source = string.Empty,
+            Revision = 0,
+        };
 
         await this.recipeDataProvider.UpdateRecipe(connection, expected);
         var actual = await this.recipeDataProvider.GetRecipe(connection, 13);

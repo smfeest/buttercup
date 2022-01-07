@@ -14,30 +14,22 @@ public static class ModelFactory
     {
         var i = Interlocked.Increment(ref counter);
 
-        var recipe = new Recipe
-        {
-            Id = id ?? i,
-            Title = title ?? $"recipe-{i}-title",
-            Ingredients = $"recipe-{i}-ingredients",
-            Method = $"recipe-{i}-method",
-            Created = new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
-            Modified = new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
-            Revision = revision ?? (i + 4),
-        };
-
-        if (includeOptionalAttributes)
-        {
-            recipe.PreparationMinutes = i + 1;
-            recipe.CookingMinutes = i + 2;
-            recipe.Servings = i + 3;
-            recipe.Suggestions = $"recipe-{i}-suggestions";
-            recipe.Remarks = $"recipe-{i}-remarks";
-            recipe.Source = $"recipe-{i}-source";
-            recipe.CreatedByUserId = i + 4;
-            recipe.ModifiedByUserId = i + 5;
-        }
-
-        return recipe;
+        return new(
+            id ?? i,
+            title ?? $"recipe-{i}-title",
+            includeOptionalAttributes ? i + 1 : null,
+            includeOptionalAttributes ? i + 2 : null,
+            includeOptionalAttributes ? i + 3 : null,
+            $"recipe-{i}-ingredients",
+            $"recipe-{i}-method",
+            includeOptionalAttributes ? $"recipe-{i}-suggestions" : null,
+            includeOptionalAttributes ? $"recipe-{i}-remarks" : null,
+            includeOptionalAttributes ? $"recipe-{i}-source" : null,
+            new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
+            includeOptionalAttributes ? i + 4 : null,
+            new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
+            includeOptionalAttributes ? i + 5 : null,
+            revision ?? (i + 4));
     }
 
     public static User CreateUser(

@@ -60,18 +60,20 @@ public class RecipeEditModel
 
     public int Revision { get; init; }
 
-    public Recipe ToRecipe() => new()
-    {
-        Id = this.Id,
-        Title = this.Title,
-        PreparationMinutes = this.PreparationMinutes,
-        CookingMinutes = this.CookingMinutes,
-        Servings = this.Servings,
-        Ingredients = this.Ingredients,
-        Method = this.Method,
-        Suggestions = this.Suggestions,
-        Remarks = this.Remarks,
-        Source = this.Source,
-        Revision = this.Revision,
-    };
+    public Recipe ToRecipe() => new(
+        this.Id,
+        this.Title,
+        this.PreparationMinutes,
+        this.CookingMinutes,
+        this.Servings,
+        this.Ingredients,
+        this.Method,
+        this.Suggestions,
+        this.Remarks,
+        this.Source,
+        new(),
+        null,
+        new(),
+        null,
+        this.Revision);
 }
