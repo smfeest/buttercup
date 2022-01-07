@@ -1,3 +1,4 @@
+using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -5,6 +6,16 @@ namespace Buttercup.DataAccess;
 [Collection("Database collection")]
 public class AuthenticationEventDataProviderTests
 {
+    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly AuthenticationEventDataProvider authenticationEventDataProvider;
+
+    public AuthenticationEventDataProviderTests()
+    {
+        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
+
+        this.authenticationEventDataProvider = new(clock);
+    }
+
     #region LogEvent
 
     [Fact]
@@ -14,12 +25,8 @@ public class AuthenticationEventDataProviderTests
 
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 8));
 
-        var id = await new AuthenticationEventDataProvider().LogEvent(
-            connection,
-            new(2000, 1, 2, 3, 4, 5),
-            "sample-event",
-            8,
-            "sample@example.com");
+        var id = await this.authenticationEventDataProvider.LogEvent(
+            connection, "sample-event", 8, "sample@example.com");
 
         using var command = connection.CreateCommand();
 
@@ -30,7 +37,7 @@ public class AuthenticationEventDataProviderTests
 
         await reader.ReadAsync();
 
-        Assert.Equal(new(2000, 1, 2, 3, 4, 5), reader.GetDateTime("time"));
+        Assert.Equal(this.fakeTime, reader.GetDateTime("time"));
         Assert.Equal("sample-event", reader.GetString("event"));
         Assert.Equal(8, reader.GetInt64("user_id"));
         Assert.Equal("sample@example.com", reader.GetString("email"));
@@ -41,8 +48,7 @@ public class AuthenticationEventDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var id = await new AuthenticationEventDataProvider().LogEvent(
-            connection, DateTime.UtcNow, "sample-event");
+        var id = await this.authenticationEventDataProvider.LogEvent(connection, "sample-event");
 
         using var command = connection.CreateCommand();
 

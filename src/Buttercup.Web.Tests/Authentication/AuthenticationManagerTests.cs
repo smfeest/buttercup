@@ -857,8 +857,7 @@ public class AuthenticationManagerTests
         await fixture.SignOut();
 
         fixture.MockAuthenticationEventDataProvider.Verify(
-            x => x.LogEvent(fixture.MySqlConnection, fixture.UtcNow, "sign_out", null, null),
-            Times.Never);
+            x => x.LogEvent(fixture.MySqlConnection, "sign_out", null, null), Times.Never);
     }
 
     private class SignOutFixture : AuthenticationManagerFixture
@@ -1089,6 +1088,6 @@ public class AuthenticationManagerTests
         public void AssertAuthenticationEventLogged(
             string eventName, long? userId = null, string? email = null) =>
             this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                this.MySqlConnection, this.UtcNow, eventName, userId, email));
+                this.MySqlConnection, eventName, userId, email));
     }
 }

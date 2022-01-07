@@ -13,9 +13,6 @@ public interface IAuthenticationEventDataProvider
     /// <param name="connection">
     /// The database connection.
     /// </param>
-    /// <param name="time">
-    /// The time.
-    /// </param>
     /// <param name="eventName">
     /// The event name.
     /// </param>
@@ -30,7 +27,6 @@ public interface IAuthenticationEventDataProvider
     /// </returns>
     Task<long> LogEvent(
         MySqlConnection connection,
-        DateTime time,
         string eventName,
         long? userId = null,
         string? email = null);
