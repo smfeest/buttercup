@@ -21,16 +21,6 @@ public class AssetHelper : IAssetHelper
 
     public string Url(ActionContext context, string path)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (path == null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
-
         string contentPath;
 
         if (this.hostEnvironment.IsDevelopment())
