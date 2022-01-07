@@ -7,6 +7,10 @@ namespace Buttercup.DataAccess;
 /// </summary>
 internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataProvider
 {
+    private readonly IClock clock;
+
+    public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
+
     /// <inheritdoc />
     public async Task DeleteExpiredTokens(MySqlConnection connection, DateTime cutOff)
     {
@@ -41,8 +45,7 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
     }
 
     /// <inheritdoc />
-    public async Task InsertToken(
-        MySqlConnection connection, long userId, string token, DateTime created)
+    public async Task InsertToken(MySqlConnection connection, long userId, string token)
     {
         using var command = connection.CreateCommand();
 
@@ -50,7 +53,7 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
             VALUES(@token, @user_id, @created)";
         command.Parameters.AddWithValue("@token", token);
         command.Parameters.AddWithValue("@user_id", userId);
-        command.Parameters.AddWithValue("@created", created);
+        command.Parameters.AddWithValue("@created", this.clock.UtcNow);
 
         await command.ExecuteNonQueryAsync();
     }

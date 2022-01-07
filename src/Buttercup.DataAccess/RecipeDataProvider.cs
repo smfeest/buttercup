@@ -8,16 +8,20 @@ namespace Buttercup.DataAccess;
 /// </summary>
 internal sealed class RecipeDataProvider : IRecipeDataProvider
 {
+    private readonly IClock clock;
+
+    public RecipeDataProvider(IClock clock) => this.clock = clock;
+
     /// <inheritdoc />
     public async Task<long> AddRecipe(MySqlConnection connection, Recipe recipe)
     {
         using var command = connection.CreateCommand();
 
         command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
-            VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @created, @created_by_user_id)";
+            VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @created_by_user_id, @timestamp, @created_by_user_id)";
 
         AddInsertUpdateParameters(command, recipe);
-        command.Parameters.AddWithValue("@created", recipe.Created);
+        command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
         command.Parameters.AddWithValue("@created_by_user_id", recipe.CreatedByUserId);
 
         await command.ExecuteNonQueryAsync();
@@ -84,13 +88,13 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
             SET title = @title, preparation_minutes = @preparation_minutes,
                 cooking_minutes = @cooking_minutes, servings = @servings,
                 ingredients = @ingredients, method = @method, suggestions = @suggestions,
-                remarks = @remarks, source = @source, modified = @modified,
+                remarks = @remarks, source = @source, modified = @timestamp,
                 modified_by_user_id = @modified_by_user_id, revision = revision + 1
             WHERE id = @id AND revision = @revision";
 
         AddInsertUpdateParameters(command, recipe);
         command.Parameters.AddWithValue("@id", recipe.Id);
-        command.Parameters.AddWithValue("@modified", recipe.Modified);
+        command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
         command.Parameters.AddWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
         command.Parameters.AddWithValue("@revision", recipe.Revision);
 

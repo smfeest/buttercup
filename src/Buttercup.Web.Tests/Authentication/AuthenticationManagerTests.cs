@@ -248,8 +248,7 @@ public class AuthenticationManagerTests
             fixture.MySqlConnection,
             fixture.User.Id,
             fixture.HashedNewPassword,
-            fixture.NewSecurityStamp,
-            fixture.UtcNow));
+            fixture.NewSecurityStamp));
     }
 
     [Fact]
@@ -525,8 +524,7 @@ public class AuthenticationManagerTests
             fixture.MySqlConnection,
             fixture.UserId!.Value,
             fixture.NewHashedPassword,
-            fixture.NewSecurityStamp,
-            fixture.UtcNow));
+            fixture.NewSecurityStamp));
     }
 
     [Fact]
@@ -633,7 +631,7 @@ public class AuthenticationManagerTests
         await fixture.SendPasswordResetLink();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-            fixture.MySqlConnection, fixture.User!.Id, fixture.Token, fixture.UtcNow));
+            fixture.MySqlConnection, fixture.User!.Id, fixture.Token));
     }
 
     [Fact]
@@ -859,8 +857,7 @@ public class AuthenticationManagerTests
         await fixture.SignOut();
 
         fixture.MockAuthenticationEventDataProvider.Verify(
-            x => x.LogEvent(fixture.MySqlConnection, fixture.UtcNow, "sign_out", null, null),
-            Times.Never);
+            x => x.LogEvent(fixture.MySqlConnection, "sign_out", null, null), Times.Never);
     }
 
     private class SignOutFixture : AuthenticationManagerFixture
@@ -1091,6 +1088,6 @@ public class AuthenticationManagerTests
         public void AssertAuthenticationEventLogged(
             string eventName, long? userId = null, string? email = null) =>
             this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                this.MySqlConnection, this.UtcNow, eventName, userId, email));
+                this.MySqlConnection, eventName, userId, email));
     }
 }

@@ -62,11 +62,8 @@ public interface IPasswordResetTokenDataProvider
     /// <param name="token">
     /// The token.
     /// </param>
-    /// <param name="created">
-    /// The date and time at which the token was created.
-    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task InsertToken(MySqlConnection connection, long userId, string token, DateTime created);
+    Task InsertToken(MySqlConnection connection, long userId, string token);
 }

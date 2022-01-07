@@ -62,11 +62,7 @@ public class AuthenticationManager : IAuthenticationManager
             AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection,
-                this.clock.UtcNow,
-                "authentication_failure:unrecognized_email",
-                null,
-                email);
+                connection, "authentication_failure:unrecognized_email", null, email);
 
             return null;
         }
@@ -76,11 +72,7 @@ public class AuthenticationManager : IAuthenticationManager
             AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email!, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection,
-                this.clock.UtcNow,
-                "authentication_failure:no_password_set",
-                user.Id,
-                email);
+                connection, "authentication_failure:no_password_set", user.Id, email);
 
             return null;
         }
@@ -90,11 +82,7 @@ public class AuthenticationManager : IAuthenticationManager
             AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email!, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection,
-                this.clock.UtcNow,
-                "authentication_failure:incorrect_password",
-                user.Id,
-                email);
+                connection, "authentication_failure:incorrect_password", user.Id, email);
 
             return null;
         }
@@ -102,7 +90,7 @@ public class AuthenticationManager : IAuthenticationManager
         AuthenticateLogMessages.Success(this.logger, user.Id, user.Email!, null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, this.clock.UtcNow, "authentication_success", user.Id, email);
+            connection, "authentication_success", user.Id, email);
 
         return user;
     }
@@ -117,10 +105,7 @@ public class AuthenticationManager : IAuthenticationManager
         if (user.HashedPassword == null)
         {
             await this.authenticationEventDataProvider.LogEvent(
-                connection,
-                this.clock.UtcNow,
-                "password_change_failure:no_password_set",
-                user.Id);
+                connection, "password_change_failure:no_password_set", user.Id);
 
             throw new InvalidOperationException(
                 $"User {user.Id} ({user.Email}) does not have a password.");
@@ -132,10 +117,7 @@ public class AuthenticationManager : IAuthenticationManager
                 this.logger, user.Id, user.Email!, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection,
-                this.clock.UtcNow,
-                "password_change_failure:incorrect_password",
-                user.Id);
+                connection, "password_change_failure:incorrect_password", user.Id);
 
             return false;
         }
@@ -145,7 +127,7 @@ public class AuthenticationManager : IAuthenticationManager
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email!, null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, this.clock.UtcNow, "password_change_success", user.Id);
+            connection, "password_change_success", user.Id);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email!);
 
@@ -170,7 +152,7 @@ public class AuthenticationManager : IAuthenticationManager
             PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
+                connection, "password_reset_failure:invalid_token");
         }
 
         return userId.HasValue;
@@ -187,7 +169,7 @@ public class AuthenticationManager : IAuthenticationManager
             ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, this.clock.UtcNow, "password_reset_failure:invalid_token");
+                connection, "password_reset_failure:invalid_token");
 
             throw new InvalidTokenException("Password reset token is invalid");
         }
@@ -197,7 +179,7 @@ public class AuthenticationManager : IAuthenticationManager
         ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, this.clock.UtcNow, "password_reset_success", userId.Value);
+            connection, "password_reset_success", userId.Value);
 
         var user = await this.userDataProvider.GetUser(connection, userId.Value);
 
@@ -217,11 +199,7 @@ public class AuthenticationManager : IAuthenticationManager
             SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection,
-                this.clock.UtcNow,
-                "password_reset_failure:unrecognized_email",
-                null,
-                email);
+                connection, "password_reset_failure:unrecognized_email", null, email);
 
             return;
         }
@@ -230,8 +208,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         var token = this.randomTokenGenerator.Generate(12);
 
-        await this.passwordResetTokenDataProvider.InsertToken(
-            connection, user.Id, token, this.clock.UtcNow);
+        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, token);
 
         var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
         var link = urlHelper.Link("ResetPassword", new { token })!;
@@ -241,7 +218,7 @@ public class AuthenticationManager : IAuthenticationManager
         SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, this.clock.UtcNow, "password_reset_link_sent", user.Id, email);
+            connection, "password_reset_link_sent", user.Id, email);
     }
 
     public async Task SignIn(HttpContext httpContext, User user)
@@ -254,8 +231,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        await this.authenticationEventDataProvider.LogEvent(
-            connection, this.clock.UtcNow, "sign_in", user.Id);
+        await this.authenticationEventDataProvider.LogEvent(connection, "sign_in", user.Id);
     }
 
     public async Task SignOut(HttpContext httpContext)
@@ -272,8 +248,7 @@ public class AuthenticationManager : IAuthenticationManager
 
             using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-            await this.authenticationEventDataProvider.LogEvent(
-                connection, this.clock.UtcNow, "sign_out", userId);
+            await this.authenticationEventDataProvider.LogEvent(connection, "sign_out", userId);
         }
     }
 
@@ -329,7 +304,7 @@ public class AuthenticationManager : IAuthenticationManager
         var securityToken = this.randomTokenGenerator.Generate(2);
 
         await this.userDataProvider.UpdatePassword(
-            connection, userId, hashedPassword, securityToken, this.clock.UtcNow);
+            connection, userId, hashedPassword, securityToken);
 
         await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
 

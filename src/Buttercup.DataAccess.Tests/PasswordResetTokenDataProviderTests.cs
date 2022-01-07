@@ -1,3 +1,4 @@
+using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -5,10 +6,15 @@ namespace Buttercup.DataAccess;
 [Collection("Database collection")]
 public class PasswordResetTokenDataProviderTests
 {
-    private readonly DatabaseFixture databaseFixture;
+    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly PasswordResetTokenDataProvider passwordResetTokenDataProvider;
 
-    public PasswordResetTokenDataProviderTests(DatabaseFixture databaseFixture) =>
-        this.databaseFixture = databaseFixture;
+    public PasswordResetTokenDataProviderTests()
+    {
+        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
+
+        this.passwordResetTokenDataProvider = new(clock);
+    }
 
     #region DeleteExpiredTokens
 
@@ -17,20 +23,26 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
-
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
 
-        await passwordResetTokenDataProvider.InsertToken(
-            connection, 3, "token-a", new(2000, 1, 2, 11, 59, 59));
+        async Task InsertToken(string token, DateTime created)
+        {
+            using var command = connection.CreateCommand();
 
-        await passwordResetTokenDataProvider.InsertToken(
-            connection, 3, "token-b", new(2000, 1, 2, 12, 00, 00));
+            command.CommandText = @"INSERT password_reset_token(token, user_id, created)
+                VALUES (@token, 3, @created)";
 
-        await passwordResetTokenDataProvider.InsertToken(
-            connection, 3, "token-c", new(2000, 1, 2, 12, 00, 01));
+            command.Parameters.AddWithValue("@token", token);
+            command.Parameters.AddWithValue("@created", created);
 
-        await passwordResetTokenDataProvider.DeleteExpiredTokens(
+            await command.ExecuteNonQueryAsync();
+        }
+
+        await InsertToken("token-a", new(2000, 1, 2, 11, 59, 59));
+        await InsertToken("token-b", new(2000, 1, 2, 12, 00, 00));
+        await InsertToken("token-c", new(2000, 1, 2, 12, 00, 01));
+
+        await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
             connection, new(2000, 1, 2, 12, 00, 00));
 
         string? survivingTokens;
@@ -53,18 +65,14 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
-
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 7));
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 11));
 
-        var time = DateTime.UtcNow;
+        await this.passwordResetTokenDataProvider.InsertToken(connection, 7, "token-a");
+        await this.passwordResetTokenDataProvider.InsertToken(connection, 11, "token-b");
+        await this.passwordResetTokenDataProvider.InsertToken(connection, 7, "token-c");
 
-        await passwordResetTokenDataProvider.InsertToken(connection, 7, "token-a", time);
-        await passwordResetTokenDataProvider.InsertToken(connection, 11, "token-b", time);
-        await passwordResetTokenDataProvider.InsertToken(connection, 7, "token-c", time);
-
-        await passwordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
+        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
 
         string? survivingTokens;
 
@@ -86,13 +94,10 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var passwordResetTokenDataProvider = new PasswordResetTokenDataProvider();
-
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 5));
-        await passwordResetTokenDataProvider.InsertToken(
-            connection, 5, "sample-token", DateTime.UtcNow);
+        await this.passwordResetTokenDataProvider.InsertToken(connection, 5, "sample-token");
 
-        var actual = await passwordResetTokenDataProvider.GetUserIdForToken(
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
             connection, "sample-token");
 
         Assert.Equal(5, actual);
@@ -103,7 +108,7 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var actual = await new PasswordResetTokenDataProvider().GetUserIdForToken(
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
             connection, "sample-token");
 
         Assert.Null(actual);
@@ -120,9 +125,7 @@ public class PasswordResetTokenDataProviderTests
 
         await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
 
-        var time = new DateTime(2000, 1, 2, 3, 4, 5);
-
-        await new PasswordResetTokenDataProvider().InsertToken(connection, 6, "sample-token", time);
+        await this.passwordResetTokenDataProvider.InsertToken(connection, 6, "sample-token");
 
         using var command = connection.CreateCommand();
 
@@ -133,7 +136,7 @@ public class PasswordResetTokenDataProviderTests
         await reader.ReadAsync();
 
         Assert.Equal(6, reader.GetInt64("user_id"));
-        Assert.Equal(time, reader.GetDateTime("created"));
+        Assert.Equal(this.fakeTime, reader.GetDateTime("created"));
     }
 
     #endregion
