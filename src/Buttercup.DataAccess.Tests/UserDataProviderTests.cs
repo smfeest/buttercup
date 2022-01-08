@@ -158,7 +158,7 @@ public class UserDataProviderTests
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
         var expected = await new SampleDataHelper(connection).InsertUser(
-            ModelFactory.CreateUser(includeOptionalAttributes: true));
+            includeOptionalAttributes: true);
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
@@ -180,7 +180,7 @@ public class UserDataProviderTests
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
         var expected = await new SampleDataHelper(connection).InsertUser(
-            ModelFactory.CreateUser(includeOptionalAttributes: false));
+            includeOptionalAttributes: false);
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 

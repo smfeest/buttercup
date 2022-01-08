@@ -54,6 +54,9 @@ public sealed class SampleDataHelper
         return recipe;
     }
 
+    public Task<User> InsertUser(bool includeOptionalAttributes = false) =>
+        this.InsertUser(ModelFactory.CreateUser(includeOptionalAttributes));
+
     public async Task<User> InsertUser(User user)
     {
         using var command = this.connection.CreateCommand();
