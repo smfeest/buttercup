@@ -186,11 +186,11 @@ public class RecipeDataProviderTests
         var sampleDataHelper = new SampleDataHelper(connection);
 
         await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe(title: "recipe-title-b"));
+            ModelFactory.CreateRecipe() with { Title = "recipe-title-b" });
         await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe(title: "recipe-title-c"));
+            ModelFactory.CreateRecipe() with { Title = "recipe-title-c" });
         await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe(title: "recipe-title-a"));
+            ModelFactory.CreateRecipe() with { Title = "recipe-title-a" });
 
         var recipes = await this.recipeDataProvider.GetRecipes(connection);
 

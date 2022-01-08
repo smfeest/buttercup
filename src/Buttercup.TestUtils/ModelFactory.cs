@@ -6,17 +6,13 @@ public static class ModelFactory
 {
     private static int counter;
 
-    public static Recipe CreateRecipe(
-        bool includeOptionalAttributes = false,
-        long? id = null,
-        string? title = null,
-        int? revision = null)
+    public static Recipe CreateRecipe(bool includeOptionalAttributes = false)
     {
         var i = Interlocked.Increment(ref counter);
 
         return new(
-            id ?? i,
-            title ?? $"recipe-{i}-title",
+            i,
+            $"recipe-{i}-title",
             includeOptionalAttributes ? i + 1 : null,
             includeOptionalAttributes ? i + 2 : null,
             includeOptionalAttributes ? i + 3 : null,
@@ -29,7 +25,7 @@ public static class ModelFactory
             includeOptionalAttributes ? i + 4 : null,
             new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
             includeOptionalAttributes ? i + 5 : null,
-            revision ?? (i + 4));
+            i + 4);
     }
 
     public static User CreateUser(
