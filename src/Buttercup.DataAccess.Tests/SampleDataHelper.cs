@@ -9,6 +9,9 @@ public sealed class SampleDataHelper
 
     public SampleDataHelper(MySqlConnection connection) => this.connection = connection;
 
+    public Task<Recipe> InsertRecipe(bool includeOptionalAttributes = false) =>
+        this.InsertRecipe(ModelFactory.CreateRecipe(includeOptionalAttributes), true);
+
     public async Task<Recipe> InsertRecipe(Recipe recipe, bool insertRelatedRecords = false)
     {
         async Task InsertRelatedUser(long? userId)

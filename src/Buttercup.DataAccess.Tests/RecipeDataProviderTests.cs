@@ -399,7 +399,7 @@ public class RecipeDataProviderTests
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
         var expected = await new SampleDataHelper(connection).InsertRecipe(
-            ModelFactory.CreateRecipe(includeOptionalAttributes: true), insertRelatedRecords: true);
+            includeOptionalAttributes: true);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
@@ -426,7 +426,7 @@ public class RecipeDataProviderTests
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
         var expected = await new SampleDataHelper(connection).InsertRecipe(
-            ModelFactory.CreateRecipe(includeOptionalAttributes: false));
+            includeOptionalAttributes: false);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
