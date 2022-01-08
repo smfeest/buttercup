@@ -1,6 +1,6 @@
 using Buttercup.Models;
 
-namespace Buttercup.DataAccess;
+namespace Buttercup.TestUtils;
 
 public static class ModelFactory
 {
