@@ -1,5 +1,4 @@
 using Buttercup.Models;
-using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
@@ -34,26 +33,5 @@ public static class SampleUsers
         }
 
         return user;
-    }
-
-    public static async Task InsertSampleUser(MySqlConnection connection, User user)
-    {
-        using var command = connection.CreateCommand();
-
-        command.CommandText = @"INSERT user(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
-            VALUES (@id, @name, @email, @hashed_password, @password_created, @security_stamp, @time_zone, @created, @modified, @revision);";
-
-        command.Parameters.AddWithValue("@id", user.Id);
-        command.Parameters.AddWithValue("@name", user.Name);
-        command.Parameters.AddWithValue("@email", user.Email);
-        command.Parameters.AddWithValue("@hashed_password", user.HashedPassword);
-        command.Parameters.AddWithValue("@password_created", user.PasswordCreated);
-        command.Parameters.AddWithValue("@security_stamp", user.SecurityStamp);
-        command.Parameters.AddWithValue("@time_zone", user.TimeZone);
-        command.Parameters.AddWithValue("@created", user.Created);
-        command.Parameters.AddWithValue("@modified", user.Modified);
-        command.Parameters.AddWithValue("@revision", user.Revision);
-
-        await command.ExecuteNonQueryAsync();
     }
 }

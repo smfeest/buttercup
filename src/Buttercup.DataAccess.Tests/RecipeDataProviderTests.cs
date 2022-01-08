@@ -25,8 +25,8 @@ public class RecipeDataProviderTests
 
         var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: expected.CreatedByUserId));
+        await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(id: expected.CreatedByUserId));
 
         var id = await this.recipeDataProvider.AddRecipe(connection, expected);
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
@@ -101,8 +101,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 5, revision: 1));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 5, revision: 1));
 
         await this.recipeDataProvider.DeleteRecipe(connection, 5, 1);
 
@@ -114,8 +114,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 1));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 1));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.DeleteRecipe(connection, 2, 0));
@@ -128,8 +128,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 4, revision: 2));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 4, revision: 2));
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeDataProvider.DeleteRecipe(connection, 4, 1));
@@ -146,9 +146,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleRecipes.CreateSampleRecipe(id: 5);
-
-        await SampleRecipes.InsertSampleRecipe(connection, expected);
+        var expected = await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 5));
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, 5);
 
@@ -161,8 +160,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 5));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 5));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.GetRecipe(connection, 3));
@@ -179,12 +178,14 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(title: "recipe-title-b"));
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(title: "recipe-title-c"));
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(title: "recipe-title-a"));
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        await sampleDataHelper.InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(title: "recipe-title-b"));
+        await sampleDataHelper.InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(title: "recipe-title-c"));
+        await sampleDataHelper.InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(title: "recipe-title-a"));
 
         var recipes = await this.recipeDataProvider.GetRecipes(connection);
 
@@ -202,11 +203,13 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
+        var sampleDataHelper = new SampleDataHelper(connection);
+
         for (var i = 1; i <= 15; i++)
         {
             var recipe = SampleRecipes.CreateSampleRecipe(title: $"recipe-{i}-title");
             recipe.Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i);
-            await SampleRecipes.InsertSampleRecipe(connection, recipe);
+            await sampleDataHelper.InsertRecipe(recipe);
         }
 
         var recipes = await this.recipeDataProvider.GetRecentlyAddedRecipes(
@@ -229,12 +232,14 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
+        var sampleDataHelper = new SampleDataHelper(connection);
+
         for (var i = 1; i <= 10; i++)
         {
             var recipe = SampleRecipes.CreateSampleRecipe(title: $"recently-updated-{i}");
             recipe.Created = new(2010, 1, 2, 3, 4, 5);
             recipe.Modified = new(2016, 7, i, 9, 10, 11);
-            await SampleRecipes.InsertSampleRecipe(connection, recipe);
+            await sampleDataHelper.InsertRecipe(recipe);
         }
 
         for (var i = 1; i <= 5; i++)
@@ -242,7 +247,7 @@ public class RecipeDataProviderTests
             var recipe = SampleRecipes.CreateSampleRecipe(
                 title: $"recently-created-never-updated-{i}");
             recipe.Created = recipe.Modified = new(2016, 8, i, 9, 10, 11);
-            await SampleRecipes.InsertSampleRecipe(connection, recipe);
+            await sampleDataHelper.InsertRecipe(recipe);
         }
 
         for (var i = 1; i <= 15; i++)
@@ -251,7 +256,7 @@ public class RecipeDataProviderTests
                 title: $"recently-created-and-updated-{i}");
             recipe.Created = new(2016, 9, i, 9, 10, 11);
             recipe.Modified = new(2016, 10, i, 9, 10, 11);
-            await SampleRecipes.InsertSampleRecipe(connection, recipe);
+            await sampleDataHelper.InsertRecipe(recipe);
         }
 
         var recipes = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
@@ -279,15 +284,16 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var original = SampleRecipes.CreateSampleRecipe(id: 3, revision: 0);
+        var sampleDataHelper = new SampleDataHelper(connection);
 
-        await SampleRecipes.InsertSampleRecipe(connection, original);
+        var original = await sampleDataHelper.InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 3, revision: 0));
 
         var expected = SampleRecipes.CreateSampleRecipe(
             includeOptionalAttributes: true, id: 3, revision: 0);
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: expected.ModifiedByUserId));
+        await sampleDataHelper.InsertUser(
+            SampleUsers.CreateSampleUser(id: expected.ModifiedByUserId));
 
         await this.recipeDataProvider.UpdateRecipe(connection, expected);
         var actual = await this.recipeDataProvider.GetRecipe(connection, 3);
@@ -313,8 +319,7 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection,
+        await new SampleDataHelper(connection).InsertRecipe(
             SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true, id: 7, revision: 3),
             insertRelatedRecords: true);
 
@@ -338,8 +343,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 13, revision: 0));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 13, revision: 0));
 
         var expected = SampleRecipes.CreateSampleRecipe(id: 13, revision: 0);
         expected.Title = " new-recipe-title ";
@@ -365,8 +370,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 5));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 5));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.UpdateRecipe(
@@ -380,8 +385,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleRecipes.InsertSampleRecipe(
-            connection, SampleRecipes.CreateSampleRecipe(id: 6, revision: 4));
+        await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(id: 6, revision: 4));
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeDataProvider.UpdateRecipe(
@@ -399,10 +404,9 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true);
-
-        await SampleRecipes.InsertSampleRecipe(
-            connection, expected, insertRelatedRecords: true);
+        var expected = await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: true),
+            insertRelatedRecords: true);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
@@ -428,9 +432,8 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false);
-
-        await SampleRecipes.InsertSampleRecipe(connection, expected);
+        var expected = await new SampleDataHelper(connection).InsertRecipe(
+            SampleRecipes.CreateSampleRecipe(includeOptionalAttributes: false));
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 

@@ -23,8 +23,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
+        await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
 
         var actual = await this.userDataProvider.FindUserByEmail(connection, "alpha@example.com");
 
@@ -37,8 +37,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(email: "alpha@example.com"));
+        await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(email: "alpha@example.com"));
 
         var actual = await this.userDataProvider.FindUserByEmail(connection, "beta@example.com");
 
@@ -54,9 +54,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleUsers.CreateSampleUser(id: 76);
-
-        await SampleUsers.InsertSampleUser(connection, expected);
+        var expected = await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(id: 76));
 
         var actual = await this.userDataProvider.GetUser(connection, 76);
 
@@ -69,7 +68,7 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 98));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.GetUser(connection, 7));
@@ -86,8 +85,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: 41, revision: 5));
+        await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(id: 41, revision: 5));
 
         await this.userDataProvider.UpdatePassword(
             connection, 41, "new-hashed-password", "newstamp");
@@ -106,7 +105,7 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 23));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 23));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
@@ -124,8 +123,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: 32, revision: 2));
+        await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(id: 32, revision: 2));
 
         await this.userDataProvider.UpdatePreferences(connection, 32, "new-time-zone");
 
@@ -141,7 +140,7 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 1));
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePreferences(connection, 9, "new-time-zone"));
@@ -158,9 +157,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleUsers.CreateSampleUser(includeOptionalAttributes: true);
-
-        await SampleUsers.InsertSampleUser(connection, expected);
+        var expected = await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(includeOptionalAttributes: true));
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
@@ -181,9 +179,8 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleUsers.CreateSampleUser(includeOptionalAttributes: false);
-
-        await SampleUsers.InsertSampleUser(connection, expected);
+        var expected = await new SampleDataHelper(connection).InsertUser(
+            SampleUsers.CreateSampleUser(includeOptionalAttributes: false));
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 

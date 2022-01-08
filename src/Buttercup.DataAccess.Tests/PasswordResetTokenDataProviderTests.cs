@@ -23,7 +23,7 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 3));
 
         async Task InsertToken(string token, DateTime created)
         {
@@ -65,8 +65,10 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 7));
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 11));
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        await sampleDataHelper.InsertUser(SampleUsers.CreateSampleUser(id: 7));
+        await sampleDataHelper.InsertUser(SampleUsers.CreateSampleUser(id: 11));
 
         await this.passwordResetTokenDataProvider.InsertToken(connection, 7, "token-a");
         await this.passwordResetTokenDataProvider.InsertToken(connection, 11, "token-b");
@@ -94,7 +96,7 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 5));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 5));
         await this.passwordResetTokenDataProvider.InsertToken(connection, 5, "sample-token");
 
         var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
@@ -123,7 +125,7 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 6));
 
         await this.passwordResetTokenDataProvider.InsertToken(connection, 6, "sample-token");
 

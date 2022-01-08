@@ -23,7 +23,7 @@ public class AuthenticationEventDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 8));
+        await new SampleDataHelper(connection).InsertUser(SampleUsers.CreateSampleUser(id: 8));
 
         var id = await this.authenticationEventDataProvider.LogEvent(
             connection, "sample-event", 8, "sample@example.com");
