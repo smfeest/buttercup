@@ -12,7 +12,7 @@ public static class ModelFactory
         string? title = null,
         int? revision = null)
     {
-        var i = ++counter;
+        var i = Interlocked.Increment(ref counter);
 
         var recipe = new Recipe
         {
@@ -46,7 +46,7 @@ public static class ModelFactory
         string? email = null,
         int? revision = null)
     {
-        var i = ++counter;
+        var i = Interlocked.Increment(ref counter);
 
         var user = new User
         {
