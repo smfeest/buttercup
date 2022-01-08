@@ -15,7 +15,7 @@ public sealed class SampleDataHelper
         {
             if (userId.HasValue)
             {
-                await this.InsertUser(SampleUsers.CreateSampleUser(id: userId));
+                await this.InsertUser(ModelFactory.CreateUser(id: userId));
             }
         }
 
