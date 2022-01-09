@@ -1,5 +1,6 @@
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -17,8 +18,8 @@ public class HomeControllerTests
     {
         using var fixture = new HomeControllerFixture();
 
-        IList<Recipe> recentlyAddedRecipes = new[] { new Recipe() };
-        IList<Recipe> recentlyUpdatedRecipes = new[] { new Recipe() };
+        IList<Recipe> recentlyAddedRecipes = new[] { ModelFactory.CreateRecipe() };
+        IList<Recipe> recentlyUpdatedRecipes = new[] { ModelFactory.CreateRecipe() };
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))

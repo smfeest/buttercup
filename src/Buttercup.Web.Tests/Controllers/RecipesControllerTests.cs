@@ -1,5 +1,6 @@
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Http;
@@ -40,7 +41,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = new Recipe();
+        var recipe = ModelFactory.CreateRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 3))
@@ -115,10 +116,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = new Recipe
-        {
-            Title = "recipe-title",
-        };
+        var recipe = ModelFactory.CreateRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 5))
@@ -182,7 +180,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = new Recipe();
+        var recipe = ModelFactory.CreateRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 8))
@@ -257,7 +255,7 @@ public class RecipesControllerTests
 
         public DefaultHttpContext HttpContext { get; } = new();
 
-        public RecipeEditModel EditModel { get; } = new() { Title = "recipe-title" };
+        public RecipeEditModel EditModel { get; } = new(ModelFactory.CreateRecipe());
 
         public User User { get; } = new() { Id = 8 };
     }
