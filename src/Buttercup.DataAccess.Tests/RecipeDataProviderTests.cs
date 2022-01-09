@@ -24,10 +24,12 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = ModelFactory.CreateRecipe(includeOptionalAttributes: true);
+        var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        await new SampleDataHelper(connection).InsertUser(
-            ModelFactory.CreateUser(id: expected.CreatedByUserId));
+        var expected = ModelFactory.CreateRecipe(includeOptionalAttributes: true) with
+        {
+            CreatedByUserId = currentUser.Id
+        };
 
         var id = await this.recipeDataProvider.AddRecipe(connection, expected);
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);

@@ -28,26 +28,20 @@ public static class ModelFactory
             i + 4);
     }
 
-    public static User CreateUser(
-        bool includeOptionalAttributes = false,
-        long? id = null,
-        string? email = null,
-        string? securityStamp = null,
-        string? timeZone = null,
-        int? revision = null)
+    public static User CreateUser(bool includeOptionalAttributes = false)
     {
         var i = Interlocked.Increment(ref counter);
 
         return new(
-            id ?? i,
+            i,
             $"user-{i}-name",
-            email ?? $"user-{i}@example.com",
+             $"user-{i}@example.com",
             includeOptionalAttributes ? $"user-{i}-password" : null,
             includeOptionalAttributes ? new DateTime(2000, 1, 2, 3, 4, 5).AddSeconds(i) : null,
-            securityStamp ?? "secstamp",
-            timeZone ?? $"user-{i}-time-zone",
+            "secstamp",
+            $"user-{i}-time-zone",
             new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
             new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
-            revision ?? (i + 1));
+            i + 1);
     }
 }

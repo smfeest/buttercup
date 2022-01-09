@@ -974,8 +974,11 @@ public class AuthenticationManagerTests
 
         public CookieValidatePrincipalContext CookieContext { get; }
 
-        public User User { get; } = ModelFactory.CreateUser(
-            id: UserId, securityStamp: UserSecurityStamp);
+        public User User { get; } = ModelFactory.CreateUser() with
+        {
+            Id = UserId,
+            SecurityStamp = UserSecurityStamp,
+        };
 
         public static ValidatePrincipalFixture ForUnauthenticated() => new();
 
