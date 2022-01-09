@@ -144,7 +144,8 @@ public class AuthenticationManagerTests
 
         public static AuthenticateFixture ForEmailNotFound() => new(null);
 
-        public static AuthenticateFixture ForUserHasNoPassword() => new(BuildUser(false));
+        public static AuthenticateFixture ForUserHasNoPassword() =>
+            new(ModelFactory.CreateUser() with { HashedPassword = null });
 
         public static AuthenticateFixture ForPasswordIncorrect() =>
             ForPasswordVerificationResult(PasswordVerificationResult.Failed);
@@ -155,7 +156,7 @@ public class AuthenticationManagerTests
         private static AuthenticateFixture ForPasswordVerificationResult(
             PasswordVerificationResult result)
         {
-            var user = BuildUser(true);
+            var user = ModelFactory.CreateUser() with { HashedPassword = HashedPassword };
 
             var fixture = new AuthenticateFixture(user);
 
@@ -164,15 +165,6 @@ public class AuthenticationManagerTests
                 .Returns(result);
 
             return fixture;
-        }
-
-        private static User BuildUser(bool hasPassword)
-        {
-            var user = ModelFactory.CreateUser();
-
-            user.HashedPassword = hasPassword ? HashedPassword : null;
-
-            return user;
         }
     }
 
@@ -337,8 +329,7 @@ public class AuthenticationManagerTests
 
         private ChangePasswordFixture(string? hashedPassword)
         {
-            this.User = ModelFactory.CreateUser();
-            this.User.HashedPassword = hashedPassword;
+            this.User = ModelFactory.CreateUser() with { HashedPassword = hashedPassword };
 
             this.HttpContext.SetCurrentUser(this.User);
 

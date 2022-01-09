@@ -42,24 +42,16 @@ public static class ModelFactory
     {
         var i = Interlocked.Increment(ref counter);
 
-        var user = new User
-        {
-            Id = id ?? i,
-            Name = $"user-{i}-name",
-            Email = email ?? $"user-{i}@example.com",
-            SecurityStamp = securityStamp ?? "secstamp",
-            TimeZone = timeZone ?? $"user-{i}-time-zone",
-            Created = new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
-            Modified = new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
-            Revision = revision ?? (i + 1),
-        };
-
-        if (includeOptionalAttributes)
-        {
-            user.HashedPassword = $"user-{i}-password";
-            user.PasswordCreated = new DateTime(2000, 1, 2, 3, 4, 5).AddSeconds(i);
-        }
-
-        return user;
+        return new(
+            id ?? i,
+            $"user-{i}-name",
+            email ?? $"user-{i}@example.com",
+            includeOptionalAttributes ? $"user-{i}-password" : null,
+            includeOptionalAttributes ? new DateTime(2000, 1, 2, 3, 4, 5).AddSeconds(i) : null,
+            securityStamp ?? "secstamp",
+            timeZone ?? $"user-{i}-time-zone",
+            new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
+            new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
+            revision ?? (i + 1));
     }
 }

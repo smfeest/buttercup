@@ -122,7 +122,7 @@ public class AuthenticationManager : IAuthenticationManager
             return false;
         }
 
-        user.SecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
+        var newSecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email!, null);
 
@@ -131,7 +131,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email!);
 
-        await this.SignInUser(httpContext, user);
+        await this.SignInUser(httpContext, user with { SecurityStamp = newSecurityStamp });
 
         return true;
     }
