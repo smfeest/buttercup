@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Encodings.Web;
+using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -76,7 +77,7 @@ public class UserDateTimeTagHelperTests
         {
             var httpContext = new DefaultHttpContext();
 
-            httpContext.SetCurrentUser(new() { TimeZone = "Etc/GMT-5" });
+            httpContext.SetCurrentUser(ModelFactory.CreateUser(timeZone: "Etc/GMT-5"));
 
             this.TagHelper = new()
             {

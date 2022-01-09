@@ -1,4 +1,5 @@
 using Buttercup.Models;
+using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
@@ -11,7 +12,7 @@ public class HttpContextExtensionsTests
     [Fact]
     public void GetCurrentUserReturnsUserFromItems()
     {
-        var user = new User();
+        var user = ModelFactory.CreateUser();
 
         var httpContext = new DefaultHttpContext();
 
@@ -35,7 +36,7 @@ public class HttpContextExtensionsTests
     [Fact]
     public void SetCurrentUserAddsUserToItems()
     {
-        var user = new User();
+        var user = ModelFactory.CreateUser();
 
         var httpContext = new DefaultHttpContext();
 

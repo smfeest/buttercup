@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.TestUtils;
 using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -122,8 +123,6 @@ public class AuthenticationManagerTests
 
     private class AuthenticateFixture : AuthenticationManagerFixture
     {
-        private const long UserId = 29;
-        private const string UserEmail = "user-email@example.com";
         private const string Password = "user-password";
         private const string HashedPassword = "hashed-password";
 
@@ -167,12 +166,14 @@ public class AuthenticationManagerTests
             return fixture;
         }
 
-        private static User BuildUser(bool hasPassword) => new()
+        private static User BuildUser(bool hasPassword)
         {
-            Id = UserId,
-            Email = UserEmail,
-            HashedPassword = hasPassword ? HashedPassword : null,
-        };
+            var user = ModelFactory.CreateUser();
+
+            user.HashedPassword = hasPassword ? HashedPassword : null;
+
+            return user;
+        }
     }
 
     #endregion
@@ -336,12 +337,8 @@ public class AuthenticationManagerTests
 
         private ChangePasswordFixture(string? hashedPassword)
         {
-            this.User = new()
-            {
-                Id = 43,
-                Email = "user@example.com",
-                HashedPassword = hashedPassword,
-            };
+            this.User = ModelFactory.CreateUser();
+            this.User.HashedPassword = hashedPassword;
 
             this.HttpContext.SetCurrentUser(this.User);
 
@@ -578,18 +575,22 @@ public class AuthenticationManagerTests
         private const string NewPassword = "new-password";
         private const string Token = "password-reset-token";
 
+        private ResetPasswordFixture()
+        {
+        }
+
         private ResetPasswordFixture(long? userId)
         {
             this.UserId = userId;
             this.SetupGetUserIdForToken(Token, userId);
         }
 
-        private ResetPasswordFixture(long userId, User user)
-            : this(userId)
+        private ResetPasswordFixture(User user)
+            : this(user.Id)
         {
             this.User = user;
 
-            this.SetupGetUser(userId, user);
+            this.SetupGetUser(user.Id, user);
 
             this.MockPasswordHasher
                 .Setup(x => x.HashPassword(null, NewPassword))
@@ -610,10 +611,9 @@ public class AuthenticationManagerTests
 
         public string NewSecurityStamp { get; } = "new-security-stamp";
 
-        public static ResetPasswordFixture ForInvalidToken() => new(null);
+        public static ResetPasswordFixture ForInvalidToken() => new();
 
-        public static ResetPasswordFixture ForSuccess() =>
-            new(23, new() { Email = "user@example.com" });
+        public static ResetPasswordFixture ForSuccess() => new(ModelFactory.CreateUser());
 
         public Task<User> ResetPassword() =>
             this.AuthenticationManager.ResetPassword(Token, NewPassword);
@@ -715,8 +715,7 @@ public class AuthenticationManagerTests
 
         public static SendPasswordResetLinkFixture ForSuccess()
         {
-            var fixture = new SendPasswordResetLinkFixture(
-                new() { Id = 31, Email = "user-email@example.com" });
+            var fixture = new SendPasswordResetLinkFixture(ModelFactory.CreateUser());
 
             fixture.MockRandomTokenGenerator
                 .Setup(x => x.Generate(12))
@@ -757,16 +756,16 @@ public class AuthenticationManagerTests
                 (contextArg, scheme, principal, properties) =>
                 {
                     Assert.Equal(
-                        fixture.UserId.ToString(CultureInfo.InvariantCulture),
+                        fixture.User.Id.ToString(CultureInfo.InvariantCulture),
                         principal.FindFirstValue(ClaimTypes.NameIdentifier));
                     Assert.Equal(
-                        fixture.Email,
+                        fixture.User.Email,
                         principal.FindFirstValue(ClaimTypes.Email));
                     Assert.Equal(
-                        fixture.SecurityStamp,
+                        fixture.User.SecurityStamp,
                         principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
 
-                    Assert.Equal(fixture.Email, principal.Identity!.Name);
+                    Assert.Equal(fixture.User.Email, principal.Identity!.Name);
                 })
             .Returns(Task.CompletedTask)
             .Verifiable();
@@ -794,29 +793,16 @@ public class AuthenticationManagerTests
         await fixture.SignIn();
 
         fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"User {fixture.UserId} ({fixture.Email}) signed in");
+            LogLevel.Information, $"User {fixture.User.Id} ({fixture.User.Email}) signed in");
 
-        fixture.AssertAuthenticationEventLogged("sign_in", fixture.UserId);
+        fixture.AssertAuthenticationEventLogged("sign_in", fixture.User.Id);
     }
 
     private class SignInFixture : AuthenticationManagerFixture
     {
-        public SignInFixture() => this.User = new()
-        {
-            Id = this.UserId,
-            Email = this.Email,
-            SecurityStamp = this.SecurityStamp,
-        };
-
         public DefaultHttpContext HttpContext { get; } = new();
 
-        public User User { get; }
-
-        public long UserId { get; } = 6;
-
-        public string Email { get; } = "sample@example.com";
-
-        public string SecurityStamp { get; } = "sample-security-stamp";
+        public User User { get; } = ModelFactory.CreateUser();
 
         public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
     }
@@ -997,12 +983,8 @@ public class AuthenticationManagerTests
 
         public CookieValidatePrincipalContext CookieContext { get; }
 
-        public User User { get; } = new()
-        {
-            Id = UserId,
-            Email = "user@example.com",
-            SecurityStamp = UserSecurityStamp,
-        };
+        public User User { get; } = ModelFactory.CreateUser(
+            id: UserId, securityStamp: UserSecurityStamp);
 
         public static ValidatePrincipalFixture ForUnauthenticated() => new();
 

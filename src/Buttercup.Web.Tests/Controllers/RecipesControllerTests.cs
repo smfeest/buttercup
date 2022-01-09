@@ -257,6 +257,6 @@ public class RecipesControllerTests
 
         public RecipeEditModel EditModel { get; } = new(ModelFactory.CreateRecipe());
 
-        public User User { get; } = new() { Id = 8 };
+        public User User { get; } = ModelFactory.CreateUser();
     }
 }

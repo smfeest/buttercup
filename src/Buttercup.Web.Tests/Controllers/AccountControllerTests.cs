@@ -1,5 +1,5 @@
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Buttercup.Web.TestUtils;
@@ -21,7 +21,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = new User();
+        var user = ModelFactory.CreateUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -135,7 +135,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = new User { TimeZone = "time-zone" };
+        var user = ModelFactory.CreateUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -155,7 +155,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        fixture.HttpContext.SetCurrentUser(new() { Id = 21 });
+        fixture.HttpContext.SetCurrentUser(ModelFactory.CreateUser(id: 21));
 
         var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 

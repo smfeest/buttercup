@@ -44,6 +44,8 @@ public static class ModelFactory
         bool includeOptionalAttributes = false,
         long? id = null,
         string? email = null,
+        string? securityStamp = null,
+        string? timeZone = null,
         int? revision = null)
     {
         var i = Interlocked.Increment(ref counter);
@@ -53,8 +55,8 @@ public static class ModelFactory
             Id = id ?? i,
             Name = $"user-{i}-name",
             Email = email ?? $"user-{i}@example.com",
-            SecurityStamp = "secstamp",
-            TimeZone = $"user-{i}-time-zone",
+            SecurityStamp = securityStamp ?? "secstamp",
+            TimeZone = timeZone ?? $"user-{i}-time-zone",
             Created = new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
             Modified = new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
             Revision = revision ?? (i + 1),
