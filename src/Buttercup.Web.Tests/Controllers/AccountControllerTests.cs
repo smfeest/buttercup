@@ -155,12 +155,15 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        fixture.HttpContext.SetCurrentUser(ModelFactory.CreateUser(id: 21));
+        var currentUser = ModelFactory.CreateUser();
+
+        fixture.HttpContext.SetCurrentUser(currentUser);
 
         var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
         fixture.MockUserDataProvider
-            .Setup(x => x.UpdatePreferences(fixture.MySqlConnection, 21, viewModel.TimeZone))
+            .Setup(x => x.UpdatePreferences(
+                fixture.MySqlConnection, currentUser.Id, viewModel.TimeZone))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
