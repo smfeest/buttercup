@@ -263,7 +263,7 @@ public class AuthenticationManagerTests
         await fixture.ChangePassword();
 
         fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordChangeNotification(fixture.User.Email!));
+            x => x.SendPasswordChangeNotification(fixture.User.Email));
     }
 
     [Fact]
@@ -534,7 +534,7 @@ public class AuthenticationManagerTests
         await fixture.ResetPassword();
 
         fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordChangeNotification(fixture.User!.Email!));
+            x => x.SendPasswordChangeNotification(fixture.User!.Email));
     }
 
     [Fact]
@@ -633,7 +633,7 @@ public class AuthenticationManagerTests
         await fixture.SendPasswordResetLink();
 
         fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordResetLink(fixture.User!.Email!, fixture.Link));
+            x => x.SendPasswordResetLink(fixture.User!.Email, fixture.Link));
     }
 
     [Fact]

@@ -37,6 +37,6 @@ public static class HttpContextExtensions
 
         var utc = new DateTimeOffset(dateTime);
 
-        return user == null ? utc : TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone!);
+        return user == null ? utc : TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone);
     }
 }

@@ -69,7 +69,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         if (user.HashedPassword == null)
         {
-            AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email!, null);
+            AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, "authentication_failure:no_password_set", user.Id, email);
@@ -79,7 +79,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         if (!this.VerifyPassword(user, password))
         {
-            AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email!, null);
+            AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, "authentication_failure:incorrect_password", user.Id, email);
@@ -87,7 +87,7 @@ public class AuthenticationManager : IAuthenticationManager
             return null;
         }
 
-        AuthenticateLogMessages.Success(this.logger, user.Id, user.Email!, null);
+        AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         await this.authenticationEventDataProvider.LogEvent(
             connection, "authentication_success", user.Id, email);
@@ -114,7 +114,7 @@ public class AuthenticationManager : IAuthenticationManager
         if (!this.VerifyPassword(user, currentPassword))
         {
             ChangePasswordLogMessages.IncorrectPassword(
-                this.logger, user.Id, user.Email!, null);
+                this.logger, user.Id, user.Email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
                 connection, "password_change_failure:incorrect_password", user.Id);
@@ -124,12 +124,12 @@ public class AuthenticationManager : IAuthenticationManager
 
         var newSecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
 
-        ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email!, null);
+        ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         await this.authenticationEventDataProvider.LogEvent(
             connection, "password_change_success", user.Id);
 
-        await this.authenticationMailer.SendPasswordChangeNotification(user.Email!);
+        await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
         await this.SignInUser(httpContext, user with { SecurityStamp = newSecurityStamp });
 
@@ -183,7 +183,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         var user = await this.userDataProvider.GetUser(connection, userId.Value);
 
-        await this.authenticationMailer.SendPasswordChangeNotification(user.Email!);
+        await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
         return user;
     }
@@ -204,7 +204,7 @@ public class AuthenticationManager : IAuthenticationManager
             return;
         }
 
-        email = user.Email!;
+        email = user.Email;
 
         var token = this.randomTokenGenerator.Generate(12);
 
@@ -227,7 +227,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         httpContext.SetCurrentUser(user);
 
-        SignInLogMessages.SignedIn(this.logger, user.Id, user.Email!, null);
+        SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
 
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
@@ -273,12 +273,12 @@ public class AuthenticationManager : IAuthenticationManager
             {
                 context.HttpContext.SetCurrentUser(user);
 
-                ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email!, null);
+                ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
             }
             else
             {
                 ValidatePrincipalLogMessages.IncorrectSecurityStamp(
-                    this.logger, user.Id, user.Email!, null);
+                    this.logger, user.Id, user.Email, null);
 
                 context.RejectPrincipal();
 
@@ -316,8 +316,8 @@ public class AuthenticationManager : IAuthenticationManager
         var claims = new Claim[]
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-            new(ClaimTypes.Email, user.Email!),
-            new(CustomClaimTypes.SecurityStamp, user.SecurityStamp!),
+            new(ClaimTypes.Email, user.Email),
+            new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
         };
 
         var principal = new ClaimsPrincipal(new ClaimsIdentity(

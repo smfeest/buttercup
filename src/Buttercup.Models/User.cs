@@ -36,12 +36,12 @@ namespace Buttercup.Models;
 /// </param>
 public sealed record User(
     long Id,
-    string? Name,
-    string? Email,
+    string Name,
+    string Email,
     string? HashedPassword,
     DateTime? PasswordCreated,
-    string? SecurityStamp,
-    string? TimeZone,
+    string SecurityStamp,
+    string TimeZone,
     DateTime Created,
     DateTime Modified,
     int Revision);
