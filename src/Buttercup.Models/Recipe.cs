@@ -50,12 +50,12 @@ namespace Buttercup.Models;
 /// </param>
 public sealed record Recipe(
     long Id,
-    string? Title,
+    string Title,
     int? PreparationMinutes,
     int? CookingMinutes,
     int? Servings,
-    string? Ingredients,
-    string? Method,
+    string Ingredients,
+    string Method,
     string? Suggestions,
     string? Remarks,
     string? Source,

@@ -62,12 +62,12 @@ public class RecipeEditModel
 
     public Recipe ToRecipe() => new(
         this.Id,
-        this.Title,
+        this.Title!,
         this.PreparationMinutes,
         this.CookingMinutes,
         this.Servings,
-        this.Ingredients,
-        this.Method,
+        this.Ingredients!,
+        this.Method!,
         this.Suggestions,
         this.Remarks,
         this.Source,
