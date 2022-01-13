@@ -27,8 +27,7 @@ public class UserDataProviderTests
 
         var actual = await this.userDataProvider.FindUserByEmail(connection, expected.Email);
 
-        Assert.Equal(expected.Id, actual!.Id);
-        Assert.Equal(expected.Email, actual.Email);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -57,7 +56,7 @@ public class UserDataProviderTests
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
-        Assert.Equal(expected.Email, actual.Email);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -89,13 +88,18 @@ public class UserDataProviderTests
         await this.userDataProvider.UpdatePassword(
             connection, original.Id, "new-hashed-password", "newstamp");
 
+        var expected = original with
+        {
+            HashedPassword = "new-hashed-password",
+            PasswordCreated = this.fakeTime,
+            SecurityStamp = "newstamp",
+            Modified = this.fakeTime,
+            Revision = original.Revision + 1,
+        };
+
         var actual = await this.userDataProvider.GetUser(connection, original.Id);
 
-        Assert.Equal("new-hashed-password", actual.HashedPassword);
-        Assert.Equal(this.fakeTime, actual.PasswordCreated);
-        Assert.Equal("newstamp", actual.SecurityStamp);
-        Assert.Equal(this.fakeTime, actual.Modified);
-        Assert.Equal(original.Revision + 1, actual.Revision);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -127,11 +131,16 @@ public class UserDataProviderTests
 
         await this.userDataProvider.UpdatePreferences(connection, original.Id, "new-time-zone");
 
+        var expected = original with
+        {
+            TimeZone = "new-time-zone",
+            Modified = this.fakeTime,
+            Revision = original.Revision + 1,
+        };
+
         var actual = await this.userDataProvider.GetUser(connection, original.Id);
 
-        Assert.Equal("new-time-zone", actual.TimeZone);
-        Assert.Equal(this.fakeTime, actual.Modified);
-        Assert.Equal(original.Revision + 1, actual.Revision);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -153,40 +162,18 @@ public class UserDataProviderTests
 
     #region ReadUser
 
-    [Fact]
-    public async Task ReadUserReadsAllAttributes()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReadUserReadsAllAttributes(bool includeOptionalAttributes)
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = await new SampleDataHelper(connection).InsertUser(
-            includeOptionalAttributes: true);
+        var expected = await new SampleDataHelper(connection).InsertUser(includeOptionalAttributes);
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
-        Assert.Equal(expected.Id, actual.Id);
-        Assert.Equal(expected.Name, actual.Name);
-        Assert.Equal(expected.Email, actual.Email);
-        Assert.Equal(expected.HashedPassword, actual.HashedPassword);
-        Assert.Equal(expected.PasswordCreated, actual.PasswordCreated);
-        Assert.Equal(expected.SecurityStamp, actual.SecurityStamp);
-        Assert.Equal(expected.TimeZone, actual.TimeZone);
-        Assert.Equal(expected.Created, actual.Created);
-        Assert.Equal(expected.Modified, actual.Modified);
-        Assert.Equal(expected.Revision, actual.Revision);
-    }
-
-    [Fact]
-    public async Task ReadUserHandlesNullAttributes()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var expected = await new SampleDataHelper(connection).InsertUser(
-            includeOptionalAttributes: false);
-
-        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
-
-        Assert.Null(actual.HashedPassword);
-        Assert.Null(actual.PasswordCreated);
+        Assert.Equal(expected, actual);
     }
 
     #endregion
