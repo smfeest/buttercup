@@ -1,3 +1,4 @@
+using Buttercup.Models;
 using Buttercup.TestUtils;
 using Moq;
 using Xunit;
@@ -26,28 +27,26 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var expected = ModelFactory.CreateRecipe(includeOptionalAttributes: true) with
+        var recipeToAdd = ModelFactory.CreateRecipe(includeOptionalAttributes: true) with
         {
             CreatedByUserId = currentUser.Id
         };
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, expected);
+        var id = await this.recipeDataProvider.AddRecipe(connection, recipeToAdd);
+
+        var expected = recipeToAdd with
+        {
+            Id = id,
+            Created = this.fakeTime,
+            CreatedByUserId = currentUser.Id,
+            Modified = this.fakeTime,
+            ModifiedByUserId = currentUser.Id,
+            Revision = 0,
+        };
+
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
-        Assert.Equal(expected.Title, actual.Title);
-        Assert.Equal(expected.PreparationMinutes, actual.PreparationMinutes);
-        Assert.Equal(expected.CookingMinutes, actual.CookingMinutes);
-        Assert.Equal(expected.Servings, actual.Servings);
-        Assert.Equal(expected.Ingredients, actual.Ingredients);
-        Assert.Equal(expected.Method, actual.Method);
-        Assert.Equal(expected.Suggestions, actual.Suggestions);
-        Assert.Equal(expected.Remarks, actual.Remarks);
-        Assert.Equal(expected.Source, actual.Source);
-
-        Assert.Equal(this.fakeTime, actual.Created);
-        Assert.Equal(this.fakeTime, actual.Modified);
-        Assert.Equal(expected.CreatedByUserId, actual.CreatedByUserId);
-        Assert.Equal(expected.CreatedByUserId, actual.ModifiedByUserId);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -55,9 +54,9 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = ModelFactory.CreateRecipe(includeOptionalAttributes: false);
+        var recipeToAdd = ModelFactory.CreateRecipe(includeOptionalAttributes: false);
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, expected);
+        var id = await this.recipeDataProvider.AddRecipe(connection, recipeToAdd);
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Null(actual.PreparationMinutes);
@@ -75,7 +74,7 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = ModelFactory.CreateRecipe() with
+        var recipeToAdd = ModelFactory.CreateRecipe() with
         {
             Title = " new-recipe-title ",
             Ingredients = " new-recipe-ingredients ",
@@ -85,7 +84,7 @@ public class RecipeDataProviderTests
             Source = string.Empty,
         };
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, expected);
+        var id = await this.recipeDataProvider.AddRecipe(connection, recipeToAdd);
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Equal("new-recipe-title", actual.Title);
@@ -158,7 +157,7 @@ public class RecipeDataProviderTests
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
-        Assert.Equal(expected.Title, actual.Title);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -187,18 +186,22 @@ public class RecipeDataProviderTests
 
         var sampleDataHelper = new SampleDataHelper(connection);
 
-        await sampleDataHelper.InsertRecipe(
+        var recipeB = await sampleDataHelper.InsertRecipe(
             ModelFactory.CreateRecipe() with { Title = "recipe-title-b" });
-        await sampleDataHelper.InsertRecipe(
+        var recipeC = await sampleDataHelper.InsertRecipe(
             ModelFactory.CreateRecipe() with { Title = "recipe-title-c" });
-        await sampleDataHelper.InsertRecipe(
+        var recipeA = await sampleDataHelper.InsertRecipe(
             ModelFactory.CreateRecipe() with { Title = "recipe-title-a" });
 
-        var recipes = await this.recipeDataProvider.GetRecipes(connection);
+        var expected = new Recipe[] {
+            recipeA,
+            recipeB,
+            recipeC,
+        };
 
-        Assert.Equal("recipe-title-a", recipes[0].Title);
-        Assert.Equal("recipe-title-b", recipes[1].Title);
-        Assert.Equal("recipe-title-c", recipes[2].Title);
+        var actual = await this.recipeDataProvider.GetRecipes(connection);
+
+        Assert.Equal(expected, actual);
     }
 
     #endregion
@@ -314,22 +317,17 @@ public class RecipeDataProviderTests
 
         await this.recipeDataProvider.UpdateRecipe(connection, recipeForUpdate);
 
+        var expected = recipeForUpdate with
+        {
+            Created = original.Created,
+            CreatedByUserId = original.CreatedByUserId,
+            Modified = this.fakeTime,
+            Revision = original.Revision + 1,
+        };
+
         var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
 
-        Assert.Equal(recipeForUpdate.Title, actual.Title);
-        Assert.Equal(recipeForUpdate.PreparationMinutes, actual.PreparationMinutes);
-        Assert.Equal(recipeForUpdate.CookingMinutes, actual.CookingMinutes);
-        Assert.Equal(recipeForUpdate.Servings, actual.Servings);
-        Assert.Equal(recipeForUpdate.Ingredients, actual.Ingredients);
-        Assert.Equal(recipeForUpdate.Method, actual.Method);
-        Assert.Equal(recipeForUpdate.Suggestions, actual.Suggestions);
-        Assert.Equal(recipeForUpdate.Remarks, actual.Remarks);
-        Assert.Equal(recipeForUpdate.Source, actual.Source);
-        Assert.Equal(this.fakeTime, actual.Modified);
-        Assert.Equal(recipeForUpdate.ModifiedByUserId, actual.ModifiedByUserId);
-
-        Assert.Equal(original.Created, actual.Created);
-        Assert.Equal(original.CreatedByUserId, actual.CreatedByUserId);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -427,51 +425,19 @@ public class RecipeDataProviderTests
 
     #region ReadRecipe
 
-    [Fact]
-    public async Task ReadRecipeReadsAllAttributes()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReadRecipeReadsAllAttributes(bool includeOptionalAttributes)
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
         var expected = await new SampleDataHelper(connection).InsertRecipe(
-            includeOptionalAttributes: true);
+            includeOptionalAttributes);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
 
-        Assert.Equal(expected.Id, actual.Id);
-        Assert.Equal(expected.Title, actual.Title);
-        Assert.Equal(expected.PreparationMinutes, actual.PreparationMinutes);
-        Assert.Equal(expected.CookingMinutes, actual.CookingMinutes);
-        Assert.Equal(expected.Servings, actual.Servings);
-        Assert.Equal(expected.Ingredients, actual.Ingredients);
-        Assert.Equal(expected.Method, actual.Method);
-        Assert.Equal(expected.Suggestions, actual.Suggestions);
-        Assert.Equal(expected.Remarks, actual.Remarks);
-        Assert.Equal(expected.Source, actual.Source);
-        Assert.Equal(expected.Created, actual.Created);
-        Assert.Equal(expected.CreatedByUserId, actual.CreatedByUserId);
-        Assert.Equal(expected.Modified, actual.Modified);
-        Assert.Equal(expected.ModifiedByUserId, actual.ModifiedByUserId);
-        Assert.Equal(expected.Revision, actual.Revision);
-    }
-
-    [Fact]
-    public async Task ReadRecipeHandlesNullAttributes()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var expected = await new SampleDataHelper(connection).InsertRecipe(
-            includeOptionalAttributes: false);
-
-        var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
-
-        Assert.Null(actual.PreparationMinutes);
-        Assert.Null(actual.CookingMinutes);
-        Assert.Null(actual.Servings);
-        Assert.Null(actual.Suggestions);
-        Assert.Null(actual.Remarks);
-        Assert.Null(actual.Source);
-        Assert.Null(actual.CreatedByUserId);
-        Assert.Null(actual.ModifiedByUserId);
+        Assert.Equal(expected, actual);
     }
 
     #endregion
