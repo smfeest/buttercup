@@ -75,19 +75,16 @@ public class RecipesControllerTests
     {
         using var fixture = new NewEditPostFixture();
 
+        var expectedRecipeToAdd = fixture.EditModel.ToRecipe() with
+        {
+            CreatedByUserId = fixture.User.Id
+        };
+
         fixture.MockRecipeDataProvider
-            .Setup(x => x.AddRecipe(fixture.MySqlConnection, It.IsAny<Recipe>()))
-            .Callback((MySqlConnection connection, Recipe recipe) =>
-            {
-                Assert.Equal(fixture.EditModel.Title, recipe.Title);
-                Assert.Equal(fixture.User.Id, recipe.CreatedByUserId);
-            })
-            .ReturnsAsync(5)
-            .Verifiable();
+            .Setup(x => x.AddRecipe(fixture.MySqlConnection, expectedRecipeToAdd))
+            .ReturnsAsync(5);
 
         var result = await fixture.RecipesController.New(fixture.EditModel);
-
-        fixture.MockRecipeDataProvider.Verify();
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -138,20 +135,16 @@ public class RecipesControllerTests
     {
         using var fixture = new NewEditPostFixture();
 
-        fixture.MockRecipeDataProvider
-            .Setup(x => x.UpdateRecipe(fixture.MySqlConnection, It.IsAny<Recipe>()))
-            .Callback((MySqlConnection connection, Recipe recipe) =>
-            {
-                Assert.Equal(3, recipe.Id);
-                Assert.Equal(fixture.EditModel.Title, recipe.Title);
-                Assert.Equal(fixture.User.Id, recipe.ModifiedByUserId);
-            })
-            .Returns(Task.CompletedTask)
-            .Verifiable();
+        var expectedRecipeForUpdate = fixture.EditModel.ToRecipe() with
+        {
+            Id = 3,
+            ModifiedByUserId = fixture.User.Id,
+        };
 
         var result = await fixture.RecipesController.Edit(3, fixture.EditModel);
 
-        fixture.MockRecipeDataProvider.Verify();
+        fixture.MockRecipeDataProvider.Verify(
+            x => x.UpdateRecipe(fixture.MySqlConnection, expectedRecipeForUpdate));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
