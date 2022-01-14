@@ -23,12 +23,9 @@ public class HomeController : Controller
     {
         var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        return this.View(new HomePageViewModel
-        {
-            RecentlyAddedRecipes =
+        return this.View(
+            new HomePageViewModel(
                 await this.recipeDataProvider.GetRecentlyAddedRecipes(connection),
-            RecentlyUpdatedRecipes =
-                await this.recipeDataProvider.GetRecentlyUpdatedRecipes(connection),
-        });
+                await this.recipeDataProvider.GetRecentlyUpdatedRecipes(connection)));
     }
 }
