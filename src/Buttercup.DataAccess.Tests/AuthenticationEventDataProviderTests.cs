@@ -23,10 +23,10 @@ public class AuthenticationEventDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 8));
+        var user = await new SampleDataHelper(connection).InsertUser();
 
         var id = await this.authenticationEventDataProvider.LogEvent(
-            connection, "sample-event", 8, "sample@example.com");
+            connection, "sample-event", user.Id, "sample@example.com");
 
         using var command = connection.CreateCommand();
 
@@ -39,7 +39,7 @@ public class AuthenticationEventDataProviderTests
 
         Assert.Equal(this.fakeTime, reader.GetDateTime("time"));
         Assert.Equal("sample-event", reader.GetString("event"));
-        Assert.Equal(8, reader.GetInt64("user_id"));
+        Assert.Equal(user.Id, reader.GetInt64("user_id"));
         Assert.Equal("sample@example.com", reader.GetString("email"));
     }
 

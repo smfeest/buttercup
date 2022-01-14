@@ -23,16 +23,17 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 3));
+        var user = await new SampleDataHelper(connection).InsertUser();
 
         async Task InsertToken(string token, DateTime created)
         {
             using var command = connection.CreateCommand();
 
             command.CommandText = @"INSERT password_reset_token(token, user_id, created)
-                VALUES (@token, 3, @created)";
+                VALUES (@token, @user_id, @created)";
 
             command.Parameters.AddWithValue("@token", token);
+            command.Parameters.AddWithValue("@user_id", user.Id);
             command.Parameters.AddWithValue("@created", created);
 
             await command.ExecuteNonQueryAsync();
@@ -65,14 +66,16 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 7));
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 11));
+        var sampleDataHelper = new SampleDataHelper(connection);
 
-        await this.passwordResetTokenDataProvider.InsertToken(connection, 7, "token-a");
-        await this.passwordResetTokenDataProvider.InsertToken(connection, 11, "token-b");
-        await this.passwordResetTokenDataProvider.InsertToken(connection, 7, "token-c");
+        var user = await sampleDataHelper.InsertUser();
+        var otherUser = await sampleDataHelper.InsertUser();
 
-        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, 7);
+        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "token-a");
+        await this.passwordResetTokenDataProvider.InsertToken(connection, otherUser.Id, "token-b");
+        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "token-c");
+
+        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, user.Id);
 
         string? survivingTokens;
 
@@ -94,13 +97,14 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 5));
-        await this.passwordResetTokenDataProvider.InsertToken(connection, 5, "sample-token");
+        var user = await new SampleDataHelper(connection).InsertUser();
+
+        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "sample-token");
 
         var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
             connection, "sample-token");
 
-        Assert.Equal(5, actual);
+        Assert.Equal(user.Id, actual);
     }
 
     [Fact]
@@ -123,9 +127,9 @@ public class PasswordResetTokenDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 6));
+        var user = await new SampleDataHelper(connection).InsertUser();
 
-        await this.passwordResetTokenDataProvider.InsertToken(connection, 6, "sample-token");
+        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "sample-token");
 
         using var command = connection.CreateCommand();
 
@@ -135,7 +139,7 @@ public class PasswordResetTokenDataProviderTests
 
         await reader.ReadAsync();
 
-        Assert.Equal(6, reader.GetInt64("user_id"));
+        Assert.Equal(user.Id, reader.GetInt64("user_id"));
         Assert.Equal(this.fakeTime, reader.GetDateTime("created"));
     }
 

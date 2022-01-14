@@ -1,4 +1,4 @@
-using Buttercup.Models;
+using Buttercup.TestUtils;
 using Xunit;
 
 namespace Buttercup.Web.Models;
@@ -10,19 +10,7 @@ public class RecipeEditModelTests
     [Fact]
     public void ConstructorCopiesValuesFromRecipe()
     {
-        var recipe = new Recipe
-        {
-            Title = "recipe-title",
-            PreparationMinutes = 1,
-            CookingMinutes = 2,
-            Servings = 3,
-            Ingredients = "recipe-ingredients",
-            Method = "recipe-method",
-            Suggestions = "recipe-suggestions",
-            Remarks = "recipe-remarks",
-            Source = "recipe-source",
-            Revision = 4,
-        };
+        var recipe = ModelFactory.CreateRecipe();
 
         var editModel = new RecipeEditModel(recipe);
 

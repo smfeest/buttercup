@@ -23,13 +23,11 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: 4, email: "alpha@example.com"));
+        var expected = await new SampleDataHelper(connection).InsertUser();
 
-        var actual = await this.userDataProvider.FindUserByEmail(connection, "alpha@example.com");
+        var actual = await this.userDataProvider.FindUserByEmail(connection, expected.Email);
 
-        Assert.Equal(4, actual!.Id);
-        Assert.Equal("alpha@example.com", actual.Email);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -37,10 +35,10 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(email: "alpha@example.com"));
+        await new SampleDataHelper(connection).InsertUser();
 
-        var actual = await this.userDataProvider.FindUserByEmail(connection, "beta@example.com");
+        var actual = await this.userDataProvider.FindUserByEmail(
+            connection, "non-existent@example.com");
 
         Assert.Null(actual);
     }
@@ -54,14 +52,11 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleUsers.CreateSampleUser(id: 76);
+        var expected = await new SampleDataHelper(connection).InsertUser();
 
-        await SampleUsers.InsertSampleUser(connection, expected);
+        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
-        var actual = await this.userDataProvider.GetUser(connection, 76);
-
-        Assert.Equal(76, actual.Id);
-        Assert.Equal(expected.Email, actual.Email);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -69,12 +64,14 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 98));
+        var otherUser = await new SampleDataHelper(connection).InsertUser();
+
+        var id = otherUser.Id + 1;
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.GetUser(connection, 7));
+            () => this.userDataProvider.GetUser(connection, id));
 
-        Assert.Equal("User 7 not found", exception.Message);
+        Assert.Equal($"User {id} not found", exception.Message);
     }
 
     #endregion
@@ -86,19 +83,23 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: 41, revision: 5));
+        var original = await new SampleDataHelper(connection).InsertUser();
 
         await this.userDataProvider.UpdatePassword(
-            connection, 41, "new-hashed-password", "newstamp");
+            connection, original.Id, "new-hashed-password", "newstamp");
 
-        var actual = await this.userDataProvider.GetUser(connection, 41);
+        var expected = original with
+        {
+            HashedPassword = "new-hashed-password",
+            PasswordCreated = this.fakeTime,
+            SecurityStamp = "newstamp",
+            Modified = this.fakeTime,
+            Revision = original.Revision + 1,
+        };
 
-        Assert.Equal("new-hashed-password", actual.HashedPassword);
-        Assert.Equal(this.fakeTime, actual.PasswordCreated);
-        Assert.Equal("newstamp", actual.SecurityStamp);
-        Assert.Equal(this.fakeTime, actual.Modified);
-        Assert.Equal(6, actual.Revision);
+        var actual = await this.userDataProvider.GetUser(connection, original.Id);
+
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -106,13 +107,15 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 23));
+        var otherUser = await new SampleDataHelper(connection).InsertUser();
+
+        var id = otherUser.Id + 1;
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
-                connection, 4, "new-hashed-password", "newstamp"));
+                connection, id, "new-hashed-password", "newstamp"));
 
-        Assert.Equal("User 4 not found", exception.Message);
+        Assert.Equal($"User {id} not found", exception.Message);
     }
 
     #endregion
@@ -124,16 +127,20 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(
-            connection, SampleUsers.CreateSampleUser(id: 32, revision: 2));
+        var original = await new SampleDataHelper(connection).InsertUser();
 
-        await this.userDataProvider.UpdatePreferences(connection, 32, "new-time-zone");
+        await this.userDataProvider.UpdatePreferences(connection, original.Id, "new-time-zone");
 
-        var actual = await this.userDataProvider.GetUser(connection, 32);
+        var expected = original with
+        {
+            TimeZone = "new-time-zone",
+            Modified = this.fakeTime,
+            Revision = original.Revision + 1,
+        };
 
-        Assert.Equal("new-time-zone", actual.TimeZone);
-        Assert.Equal(this.fakeTime, actual.Modified);
-        Assert.Equal(3, actual.Revision);
+        var actual = await this.userDataProvider.GetUser(connection, original.Id);
+
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -141,54 +148,32 @@ public class UserDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        await SampleUsers.InsertSampleUser(connection, SampleUsers.CreateSampleUser(id: 1));
+        var otherUser = await new SampleDataHelper(connection).InsertUser();
+
+        var id = otherUser.Id + 1;
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.UpdatePreferences(connection, 9, "new-time-zone"));
+            () => this.userDataProvider.UpdatePreferences(connection, id, "new-time-zone"));
 
-        Assert.Equal("User 9 not found", exception.Message);
+        Assert.Equal($"User {id} not found", exception.Message);
     }
 
     #endregion
 
     #region ReadUser
 
-    [Fact]
-    public async Task ReadUserReadsAllAttributes()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReadUserReadsAllAttributes(bool includeOptionalAttributes)
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = SampleUsers.CreateSampleUser(includeOptionalAttributes: true);
-
-        await SampleUsers.InsertSampleUser(connection, expected);
+        var expected = await new SampleDataHelper(connection).InsertUser(includeOptionalAttributes);
 
         var actual = await this.userDataProvider.GetUser(connection, expected.Id);
 
-        Assert.Equal(expected.Id, actual.Id);
-        Assert.Equal(expected.Name, actual.Name);
-        Assert.Equal(expected.Email, actual.Email);
-        Assert.Equal(expected.HashedPassword, actual.HashedPassword);
-        Assert.Equal(expected.PasswordCreated, actual.PasswordCreated);
-        Assert.Equal(expected.SecurityStamp, actual.SecurityStamp);
-        Assert.Equal(expected.TimeZone, actual.TimeZone);
-        Assert.Equal(expected.Created, actual.Created);
-        Assert.Equal(expected.Modified, actual.Modified);
-        Assert.Equal(expected.Revision, actual.Revision);
-    }
-
-    [Fact]
-    public async Task ReadUserHandlesNullAttributes()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var expected = SampleUsers.CreateSampleUser(includeOptionalAttributes: false);
-
-        await SampleUsers.InsertSampleUser(connection, expected);
-
-        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
-
-        Assert.Null(actual.HashedPassword);
-        Assert.Null(actual.PasswordCreated);
+        Assert.Equal(expected, actual);
     }
 
     #endregion

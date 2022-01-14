@@ -1,4 +1,4 @@
-using Buttercup.Models;
+using Buttercup.TestUtils;
 using Xunit;
 
 namespace Buttercup.Web.Models;
@@ -10,7 +10,7 @@ public class PreferencesViewModelTests
     [Fact]
     public void ConstructorCopiesValuesFromUser()
     {
-        var user = new User { TimeZone = "user-time-zone" };
+        var user = ModelFactory.CreateUser();
 
         var viewModel = new PreferencesViewModel(user);
 

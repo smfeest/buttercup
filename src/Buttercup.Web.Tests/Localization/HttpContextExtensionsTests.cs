@@ -1,3 +1,4 @@
+using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -13,7 +14,7 @@ public class HttpContextExtensionsTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.SetCurrentUser(new() { TimeZone = "Etc/GMT+10" });
+        httpContext.SetCurrentUser(ModelFactory.CreateUser() with { TimeZone = "Etc/GMT+10" });
 
         var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
 

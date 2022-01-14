@@ -1,5 +1,5 @@
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Buttercup.Web.TestUtils;
@@ -21,7 +21,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = new User();
+        var user = ModelFactory.CreateUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -135,7 +135,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = new User { TimeZone = "time-zone" };
+        var user = ModelFactory.CreateUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -155,12 +155,15 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        fixture.HttpContext.SetCurrentUser(new() { Id = 21 });
+        var currentUser = ModelFactory.CreateUser();
+
+        fixture.HttpContext.SetCurrentUser(currentUser);
 
         var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
         fixture.MockUserDataProvider
-            .Setup(x => x.UpdatePreferences(fixture.MySqlConnection, 21, viewModel.TimeZone))
+            .Setup(x => x.UpdatePreferences(
+                fixture.MySqlConnection, currentUser.Id, viewModel.TimeZone))
             .Returns(Task.CompletedTask)
             .Verifiable();
 

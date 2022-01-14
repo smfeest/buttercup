@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
+    <ProjectReference Include="..\..\src\Buttercup.TestUtils\Buttercup.TestUtils.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../db/schema.sql" CopyToOutputDirectory="Always" />

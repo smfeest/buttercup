@@ -1,5 +1,6 @@
 using Buttercup.DataAccess;
 using Buttercup.Models;
+using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Http;
@@ -40,7 +41,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = new Recipe();
+        var recipe = ModelFactory.CreateRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 3))
@@ -74,19 +75,16 @@ public class RecipesControllerTests
     {
         using var fixture = new NewEditPostFixture();
 
+        var expectedRecipeToAdd = fixture.EditModel.ToRecipe() with
+        {
+            CreatedByUserId = fixture.User.Id
+        };
+
         fixture.MockRecipeDataProvider
-            .Setup(x => x.AddRecipe(fixture.MySqlConnection, It.IsAny<Recipe>()))
-            .Callback((MySqlConnection connection, Recipe recipe) =>
-            {
-                Assert.Equal(fixture.EditModel.Title, recipe.Title);
-                Assert.Equal(fixture.User.Id, recipe.CreatedByUserId);
-            })
-            .ReturnsAsync(5)
-            .Verifiable();
+            .Setup(x => x.AddRecipe(fixture.MySqlConnection, expectedRecipeToAdd))
+            .ReturnsAsync(5);
 
         var result = await fixture.RecipesController.New(fixture.EditModel);
-
-        fixture.MockRecipeDataProvider.Verify();
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -115,10 +113,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = new Recipe
-        {
-            Title = "recipe-title",
-        };
+        var recipe = ModelFactory.CreateRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 5))
@@ -140,20 +135,16 @@ public class RecipesControllerTests
     {
         using var fixture = new NewEditPostFixture();
 
-        fixture.MockRecipeDataProvider
-            .Setup(x => x.UpdateRecipe(fixture.MySqlConnection, It.IsAny<Recipe>()))
-            .Callback((MySqlConnection connection, Recipe recipe) =>
-            {
-                Assert.Equal(3, recipe.Id);
-                Assert.Equal(fixture.EditModel.Title, recipe.Title);
-                Assert.Equal(fixture.User.Id, recipe.ModifiedByUserId);
-            })
-            .Returns(Task.CompletedTask)
-            .Verifiable();
+        var expectedRecipeForUpdate = fixture.EditModel.ToRecipe() with
+        {
+            Id = 3,
+            ModifiedByUserId = fixture.User.Id,
+        };
 
         var result = await fixture.RecipesController.Edit(3, fixture.EditModel);
 
-        fixture.MockRecipeDataProvider.Verify();
+        fixture.MockRecipeDataProvider.Verify(
+            x => x.UpdateRecipe(fixture.MySqlConnection, expectedRecipeForUpdate));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -182,7 +173,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = new Recipe();
+        var recipe = ModelFactory.CreateRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 8))
@@ -257,8 +248,8 @@ public class RecipesControllerTests
 
         public DefaultHttpContext HttpContext { get; } = new();
 
-        public RecipeEditModel EditModel { get; } = new() { Title = "recipe-title" };
+        public RecipeEditModel EditModel { get; } = new(ModelFactory.CreateRecipe());
 
-        public User User { get; } = new() { Id = 8 };
+        public User User { get; } = ModelFactory.CreateUser();
     }
 }
