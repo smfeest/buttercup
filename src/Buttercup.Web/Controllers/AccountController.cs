@@ -43,7 +43,7 @@ public class AccountController : Controller
         }
 
         var passwordChanged = await this.authenticationManager.ChangePassword(
-            this.HttpContext, model.CurrentPassword!, model.NewPassword!);
+            this.HttpContext, model.CurrentPassword, model.NewPassword);
 
         if (!passwordChanged)
         {
