@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Buttercup.Web.Models;
 
-public class SignInViewModel
+public sealed record SignInViewModel
 {
     [Required(ErrorMessage = "Error_RequiredField")]
     [DataType(DataType.EmailAddress)]

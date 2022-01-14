@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Buttercup.Web.Models;
 
-public class RecipeEditModel
+public sealed record RecipeEditModel
 {
     public RecipeEditModel()
     {
