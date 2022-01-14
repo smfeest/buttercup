@@ -1,12 +1,12 @@
 ﻿@inject IViewLocalizer Localizer
 @model Recipe
 @{
-  ViewData["Title"] = Localizer["Title_DeleteRecipe", Model!.Title!];
+  ViewData["Title"] = Localizer["Title_DeleteRecipe", Model!.Title];
 }
 <h1>@Localizer["Heading_DeleteRecipe"]</h1>
 <form method="post">
   <input type="hidden" asp-for="Revision">
-  <p>@Localizer["Message_DeleteConfirmation", Model.Title!]</p>
+  <p>@Localizer["Message_DeleteConfirmation", Model.Title]</p>
   <div class="button-bar">
     <button class="critical-push-button">@Localizer["Label_DeleteForever"]</button>
     <a class="push-button" asp-action="Show" asp-route-id="@Model.Id">@Localizer["Label_Cancel"]</a>
