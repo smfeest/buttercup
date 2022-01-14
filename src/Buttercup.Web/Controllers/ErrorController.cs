@@ -7,8 +7,6 @@ namespace Buttercup.Web.Controllers;
 public class ErrorController : Controller
 {
     [Route("/error")]
-    public IActionResult Error() => this.View(new ErrorViewModel
-    {
-        RequestId = Activity.Current?.Id ?? this.HttpContext.TraceIdentifier,
-    });
+    public IActionResult Error() => this.View(new ErrorViewModel(
+        Activity.Current?.Id ?? this.HttpContext.TraceIdentifier));
 }
