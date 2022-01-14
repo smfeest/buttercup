@@ -31,7 +31,7 @@ public class AuthenticationController : Controller
         }
 
         await this.authenticationManager.SendPasswordResetLink(
-            this.ControllerContext, model.Email!);
+            this.ControllerContext, model.Email);
 
         return this.View("RequestPasswordResetConfirmation", model);
     }
