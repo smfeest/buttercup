@@ -53,7 +53,9 @@ services
         options.LoginPath = "/sign-in";
     });
 
-services.AddBugsnag(config => config.ApiKey = configuration["Bugsnag:ApiKey"]);
+services
+    .Configure<Bugsnag.Configuration>(configuration.GetSection("Bugsnag"))
+    .AddBugsnag();
 
 services
     .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
