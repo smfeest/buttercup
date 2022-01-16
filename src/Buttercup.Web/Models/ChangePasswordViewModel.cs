@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Buttercup.Web.Models;
 
-public class ChangePasswordViewModel
+public sealed record ChangePasswordViewModel
 {
     [Required(ErrorMessage = "Error_RequiredField")]
     [DataType(DataType.Password)]

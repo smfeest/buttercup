@@ -3,7 +3,7 @@ using Buttercup.Models;
 
 namespace Buttercup.Web.Models;
 
-public class PreferencesViewModel
+public sealed record PreferencesViewModel
 {
     public PreferencesViewModel()
     {
