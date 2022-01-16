@@ -30,7 +30,7 @@ public sealed record RecipeEditModel
 
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
-    public string? Title { get; init; }
+    public string Title { get; init; } = string.Empty;
 
     [Range(0, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
     public int? PreparationMinutes { get; init; }
@@ -43,11 +43,11 @@ public sealed record RecipeEditModel
 
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-    public string? Ingredients { get; init; }
+    public string Ingredients { get; init; } = string.Empty;
 
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-    public string? Method { get; init; }
+    public string Method { get; init; } = string.Empty;
 
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
     public string? Suggestions { get; init; }
@@ -62,12 +62,12 @@ public sealed record RecipeEditModel
 
     public Recipe ToRecipe() => new(
         this.Id,
-        this.Title!,
+        this.Title,
         this.PreparationMinutes,
         this.CookingMinutes,
         this.Servings,
-        this.Ingredients!,
-        this.Method!,
+        this.Ingredients,
+        this.Method,
         this.Suggestions,
         this.Remarks,
         this.Source,
