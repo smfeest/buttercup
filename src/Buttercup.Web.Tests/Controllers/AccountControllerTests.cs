@@ -151,6 +151,21 @@ public class AccountControllerTests
     #region Preferences (POST)
 
     [Fact]
+    public async Task PreferencesPostReturnsViewResultWhenModelIsInvalid()
+    {
+        using var fixture = new AccountControllerFixture();
+
+        fixture.AccountController.ModelState.AddModelError("test", "test");
+
+        var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
+
+        var result = await fixture.AccountController.Preferences(viewModel);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Same(viewModel, viewResult.Model);
+    }
+
+    [Fact]
     public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
     {
         using var fixture = new AccountControllerFixture();

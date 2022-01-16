@@ -64,6 +64,11 @@ public class AccountController : Controller
     [HttpPost("preferences")]
     public async Task<IActionResult> Preferences(PreferencesViewModel model)
     {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
         var user = this.HttpContext.GetCurrentUser()!;
