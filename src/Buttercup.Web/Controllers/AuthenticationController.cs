@@ -77,7 +77,7 @@ public class AuthenticationController : Controller
             return this.View(model);
         }
 
-        var user = await this.authenticationManager.Authenticate(model.Email!, model.Password!);
+        var user = await this.authenticationManager.Authenticate(model.Email, model.Password);
 
         if (user == null)
         {
