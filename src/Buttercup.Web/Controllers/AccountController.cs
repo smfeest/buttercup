@@ -43,7 +43,7 @@ public class AccountController : Controller
         }
 
         var passwordChanged = await this.authenticationManager.ChangePassword(
-            this.HttpContext, model.CurrentPassword!, model.NewPassword!);
+            this.HttpContext, model.CurrentPassword, model.NewPassword);
 
         if (!passwordChanged)
         {
@@ -73,7 +73,7 @@ public class AccountController : Controller
 
         var user = this.HttpContext.GetCurrentUser()!;
 
-        await this.userDataProvider.UpdatePreferences(connection, user.Id, model.TimeZone!);
+        await this.userDataProvider.UpdatePreferences(connection, user.Id, model.TimeZone);
 
         return this.RedirectToAction(nameof(this.Show));
     }

@@ -31,7 +31,7 @@ public class AuthenticationController : Controller
         }
 
         await this.authenticationManager.SendPasswordResetLink(
-            this.ControllerContext, model.Email!);
+            this.ControllerContext, model.Email);
 
         return this.View("RequestPasswordResetConfirmation", model);
     }
@@ -53,7 +53,7 @@ public class AuthenticationController : Controller
 
         try
         {
-            var user = await this.authenticationManager.ResetPassword(token, model.Password!);
+            var user = await this.authenticationManager.ResetPassword(token, model.Password);
 
             await this.authenticationManager.SignIn(this.HttpContext, user);
 
@@ -77,7 +77,7 @@ public class AuthenticationController : Controller
             return this.View(model);
         }
 
-        var user = await this.authenticationManager.Authenticate(model.Email!, model.Password!);
+        var user = await this.authenticationManager.Authenticate(model.Email, model.Password);
 
         if (user == null)
         {
