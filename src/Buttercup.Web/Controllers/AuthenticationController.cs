@@ -53,7 +53,7 @@ public class AuthenticationController : Controller
 
         try
         {
-            var user = await this.authenticationManager.ResetPassword(token, model.Password!);
+            var user = await this.authenticationManager.ResetPassword(token, model.Password);
 
             await this.authenticationManager.SignIn(this.HttpContext, user);
 
