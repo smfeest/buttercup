@@ -1,4 +1,5 @@
 using Buttercup.DataAccess;
+using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
@@ -43,7 +44,7 @@ public class RecipesController : Controller
     public IActionResult New() => this.View();
 
     [HttpPost("new")]
-    public async Task<IActionResult> New(RecipeEditModel model)
+    public async Task<IActionResult> New(RecipeAttributes model)
     {
         if (!this.ModelState.IsValid)
         {
@@ -53,7 +54,7 @@ public class RecipesController : Controller
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
         var id = await this.recipeDataProvider.AddRecipe(
-            connection, model.Attributes, this.HttpContext.GetCurrentUser()!.Id);
+            connection, model, this.HttpContext.GetCurrentUser()!.Id);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
