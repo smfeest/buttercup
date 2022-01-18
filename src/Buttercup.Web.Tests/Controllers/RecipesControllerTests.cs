@@ -73,7 +73,7 @@ public class RecipesControllerTests
     [Fact]
     public async Task NewPostAddsRecipeAndRedirectsToShowPage()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
 
         var attributes = ModelFactory.CreateRecipeAttributes();
 
@@ -91,7 +91,7 @@ public class RecipesControllerTests
     [Fact]
     public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
 
         var attributes = ModelFactory.CreateRecipeAttributes();
 
@@ -134,7 +134,7 @@ public class RecipesControllerTests
     [Fact]
     public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
 
         var editModel = RecipeEditModel.ForRecipe(ModelFactory.CreateRecipe());
 
@@ -156,7 +156,7 @@ public class RecipesControllerTests
     [Fact]
     public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
 
         var editModel = RecipeEditModel.ForRecipe(ModelFactory.CreateRecipe());
 
@@ -220,12 +220,21 @@ public class RecipesControllerTests
             var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
                 x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
-            this.RecipesController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
+            this.HttpContext.SetCurrentUser(this.User);
+
+            this.RecipesController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object)
+            {
+                ControllerContext = new() { HttpContext = this.HttpContext },
+            };
         }
+
+        public DefaultHttpContext HttpContext { get; } = new();
 
         public RecipesController RecipesController { get; }
 
         public MySqlConnection MySqlConnection { get; } = new();
+
+        public User User { get; } = ModelFactory.CreateUser();
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
@@ -236,22 +245,5 @@ public class RecipesControllerTests
                 this.RecipesController.Dispose();
             }
         }
-    }
-
-    private class NewEditPostFixture : RecipesControllerFixture
-    {
-        public NewEditPostFixture()
-        {
-            this.HttpContext.SetCurrentUser(this.User);
-
-            this.RecipesController.ControllerContext = new()
-            {
-                HttpContext = this.HttpContext,
-            };
-        }
-
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public User User { get; } = ModelFactory.CreateUser();
     }
 }
