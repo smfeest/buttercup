@@ -17,7 +17,7 @@ public class RecipeEditModelTests
 
         Assert.Equal(recipe.Id, editModel.Id);
         Assert.Equal(new(recipe), editModel.Attributes);
-        Assert.Equal(recipe.Revision, editModel.Revision);
+        Assert.Equal(recipe.Revision, editModel.BaseRevision);
     }
 
     #endregion

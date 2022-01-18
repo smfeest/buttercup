@@ -140,7 +140,7 @@ public class RecipesControllerTests
                 fixture.MySqlConnection,
                 3,
                 fixture.EditModel.Attributes,
-                fixture.EditModel.Revision,
+                fixture.EditModel.BaseRevision,
                 fixture.User.Id));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);

@@ -81,7 +81,7 @@ public class RecipesController : Controller
             connection,
             id,
             model.Attributes,
-            model.Revision,
+            model.BaseRevision,
             this.HttpContext.GetCurrentUser()!.Id);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
