@@ -120,10 +120,12 @@ public class RecipesControllerTests
             .ReturnsAsync(recipe);
 
         var result = await fixture.RecipesController.Edit(5);
-
         var viewResult = Assert.IsType<ViewResult>(result);
-        var editModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
-        Assert.Equal(recipe.Title, editModel.Title);
+
+        var expectedModel = new RecipeEditModel(recipe);
+        var actualModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
+
+        Assert.Equal(expectedModel, actualModel);
     }
 
     #endregion
