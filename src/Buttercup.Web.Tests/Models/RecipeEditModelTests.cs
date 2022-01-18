@@ -6,22 +6,6 @@ namespace Buttercup.Web.Models;
 
 public class RecipeEditModelTests
 {
-    #region ToRecipe
-
-    [Fact]
-    public void ToRecipePopulatesAndReturnsNewRecipeModel()
-    {
-        var editModel = RecipeEditModel.ForRecipe(ModelFactory.CreateRecipe());
-
-        var recipe = editModel.ToRecipe();
-
-        Assert.Equal(editModel.Id, recipe.Id);
-        Assert.Equal(editModel.Attributes, new(recipe));
-        Assert.Equal(editModel.Revision, recipe.Revision);
-    }
-
-    #endregion
-
     #region ForRecipe
 
     [Fact]
