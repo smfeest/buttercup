@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Models;
 
-public class RecipeEditModelTests
+public class EditRecipeViewModelTests
 {
     #region ForRecipe
 
@@ -13,7 +13,7 @@ public class RecipeEditModelTests
     {
         var recipe = ModelFactory.CreateRecipe();
 
-        var editModel = RecipeEditModel.ForRecipe(recipe);
+        var editModel = EditRecipeViewModel.ForRecipe(recipe);
 
         Assert.Equal(recipe.Id, editModel.Id);
         Assert.Equal(new(recipe), editModel.Attributes);

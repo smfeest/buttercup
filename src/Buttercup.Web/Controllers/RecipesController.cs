@@ -64,12 +64,12 @@ public class RecipesController : Controller
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        return this.View(RecipeEditModel.ForRecipe(
+        return this.View(EditRecipeViewModel.ForRecipe(
             await this.recipeDataProvider.GetRecipe(connection, id)));
     }
 
     [HttpPost("{id}/edit")]
-    public async Task<IActionResult> Edit(long id, RecipeEditModel model)
+    public async Task<IActionResult> Edit(long id, EditRecipeViewModel model)
     {
         if (!this.ModelState.IsValid)
         {

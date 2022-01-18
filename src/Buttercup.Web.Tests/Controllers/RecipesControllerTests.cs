@@ -121,8 +121,8 @@ public class RecipesControllerTests
         var result = await fixture.RecipesController.Edit(5);
         var viewResult = Assert.IsType<ViewResult>(result);
 
-        var expectedModel = RecipeEditModel.ForRecipe(recipe);
-        var actualModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
+        var expectedModel = EditRecipeViewModel.ForRecipe(recipe);
+        var actualModel = Assert.IsType<EditRecipeViewModel>(viewResult.Model);
 
         Assert.Equal(expectedModel, actualModel);
     }
@@ -136,7 +136,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var editModel = RecipeEditModel.ForRecipe(ModelFactory.CreateRecipe());
+        var editModel = EditRecipeViewModel.ForRecipe(ModelFactory.CreateRecipe());
 
         var result = await fixture.RecipesController.Edit(3, editModel);
 
@@ -158,7 +158,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var editModel = RecipeEditModel.ForRecipe(ModelFactory.CreateRecipe());
+        var editModel = EditRecipeViewModel.ForRecipe(ModelFactory.CreateRecipe());
 
         fixture.RecipesController.ModelState.AddModelError("test", "test");
 
