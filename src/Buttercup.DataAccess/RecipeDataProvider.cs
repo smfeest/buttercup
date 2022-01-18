@@ -13,14 +13,15 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     public RecipeDataProvider(IClock clock) => this.clock = clock;
 
     /// <inheritdoc />
-    public async Task<long> AddRecipe(MySqlConnection connection, Recipe recipe)
+    public async Task<long> AddRecipe(
+        MySqlConnection connection, RecipeAttributes attributes, long currentUserId)
     {
         using var command = connection.CreateCommand();
 
         command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
             VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @current_user_id, @timestamp, @current_user_id)";
 
-        this.AddInsertUpdateParameters(command, recipe, recipe.CreatedByUserId);
+        this.AddInsertUpdateParameters(command, attributes, currentUserId);
 
         await command.ExecuteNonQueryAsync();
 
@@ -78,7 +79,12 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     }
 
     /// <inheritdoc />
-    public async Task UpdateRecipe(MySqlConnection connection, Recipe recipe)
+    public async Task UpdateRecipe(
+        MySqlConnection connection,
+        long id,
+        RecipeAttributes newAttributes,
+        int baseRevision,
+        long currentUserId)
     {
         using var command = connection.CreateCommand();
 
@@ -88,30 +94,30 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
                 ingredients = @ingredients, method = @method, suggestions = @suggestions,
                 remarks = @remarks, source = @source, modified = @timestamp,
                 modified_by_user_id = @current_user_id, revision = revision + 1
-            WHERE id = @id AND revision = @revision";
+            WHERE id = @id AND revision = @base_revision";
 
-        this.AddInsertUpdateParameters(command, recipe, recipe.ModifiedByUserId);
-        command.Parameters.AddWithValue("@id", recipe.Id);
-        command.Parameters.AddWithValue("@revision", recipe.Revision);
+        AddInsertUpdateParameters(command, newAttributes, currentUserId);
+        command.Parameters.AddWithValue("@id", id);
+        command.Parameters.AddWithValue("@base_revision", baseRevision);
 
         if (await command.ExecuteNonQueryAsync() == 0)
         {
-            throw await ConcurrencyOrNotFoundException(
-                connection, recipe.Id, recipe.Revision);
+            throw await ConcurrencyOrNotFoundException(connection, id, baseRevision);
         }
     }
 
-    private void AddInsertUpdateParameters(MySqlCommand command, Recipe recipe, long? currentUserId)
+    private void AddInsertUpdateParameters(
+        MySqlCommand command, RecipeAttributes attributes, long currentUserId)
     {
-        command.Parameters.AddWithStringValue("@title", recipe.Title);
-        command.Parameters.AddWithValue("@preparation_minutes", recipe.PreparationMinutes);
-        command.Parameters.AddWithValue("@cooking_minutes", recipe.CookingMinutes);
-        command.Parameters.AddWithValue("@servings", recipe.Servings);
-        command.Parameters.AddWithStringValue("@ingredients", recipe.Ingredients);
-        command.Parameters.AddWithStringValue("@method", recipe.Method);
-        command.Parameters.AddWithStringValue("@suggestions", recipe.Suggestions);
-        command.Parameters.AddWithStringValue("@remarks", recipe.Remarks);
-        command.Parameters.AddWithStringValue("@source", recipe.Source);
+        command.Parameters.AddWithStringValue("@title", attributes.Title);
+        command.Parameters.AddWithValue("@preparation_minutes", attributes.PreparationMinutes);
+        command.Parameters.AddWithValue("@cooking_minutes", attributes.CookingMinutes);
+        command.Parameters.AddWithValue("@servings", attributes.Servings);
+        command.Parameters.AddWithStringValue("@ingredients", attributes.Ingredients);
+        command.Parameters.AddWithStringValue("@method", attributes.Method);
+        command.Parameters.AddWithStringValue("@suggestions", attributes.Suggestions);
+        command.Parameters.AddWithStringValue("@remarks", attributes.Remarks);
+        command.Parameters.AddWithStringValue("@source", attributes.Source);
         command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
         command.Parameters.AddWithValue("@current_user_id", currentUserId);
     }
