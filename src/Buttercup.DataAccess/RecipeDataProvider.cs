@@ -18,11 +18,9 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         using var command = connection.CreateCommand();
 
         command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
-            VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @created_by_user_id, @timestamp, @created_by_user_id)";
+            VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @current_user_id, @timestamp, @current_user_id)";
 
-        AddInsertUpdateParameters(command, recipe);
-        command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
-        command.Parameters.AddWithValue("@created_by_user_id", recipe.CreatedByUserId);
+        this.AddInsertUpdateParameters(command, recipe, recipe.CreatedByUserId);
 
         await command.ExecuteNonQueryAsync();
 
@@ -89,13 +87,11 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
                 cooking_minutes = @cooking_minutes, servings = @servings,
                 ingredients = @ingredients, method = @method, suggestions = @suggestions,
                 remarks = @remarks, source = @source, modified = @timestamp,
-                modified_by_user_id = @modified_by_user_id, revision = revision + 1
+                modified_by_user_id = @current_user_id, revision = revision + 1
             WHERE id = @id AND revision = @revision";
 
-        AddInsertUpdateParameters(command, recipe);
+        this.AddInsertUpdateParameters(command, recipe, recipe.ModifiedByUserId);
         command.Parameters.AddWithValue("@id", recipe.Id);
-        command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
-        command.Parameters.AddWithValue("@modified_by_user_id", recipe.ModifiedByUserId);
         command.Parameters.AddWithValue("@revision", recipe.Revision);
 
         if (await command.ExecuteNonQueryAsync() == 0)
@@ -105,7 +101,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         }
     }
 
-    private static void AddInsertUpdateParameters(MySqlCommand command, Recipe recipe)
+    private void AddInsertUpdateParameters(MySqlCommand command, Recipe recipe, long? currentUserId)
     {
         command.Parameters.AddWithStringValue("@title", recipe.Title);
         command.Parameters.AddWithValue("@preparation_minutes", recipe.PreparationMinutes);
@@ -116,6 +112,8 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         command.Parameters.AddWithStringValue("@suggestions", recipe.Suggestions);
         command.Parameters.AddWithStringValue("@remarks", recipe.Remarks);
         command.Parameters.AddWithStringValue("@source", recipe.Source);
+        command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
+        command.Parameters.AddWithValue("@current_user_id", currentUserId);
     }
 
     private static async Task<Exception> ConcurrencyOrNotFoundException(
