@@ -1,4 +1,5 @@
 using Buttercup.DataAccess;
+using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
@@ -43,24 +44,17 @@ public class RecipesController : Controller
     public IActionResult New() => this.View();
 
     [HttpPost("new")]
-    public async Task<IActionResult> New(RecipeEditModel model)
+    public async Task<IActionResult> New(RecipeAttributes model)
     {
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
         }
 
-        var recipe = model.ToRecipe() with
-        {
-            CreatedByUserId = this.HttpContext.GetCurrentUser()!.Id,
-        };
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        long id;
-
-        using (var connection = await this.mySqlConnectionSource.OpenConnection())
-        {
-            id = await this.recipeDataProvider.AddRecipe(connection, recipe);
-        }
+        var id = await this.recipeDataProvider.AddRecipe(
+            connection, model, this.HttpContext.GetCurrentUser()!.Id);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
@@ -70,28 +64,26 @@ public class RecipesController : Controller
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        return this.View(new RecipeEditModel(
+        return this.View(EditRecipeViewModel.ForRecipe(
             await this.recipeDataProvider.GetRecipe(connection, id)));
     }
 
     [HttpPost("{id}/edit")]
-    public async Task<IActionResult> Edit(long id, RecipeEditModel model)
+    public async Task<IActionResult> Edit(long id, EditRecipeViewModel model)
     {
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
         }
 
-        var recipe = model.ToRecipe() with
-        {
-            Id = id,
-            ModifiedByUserId = this.HttpContext.GetCurrentUser()!.Id,
-        };
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        using (var connection = await this.mySqlConnectionSource.OpenConnection())
-        {
-            await this.recipeDataProvider.UpdateRecipe(connection, recipe);
-        }
+        await this.recipeDataProvider.UpdateRecipe(
+            connection,
+            id,
+            model.Attributes,
+            model.BaseRevision,
+            this.HttpContext.GetCurrentUser()!.Id);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }

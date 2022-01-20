@@ -27,22 +27,26 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var recipeToAdd = ModelFactory.CreateRecipe(includeOptionalAttributes: true) with
-        {
-            CreatedByUserId = currentUser.Id
-        };
+        var attributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: true);
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, recipeToAdd);
+        var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
 
-        var expected = recipeToAdd with
-        {
-            Id = id,
-            Created = this.fakeTime,
-            CreatedByUserId = currentUser.Id,
-            Modified = this.fakeTime,
-            ModifiedByUserId = currentUser.Id,
-            Revision = 0,
-        };
+        var expected = new Recipe(
+            id,
+            attributes.Title,
+            attributes.PreparationMinutes,
+            attributes.CookingMinutes,
+            attributes.Servings,
+            attributes.Ingredients,
+            attributes.Method,
+            attributes.Suggestions,
+            attributes.Remarks,
+            attributes.Source,
+            this.fakeTime,
+            currentUser.Id,
+            this.fakeTime,
+            currentUser.Id,
+            0);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
@@ -54,9 +58,12 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeToAdd = ModelFactory.CreateRecipe(includeOptionalAttributes: false);
+        var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, recipeToAdd);
+        var attributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: false);
+
+        var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
+
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Null(actual.PreparationMinutes);
@@ -65,8 +72,6 @@ public class RecipeDataProviderTests
         Assert.Null(actual.Suggestions);
         Assert.Null(actual.Remarks);
         Assert.Null(actual.Source);
-        Assert.Null(actual.CreatedByUserId);
-        Assert.Null(actual.ModifiedByUserId);
     }
 
     [Fact]
@@ -74,7 +79,9 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipeToAdd = ModelFactory.CreateRecipe() with
+        var currentUser = await new SampleDataHelper(connection).InsertUser();
+
+        var attributes = ModelFactory.CreateRecipeAttributes() with
         {
             Title = " new-recipe-title ",
             Ingredients = " new-recipe-ingredients ",
@@ -84,7 +91,7 @@ public class RecipeDataProviderTests
             Source = string.Empty,
         };
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, recipeToAdd);
+        var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
         Assert.Equal("new-recipe-title", actual.Title);
@@ -308,22 +315,27 @@ public class RecipeDataProviderTests
         var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
         var currentUser = await sampleDataHelper.InsertUser();
 
-        var recipeForUpdate = ModelFactory.CreateRecipe(includeOptionalAttributes: true) with
-        {
-            Id = original.Id,
-            ModifiedByUserId = currentUser.Id,
-            Revision = original.Revision,
-        };
+        var newAttributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: true);
 
-        await this.recipeDataProvider.UpdateRecipe(connection, recipeForUpdate);
+        await this.recipeDataProvider.UpdateRecipe(
+            connection, original.Id, newAttributes, original.Revision, currentUser.Id);
 
-        var expected = recipeForUpdate with
-        {
-            Created = original.Created,
-            CreatedByUserId = original.CreatedByUserId,
-            Modified = this.fakeTime,
-            Revision = original.Revision + 1,
-        };
+        var expected = new Recipe(
+            original.Id,
+            newAttributes.Title,
+            newAttributes.PreparationMinutes,
+            newAttributes.CookingMinutes,
+            newAttributes.Servings,
+            newAttributes.Ingredients,
+            newAttributes.Method,
+            newAttributes.Suggestions,
+            newAttributes.Remarks,
+            newAttributes.Source,
+            original.Created,
+            original.CreatedByUserId,
+            this.fakeTime,
+            currentUser.Id,
+            original.Revision + 1);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
 
@@ -338,14 +350,12 @@ public class RecipeDataProviderTests
         var sampleDataHelper = new SampleDataHelper(connection);
 
         var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
+        var currentUser = await sampleDataHelper.InsertUser();
 
-        var recipeForUpdate = ModelFactory.CreateRecipe(includeOptionalAttributes: false) with
-        {
-            Id = original.Id,
-            Revision = original.Revision,
-        };
+        var newAttributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: false);
 
-        await this.recipeDataProvider.UpdateRecipe(connection, recipeForUpdate);
+        await this.recipeDataProvider.UpdateRecipe(
+            connection, original.Id, newAttributes, original.Revision, currentUser.Id);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
 
@@ -355,7 +365,6 @@ public class RecipeDataProviderTests
         Assert.Null(actual.Suggestions);
         Assert.Null(actual.Remarks);
         Assert.Null(actual.Source);
-        Assert.Null(actual.ModifiedByUserId);
     }
 
     [Fact]
@@ -363,9 +372,12 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var original = await new SampleDataHelper(connection).InsertRecipe();
+        var sampleDataHelper = new SampleDataHelper(connection);
 
-        var recipeForUpdate = original with
+        var original = await sampleDataHelper.InsertRecipe();
+        var currentUser = await sampleDataHelper.InsertUser();
+
+        var newAttributes = ModelFactory.CreateRecipeAttributes() with
         {
             Title = " new-recipe-title ",
             Ingredients = " new-recipe-ingredients ",
@@ -375,7 +387,8 @@ public class RecipeDataProviderTests
             Source = string.Empty,
         };
 
-        await this.recipeDataProvider.UpdateRecipe(connection, recipeForUpdate);
+        await this.recipeDataProvider.UpdateRecipe(
+            connection, original.Id, newAttributes, original.Revision, currentUser.Id);
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
 
@@ -392,13 +405,16 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var otherRecipe = await new SampleDataHelper(connection).InsertRecipe();
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        var otherRecipe = await sampleDataHelper.InsertRecipe();
+        var currentUser = await sampleDataHelper.InsertUser();
 
         var id = otherRecipe.Id + 1;
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.UpdateRecipe(
-                connection, ModelFactory.CreateRecipe() with { Id = id }));
+                connection, id, ModelFactory.CreateRecipeAttributes(), 0, currentUser.Id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -408,13 +424,20 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var recipe = await new SampleDataHelper(connection).InsertRecipe();
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        var recipe = await sampleDataHelper.InsertRecipe();
+        var currentUser = await sampleDataHelper.InsertUser();
 
         var staleRevision = recipe.Revision - 1;
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeDataProvider.UpdateRecipe(
-                connection, recipe with { Revision = staleRevision }));
+                connection,
+                recipe.Id,
+                ModelFactory.CreateRecipeAttributes(),
+                staleRevision,
+                currentUser.Id));
 
         Assert.Equal(
             $"Revision {staleRevision} does not match current revision {recipe.Revision}",

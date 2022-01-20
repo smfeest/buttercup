@@ -14,13 +14,17 @@ public interface IRecipeDataProvider
     /// <param name="connection">
     /// The database connection.
     /// </param>
-    /// <param name="recipe">
-    /// The recipe.
+    /// <param name="attributes">
+    /// The recipe attributes.
+    /// </param>
+    /// <param name="currentUserId">
+    /// The current user ID.
     /// </param>
     /// <returns>
     /// A task for the operation. The task result is the ID of the new recipe.
     /// </returns>
-    Task<long> AddRecipe(MySqlConnection connection, Recipe recipe);
+    Task<long> AddRecipe(
+        MySqlConnection connection, RecipeAttributes attributes, long currentUserId);
 
     /// <summary>
     /// Deletes a recipe.
@@ -105,8 +109,17 @@ public interface IRecipeDataProvider
     /// <param name="connection">
     /// The database connection.
     /// </param>
-    /// <param name="recipe">
-    /// The recipe.
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    /// <param name="newAttributes">
+    /// The new recipe attributes.
+    /// </param>
+    /// <param name="baseRevision">
+    /// The base revision.
+    /// </param>
+    /// <param name="currentUserId">
+    /// The current user ID.
     /// </param>
     /// <returns>
     /// A task for the operation.
@@ -115,7 +128,12 @@ public interface IRecipeDataProvider
     /// No matching recipe was found.
     /// </exception>
     /// <exception cref="ConcurrencyException">
-    /// The revision in <paramref name="recipe"/> does not match the revision in the database.
+    /// <paramref name="baseRevision"/> does not match the current revision in the database.
     /// </exception>
-    Task UpdateRecipe(MySqlConnection connection, Recipe recipe);
+    Task UpdateRecipe(
+        MySqlConnection connection,
+        long id,
+        RecipeAttributes newAttributes,
+        int baseRevision,
+        long currentUserId);
 }

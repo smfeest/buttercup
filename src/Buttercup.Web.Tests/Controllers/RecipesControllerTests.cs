@@ -73,18 +73,15 @@ public class RecipesControllerTests
     [Fact]
     public async Task NewPostAddsRecipeAndRedirectsToShowPage()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
 
-        var expectedRecipeToAdd = fixture.EditModel.ToRecipe() with
-        {
-            CreatedByUserId = fixture.User.Id
-        };
+        var attributes = ModelFactory.CreateRecipeAttributes();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.AddRecipe(fixture.MySqlConnection, expectedRecipeToAdd))
+            .Setup(x => x.AddRecipe(fixture.MySqlConnection, attributes, fixture.User.Id))
             .ReturnsAsync(5);
 
-        var result = await fixture.RecipesController.New(fixture.EditModel);
+        var result = await fixture.RecipesController.New(attributes);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -94,14 +91,16 @@ public class RecipesControllerTests
     [Fact]
     public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
+
+        var attributes = ModelFactory.CreateRecipeAttributes();
 
         fixture.RecipesController.ModelState.AddModelError("test", "test");
 
-        var result = await fixture.RecipesController.New(fixture.EditModel);
+        var result = await fixture.RecipesController.New(attributes);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Same(fixture.EditModel, viewResult.Model);
+        Assert.Same(attributes, viewResult.Model);
     }
 
     #endregion
@@ -120,10 +119,12 @@ public class RecipesControllerTests
             .ReturnsAsync(recipe);
 
         var result = await fixture.RecipesController.Edit(5);
-
         var viewResult = Assert.IsType<ViewResult>(result);
-        var editModel = Assert.IsType<RecipeEditModel>(viewResult.Model);
-        Assert.Equal(recipe.Title, editModel.Title);
+
+        var expectedModel = EditRecipeViewModel.ForRecipe(recipe);
+        var actualModel = Assert.IsType<EditRecipeViewModel>(viewResult.Model);
+
+        Assert.Equal(expectedModel, actualModel);
     }
 
     #endregion
@@ -133,18 +134,19 @@ public class RecipesControllerTests
     [Fact]
     public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
 
-        var expectedRecipeForUpdate = fixture.EditModel.ToRecipe() with
-        {
-            Id = 3,
-            ModifiedByUserId = fixture.User.Id,
-        };
+        var editModel = EditRecipeViewModel.ForRecipe(ModelFactory.CreateRecipe());
 
-        var result = await fixture.RecipesController.Edit(3, fixture.EditModel);
+        var result = await fixture.RecipesController.Edit(3, editModel);
 
         fixture.MockRecipeDataProvider.Verify(
-            x => x.UpdateRecipe(fixture.MySqlConnection, expectedRecipeForUpdate));
+            x => x.UpdateRecipe(
+                fixture.MySqlConnection,
+                3,
+                editModel.Attributes,
+                editModel.BaseRevision,
+                fixture.User.Id));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -154,14 +156,16 @@ public class RecipesControllerTests
     [Fact]
     public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
     {
-        using var fixture = new NewEditPostFixture();
+        using var fixture = new RecipesControllerFixture();
+
+        var editModel = EditRecipeViewModel.ForRecipe(ModelFactory.CreateRecipe());
 
         fixture.RecipesController.ModelState.AddModelError("test", "test");
 
-        var result = await fixture.RecipesController.Edit(3, fixture.EditModel);
+        var result = await fixture.RecipesController.Edit(3, editModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Same(fixture.EditModel, viewResult.Model);
+        Assert.Same(editModel, viewResult.Model);
     }
 
     #endregion
@@ -216,12 +220,21 @@ public class RecipesControllerTests
             var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
                 x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
-            this.RecipesController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
+            this.HttpContext.SetCurrentUser(this.User);
+
+            this.RecipesController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object)
+            {
+                ControllerContext = new() { HttpContext = this.HttpContext },
+            };
         }
+
+        public DefaultHttpContext HttpContext { get; } = new();
 
         public RecipesController RecipesController { get; }
 
         public MySqlConnection MySqlConnection { get; } = new();
+
+        public User User { get; } = ModelFactory.CreateUser();
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
@@ -232,24 +245,5 @@ public class RecipesControllerTests
                 this.RecipesController.Dispose();
             }
         }
-    }
-
-    private class NewEditPostFixture : RecipesControllerFixture
-    {
-        public NewEditPostFixture()
-        {
-            this.HttpContext.SetCurrentUser(this.User);
-
-            this.RecipesController.ControllerContext = new()
-            {
-                HttpContext = this.HttpContext,
-            };
-        }
-
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public RecipeEditModel EditModel { get; } = new(ModelFactory.CreateRecipe());
-
-        public User User { get; } = ModelFactory.CreateUser();
     }
 }

@@ -28,6 +28,9 @@ public static class ModelFactory
             i + 4);
     }
 
+    public static RecipeAttributes CreateRecipeAttributes(bool includeOptionalAttributes = false) =>
+        new(CreateRecipe(includeOptionalAttributes));
+
     public static User CreateUser(bool includeOptionalAttributes = false)
     {
         var i = Interlocked.Increment(ref counter);
