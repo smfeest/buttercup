@@ -1,4 +1,3 @@
-using Buttercup.Models;
 using Buttercup.TestUtils;
 using Xunit;
 
