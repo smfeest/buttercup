@@ -113,8 +113,7 @@ public class RecipeDataProviderTests
 
         var recipe = await new SampleDataHelper(connection).InsertRecipe();
 
-        await this.recipeDataProvider.DeleteRecipe(
-            connection, recipe.Id, recipe.Revision);
+        await this.recipeDataProvider.DeleteRecipe(connection, recipe.Id);
 
         Assert.Empty(await this.recipeDataProvider.GetRecipes(connection));
     }
@@ -129,26 +128,9 @@ public class RecipeDataProviderTests
         var id = otherRecipe.Id + 1;
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeDataProvider.DeleteRecipe(connection, id, 0));
+            () => this.recipeDataProvider.DeleteRecipe(connection, id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
-    }
-
-    [Fact]
-    public async Task DeleteRecipeThrowsIfRevisionOutOfSync()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var recipe = await new SampleDataHelper(connection).InsertRecipe();
-
-        var staleRevision = recipe.Revision - 1;
-
-        var exception = await Assert.ThrowsAsync<ConcurrencyException>(
-            () => this.recipeDataProvider.DeleteRecipe(connection, recipe.Id, staleRevision));
-
-        Assert.Equal(
-            $"Revision {staleRevision} does not match current revision {recipe.Revision}",
-            exception.Message);
     }
 
     #endregion
