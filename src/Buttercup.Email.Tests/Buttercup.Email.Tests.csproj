@@ -17,6 +17,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Buttercup.Email\Buttercup.Email.csproj" />
+    <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
   </ItemGroup>
 </Project>

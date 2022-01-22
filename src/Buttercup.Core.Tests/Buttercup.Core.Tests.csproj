@@ -16,6 +16,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Buttercup.Core\Buttercup.Core.csproj" />
+    <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
   </ItemGroup>
 </Project>
