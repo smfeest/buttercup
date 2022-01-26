@@ -17,7 +17,8 @@
 
 2.  Create the _buttercup_app_ application database:
 
-        scripts/create_db.sh buttercup_app -u buttercup_dev
+        mysql -u buttercup_dev -e 'DROP DATABASE IF EXISTS buttercup_app; CREATE DATABASE buttercup_app'
+        mysql -u buttercup_dev buttercup_app < db/schema.sql
 
 3.  Insert a user account:
 
