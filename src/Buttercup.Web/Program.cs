@@ -35,6 +35,7 @@ services.AddControllersWithViews()
 
 services.AddGraphQLServer()
     .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
     .AddTypeExtension<UserExtension>()
     .AllowIntrospection(isDevelopment)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
