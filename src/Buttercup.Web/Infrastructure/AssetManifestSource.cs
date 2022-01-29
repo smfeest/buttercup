@@ -31,7 +31,7 @@ public class AssetManifestSource : IAssetManifestSource
                 {
                     if (this.productionManifest == null)
                     {
-                        var path = Path.Combine("prod-assets", "manifest.json");
+                        var path = System.IO.Path.Combine("prod-assets", "manifest.json");
 
                         LoggerMessages.LoadingManifest(this.logger, path, null);
 

@@ -4,6 +4,7 @@ using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.Models;
+using Buttercup.Web.Api;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
@@ -29,6 +30,9 @@ services.AddControllersWithViews()
     {
         options.HtmlHelperOptions.ClientValidationEnabled = false;
     });
+
+services.AddGraphQLServer()
+    .AddQueryType<Query>();
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
@@ -103,5 +107,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGraphQL();
 
 app.Run();
