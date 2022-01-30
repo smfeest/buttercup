@@ -68,6 +68,7 @@ services
 
 services
     .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
+    .AddTransient<IAccessTokenSerializer, AccessTokenSerializer>()
     .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
     .AddTransient<IAuthenticationManager, AuthenticationManager>()
     .AddTransient<CookieAuthenticationEventsHandler>()
