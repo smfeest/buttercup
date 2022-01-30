@@ -78,7 +78,9 @@ services
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+var isDevelopment = app.Environment.IsDevelopment();
+
+if (!isDevelopment)
 {
     app.UseExceptionHandler("/error");
 }
@@ -108,6 +110,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapGraphQL();
+app.MapGraphQL().WithOptions(new()
+{
+    Tool = { Enable = isDevelopment }
+});
 
 app.Run();
