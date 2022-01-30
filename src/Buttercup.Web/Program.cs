@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 var services = builder.Services;
 var configuration = builder.Configuration;
 
@@ -33,7 +35,8 @@ services.AddControllersWithViews()
 
 services.AddGraphQLServer()
     .AddQueryType<Query>()
-    .AddTypeExtension<UserExtension>();
+    .AddTypeExtension<UserExtension>()
+    .AllowIntrospection(isDevelopment);
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
@@ -78,8 +81,6 @@ services
 
 var app = builder.Build();
 
-var isDevelopment = app.Environment.IsDevelopment();
-
 if (!isDevelopment)
 {
     app.UseExceptionHandler("/error");
@@ -112,6 +113,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGraphQL().WithOptions(new()
 {
+    EnableSchemaRequests = isDevelopment,
     Tool = { Enable = isDevelopment }
 });
 
