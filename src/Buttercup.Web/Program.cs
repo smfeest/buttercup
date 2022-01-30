@@ -75,6 +75,7 @@ services
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
     .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
+    .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>()
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
     .AddSingleton<IAssetManifestSource, AssetManifestSource>()
