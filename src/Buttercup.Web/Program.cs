@@ -36,7 +36,8 @@ services.AddControllersWithViews()
 services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddTypeExtension<UserExtension>()
-    .AllowIntrospection(isDevelopment);
+    .AllowIntrospection(isDevelopment)
+    .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
