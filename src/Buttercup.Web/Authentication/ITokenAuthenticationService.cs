@@ -17,4 +17,16 @@ public interface ITokenAuthenticationService
     /// A task for the operation. The result is the access token.
     /// </returns>
     Task<string> IssueAccessToken(User user);
+
+    /// <summary>
+    /// Validates an access token.
+    /// </summary>
+    /// <param name="accessToken">
+    /// The access token.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result is the authenticated user if the token is valid, or
+    /// null reference if it isn't.
+    /// </returns>
+    Task<User?> ValidateAccessToken(string accessToken);
 }

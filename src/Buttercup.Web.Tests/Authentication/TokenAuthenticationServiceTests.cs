@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.TestUtils;
@@ -61,6 +62,132 @@ public class TokenAuthenticationServiceTests
 
     #endregion
 
+    #region ValidateAccessToken
+
+    [Fact]
+    public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenIsNotBase64UrlEncoded()
+    {
+        var fixture = new ValidateAccessTokenFixture();
+
+        fixture.SetupDecodeFailure(new FormatException());
+
+        Assert.Null(await fixture.ValidateAccessToken());
+
+        fixture.Logger.AssertSingleEntry(
+            LogLevel.Warning, "Access token failed validation; not base64url encoded");
+    }
+
+    [Fact]
+    public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenIsMalformed()
+    {
+        var fixture = new ValidateAccessTokenFixture();
+
+        fixture.SetupDecodeFailure(new CryptographicException());
+
+        Assert.Null(await fixture.ValidateAccessToken());
+
+        fixture.Logger.AssertSingleEntry(
+            LogLevel.Warning,
+            "Access token failed validation; malformed or encrypted with wrong key");
+    }
+
+    [Fact]
+    public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenHasExpired()
+    {
+        var fixture = new ValidateAccessTokenFixture();
+
+        fixture.SetupDecodeSuccess(tokenAge: new(24, 0, 1));
+
+        Assert.Null(await fixture.ValidateAccessToken());
+
+        fixture.Logger.AssertSingleEntry(
+            LogLevel.Information,
+            $"Access token failed validation for user {fixture.User.Id}; expired");
+    }
+
+    [Fact]
+    public async Task ValidateAccessTokenLogsAndReturnsNullWhenUserDoesNotExist()
+    {
+        var fixture = new ValidateAccessTokenFixture();
+
+        fixture.SetupDecodeSuccess();
+        fixture.SetupUserNotFound();
+
+        Assert.Null(await fixture.ValidateAccessToken());
+
+        fixture.Logger.AssertSingleEntry(
+            LogLevel.Warning,
+            $"Access token failed validation for user {fixture.User.Id}; user does not exist");
+    }
+
+    [Fact]
+    public async Task ValidateAccessTokenLogsAndReturnsNullWhenSecurityStampHasChanged()
+    {
+        var fixture = new ValidateAccessTokenFixture();
+
+        fixture.SetupDecodeSuccess(securityStamp: "stale-security-stamp");
+        fixture.SetupGetUserSuccess();
+
+        Assert.Null(await fixture.ValidateAccessToken());
+
+        fixture.Logger.AssertSingleEntry(
+            LogLevel.Information,
+            $"Access token failed validation for user {fixture.User.Id}; contains stale security stamp");
+    }
+
+    [Fact]
+    public async Task ValidateAccessTokenLogsAndReturnsUserOnSuccess()
+    {
+        var fixture = new ValidateAccessTokenFixture();
+
+        fixture.SetupDecodeSuccess();
+        fixture.SetupGetUserSuccess();
+
+        Assert.Equal(fixture.User, await fixture.ValidateAccessToken());
+
+        fixture.Logger.AssertSingleEntry(
+            LogLevel.Information, $"Access token successfully validated for user {fixture.User.Id}");
+    }
+
+    private class ValidateAccessTokenFixture : TokenAuthenticationServiceFixture
+    {
+        private const string AccessToken = "sample-access-token";
+
+        public User User { get; } = ModelFactory.CreateUser();
+
+        public void SetupDecodeFailure(Exception exception) =>
+            this.MockAccessTokenEncoder
+                .Setup(x => x.Decode(AccessToken))
+                .Throws(exception);
+
+        public void SetupDecodeSuccess(TimeSpan? tokenAge = null, string? securityStamp = null)
+        {
+            var accessTokenPayload = new AccessTokenPayload(
+                this.User.Id,
+                securityStamp ?? this.User.SecurityStamp,
+                this.UtcNow.Subtract(tokenAge ?? new(24, 0, 0)));
+
+            this.MockAccessTokenEncoder
+                .Setup(x => x.Decode(AccessToken))
+                .Returns(accessTokenPayload);
+        }
+
+        public void SetupUserNotFound() =>
+            this.MockUserDataProvider
+                .Setup(x => x.GetUser(this.MySqlConnection, this.User.Id))
+                .ThrowsAsync(new NotFoundException(string.Empty));
+
+        public void SetupGetUserSuccess() =>
+            this.MockUserDataProvider
+                .Setup(x => x.GetUser(this.MySqlConnection, this.User.Id))
+                .ReturnsAsync(this.User);
+
+        public Task<User?> ValidateAccessToken() =>
+            this.TokenAuthenticationService.ValidateAccessToken(AccessToken);
+    }
+
+    #endregion
+
     private class TokenAuthenticationServiceFixture
     {
         public TokenAuthenticationServiceFixture()
@@ -74,13 +201,16 @@ public class TokenAuthenticationServiceTests
                 this.MockAuthenticationEventDataProvider.Object,
                 clock,
                 this.Logger,
-                mySqlConnectionSource);
+                mySqlConnectionSource,
+                this.MockUserDataProvider.Object);
         }
 
         public Mock<IAccessTokenEncoder> MockAccessTokenEncoder { get; } = new();
 
         public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; }
             = new();
+
+        public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 
         public ListLogger<TokenAuthenticationService> Logger { get; } = new();
 
