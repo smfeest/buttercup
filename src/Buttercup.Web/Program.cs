@@ -32,7 +32,8 @@ services.AddControllersWithViews()
     });
 
 services.AddGraphQLServer()
-    .AddQueryType<Query>();
+    .AddQueryType<Query>()
+    .AddTypeExtension<UserExtension>();
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
