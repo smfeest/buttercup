@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.Models;
@@ -24,6 +23,7 @@ public class AuthenticationManager : IAuthenticationManager
     private readonly IRandomTokenGenerator randomTokenGenerator;
     private readonly IUrlHelperFactory urlHelperFactory;
     private readonly IUserDataProvider userDataProvider;
+    private readonly IUserPrincipalFactory userPrincipalFactory;
 
     public AuthenticationManager(
         IAuthenticationEventDataProvider authenticationEventDataProvider,
@@ -36,7 +36,8 @@ public class AuthenticationManager : IAuthenticationManager
         IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
         IRandomTokenGenerator randomTokenGenerator,
         IUrlHelperFactory urlHelperFactory,
-        IUserDataProvider userDataProvider)
+        IUserDataProvider userDataProvider,
+        IUserPrincipalFactory userPrincipalFactory)
     {
         this.authenticationEventDataProvider = authenticationEventDataProvider;
         this.authenticationMailer = authenticationMailer;
@@ -49,6 +50,7 @@ public class AuthenticationManager : IAuthenticationManager
         this.randomTokenGenerator = randomTokenGenerator;
         this.urlHelperFactory = urlHelperFactory;
         this.userDataProvider = userDataProvider;
+        this.userPrincipalFactory = userPrincipalFactory;
     }
 
     public async Task<User?> Authenticate(string email, string password)
@@ -306,15 +308,8 @@ public class AuthenticationManager : IAuthenticationManager
 
     private async Task SignInUser(HttpContext httpContext, User user)
     {
-        var claims = new Claim[]
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-            new(ClaimTypes.Email, user.Email),
-            new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
-        };
-
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(
-            claims, CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Email, null));
+        var principal = this.userPrincipalFactory.Create(
+            user, CookieAuthenticationDefaults.AuthenticationScheme);
 
         await this.authenticationService.SignInAsync(
             httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);

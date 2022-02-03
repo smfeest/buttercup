@@ -285,33 +285,10 @@ public class AuthenticationManagerTests
     {
         var fixture = ChangePasswordFixture.ForSuccess();
 
-        fixture.MockAuthenticationService
-            .Setup(x => x.SignInAsync(
-                fixture.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                It.IsAny<ClaimsPrincipal>(),
-                null))
-            .Callback<HttpContext, string, ClaimsPrincipal, AuthenticationProperties>(
-                (contextArg, scheme, principal, properties) =>
-                {
-                    Assert.Equal(
-                        fixture.User.Id.ToString(CultureInfo.InvariantCulture),
-                        principal.FindFirstValue(ClaimTypes.NameIdentifier));
-                    Assert.Equal(
-                        fixture.User.Email,
-                        principal.FindFirstValue(ClaimTypes.Email));
-                    Assert.Equal(
-                        fixture.NewSecurityStamp,
-                        principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
-
-                    Assert.Equal(fixture.User.Email, principal.Identity!.Name);
-                })
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
         await fixture.ChangePassword();
 
-        fixture.MockAuthenticationService.Verify();
+        fixture.MockAuthenticationService.Verify(x => x.SignInAsync(fixture.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme, fixture.UpdatedPrincipal, null));
     }
 
     [Fact]
@@ -340,6 +317,13 @@ public class AuthenticationManagerTests
             this.MockRandomTokenGenerator
                 .Setup(x => x.Generate(2))
                 .Returns(this.NewSecurityStamp);
+
+            var userForUpdatedPrincipal = this.User with { SecurityStamp = NewSecurityStamp };
+
+            this.MockUserPrincipalFactory
+                .Setup(x => x.Create(
+                    userForUpdatedPrincipal, CookieAuthenticationDefaults.AuthenticationScheme))
+                .Returns(this.UpdatedPrincipal);
         }
 
         public DefaultHttpContext HttpContext { get; } = new();
@@ -351,6 +335,8 @@ public class AuthenticationManagerTests
         public string HashedNewPassword { get; } = "hashed-new-password";
 
         public string NewSecurityStamp { get; } = "new-security-stamp";
+
+        public ClaimsPrincipal UpdatedPrincipal { get; } = new();
 
         public static ChangePasswordFixture ForUserHasNoPassword() => new(null);
 
@@ -737,33 +723,10 @@ public class AuthenticationManagerTests
     {
         var fixture = new SignInFixture();
 
-        fixture.MockAuthenticationService
-            .Setup(x => x.SignInAsync(
-                fixture.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                It.IsAny<ClaimsPrincipal>(),
-                null))
-            .Callback<HttpContext, string, ClaimsPrincipal, AuthenticationProperties>(
-                (contextArg, scheme, principal, properties) =>
-                {
-                    Assert.Equal(
-                        fixture.User.Id.ToString(CultureInfo.InvariantCulture),
-                        principal.FindFirstValue(ClaimTypes.NameIdentifier));
-                    Assert.Equal(
-                        fixture.User.Email,
-                        principal.FindFirstValue(ClaimTypes.Email));
-                    Assert.Equal(
-                        fixture.User.SecurityStamp,
-                        principal.FindFirstValue(CustomClaimTypes.SecurityStamp));
-
-                    Assert.Equal(fixture.User.Email, principal.Identity!.Name);
-                })
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
         await fixture.SignIn();
 
-        fixture.MockAuthenticationService.Verify();
+        fixture.MockAuthenticationService.Verify(x => x.SignInAsync(fixture.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme, fixture.UserPrincipal, null));
     }
 
     [Fact]
@@ -791,9 +754,16 @@ public class AuthenticationManagerTests
 
     private class SignInFixture : AuthenticationManagerFixture
     {
+        public SignInFixture() =>
+            this.MockUserPrincipalFactory
+                .Setup(x => x.Create(this.User, CookieAuthenticationDefaults.AuthenticationScheme))
+                .Returns(this.UserPrincipal);
+
         public DefaultHttpContext HttpContext { get; } = new();
 
         public User User { get; } = ModelFactory.CreateUser();
+
+        public ClaimsPrincipal UserPrincipal { get; } = new();
 
         public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
     }
@@ -1024,7 +994,8 @@ public class AuthenticationManagerTests
                 this.MockPasswordResetTokenDataProvider.Object,
                 this.MockRandomTokenGenerator.Object,
                 this.MockUrlHelperFactory.Object,
-                this.MockUserDataProvider.Object);
+                this.MockUserDataProvider.Object,
+                this.MockUserPrincipalFactory.Object);
         }
 
         public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
@@ -1048,6 +1019,8 @@ public class AuthenticationManagerTests
         public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } = new();
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
+
+        public Mock<IUserPrincipalFactory> MockUserPrincipalFactory { get; } = new();
 
         public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 

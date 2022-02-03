@@ -77,6 +77,7 @@ services
     .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
     .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
     .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>()
+    .AddTransient<IUserPrincipalFactory, UserPrincipalFactory>()
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
     .AddSingleton<IAssetManifestSource, AssetManifestSource>()
