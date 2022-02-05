@@ -10,6 +10,7 @@ using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -120,10 +121,17 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapGraphQL().WithOptions(new()
-{
-    EnableSchemaRequests = isDevelopment,
-    Tool = { Enable = isDevelopment }
-});
+
+app.MapGraphQL()
+    .WithOptions(new()
+    {
+        EnableSchemaRequests = isDevelopment,
+        Tool = { Enable = isDevelopment }
+    })
+    .RequireAuthorization(new AuthorizeAttribute
+    {
+        AuthenticationSchemes = TokenAuthenticationDefaults.AuthenticationScheme
+    })
+    .AllowAnonymous();
 
 app.Run();
