@@ -8,7 +8,9 @@ using Buttercup.Web.Api;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +37,7 @@ services.AddControllersWithViews()
 
 services.AddGraphQLServer()
     .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
     .AddTypeExtension<UserExtension>()
     .AllowIntrospection(isDevelopment)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
@@ -60,7 +63,9 @@ services
         };
         options.EventsType = typeof(CookieAuthenticationEventsHandler);
         options.LoginPath = "/sign-in";
-    });
+    })
+    .AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(
+        TokenAuthenticationDefaults.AuthenticationScheme, null);
 
 services
     .Configure<Bugsnag.Configuration>(configuration.GetSection("Bugsnag"))
@@ -68,11 +73,15 @@ services
 
 services
     .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
+    .AddTransient<IAccessTokenEncoder, AccessTokenEncoder>()
+    .AddTransient<IAccessTokenSerializer, AccessTokenSerializer>()
     .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
     .AddTransient<IAuthenticationManager, AuthenticationManager>()
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
     .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
+    .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>()
+    .AddTransient<IUserPrincipalFactory, UserPrincipalFactory>()
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
     .AddSingleton<IAssetManifestSource, AssetManifestSource>()
@@ -112,10 +121,17 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapGraphQL().WithOptions(new()
-{
-    EnableSchemaRequests = isDevelopment,
-    Tool = { Enable = isDevelopment }
-});
+
+app.MapGraphQL()
+    .WithOptions(new()
+    {
+        EnableSchemaRequests = isDevelopment,
+        Tool = { Enable = isDevelopment }
+    })
+    .RequireAuthorization(new AuthorizeAttribute
+    {
+        AuthenticationSchemes = TokenAuthenticationDefaults.AuthenticationScheme
+    })
+    .AllowAnonymous();
 
 app.Run();
