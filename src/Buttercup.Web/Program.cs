@@ -4,6 +4,7 @@ using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.Models;
+using Buttercup.Web.Api;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
@@ -14,6 +15,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var isDevelopment = builder.Environment.IsDevelopment();
 
 var services = builder.Services;
 var configuration = builder.Configuration;
@@ -29,6 +32,12 @@ services.AddControllersWithViews()
     {
         options.HtmlHelperOptions.ClientValidationEnabled = false;
     });
+
+services.AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddTypeExtension<UserExtension>()
+    .AllowIntrospection(isDevelopment)
+    .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
@@ -73,7 +82,7 @@ services
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+if (!isDevelopment)
 {
     app.UseExceptionHandler("/error");
 }
@@ -103,5 +112,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGraphQL().WithOptions(new()
+{
+    EnableSchemaRequests = isDevelopment,
+    Tool = { Enable = isDevelopment }
+});
 
 app.Run();

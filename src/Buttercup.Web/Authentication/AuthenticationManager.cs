@@ -238,7 +238,7 @@ public class AuthenticationManager : IAuthenticationManager
     {
         await this.SignOutCurrentUser(httpContext);
 
-        var userId = GetUserId(httpContext.User);
+        var userId = httpContext.User.GetUserId();
 
         if (userId.HasValue)
         {
@@ -256,7 +256,7 @@ public class AuthenticationManager : IAuthenticationManager
     {
         var principal = context.Principal;
 
-        var userId = GetUserId(principal);
+        var userId = principal?.GetUserId();
 
         if (userId.HasValue)
         {
@@ -285,13 +285,6 @@ public class AuthenticationManager : IAuthenticationManager
                 await this.SignOutCurrentUser(context.HttpContext);
             }
         }
-    }
-
-    private static long? GetUserId(ClaimsPrincipal? principal)
-    {
-        var claimValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        return claimValue == null ? null : long.Parse(claimValue, CultureInfo.InvariantCulture);
     }
 
     private static string RedactToken(string token) => $"{token[..6]}…";
