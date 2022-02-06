@@ -6,6 +6,7 @@ public class TimeZoneOptionCollectionExtensionsTests
 {
     #region AsSelectListItems
 
+    [Fact]
     public void AsSelectListItemsConvertsTimeZoneOptionsToSelectListItems()
     {
         var timeZoneOption = new TimeZoneOption(
