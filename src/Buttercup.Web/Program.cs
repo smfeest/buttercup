@@ -36,6 +36,7 @@ services.AddControllersWithViews()
     });
 
 services.AddGraphQLServer()
+    .AddDataLoader<IUserLoader, UserLoader>()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddTypeExtension<UserExtension>()
