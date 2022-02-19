@@ -39,6 +39,32 @@ internal sealed class UserDataProvider : IUserDataProvider
     }
 
     /// <inheritdoc />
+    public async Task<IList<User>> GetUsers(
+        MySqlConnection connection, IReadOnlyCollection<long> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return Array.Empty<User>();
+        }
+
+        using var command = connection.CreateCommand();
+
+        command.CommandText =
+            $"SELECT * FROM user WHERE id IN ({string.Join(',', ids)}) ORDER BY id";
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        var users = new List<User>();
+
+        while (await reader.ReadAsync())
+        {
+            users.Add(ReadUser(reader));
+        }
+
+        return users;
+    }
+
+    /// <inheritdoc />
     public async Task UpdatePassword(
         MySqlConnection connection, long userId, string hashedPassword, string securityStamp)
     {
