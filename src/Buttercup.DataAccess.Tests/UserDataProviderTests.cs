@@ -76,6 +76,40 @@ public class UserDataProviderTests
 
     #endregion
 
+    #region GetUsers
+
+    [Fact]
+    public async Task GetUsersReturnsUsersWithMatchingIds()
+    {
+        using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        var allUsers = new[]
+        {
+            await sampleDataHelper.InsertUser(),
+            await sampleDataHelper.InsertUser(),
+            await sampleDataHelper.InsertUser(),
+        };
+
+        var expected = new[] { allUsers[0], allUsers[2] };
+
+        var actual = await this.userDataProvider.GetUsers(
+            connection, new[] { allUsers[0].Id, allUsers[2].Id });
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task GetUsersReturnsEmptyListIdListIsEmpty()
+    {
+        using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+        Assert.Empty(await this.userDataProvider.GetUsers(connection, Array.Empty<long>()));
+    }
+
+    #endregion
+
     #region UpdatePassword
 
     [Fact]

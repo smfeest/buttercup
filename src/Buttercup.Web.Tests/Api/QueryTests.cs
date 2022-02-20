@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Buttercup.DataAccess;
+using Buttercup.Models;
 using Buttercup.TestUtils;
 using Moq;
 using MySqlConnector;
@@ -40,6 +41,23 @@ public class QueryTests
     public async Task CurrentUserReturnsNullWhenNotAuthenticated() =>
         Assert.Null(
             await this.query.CurrentUser(Mock.Of<IUserDataProvider>(), new ClaimsPrincipal()));
+
+    #endregion
+
+    #region Recipes
+
+    [Fact]
+    public async Task RecipesReturnsAllRecipes()
+    {
+        IList<Recipe> expected = new[] { ModelFactory.CreateRecipe() };
+
+        var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
+            x => x.GetRecipes(this.mySqlConnection) == Task.FromResult(expected));
+
+        var actual = await this.query.Recipes(recipeDataProvider);
+
+        Assert.Equal(expected, actual);
+    }
 
     #endregion
 }

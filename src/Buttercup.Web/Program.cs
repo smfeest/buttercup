@@ -36,9 +36,12 @@ services.AddControllersWithViews()
     });
 
 services.AddGraphQLServer()
+    .AddAuthorization()
+    .AddDataLoader<IUserLoader, UserLoader>()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddTypeExtension<UserExtension>()
+    .AddTypeExtension<RecipeExtension>()
     .AllowIntrospection(isDevelopment)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
 

@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Bugsnag.AspNet.Core" Version="3.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="12.6.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.6.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />

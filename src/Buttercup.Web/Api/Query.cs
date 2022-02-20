@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
+using HotChocolate.AspNetCore.Authorization;
 
 namespace Buttercup.Web.Api;
 
@@ -25,5 +26,13 @@ public sealed class Query
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
         return await userDataProvider.GetUser(connection, userId.Value);
+    }
+
+    [Authorize]
+    public async Task<IList<Recipe>> Recipes([Service] IRecipeDataProvider recipeDataProvider)
+    {
+        using var connection = await this.mySqlConnectionSource.OpenConnection();
+
+        return await recipeDataProvider.GetRecipes(connection);
     }
 }

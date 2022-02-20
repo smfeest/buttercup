@@ -41,6 +41,20 @@ public interface IUserDataProvider
     Task<User> GetUser(MySqlConnection connection, long id);
 
     /// <summary>
+    /// Gets a batch of users.
+    /// </summary>
+    /// <param name="connection">
+    /// The database connection.
+    /// </param>
+    /// <param name="ids">
+    /// The user IDs.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result the list of users with matching IDs.
+    /// </returns>
+    Task<IList<User>> GetUsers(MySqlConnection connection, IReadOnlyCollection<long> ids);
+
+    /// <summary>
     /// Updates a user's password.
     /// </summary>
     /// <param name="connection">
