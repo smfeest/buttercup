@@ -44,6 +44,21 @@ public class QueryTests
 
     #endregion
 
+    #region Recipe
+
+    [Fact]
+    public async Task RecipeReturnsRecipe()
+    {
+        var recipe = ModelFactory.CreateRecipe();
+
+        var recipeLoader = Mock.Of<IRecipeLoader>(
+            x => x.LoadAsync(recipe.Id, default) == Task.FromResult(recipe));
+
+        Assert.Equal(recipe, await this.query.Recipe(recipeLoader, recipe.Id));
+    }
+
+    #endregion
+
     #region Recipes
 
     [Fact]
