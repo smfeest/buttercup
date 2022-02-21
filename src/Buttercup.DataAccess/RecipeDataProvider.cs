@@ -76,6 +76,15 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     }
 
     /// <inheritdoc />
+    public async Task<IList<Recipe>> GetRecipes(
+        MySqlConnection connection, IReadOnlyCollection<long> ids) =>
+        ids.Count == 0 ?
+            Array.Empty<Recipe>() :
+            await GetRecipes(
+                connection,
+                $"SELECT * FROM recipe WHERE id IN ({string.Join(',', ids)}) ORDER BY id");
+
+    /// <inheritdoc />
     public async Task UpdateRecipe(
         MySqlConnection connection,
         long id,

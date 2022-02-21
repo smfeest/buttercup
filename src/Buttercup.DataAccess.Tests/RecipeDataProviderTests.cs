@@ -285,6 +285,40 @@ public class RecipeDataProviderTests
 
     #endregion
 
+    #region GetRecipes
+
+    [Fact]
+    public async Task GetRecipesReturnsRecipesWithMatchingIds()
+    {
+        using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        var allRecipes = new[]
+        {
+            await sampleDataHelper.InsertRecipe(),
+            await sampleDataHelper.InsertRecipe(),
+            await sampleDataHelper.InsertRecipe(),
+        };
+
+        var expected = new[] { allRecipes[0], allRecipes[2] };
+
+        var actual = await this.recipeDataProvider.GetRecipes(
+            connection, new[] { allRecipes[0].Id, allRecipes[2].Id });
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task GetRecipesReturnsEmptyListWhenIdListIsEmpty()
+    {
+        using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+        Assert.Empty(await this.recipeDataProvider.GetRecipes(connection, Array.Empty<long>()));
+    }
+
+    #endregion
+
     #region UpdateRecipe
 
     [Fact]

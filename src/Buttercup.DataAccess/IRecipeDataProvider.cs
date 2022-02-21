@@ -98,6 +98,20 @@ public interface IRecipeDataProvider
     Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection);
 
     /// <summary>
+    /// Gets a batch of recipes.
+    /// </summary>
+    /// <param name="connection">
+    /// The database connection.
+    /// </param>
+    /// <param name="ids">
+    /// The recipe IDs.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result the list of recipes with matching IDs.
+    /// </returns>
+    Task<IList<Recipe>> GetRecipes(MySqlConnection connection, IReadOnlyCollection<long> ids);
+
+    /// <summary>
     /// Updates a recipe.
     /// </summary>
     /// <param name="connection">
