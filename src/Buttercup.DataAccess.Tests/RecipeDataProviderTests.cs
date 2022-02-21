@@ -115,7 +115,7 @@ public class RecipeDataProviderTests
 
         await this.recipeDataProvider.DeleteRecipe(connection, recipe.Id);
 
-        Assert.Empty(await this.recipeDataProvider.GetRecipes(connection));
+        Assert.Empty(await this.recipeDataProvider.GetAllRecipes(connection));
     }
 
     [Fact]
@@ -131,6 +131,35 @@ public class RecipeDataProviderTests
             () => this.recipeDataProvider.DeleteRecipe(connection, id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
+    }
+
+    #endregion
+
+    #region GetAllRecipes
+
+    [Fact]
+    public async Task GetAllRecipesReturnsAllRecipesInTitleOrder()
+    {
+        using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+        var sampleDataHelper = new SampleDataHelper(connection);
+
+        var recipeB = await sampleDataHelper.InsertRecipe(
+            ModelFactory.CreateRecipe() with { Title = "recipe-title-b" });
+        var recipeC = await sampleDataHelper.InsertRecipe(
+            ModelFactory.CreateRecipe() with { Title = "recipe-title-c" });
+        var recipeA = await sampleDataHelper.InsertRecipe(
+            ModelFactory.CreateRecipe() with { Title = "recipe-title-a" });
+
+        var expected = new Recipe[] {
+            recipeA,
+            recipeB,
+            recipeC,
+        };
+
+        var actual = await this.recipeDataProvider.GetAllRecipes(connection);
+
+        Assert.Equal(expected, actual);
     }
 
     #endregion
@@ -162,35 +191,6 @@ public class RecipeDataProviderTests
             () => this.recipeDataProvider.GetRecipe(connection, id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
-    }
-
-    #endregion
-
-    #region GetRecipes
-
-    [Fact]
-    public async Task GetRecipesReturnsAllRecipesInTitleOrder()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var sampleDataHelper = new SampleDataHelper(connection);
-
-        var recipeB = await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe() with { Title = "recipe-title-b" });
-        var recipeC = await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe() with { Title = "recipe-title-c" });
-        var recipeA = await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe() with { Title = "recipe-title-a" });
-
-        var expected = new Recipe[] {
-            recipeA,
-            recipeB,
-            recipeC,
-        };
-
-        var actual = await this.recipeDataProvider.GetRecipes(connection);
-
-        Assert.Equal(expected, actual);
     }
 
     #endregion

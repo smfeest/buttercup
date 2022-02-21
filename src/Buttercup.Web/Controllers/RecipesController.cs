@@ -33,7 +33,7 @@ public class RecipesController : Controller
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        return this.View(await this.recipeDataProvider.GetRecipes(connection));
+        return this.View(await this.recipeDataProvider.GetAllRecipes(connection));
     }
 
     [HttpGet("{id}")]

@@ -52,7 +52,7 @@ public class QueryTests
         IList<Recipe> expected = new[] { ModelFactory.CreateRecipe() };
 
         var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
-            x => x.GetRecipes(this.mySqlConnection) == Task.FromResult(expected));
+            x => x.GetAllRecipes(this.mySqlConnection) == Task.FromResult(expected));
 
         var actual = await this.query.Recipes(recipeDataProvider);
 

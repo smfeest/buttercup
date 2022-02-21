@@ -33,6 +33,6 @@ public sealed class Query
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
 
-        return await recipeDataProvider.GetRecipes(connection);
+        return await recipeDataProvider.GetAllRecipes(connection);
     }
 }
