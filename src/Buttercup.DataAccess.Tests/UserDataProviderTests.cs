@@ -101,7 +101,7 @@ public class UserDataProviderTests
     }
 
     [Fact]
-    public async Task GetUsersReturnsEmptyListIdListIsEmpty()
+    public async Task GetUsersReturnsEmptyListWhenIdListIsEmpty()
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
