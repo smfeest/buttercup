@@ -25,7 +25,7 @@ public class RecipesControllerTests
         IList<Recipe> recipes = Array.Empty<Recipe>();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecipes(fixture.MySqlConnection))
+            .Setup(x => x.GetAllRecipes(fixture.MySqlConnection))
             .ReturnsAsync(recipes);
 
         var result = await fixture.RecipesController.Index();

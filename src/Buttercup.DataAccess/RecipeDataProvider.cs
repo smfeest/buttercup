@@ -43,6 +43,10 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     }
 
     /// <inheritdoc />
+    public Task<IList<Recipe>> GetAllRecipes(MySqlConnection connection) =>
+        GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
+
+    /// <inheritdoc />
     public async Task<Recipe> GetRecipe(MySqlConnection connection, long id)
     {
         using var command = connection.CreateCommand();
@@ -54,10 +58,6 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
 
         return await reader.ReadAsync() ? ReadRecipe(reader) : throw RecipeNotFound(id);
     }
-
-    /// <inheritdoc />
-    public Task<IList<Recipe>> GetRecipes(MySqlConnection connection) =>
-        GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
 
     /// <inheritdoc />
     public Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection) =>
@@ -74,6 +74,15 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
 
         return GetRecipes(connection, query);
     }
+
+    /// <inheritdoc />
+    public async Task<IList<Recipe>> GetRecipes(
+        MySqlConnection connection, IReadOnlyCollection<long> ids) =>
+        ids.Count == 0 ?
+            Array.Empty<Recipe>() :
+            await GetRecipes(
+                connection,
+                $"SELECT * FROM recipe WHERE id IN ({string.Join(',', ids)}) ORDER BY id");
 
     /// <inheritdoc />
     public async Task UpdateRecipe(

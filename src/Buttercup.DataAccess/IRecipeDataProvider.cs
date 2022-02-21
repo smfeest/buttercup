@@ -44,6 +44,17 @@ public interface IRecipeDataProvider
     Task DeleteRecipe(MySqlConnection connection, long id);
 
     /// <summary>
+    /// Gets all the recipes ordered by title.
+    /// </summary>
+    /// <param name="connection">
+    /// The database connection.
+    /// </param>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    Task<IList<Recipe>> GetAllRecipes(MySqlConnection connection);
+
+    /// <summary>
     /// Gets a recipe.
     /// </summary>
     /// <param name="connection">
@@ -59,17 +70,6 @@ public interface IRecipeDataProvider
     /// No matching recipe was found.
     /// </exception>
     Task<Recipe> GetRecipe(MySqlConnection connection, long id);
-
-    /// <summary>
-    /// Gets all the recipes ordered by title.
-    /// </summary>
-    /// <param name="connection">
-    /// The database connection.
-    /// </param>
-    /// <returns>
-    /// A task for the operation.
-    /// </returns>
-    Task<IList<Recipe>> GetRecipes(MySqlConnection connection);
 
     /// <summary>
     /// Gets the ten most recently added recipes.
@@ -96,6 +96,20 @@ public interface IRecipeDataProvider
     /// A task for the operation.
     /// </returns>
     Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection);
+
+    /// <summary>
+    /// Gets a batch of recipes.
+    /// </summary>
+    /// <param name="connection">
+    /// The database connection.
+    /// </param>
+    /// <param name="ids">
+    /// The recipe IDs.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result the list of recipes with matching IDs.
+    /// </returns>
+    Task<IList<Recipe>> GetRecipes(MySqlConnection connection, IReadOnlyCollection<long> ids);
 
     /// <summary>
     /// Updates a recipe.
