@@ -37,6 +37,7 @@ services.AddControllersWithViews()
 
 services.AddGraphQLServer()
     .AddAuthorization()
+    .AddDataLoader<IRecipeLoader, RecipeLoader>()
     .AddDataLoader<IUserLoader, UserLoader>()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
