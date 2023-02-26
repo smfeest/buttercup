@@ -274,12 +274,6 @@ public class RecipesControllerTests
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.RecipesController != null)
-            {
-                this.RecipesController.Dispose();
-            }
-        }
+        public void Dispose() => this.RecipesController?.Dispose();
     }
 }

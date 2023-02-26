@@ -376,12 +376,6 @@ public class AuthenticationControllerTests
 
         public Mock<IUrlHelper> MockUrlHelper { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.AuthenticationController != null)
-            {
-                this.AuthenticationController.Dispose();
-            }
-        }
+        public void Dispose() => this.AuthenticationController?.Dispose();
     }
 }

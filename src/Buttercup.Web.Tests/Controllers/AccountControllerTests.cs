@@ -224,12 +224,6 @@ public class AccountControllerTests
 
         public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.AccountController != null)
-            {
-                this.AccountController.Dispose();
-            }
-        }
+        public void Dispose() => this.AccountController?.Dispose();
     }
 }

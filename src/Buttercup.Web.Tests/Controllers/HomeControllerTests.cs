@@ -55,12 +55,6 @@ public class HomeControllerTests
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.HomeController != null)
-            {
-                this.HomeController.Dispose();
-            }
-        }
+        public void Dispose() => this.HomeController?.Dispose();
     }
 }
