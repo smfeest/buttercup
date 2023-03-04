@@ -370,7 +370,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
     {
-        var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
+        var fixture = PasswordResetTokenFixture.ForValidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
@@ -381,7 +381,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidLogsIfValid()
     {
-        var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
+        var fixture = PasswordResetTokenFixture.ForValidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
@@ -393,7 +393,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
     {
-        var fixture = PasswordResetTokenIsValidFixture.ForValidToken();
+        var fixture = PasswordResetTokenFixture.ForValidToken();
 
         Assert.True(await fixture.PasswordResetTokenIsValid());
     }
@@ -401,7 +401,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidLogsIfInvalid()
     {
-        var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
+        var fixture = PasswordResetTokenFixture.ForInvalidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
@@ -415,18 +415,18 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
     {
-        var fixture = PasswordResetTokenIsValidFixture.ForInvalidToken();
+        var fixture = PasswordResetTokenFixture.ForInvalidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
         Assert.False(await fixture.PasswordResetTokenIsValid());
     }
 
-    private class PasswordResetTokenIsValidFixture : AuthenticationManagerFixture
+    private class PasswordResetTokenFixture : AuthenticationManagerFixture
     {
         private const string Token = "password-reset-token";
 
-        private PasswordResetTokenIsValidFixture(long? userId)
+        private PasswordResetTokenFixture(long? userId)
         {
             this.UserId = userId;
             this.SetupGetUserIdForToken(Token, userId);
@@ -436,9 +436,9 @@ public class AuthenticationManagerTests
 
         public long? UserId { get; }
 
-        public static PasswordResetTokenIsValidFixture ForValidToken() => new(43);
+        public static PasswordResetTokenFixture ForValidToken() => new(43);
 
-        public static PasswordResetTokenIsValidFixture ForInvalidToken() => new(null);
+        public static PasswordResetTokenFixture ForInvalidToken() => new(null);
 
         public Task<bool> PasswordResetTokenIsValid() =>
             this.AuthenticationManager.PasswordResetTokenIsValid(Token);
