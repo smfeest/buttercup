@@ -296,14 +296,14 @@ public class AuthenticationManager : IAuthenticationManager
     {
         var hashedPassword = this.passwordHasher.HashPassword(null, newPassword);
 
-        var securityToken = this.randomTokenGenerator.Generate(2);
+        var securityStamp = this.randomTokenGenerator.Generate(2);
 
         await this.userDataProvider.UpdatePassword(
-            connection, userId, hashedPassword, securityToken);
+            connection, userId, hashedPassword, securityStamp);
 
         await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
 
-        return securityToken;
+        return securityStamp;
     }
 
     private async Task SignInUser(HttpContext httpContext, User user)
