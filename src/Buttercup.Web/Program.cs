@@ -76,7 +76,7 @@ services
     .AddBugsnag();
 
 services
-    .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
+    .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
     .AddTransient<IAccessTokenEncoder, AccessTokenEncoder>()
     .AddTransient<IAccessTokenSerializer, AccessTokenSerializer>()
     .AddTransient<IAuthenticationMailer, AuthenticationMailer>()

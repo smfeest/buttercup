@@ -18,7 +18,7 @@ public class AuthenticationManager : IAuthenticationManager
     private readonly IClock clock;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly ILogger<AuthenticationManager> logger;
-    private readonly IPasswordHasher<User?> passwordHasher;
+    private readonly IPasswordHasher<User> passwordHasher;
     private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
     private readonly IRandomTokenGenerator randomTokenGenerator;
     private readonly IUrlHelperFactory urlHelperFactory;
@@ -32,7 +32,7 @@ public class AuthenticationManager : IAuthenticationManager
         IClock clock,
         IMySqlConnectionSource mySqlConnectionSource,
         ILogger<AuthenticationManager> logger,
-        IPasswordHasher<User?> passwordHasher,
+        IPasswordHasher<User> passwordHasher,
         IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
         IRandomTokenGenerator randomTokenGenerator,
         IUrlHelperFactory urlHelperFactory,
@@ -79,7 +79,7 @@ public class AuthenticationManager : IAuthenticationManager
             return null;
         }
 
-        if (!this.VerifyPassword(user, password))
+        if (!this.VerifyPassword(user, user.HashedPassword, password))
         {
             AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
@@ -113,7 +113,7 @@ public class AuthenticationManager : IAuthenticationManager
                 $"User {user.Id} ({user.Email}) does not have a password.");
         }
 
-        if (!this.VerifyPassword(user, currentPassword))
+        if (!this.VerifyPassword(user, user.HashedPassword, currentPassword))
         {
             ChangePasswordLogMessages.IncorrectPassword(
                 this.logger, user.Id, user.Email, null);
@@ -124,7 +124,7 @@ public class AuthenticationManager : IAuthenticationManager
             return false;
         }
 
-        var newSecurityStamp = await this.SetPassword(connection, user.Id, newPassword);
+        var newSecurityStamp = await this.SetPassword(connection, user, newPassword);
 
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
@@ -176,18 +176,18 @@ public class AuthenticationManager : IAuthenticationManager
             throw new InvalidTokenException("Password reset token is invalid");
         }
 
-        await this.SetPassword(connection, userId.Value, newPassword);
+        var user = await this.userDataProvider.GetUser(connection, userId.Value);
+
+        var newSecurityStamp = await this.SetPassword(connection, user, newPassword);
 
         ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
         await this.authenticationEventDataProvider.LogEvent(
             connection, "password_reset_success", userId.Value);
 
-        var user = await this.userDataProvider.GetUser(connection, userId.Value);
-
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
-        return user;
+        return user with { SecurityStamp = newSecurityStamp };
     }
 
     public async Task SendPasswordResetLink(ActionContext actionContext, string email)
@@ -258,50 +258,57 @@ public class AuthenticationManager : IAuthenticationManager
     {
         var principal = context.Principal;
 
-        var userId = principal?.GetUserId();
-
-        if (userId.HasValue)
+        if (principal == null)
         {
-            User user;
+            return;
+        }
 
-            using (var connection = await this.mySqlConnectionSource.OpenConnection())
-            {
-                user = await this.userDataProvider.GetUser(connection, userId.Value);
-            }
+        var userId = principal.GetUserId();
 
-            var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
+        if (!userId.HasValue)
+        {
+            return;
+        }
 
-            if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
-            {
-                context.HttpContext.SetCurrentUser(user);
+        User user;
 
-                ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
-            }
-            else
-            {
-                ValidatePrincipalLogMessages.IncorrectSecurityStamp(
-                    this.logger, user.Id, user.Email, null);
+        using (var connection = await this.mySqlConnectionSource.OpenConnection())
+        {
+            user = await this.userDataProvider.GetUser(connection, userId.Value);
+        }
 
-                context.RejectPrincipal();
+        var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
 
-                await this.SignOutCurrentUser(context.HttpContext);
-            }
+        if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
+        {
+            context.HttpContext.SetCurrentUser(user);
+
+            ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
+        }
+        else
+        {
+            ValidatePrincipalLogMessages.IncorrectSecurityStamp(
+                this.logger, user.Id, user.Email, null);
+
+            context.RejectPrincipal();
+
+            await this.SignOutCurrentUser(context.HttpContext);
         }
     }
 
     private static string RedactToken(string token) => $"{token[..6]}…";
 
     private async Task<string> SetPassword(
-        MySqlConnection connection, long userId, string newPassword)
+        MySqlConnection connection, User user, string newPassword)
     {
-        var hashedPassword = this.passwordHasher.HashPassword(null, newPassword);
+        var hashedPassword = this.passwordHasher.HashPassword(user, newPassword);
 
         var securityStamp = this.randomTokenGenerator.Generate(2);
 
         await this.userDataProvider.UpdatePassword(
-            connection, userId, hashedPassword, securityStamp);
+            connection, user.Id, hashedPassword, securityStamp);
 
-        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, userId);
+        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, user.Id);
 
         return securityStamp;
     }
@@ -328,8 +335,8 @@ public class AuthenticationManager : IAuthenticationManager
         return await this.passwordResetTokenDataProvider.GetUserIdForToken(connection, token);
     }
 
-    private bool VerifyPassword(User user, string password) =>
-        this.passwordHasher.VerifyHashedPassword(user, user.HashedPassword, password) ==
+    private bool VerifyPassword(User user, string hashedPassword, string password) =>
+        this.passwordHasher.VerifyHashedPassword(user, hashedPassword, password) ==
             PasswordVerificationResult.Success;
 
     private static class AuthenticateLogMessages
@@ -418,8 +425,8 @@ public class AuthenticationManager : IAuthenticationManager
 
     private static class SignOutLogMessages
     {
-        public static readonly Action<ILogger, long, string, Exception?> SignedOut =
-            LoggerMessage.Define<long, string>(
+        public static readonly Action<ILogger, long, string?, Exception?> SignedOut =
+            LoggerMessage.Define<long, string?>(
                 LogLevel.Information, 213, "User {UserId} ({Email}) signed out");
     }
 

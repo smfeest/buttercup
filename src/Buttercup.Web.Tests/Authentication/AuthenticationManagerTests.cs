@@ -227,7 +227,7 @@ public class AuthenticationManagerTests
         await fixture.ChangePassword();
 
         fixture.MockPasswordHasher.Verify(
-            x => x.HashPassword(null, fixture.NewPassword), Times.Never);
+            x => x.HashPassword(fixture.User, fixture.NewPassword), Times.Never);
     }
 
     [Fact]
@@ -311,7 +311,7 @@ public class AuthenticationManagerTests
             this.HttpContext.SetCurrentUser(this.User);
 
             this.MockPasswordHasher
-                .Setup(x => x.HashPassword(null, this.NewPassword))
+                .Setup(x => x.HashPassword(this.User, this.NewPassword))
                 .Returns(this.HashedNewPassword);
 
             this.MockRandomTokenGenerator
@@ -451,7 +451,9 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
     {
-        var fixture = ResetPasswordFixture.ForSuccess();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
@@ -462,7 +464,9 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordLogsIfTokenIsInvalid()
     {
-        var fixture = ResetPasswordFixture.ForInvalidToken();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupInvalidToken();
 
         try
         {
@@ -482,7 +486,9 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordThrowsIfTokenIsInvalid()
     {
-        var fixture = ResetPasswordFixture.ForInvalidToken();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupInvalidToken();
 
         await Assert.ThrowsAsync<InvalidTokenException>(fixture.ResetPassword);
     }
@@ -490,13 +496,15 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordUpdatesUserOnSuccess()
     {
-        var fixture = ResetPasswordFixture.ForSuccess();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
         fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
             fixture.MySqlConnection,
-            fixture.UserId!.Value,
+            fixture.User.Id,
             fixture.NewHashedPassword,
             fixture.NewSecurityStamp));
     }
@@ -504,18 +512,22 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordDeletesPasswordResetTokensOnSuccess()
     {
-        var fixture = ResetPasswordFixture.ForSuccess();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.UserId!.Value));
+            x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.User.Id));
     }
 
     [Fact]
     public async Task ResetPasswordSendsPasswordChangeNotificationOnSuccess()
     {
-        var fixture = ResetPasswordFixture.ForSuccess();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
@@ -526,25 +538,29 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordLogsOnSuccess()
     {
-        var fixture = ResetPasswordFixture.ForSuccess();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
         fixture.Logger.AssertSingleEntry(
             LogLevel.Information,
-            $"Password reset for user {fixture.UserId} using token {fixture.RedactedToken}");
+            $"Password reset for user {fixture.User.Id} using token {fixture.RedactedToken}");
 
-        fixture.AssertAuthenticationEventLogged("password_reset_success", fixture.UserId);
+        fixture.AssertAuthenticationEventLogged("password_reset_success", fixture.User.Id);
     }
 
     [Fact]
-    public async Task ResetPasswordReturnsUserOnSuccess()
+    public async Task ResetPasswordReturnsUserWithNewSecurityStampOnSuccess()
     {
-        var fixture = ResetPasswordFixture.ForSuccess();
+        var fixture = new ResetPasswordFixture();
+
+        fixture.SetupSuccess();
 
         var actual = await fixture.ResetPassword();
 
-        Assert.Equal(fixture.User, actual);
+        Assert.Equal(fixture.User with { SecurityStamp = fixture.NewSecurityStamp }, actual);
     }
 
     private class ResetPasswordFixture : AuthenticationManagerFixture
@@ -552,45 +568,28 @@ public class AuthenticationManagerTests
         private const string NewPassword = "new-password";
         private const string Token = "password-reset-token";
 
-        private ResetPasswordFixture()
+        public string RedactedToken { get; } = "passwo…";
+
+        public User User { get; } = ModelFactory.CreateUser();
+
+        public string NewHashedPassword { get; } = "new-hashed-password";
+
+        public string NewSecurityStamp { get; } = "new-security-stamp";
+
+        public void SetupInvalidToken() => this.SetupGetUserIdForToken(Token, null);
+
+        public void SetupSuccess()
         {
-        }
-
-        private ResetPasswordFixture(long? userId)
-        {
-            this.UserId = userId;
-            this.SetupGetUserIdForToken(Token, userId);
-        }
-
-        private ResetPasswordFixture(User user)
-            : this(user.Id)
-        {
-            this.User = user;
-
-            this.SetupGetUser(user.Id, user);
-
+            this.SetupGetUserIdForToken(Token, this.User.Id);
+            this.SetupGetUser(this.User.Id, this.User);
             this.MockPasswordHasher
-                .Setup(x => x.HashPassword(null, NewPassword))
+                .Setup(x => x.HashPassword(this.User, NewPassword))
                 .Returns(this.NewHashedPassword);
 
             this.MockRandomTokenGenerator
                 .Setup(x => x.Generate(2))
                 .Returns(this.NewSecurityStamp);
         }
-
-        public string RedactedToken { get; } = "passwo…";
-
-        public long? UserId { get; }
-
-        public User? User { get; }
-
-        public string NewHashedPassword { get; } = "new-hashed-password";
-
-        public string NewSecurityStamp { get; } = "new-security-stamp";
-
-        public static ResetPasswordFixture ForInvalidToken() => new();
-
-        public static ResetPasswordFixture ForSuccess() => new(ModelFactory.CreateUser());
 
         public Task<User> ResetPassword() =>
             this.AuthenticationManager.ResetPassword(Token, NewPassword);
@@ -1010,7 +1009,7 @@ public class AuthenticationManagerTests
 
         public Mock<IAuthenticationService> MockAuthenticationService { get; } = new();
 
-        public Mock<IPasswordHasher<User?>> MockPasswordHasher { get; } = new();
+        public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
 
         public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } = new();
 
