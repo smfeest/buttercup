@@ -4,7 +4,6 @@ using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.Models;
-using Buttercup.Web.Api;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
@@ -38,13 +37,8 @@ services.AddControllersWithViews()
     });
 
 services.AddGraphQLServer()
+    .AddApiTypes()
     .AddAuthorization()
-    .AddDataLoader<IRecipeLoader, RecipeLoader>()
-    .AddDataLoader<IUserLoader, UserLoader>()
-    .AddQueryType<Query>()
-    .AddMutationType<Mutation>()
-    .AddTypeExtension<UserExtension>()
-    .AddTypeExtension<RecipeExtension>()
     .AllowIntrospection(isDevelopment)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
 

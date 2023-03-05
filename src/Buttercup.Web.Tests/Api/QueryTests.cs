@@ -53,7 +53,7 @@ public sealed class QueryTests : IDisposable
     {
         var recipe = ModelFactory.CreateRecipe();
 
-        var recipeLoader = Mock.Of<IRecipeLoader>(
+        var recipeLoader = Mock.Of<IRecipesByIdDataLoader>(
             x => x.LoadAsync(recipe.Id, default) == Task.FromResult(recipe));
 
         Assert.Equal(recipe, await this.query.Recipe(recipeLoader, recipe.Id));

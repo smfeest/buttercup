@@ -17,6 +17,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
     <ProjectReference Include="..\Buttercup.Web\Buttercup.Web.csproj" />
     <ProjectReference Include="..\Buttercup.TestUtils\Buttercup.TestUtils.csproj" />
   </ItemGroup>

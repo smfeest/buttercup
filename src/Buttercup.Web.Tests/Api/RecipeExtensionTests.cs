@@ -1,5 +1,8 @@
+using Buttercup.DataAccess;
+using Buttercup.Models;
 using Buttercup.TestUtils;
 using Moq;
+using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -12,7 +15,7 @@ public class RecipeExtensionTests
     public async Task CreatedByUserReturnsNullWhenCreatedByUserIdIsNull()
     {
         var recipe = ModelFactory.CreateRecipe() with { CreatedByUserId = null };
-        var userLoader = Mock.Of<IUserLoader>(MockBehavior.Strict);
+        var userLoader = Mock.Of<IUsersByIdDataLoader>(MockBehavior.Strict);
 
         Assert.Null(await new RecipeExtension().CreatedByUser(recipe, userLoader));
     }
@@ -23,7 +26,7 @@ public class RecipeExtensionTests
         var user = ModelFactory.CreateUser();
         var recipe = ModelFactory.CreateRecipe() with { CreatedByUserId = user.Id };
 
-        var userLoader = Mock.Of<IUserLoader>(
+        var userLoader = Mock.Of<IUsersByIdDataLoader>(
             x => x.LoadAsync(user.Id, default) == Task.FromResult(user));
 
         Assert.Equal(
@@ -38,7 +41,7 @@ public class RecipeExtensionTests
     public async Task ModifiedByUserReturnsNullWhenModifiedByUserIdIsNull()
     {
         var recipe = ModelFactory.CreateRecipe() with { ModifiedByUserId = null };
-        var userLoader = Mock.Of<IUserLoader>(MockBehavior.Strict);
+        var userLoader = Mock.Of<IUsersByIdDataLoader>(MockBehavior.Strict);
 
         Assert.Null(await new RecipeExtension().ModifiedByUser(recipe, userLoader));
     }
@@ -49,11 +52,35 @@ public class RecipeExtensionTests
         var user = ModelFactory.CreateUser();
         var recipe = ModelFactory.CreateRecipe() with { ModifiedByUserId = user.Id };
 
-        var userLoader = Mock.Of<IUserLoader>(
+        var userLoader = Mock.Of<IUsersByIdDataLoader>(
             x => x.LoadAsync(user.Id, default) == Task.FromResult(user));
 
         Assert.Equal(
             user, await new RecipeExtension().ModifiedByUser(recipe, userLoader));
+    }
+
+    #endregion
+
+    #region GetRecipesByIdAsync
+
+    [Fact]
+    public async void GetRecipesByIdAsyncFetchesRecipesById()
+    {
+        using var mySqlConnection = new MySqlConnection();
+        var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
+            x => x.OpenConnection() == Task.FromResult(mySqlConnection));
+
+        IList<Recipe> recipes = new[] { ModelFactory.CreateRecipe(), ModelFactory.CreateRecipe() };
+        var recipeIds = recipes.Select(recipe => recipe.Id).ToArray();
+
+        var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
+            x => x.GetRecipes(mySqlConnection, recipeIds) == Task.FromResult(recipes));
+
+        var result = await RecipeExtension.GetRecipesByIdAsync(
+            recipeIds, mySqlConnectionSource, recipeDataProvider);
+
+        Assert.Equal(result[recipeIds[0]], recipes[0]);
+        Assert.Equal(result[recipeIds[1]], recipes[1]);
     }
 
     #endregion

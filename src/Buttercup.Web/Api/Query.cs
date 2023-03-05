@@ -2,10 +2,11 @@ using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
-using HotChocolate.AspNetCore.Authorization;
+using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
 
+[QueryType]
 public sealed class Query
 {
     private readonly IMySqlConnectionSource mySqlConnectionSource;
@@ -29,7 +30,8 @@ public sealed class Query
     }
 
     [Authorize]
-    public Task<Recipe> Recipe(IRecipeLoader recipeLoader, long id) => recipeLoader.LoadAsync(id);
+    public Task<Recipe> Recipe(IRecipesByIdDataLoader recipeLoader, long id) =>
+        recipeLoader.LoadAsync(id);
 
     [Authorize]
     public async Task<IList<Recipe>> Recipes([Service] IRecipeDataProvider recipeDataProvider)
