@@ -19,8 +19,7 @@ public class ListLogger<T> : ILogger<T>
         return entry;
     }
 
-    public IDisposable BeginScope<TState>(TState state) where TState : notnull =>
-        NullDisposable.Instance;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -31,13 +30,4 @@ public class ListLogger<T> : ILogger<T>
         Exception? exception,
         Func<TState, Exception?, string> formatter) =>
         this.entries.Add(new(logLevel, eventId, formatter(state, exception), state, exception));
-
-    private sealed class NullDisposable : IDisposable
-    {
-        public static NullDisposable Instance { get; } = new();
-
-        public void Dispose()
-        {
-        }
-    }
 }
