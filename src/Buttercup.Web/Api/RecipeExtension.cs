@@ -3,7 +3,7 @@ using Buttercup.Models;
 
 namespace Buttercup.Web.Api;
 
-[ExtendObjectType(typeof(Recipe))]
+[ExtendObjectType<Recipe>]
 public class RecipeExtension
 {
     [BindMember(nameof(Recipe.CreatedByUserId))]
