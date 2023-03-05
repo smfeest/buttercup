@@ -30,7 +30,8 @@ public sealed class Query
     }
 
     [Authorize]
-    public Task<Recipe> Recipe(IRecipeLoader recipeLoader, long id) => recipeLoader.LoadAsync(id);
+    public Task<Recipe> Recipe(IRecipesByIdDataLoader recipeLoader, long id) =>
+        recipeLoader.LoadAsync(id);
 
     [Authorize]
     public async Task<IList<Recipe>> Recipes([Service] IRecipeDataProvider recipeDataProvider)
