@@ -121,7 +121,7 @@ public class AuthenticationManagerTests
         Assert.Null(await fixture.Authenticate());
     }
 
-    private class AuthenticateFixture : AuthenticationManagerFixture
+    private sealed class AuthenticateFixture : AuthenticationManagerFixture
     {
         private const string Password = "user-password";
         private const string HashedPassword = "hashed-password";
@@ -299,7 +299,7 @@ public class AuthenticationManagerTests
         Assert.True(await fixture.ChangePassword());
     }
 
-    private class ChangePasswordFixture : AuthenticationManagerFixture
+    private sealed class ChangePasswordFixture : AuthenticationManagerFixture
     {
         private const string CurrentPassword = "current-password";
         private const string HashedCurrentPassword = "hashed-current-password";
@@ -422,7 +422,7 @@ public class AuthenticationManagerTests
         Assert.False(await fixture.PasswordResetTokenIsValid());
     }
 
-    private class PasswordResetTokenFixture : AuthenticationManagerFixture
+    private sealed class PasswordResetTokenFixture : AuthenticationManagerFixture
     {
         private const string Token = "password-reset-token";
 
@@ -563,7 +563,7 @@ public class AuthenticationManagerTests
         Assert.Equal(fixture.User with { SecurityStamp = fixture.NewSecurityStamp }, actual);
     }
 
-    private class ResetPasswordFixture : AuthenticationManagerFixture
+    private sealed class ResetPasswordFixture : AuthenticationManagerFixture
     {
         private const string NewPassword = "new-password";
         private const string Token = "password-reset-token";
@@ -662,7 +662,7 @@ public class AuthenticationManagerTests
             "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
     }
 
-    private class SendPasswordResetLinkFixture : AuthenticationManagerFixture
+    private sealed class SendPasswordResetLinkFixture : AuthenticationManagerFixture
     {
         private SendPasswordResetLinkFixture(User? user)
         {
@@ -751,7 +751,7 @@ public class AuthenticationManagerTests
         fixture.AssertAuthenticationEventLogged("sign_in", fixture.User.Id);
     }
 
-    private class SignInFixture : AuthenticationManagerFixture
+    private sealed class SignInFixture : AuthenticationManagerFixture
     {
         public SignInFixture() =>
             this.MockUserPrincipalFactory
@@ -806,7 +806,7 @@ public class AuthenticationManagerTests
             x => x.LogEvent(fixture.MySqlConnection, "sign_out", null, null), Times.Never);
     }
 
-    private class SignOutFixture : AuthenticationManagerFixture
+    private sealed class SignOutFixture : AuthenticationManagerFixture
     {
         private SignOutFixture(long? userId) => this.UserId = userId;
 
@@ -919,7 +919,7 @@ public class AuthenticationManagerTests
                 null));
     }
 
-    private class ValidatePrincipalFixture : AuthenticationManagerFixture
+    private sealed class ValidatePrincipalFixture : AuthenticationManagerFixture
     {
         private const long UserId = 34;
         private const string UserSecurityStamp = "user-security-stamp";

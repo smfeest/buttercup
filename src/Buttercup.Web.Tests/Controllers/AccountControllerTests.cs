@@ -105,7 +105,7 @@ public class AccountControllerTests
         Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
     }
 
-    private class ChangePasswordPostFixture : AccountControllerFixture
+    private sealed class ChangePasswordPostFixture : AccountControllerFixture
     {
         public ChangePasswordPostFixture() =>
             this.MockLocalizer.SetupLocalizedString(

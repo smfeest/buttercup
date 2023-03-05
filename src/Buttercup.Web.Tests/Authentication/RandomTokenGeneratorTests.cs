@@ -45,7 +45,7 @@ public class RandomTokenGeneratorTests
 
     #endregion
 
-    private class RandomTokenGeneratorFixture
+    private sealed class RandomTokenGeneratorFixture
     {
         public RandomTokenGeneratorFixture()
         {

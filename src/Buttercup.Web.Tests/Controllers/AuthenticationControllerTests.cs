@@ -269,7 +269,7 @@ public class AuthenticationControllerTests
         Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
     }
 
-    private class SignInPostFixture : AuthenticationControllerFixture
+    private sealed class SignInPostFixture : AuthenticationControllerFixture
     {
         public SignInPostFixture() =>
             this.MockLocalizer.SetupLocalizedString(

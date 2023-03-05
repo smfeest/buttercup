@@ -47,7 +47,7 @@ public class AssetManifestSourceTests
 
     #endregion
 
-    private class AssetManifestSourceFixture
+    private sealed class AssetManifestSourceFixture
     {
         public AssetManifestSourceFixture()
         {

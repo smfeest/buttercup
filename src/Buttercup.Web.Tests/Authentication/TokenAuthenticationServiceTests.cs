@@ -45,7 +45,7 @@ public class TokenAuthenticationServiceTests
         Assert.Equal(fixture.AccessToken, await fixture.IssueAccessToken());
     }
 
-    private class IssueAccessTokenFixture : TokenAuthenticationServiceFixture
+    private sealed class IssueAccessTokenFixture : TokenAuthenticationServiceFixture
     {
         public IssueAccessTokenFixture() =>
             this.MockAccessTokenEncoder
@@ -149,7 +149,7 @@ public class TokenAuthenticationServiceTests
             LogLevel.Information, $"Access token successfully validated for user {fixture.User.Id}");
     }
 
-    private class ValidateAccessTokenFixture : TokenAuthenticationServiceFixture
+    private sealed class ValidateAccessTokenFixture : TokenAuthenticationServiceFixture
     {
         private const string AccessToken = "sample-access-token";
 

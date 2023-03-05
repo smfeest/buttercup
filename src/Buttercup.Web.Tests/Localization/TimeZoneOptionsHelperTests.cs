@@ -129,7 +129,7 @@ public class TimeZoneOptionsHelperTests
         public TimeZoneOptionsHelper TimeZoneOptionsHelper { get; }
     }
 
-    private class AllOptionsFixture : TimeZoneOptionsHelperFixture
+    private sealed class AllOptionsFixture : TimeZoneOptionsHelperFixture
     {
         private readonly List<TimeZoneInfo> timeZones = new();
 
@@ -153,7 +153,7 @@ public class TimeZoneOptionsHelperTests
         }
     }
 
-    private class OptionForTimeZoneFixture : TimeZoneOptionsHelperFixture
+    private sealed class OptionForTimeZoneFixture : TimeZoneOptionsHelperFixture
     {
         public string TimeZoneId { get; } = "Sample/Time_Zone";
 

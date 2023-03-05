@@ -39,7 +39,7 @@ public class HomeControllerTests
 
     #endregion
 
-    private class HomeControllerFixture : IDisposable
+    private sealed class HomeControllerFixture : IDisposable
     {
         public HomeControllerFixture()
         {

@@ -24,7 +24,7 @@ public class MutationTests
     public async Task AuthenticateReturnsPayloadWithNoAccessTokenOrUserOnFailure() =>
         Assert.Equal(new(false, null, null), await new AuthenticateFixture().Authenticate(false));
 
-    private class AuthenticateFixture
+    private sealed class AuthenticateFixture
     {
         public string AccessToken { get; } = "access-token";
 

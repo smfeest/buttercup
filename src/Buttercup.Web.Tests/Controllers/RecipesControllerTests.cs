@@ -244,7 +244,7 @@ public class RecipesControllerTests
 
     #endregion
 
-    private class RecipesControllerFixture : IDisposable
+    private sealed class RecipesControllerFixture : IDisposable
     {
         public RecipesControllerFixture()
         {
