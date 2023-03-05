@@ -4,7 +4,7 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);coverage/*;.prettierrc.json;package.json;package-lock.json;tsconfig.json</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Bugsnag.AspNet.Core" Version="3.0.0" />
+    <PackageReference Include="Bugsnag.AspNet.Core" Version="3.1.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="13.0.5" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.0.5" />
     <PackageReference Include="HotChocolate.Types.Analyzers" Version="13.0.5">
