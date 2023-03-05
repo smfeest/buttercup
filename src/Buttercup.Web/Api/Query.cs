@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
-using HotChocolate.AspNetCore.Authorization;
+using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
 
