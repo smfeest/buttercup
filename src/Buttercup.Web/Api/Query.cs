@@ -6,6 +6,7 @@ using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
 
+[QueryType]
 public sealed class Query
 {
     private readonly IMySqlConnectionSource mySqlConnectionSource;

@@ -2,6 +2,7 @@ using Buttercup.Web.Authentication;
 
 namespace Buttercup.Web.Api;
 
+[MutationType]
 public sealed class Mutation
 {
     public async Task<AuthenticatePayload> Authenticate(
