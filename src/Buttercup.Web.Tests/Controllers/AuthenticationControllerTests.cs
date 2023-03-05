@@ -269,7 +269,7 @@ public class AuthenticationControllerTests
         Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
     }
 
-    private class SignInPostFixture : AuthenticationControllerFixture
+    private sealed class SignInPostFixture : AuthenticationControllerFixture
     {
         public SignInPostFixture() =>
             this.MockLocalizer.SetupLocalizedString(
@@ -376,12 +376,6 @@ public class AuthenticationControllerTests
 
         public Mock<IUrlHelper> MockUrlHelper { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.AuthenticationController != null)
-            {
-                this.AuthenticationController.Dispose();
-            }
-        }
+        public void Dispose() => this.AuthenticationController?.Dispose();
     }
 }

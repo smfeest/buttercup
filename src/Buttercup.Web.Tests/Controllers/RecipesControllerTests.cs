@@ -244,7 +244,7 @@ public class RecipesControllerTests
 
     #endregion
 
-    private class RecipesControllerFixture : IDisposable
+    private sealed class RecipesControllerFixture : IDisposable
     {
         public RecipesControllerFixture()
         {
@@ -274,12 +274,6 @@ public class RecipesControllerTests
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.RecipesController != null)
-            {
-                this.RecipesController.Dispose();
-            }
-        }
+        public void Dispose() => this.RecipesController?.Dispose();
     }
 }

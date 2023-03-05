@@ -71,7 +71,7 @@ public class ServiceCollectionExtensionsTests
     [Fact]
     public void AddDataAccessServicesBindsConfiguration()
     {
-        var configurationData = new Dictionary<string, string>()
+        var configurationData = new Dictionary<string, string?>()
         {
             ["ConnectionString"] = ConnectionString,
         };

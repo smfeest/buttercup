@@ -71,7 +71,7 @@ public class UserDateTimeTagHelperTests
         Assert.Equal("2001-02-03 21:22:23Z", (string)fixture.Output.Attributes["Title"].Value);
     }
 
-    private class UserDateTimeTagHelperFixture
+    private sealed class UserDateTimeTagHelperFixture
     {
         public UserDateTimeTagHelperFixture()
         {

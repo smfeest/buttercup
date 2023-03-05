@@ -105,7 +105,7 @@ public class AccountControllerTests
         Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
     }
 
-    private class ChangePasswordPostFixture : AccountControllerFixture
+    private sealed class ChangePasswordPostFixture : AccountControllerFixture
     {
         public ChangePasswordPostFixture() =>
             this.MockLocalizer.SetupLocalizedString(
@@ -224,12 +224,6 @@ public class AccountControllerTests
 
         public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
 
-        public void Dispose()
-        {
-            if (this.AccountController != null)
-            {
-                this.AccountController.Dispose();
-            }
-        }
+        public void Dispose() => this.AccountController?.Dispose();
     }
 }

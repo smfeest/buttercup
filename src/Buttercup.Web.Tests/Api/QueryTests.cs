@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public class QueryTests
+public sealed class QueryTests : IDisposable
 {
     private readonly Query query;
     private readonly MySqlConnection mySqlConnection = new();
@@ -20,6 +20,8 @@ public class QueryTests
 
         this.query = new(mySqlConnectionSource);
     }
+
+    public void Dispose() => this.mySqlConnection.Dispose();
 
     #region CurrentUser
 

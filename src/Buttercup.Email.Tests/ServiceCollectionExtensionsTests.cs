@@ -42,7 +42,7 @@ public class ServiceCollectionExtensionsTests
     [Fact]
     public void AddEmailServicesBindsConfiguration()
     {
-        var configurationData = new Dictionary<string, string>()
+        var configurationData = new Dictionary<string, string?>()
         {
             ["ApiKey"] = "api-key",
         };

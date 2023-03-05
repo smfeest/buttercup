@@ -50,7 +50,7 @@ public class AuthenticationMailerTests
 
     #endregion
 
-    private class AuthenticationMailerFixture
+    private sealed class AuthenticationMailerFixture
     {
         public AuthenticationMailerFixture() =>
             this.AuthenticationMailer = new(this.MockEmailSender.Object, this.MockLocalizer.Object);

@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 
+#pragma warning disable CA1852
+
 var builder = WebApplication.CreateBuilder(args);
 
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -76,7 +78,7 @@ services
     .AddBugsnag();
 
 services
-    .AddTransient<IPasswordHasher<User?>, PasswordHasher<User?>>()
+    .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
     .AddTransient<IAccessTokenEncoder, AccessTokenEncoder>()
     .AddTransient<IAccessTokenSerializer, AccessTokenSerializer>()
     .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
