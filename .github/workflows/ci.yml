@@ -29,7 +29,7 @@ jobs:
         run: npm ci
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release /WarnAsError
       - name: Start MySQL Server
         run: sudo systemctl start mysql.service
       - name: Create MySQL users
