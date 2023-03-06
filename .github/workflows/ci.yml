@@ -10,15 +10,15 @@ jobs:
       WEB_PROJECT_PATH: src/Buttercup.Web
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set SHORT_COMMIT_SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Restore .NET tools
@@ -26,7 +26,7 @@ jobs:
       - name: Restore .NET dependencies
         run: dotnet restore
       - name: Restore npm cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
@@ -65,7 +65,7 @@ jobs:
         run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           path: ${{env.WEB_PROJECT_PATH}}/publish-output
