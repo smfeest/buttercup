@@ -9,6 +9,8 @@ jobs:
     env:
       WEB_PROJECT_PATH: src/Buttercup.Web
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
@@ -17,8 +19,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 14
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: Set SHORT_COMMIT_SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Restore .NET tools
