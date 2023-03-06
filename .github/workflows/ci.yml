@@ -25,13 +25,11 @@ jobs:
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Restore .NET tools
         run: dotnet tool restore
-      - name: Restore .NET dependencies
-        run: dotnet restore
       - name: Restore Node.js dependencies
         run: npm ci
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --configuration Release
       - name: Start MySQL Server
         run: sudo systemctl start mysql.service
       - name: Create MySQL users
