@@ -64,3 +64,4 @@ jobs:
         with:
           name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           path: ${{env.WEB_PROJECT_PATH}}/publish-output
+          retention-days: 3
