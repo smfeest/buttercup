@@ -5,36 +5,31 @@ on:
 jobs:
   build:
     name: Build and test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       WEB_PROJECT_PATH: src/Buttercup.Web
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 14
-      - name: Checkout
-        uses: actions/checkout@v2
+          cache: npm
+          cache-dependency-path: ${{env.WEB_PROJECT_PATH}}/package-lock.json
       - name: Set SHORT_COMMIT_SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Restore .NET tools
         run: dotnet tool restore
-      - name: Restore .NET dependencies
-        run: dotnet restore
-      - name: Restore npm cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
       - name: Restore Node.js dependencies
         run: npm ci
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --configuration Release /WarnAsError
       - name: Start MySQL Server
         run: sudo systemctl start mysql.service
       - name: Create MySQL users
@@ -65,7 +60,8 @@ jobs:
         run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           path: ${{env.WEB_PROJECT_PATH}}/publish-output
+          retention-days: 3
