@@ -1,5 +1,5 @@
 import cleanCss from 'gulp-clean-css';
-import del from 'del';
+import { deleteAsync } from 'del';
 import gulp from 'gulp';
 import less from 'gulp-less';
 import rev from 'gulp-rev';
@@ -36,7 +36,7 @@ function bundleStyles() {
 }
 
 function clean() {
-  return del([
+  return deleteAsync([
     `${paths.scriptAssets}/**/*`,
     `${paths.styleAssets}/**/*`,
     `${paths.prodAssets}/**/*`,
