@@ -4,7 +4,7 @@
 
 - [.NET 7 SDK](https://dotnet.microsoft.com/download/dotnet/7.0)
 - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
-- [Node.js](https://nodejs.org)
+- [Node.js 18](https://nodejs.org)
 - [Visual Studio Code](https://code.visualstudio.com/) with [recommended
   extensions](.vscode/extensions.json)
 
