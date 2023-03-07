@@ -9,12 +9,12 @@ const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 
 const paths = {};
-paths.scripts = `${__dirname}/scripts`;
-paths.styles = `${__dirname}/styles`;
-paths.assets = `${__dirname}/wwwroot/assets`;
+paths.scripts = 'scripts';
+paths.styles = 'styles';
+paths.assets = 'wwwroot/assets';
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
-paths.prodAssets = `${__dirname}/wwwroot/prod-assets`;
+paths.prodAssets = 'wwwroot/prod-assets';
 paths.prodAssetManifest = `${paths.prodAssets}/manifest.json`;
 
 function bundleAndRevisionProductionScripts() {
