@@ -1,20 +1,22 @@
-const cleanCss = require('gulp-clean-css');
-const del = require('del');
-const { dest, parallel, series, src, watch } = require('gulp');
-const less = require('gulp-less');
-const rev = require('gulp-rev');
-const revReplace = require('gulp-rev-replace');
-const sourcemaps = require('gulp-sourcemaps');
-const webpack = require('webpack');
-const webpackStream = require('webpack-stream');
+import cleanCss from 'gulp-clean-css';
+import del from 'del';
+import gulp from 'gulp';
+import less from 'gulp-less';
+import rev from 'gulp-rev';
+import revReplace from 'gulp-rev-replace';
+import sourcemaps from 'gulp-sourcemaps';
+import webpack from 'webpack';
+import webpackStream from 'webpack-stream';
+
+const { dest, parallel, series, src, watch } = gulp;
 
 const paths = {};
-paths.scripts = `${__dirname}/scripts`;
-paths.styles = `${__dirname}/styles`;
-paths.assets = `${__dirname}/wwwroot/assets`;
+paths.scripts = 'scripts';
+paths.styles = 'styles';
+paths.assets = 'wwwroot/assets';
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
-paths.prodAssets = `${__dirname}/wwwroot/prod-assets`;
+paths.prodAssets = 'wwwroot/prod-assets';
 paths.prodAssetManifest = `${paths.prodAssets}/manifest.json`;
 
 function bundleAndRevisionProductionScripts() {
@@ -122,8 +124,8 @@ const build = parallel(
   )
 );
 
-exports.default = build;
-exports.build = build;
-exports.clean = clean;
-exports.rebuild = series(clean, build);
-exports.watch = parallel(bundleStyles, watchScripts, watchStyles);
+const rebuild = series(clean, build);
+
+const watchAll = parallel(bundleStyles, watchScripts, watchStyles);
+
+export { build as default, build, clean, rebuild, watchAll as watch };
