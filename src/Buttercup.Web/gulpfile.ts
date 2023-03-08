@@ -1,14 +1,19 @@
-const cleanCss = require('gulp-clean-css');
-const del = require('del');
-const { dest, parallel, series, src, watch } = require('gulp');
-const less = require('gulp-less');
-const rev = require('gulp-rev');
-const revReplace = require('gulp-rev-replace');
-const sourcemaps = require('gulp-sourcemaps');
-const webpack = require('webpack');
-const webpackStream = require('webpack-stream');
+import cleanCss from 'gulp-clean-css';
+import del from 'del';
+import { dest, parallel, series, src, watch } from 'gulp';
+// @ts-expect-error
+import less from 'gulp-less';
+// @ts-expect-error
+import rev from 'gulp-rev';
+// @ts-expect-error
+import revReplace from 'gulp-rev-replace';
+// @ts-expect-error
+import sourcemaps from 'gulp-sourcemaps';
+import webpack from 'webpack';
+// @ts-expect-error
+import webpackStream from 'webpack-stream';
 
-const paths = {};
+const paths: Record<string, string> = {};
 paths.scripts = `${__dirname}/scripts`;
 paths.styles = `${__dirname}/styles`;
 paths.assets = `${__dirname}/wwwroot/assets`;
@@ -41,7 +46,7 @@ function clean() {
   ]);
 }
 
-function revisionAssetsInStream(stream) {
+function revisionAssetsInStream(stream: NodeJS.ReadWriteStream) {
   return stream
     .pipe(rev())
     .pipe(dest(paths.prodAssets))
@@ -81,7 +86,7 @@ function watchStyles() {
   return watch(`${paths.styles}/*.less`, bundleStyles);
 }
 
-function webpackDevScripts(config) {
+function webpackDevScripts(config?: webpack.Configuration) {
   return webpackScripts({
     mode: 'development',
     devtool: 'eval-cheap-module-source-map',
@@ -89,7 +94,7 @@ function webpackDevScripts(config) {
   });
 }
 
-function webpackScripts(config) {
+function webpackScripts(config?: webpack.Configuration) {
   return src(`${paths.scripts}/main.ts`).pipe(
     webpackStream(
       {
@@ -122,8 +127,8 @@ const build = parallel(
   )
 );
 
-exports.default = build;
-exports.build = build;
-exports.clean = clean;
-exports.rebuild = series(clean, build);
-exports.watch = parallel(bundleStyles, watchScripts, watchStyles);
+const rebuild = series(clean, build);
+
+const watchAll = parallel(bundleStyles, watchScripts, watchStyles);
+
+export { build as default, build, clean, rebuild, watchAll as watch };
