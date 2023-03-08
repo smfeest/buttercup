@@ -4,6 +4,12 @@ module.exports = {
   env: { es2020: true, node: true },
   overrides: [
     {
+      files: '**/*.mjs',
+      parserOptions: {
+        sourceType: 'module',
+      },
+    },
+    {
       files: '**/*.ts',
       parser: '@typescript-eslint/parser',
       parserOptions: {
