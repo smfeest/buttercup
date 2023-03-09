@@ -16,7 +16,7 @@ public class RecipeExtensionTests
     [Fact]
     public async Task CreatedByUserReturnsNullWhenCreatedByUserIdIsNull()
     {
-        var recipe = this.modelFactory.CreateRecipe() with { CreatedByUserId = null };
+        var recipe = this.modelFactory.BuildRecipe() with { CreatedByUserId = null };
         var userLoader = Mock.Of<IUsersByIdDataLoader>(MockBehavior.Strict);
 
         Assert.Null(await new RecipeExtension().CreatedByUser(recipe, userLoader));
@@ -25,8 +25,8 @@ public class RecipeExtensionTests
     [Fact]
     public async Task CreatedByUserReturnsUserWhenCreatedByUserIdIsNotNull()
     {
-        var user = this.modelFactory.CreateUser();
-        var recipe = this.modelFactory.CreateRecipe() with { CreatedByUserId = user.Id };
+        var user = this.modelFactory.BuildUser();
+        var recipe = this.modelFactory.BuildRecipe() with { CreatedByUserId = user.Id };
 
         var userLoader = Mock.Of<IUsersByIdDataLoader>(
             x => x.LoadAsync(user.Id, default) == Task.FromResult(user));
@@ -42,7 +42,7 @@ public class RecipeExtensionTests
     [Fact]
     public async Task ModifiedByUserReturnsNullWhenModifiedByUserIdIsNull()
     {
-        var recipe = this.modelFactory.CreateRecipe() with { ModifiedByUserId = null };
+        var recipe = this.modelFactory.BuildRecipe() with { ModifiedByUserId = null };
         var userLoader = Mock.Of<IUsersByIdDataLoader>(MockBehavior.Strict);
 
         Assert.Null(await new RecipeExtension().ModifiedByUser(recipe, userLoader));
@@ -51,8 +51,8 @@ public class RecipeExtensionTests
     [Fact]
     public async Task ModifiedByUserReturnsUserWhenModifiedByUserIdIsNotNull()
     {
-        var user = this.modelFactory.CreateUser();
-        var recipe = this.modelFactory.CreateRecipe() with { ModifiedByUserId = user.Id };
+        var user = this.modelFactory.BuildUser();
+        var recipe = this.modelFactory.BuildRecipe() with { ModifiedByUserId = user.Id };
 
         var userLoader = Mock.Of<IUsersByIdDataLoader>(
             x => x.LoadAsync(user.Id, default) == Task.FromResult(user));
@@ -72,7 +72,7 @@ public class RecipeExtensionTests
         var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
             x => x.OpenConnection() == Task.FromResult(mySqlConnection));
 
-        IList<Recipe> recipes = new[] { this.modelFactory.CreateRecipe(), this.modelFactory.CreateRecipe() };
+        IList<Recipe> recipes = new[] { this.modelFactory.BuildRecipe(), this.modelFactory.BuildRecipe() };
         var recipeIds = recipes.Select(recipe => recipe.Id).ToArray();
 
         var recipeDataProvider = Mock.Of<IRecipeDataProvider>(

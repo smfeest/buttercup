@@ -78,7 +78,7 @@ public class UserDateTimeTagHelperTests
             var httpContext = new DefaultHttpContext();
 
             httpContext.SetCurrentUser(
-                new ModelFactory().CreateUser() with { TimeZone = "Etc/GMT-5" });
+                new ModelFactory().BuildUser() with { TimeZone = "Etc/GMT-5" });
 
             this.TagHelper = new()
             {

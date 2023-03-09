@@ -17,7 +17,7 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
-    public Recipe CreateRecipe(bool includeOptionalAttributes = false)
+    public Recipe BuildRecipe(bool includeOptionalAttributes = false)
     {
         var i = ++counter;
 
@@ -47,8 +47,8 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
-    public RecipeAttributes CreateRecipeAttributes(bool includeOptionalAttributes = false) =>
-        new(CreateRecipe(includeOptionalAttributes));
+    public RecipeAttributes BuildRecipeAttributes(bool includeOptionalAttributes = false) =>
+        new(BuildRecipe(includeOptionalAttributes));
 
     /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.
@@ -58,7 +58,7 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User CreateUser(bool includeOptionalAttributes = false)
+    public User BuildUser(bool includeOptionalAttributes = false)
     {
         var i = ++counter;
 

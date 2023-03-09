@@ -23,7 +23,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -137,7 +137,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -172,7 +172,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var currentUser = this.modelFactory.CreateUser();
+        var currentUser = this.modelFactory.BuildUser();
 
         fixture.HttpContext.SetCurrentUser(currentUser);
 

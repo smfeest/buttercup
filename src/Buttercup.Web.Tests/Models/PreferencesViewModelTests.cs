@@ -10,7 +10,7 @@ public class PreferencesViewModelTests
     [Fact]
     public void ConstructorCopiesValuesFromUser()
     {
-        var user = new ModelFactory().CreateUser();
+        var user = new ModelFactory().BuildUser();
 
         var viewModel = new PreferencesViewModel(user);
 

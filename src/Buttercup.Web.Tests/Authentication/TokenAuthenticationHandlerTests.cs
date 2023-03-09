@@ -86,7 +86,7 @@ public class TokenAuthenticationHandlerTests : IAsyncLifetime
     public async Task HandleAuthenticateAsyncReturnsSuccessWhenAccessTokenIsValid(
         string authorizationHeaderValue)
     {
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
         var principal = new ClaimsPrincipal();
 
         this.SetAuthorizationHeader(authorizationHeaderValue);

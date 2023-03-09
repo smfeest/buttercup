@@ -20,8 +20,8 @@ public class HomeControllerTests
     {
         using var fixture = new HomeControllerFixture();
 
-        IList<Recipe> recentlyAddedRecipes = new[] { this.modelFactory.CreateRecipe() };
-        IList<Recipe> recentlyUpdatedRecipes = new[] { this.modelFactory.CreateRecipe() };
+        IList<Recipe> recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        IList<Recipe> recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))

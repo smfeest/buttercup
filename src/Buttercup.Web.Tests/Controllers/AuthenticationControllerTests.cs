@@ -144,7 +144,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new AuthenticationControllerFixture();
 
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.MockAuthenticationManager
             .Setup(x => x.ResetPassword("sample-token", "sample-password"))
@@ -231,7 +231,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new SignInPostFixture();
 
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.SetupAuthenticate(user);
 
@@ -245,7 +245,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new SignInPostFixture();
 
-        fixture.SetupAuthenticate(this.modelFactory.CreateUser());
+        fixture.SetupAuthenticate(this.modelFactory.BuildUser());
 
         fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
@@ -260,7 +260,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new SignInPostFixture();
 
-        fixture.SetupAuthenticate(this.modelFactory.CreateUser());
+        fixture.SetupAuthenticate(this.modelFactory.BuildUser());
 
         fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 

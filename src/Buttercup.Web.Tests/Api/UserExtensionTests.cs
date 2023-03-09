@@ -22,8 +22,8 @@ public class UserExtensionTests
 
         IList<User> users = new[]
         {
-            this.modelFactory.CreateUser(),
-            this.modelFactory.CreateUser()
+            this.modelFactory.BuildUser(),
+            this.modelFactory.BuildUser()
         };
 
         var userIds = users.Select(user => user.Id).ToArray();

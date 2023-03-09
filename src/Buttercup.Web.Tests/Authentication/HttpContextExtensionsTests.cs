@@ -14,7 +14,7 @@ public class HttpContextExtensionsTests
     [Fact]
     public void GetCurrentUserReturnsUserFromItems()
     {
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         var httpContext = new DefaultHttpContext();
 
@@ -38,7 +38,7 @@ public class HttpContextExtensionsTests
     [Fact]
     public void SetCurrentUserAddsUserToItems()
     {
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         var httpContext = new DefaultHttpContext();
 

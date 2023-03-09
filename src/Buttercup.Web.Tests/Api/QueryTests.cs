@@ -29,7 +29,7 @@ public sealed class QueryTests : IDisposable
     [Fact]
     public async Task CurrentUserReturnsCurrentUserWhenAuthenticated()
     {
-        var user = this.modelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         var userDataProvider = Mock.Of<IUserDataProvider>(
             x => x.GetUser(this.mySqlConnection, 1234) == Task.FromResult(user));
@@ -52,7 +52,7 @@ public sealed class QueryTests : IDisposable
     [Fact]
     public async Task RecipeReturnsRecipe()
     {
-        var recipe = this.modelFactory.CreateRecipe();
+        var recipe = this.modelFactory.BuildRecipe();
 
         var recipeLoader = Mock.Of<IRecipesByIdDataLoader>(
             x => x.LoadAsync(recipe.Id, default) == Task.FromResult(recipe));
@@ -67,7 +67,7 @@ public sealed class QueryTests : IDisposable
     [Fact]
     public async Task RecipesReturnsAllRecipes()
     {
-        IList<Recipe> expected = new[] { this.modelFactory.CreateRecipe() };
+        IList<Recipe> expected = new[] { this.modelFactory.BuildRecipe() };
 
         var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
             x => x.GetAllRecipes(this.mySqlConnection) == Task.FromResult(expected));

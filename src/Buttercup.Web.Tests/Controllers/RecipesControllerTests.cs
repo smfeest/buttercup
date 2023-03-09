@@ -45,7 +45,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = this.modelFactory.CreateRecipe();
+        var recipe = this.modelFactory.BuildRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 3))
@@ -79,7 +79,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var attributes = this.modelFactory.CreateRecipeAttributes();
+        var attributes = this.modelFactory.BuildRecipeAttributes();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.AddRecipe(fixture.MySqlConnection, attributes, fixture.User.Id))
@@ -97,7 +97,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var attributes = this.modelFactory.CreateRecipeAttributes();
+        var attributes = this.modelFactory.BuildRecipeAttributes();
 
         fixture.RecipesController.ModelState.AddModelError("test", "test");
 
@@ -116,7 +116,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = this.modelFactory.CreateRecipe();
+        var recipe = this.modelFactory.BuildRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 5))
@@ -140,7 +140,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.CreateRecipe());
+        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
 
         var result = await fixture.RecipesController.Edit(3, editModel);
 
@@ -162,7 +162,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.CreateRecipe());
+        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
 
         fixture.RecipesController.ModelState.AddModelError("test", "test");
 
@@ -177,7 +177,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.CreateRecipe());
+        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
 
         fixture.MockLocalizer.SetupLocalizedString(
             "Error_StaleEdit", "translated-stale-edit-error");
@@ -210,7 +210,7 @@ public class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var recipe = this.modelFactory.CreateRecipe();
+        var recipe = this.modelFactory.BuildRecipe();
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecipe(fixture.MySqlConnection, 8))
@@ -270,7 +270,7 @@ public class RecipesControllerTests
 
         public MySqlConnection MySqlConnection { get; } = new();
 
-        public User User { get; } = new ModelFactory().CreateUser();
+        public User User { get; } = new ModelFactory().BuildUser();
 
         public Mock<IStringLocalizer<RecipesController>> MockLocalizer { get; } = new();
 

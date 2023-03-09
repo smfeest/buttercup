@@ -10,7 +10,7 @@ public class UserPrincipalFactoryTests
 {
     private const string AuthenticationType = "sample-authentication-type";
 
-    private readonly User user = new ModelFactory().CreateUser();
+    private readonly User user = new ModelFactory().BuildUser();
 
     [Fact]
     public void PrincipalHasNameIdClaim() => Assert.Equal(
