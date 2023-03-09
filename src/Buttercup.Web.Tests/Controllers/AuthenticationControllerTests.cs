@@ -13,6 +13,8 @@ namespace Buttercup.Web.Controllers;
 
 public class AuthenticationControllerTests
 {
+    private readonly ModelFactory modelFactory = new();
+
     #region RequestPasswordReset (GET)
 
     [Fact]
@@ -142,7 +144,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new AuthenticationControllerFixture();
 
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.MockAuthenticationManager
             .Setup(x => x.ResetPassword("sample-token", "sample-password"))
@@ -229,7 +231,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new SignInPostFixture();
 
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.SetupAuthenticate(user);
 
@@ -243,7 +245,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new SignInPostFixture();
 
-        fixture.SetupAuthenticate(ModelFactory.CreateUser());
+        fixture.SetupAuthenticate(this.modelFactory.BuildUser());
 
         fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
@@ -258,7 +260,7 @@ public class AuthenticationControllerTests
     {
         using var fixture = new SignInPostFixture();
 
-        fixture.SetupAuthenticate(ModelFactory.CreateUser());
+        fixture.SetupAuthenticate(this.modelFactory.BuildUser());
 
         fixture.MockUrlHelper.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 

@@ -9,6 +9,8 @@ namespace Buttercup.Web.Api;
 
 public class UserExtensionTests
 {
+    private readonly ModelFactory modelFactory = new();
+
     #region GetUsersByIdAsync
 
     [Fact]
@@ -18,7 +20,12 @@ public class UserExtensionTests
         var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
             x => x.OpenConnection() == Task.FromResult(mySqlConnection));
 
-        IList<User> users = new[] { ModelFactory.CreateUser(), ModelFactory.CreateUser() };
+        IList<User> users = new[]
+        {
+            this.modelFactory.BuildUser(),
+            this.modelFactory.BuildUser()
+        };
+
         var userIds = users.Select(user => user.Id).ToArray();
 
         var userDataProvider = Mock.Of<IUserDataProvider>(

@@ -14,6 +14,8 @@ namespace Buttercup.Web.Controllers;
 
 public class AccountControllerTests
 {
+    private readonly ModelFactory modelFactory = new();
+
     #region Show (GET)
 
     [Fact]
@@ -21,7 +23,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -135,7 +137,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
 
         fixture.HttpContext.SetCurrentUser(user);
 
@@ -170,7 +172,7 @@ public class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var currentUser = ModelFactory.CreateUser();
+        var currentUser = this.modelFactory.BuildUser();
 
         fixture.HttpContext.SetCurrentUser(currentUser);
 

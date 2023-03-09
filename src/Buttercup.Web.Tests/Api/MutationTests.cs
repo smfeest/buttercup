@@ -28,7 +28,7 @@ public class MutationTests
     {
         public string AccessToken { get; } = "access-token";
 
-        public User User { get; } = ModelFactory.CreateUser();
+        public User User { get; } = new ModelFactory().BuildUser();
 
         public async Task<AuthenticatePayload> Authenticate(bool success)
         {

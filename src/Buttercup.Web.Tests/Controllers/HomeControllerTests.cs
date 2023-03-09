@@ -11,6 +11,8 @@ namespace Buttercup.Web.Controllers;
 
 public class HomeControllerTests
 {
+    private readonly ModelFactory modelFactory = new();
+
     #region Index
 
     [Fact]
@@ -18,8 +20,8 @@ public class HomeControllerTests
     {
         using var fixture = new HomeControllerFixture();
 
-        IList<Recipe> recentlyAddedRecipes = new[] { ModelFactory.CreateRecipe() };
-        IList<Recipe> recentlyUpdatedRecipes = new[] { ModelFactory.CreateRecipe() };
+        IList<Recipe> recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        IList<Recipe> recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))

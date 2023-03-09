@@ -7,11 +7,12 @@ namespace Buttercup.DataAccess;
 public sealed class SampleDataHelper
 {
     private readonly MySqlConnection connection;
+    private readonly ModelFactory modelFactory = new();
 
     public SampleDataHelper(MySqlConnection connection) => this.connection = connection;
 
     public Task<Recipe> InsertRecipe(bool includeOptionalAttributes = false) =>
-        this.InsertRecipe(ModelFactory.CreateRecipe(includeOptionalAttributes), true);
+        this.InsertRecipe(this.modelFactory.BuildRecipe(includeOptionalAttributes), true);
 
     public async Task<Recipe> InsertRecipe(Recipe recipe, bool insertRelatedRecords = false)
     {
@@ -19,7 +20,7 @@ public sealed class SampleDataHelper
         {
             if (userId.HasValue)
             {
-                await this.InsertUser(ModelFactory.CreateUser() with { Id = userId.Value });
+                await this.InsertUser(this.modelFactory.BuildUser() with { Id = userId.Value });
             }
         }
 
@@ -56,7 +57,7 @@ public sealed class SampleDataHelper
     }
 
     public Task<User> InsertUser(bool includeOptionalAttributes = false) =>
-        this.InsertUser(ModelFactory.CreateUser(includeOptionalAttributes));
+        this.InsertUser(this.modelFactory.BuildUser(includeOptionalAttributes));
 
     public async Task<User> InsertUser(User user)
     {

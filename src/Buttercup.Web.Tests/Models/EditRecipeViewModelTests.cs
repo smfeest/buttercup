@@ -10,7 +10,7 @@ public class EditRecipeViewModelTests
     [Fact]
     public void ForRecipeCopiesValuesFromRecipe()
     {
-        var recipe = ModelFactory.CreateRecipe();
+        var recipe = new ModelFactory().BuildRecipe();
 
         var editModel = EditRecipeViewModel.ForRecipe(recipe);
 

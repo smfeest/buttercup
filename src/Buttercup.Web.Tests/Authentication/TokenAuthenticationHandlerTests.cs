@@ -20,6 +20,7 @@ public class TokenAuthenticationHandlerTests : IAsyncLifetime
     private readonly DefaultHttpContext httpContext = new();
     private readonly Mock<ITokenAuthenticationService> mockTokenAuthenticationService = new();
     private readonly Mock<IUserPrincipalFactory> mockUserPrincipalFactory = new();
+    private readonly ModelFactory modelFactory = new();
 
     public TokenAuthenticationHandlerTests()
     {
@@ -85,7 +86,7 @@ public class TokenAuthenticationHandlerTests : IAsyncLifetime
     public async Task HandleAuthenticateAsyncReturnsSuccessWhenAccessTokenIsValid(
         string authorizationHeaderValue)
     {
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.BuildUser();
         var principal = new ClaimsPrincipal();
 
         this.SetAuthorizationHeader(authorizationHeaderValue);

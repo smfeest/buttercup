@@ -52,7 +52,7 @@ public class TokenAuthenticationServiceTests
                 .Setup(x => x.Encode(new(this.User.Id, this.User.SecurityStamp, this.UtcNow)))
                 .Returns(this.AccessToken);
 
-        public User User { get; } = ModelFactory.CreateUser();
+        public User User { get; } = new ModelFactory().BuildUser();
 
         public string AccessToken { get; } = "sample-access-token";
 
@@ -153,7 +153,7 @@ public class TokenAuthenticationServiceTests
     {
         private const string AccessToken = "sample-access-token";
 
-        public User User { get; } = ModelFactory.CreateUser();
+        public User User { get; } = new ModelFactory().BuildUser();
 
         public void SetupDecodeFailure(Exception exception) =>
             this.MockAccessTokenEncoder
