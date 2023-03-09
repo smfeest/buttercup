@@ -10,7 +10,7 @@ public class RecipeAttributesTests
     [Fact]
     public void ConstructorCopiesValuesFromRecipe()
     {
-        var recipe = ModelFactory.CreateRecipe();
+        var recipe = new ModelFactory().CreateRecipe();
 
         var attributes = new RecipeAttributes(recipe);
 

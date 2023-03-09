@@ -14,7 +14,7 @@ public class HttpContextExtensionsTests
     {
         var httpContext = new DefaultHttpContext();
 
-        httpContext.SetCurrentUser(ModelFactory.CreateUser() with { TimeZone = "Etc/GMT+10" });
+        httpContext.SetCurrentUser(new ModelFactory().CreateUser() with { TimeZone = "Etc/GMT+10" });
 
         var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
 

@@ -11,6 +11,7 @@ namespace Buttercup.Web.Api;
 public sealed class QueryTests : IDisposable
 {
     private readonly Query query;
+    private readonly ModelFactory modelFactory = new();
     private readonly MySqlConnection mySqlConnection = new();
 
     public QueryTests()
@@ -28,7 +29,7 @@ public sealed class QueryTests : IDisposable
     [Fact]
     public async Task CurrentUserReturnsCurrentUserWhenAuthenticated()
     {
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.CreateUser();
 
         var userDataProvider = Mock.Of<IUserDataProvider>(
             x => x.GetUser(this.mySqlConnection, 1234) == Task.FromResult(user));
@@ -51,7 +52,7 @@ public sealed class QueryTests : IDisposable
     [Fact]
     public async Task RecipeReturnsRecipe()
     {
-        var recipe = ModelFactory.CreateRecipe();
+        var recipe = this.modelFactory.CreateRecipe();
 
         var recipeLoader = Mock.Of<IRecipesByIdDataLoader>(
             x => x.LoadAsync(recipe.Id, default) == Task.FromResult(recipe));
@@ -66,7 +67,7 @@ public sealed class QueryTests : IDisposable
     [Fact]
     public async Task RecipesReturnsAllRecipes()
     {
-        IList<Recipe> expected = new[] { ModelFactory.CreateRecipe() };
+        IList<Recipe> expected = new[] { this.modelFactory.CreateRecipe() };
 
         var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
             x => x.GetAllRecipes(this.mySqlConnection) == Task.FromResult(expected));

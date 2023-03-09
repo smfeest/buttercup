@@ -145,7 +145,7 @@ public class AuthenticationManagerTests
         public static AuthenticateFixture ForEmailNotFound() => new(null);
 
         public static AuthenticateFixture ForUserHasNoPassword() =>
-            new(ModelFactory.CreateUser() with { HashedPassword = null });
+            new(new ModelFactory().CreateUser() with { HashedPassword = null });
 
         public static AuthenticateFixture ForPasswordIncorrect() =>
             ForPasswordVerificationResult(PasswordVerificationResult.Failed);
@@ -156,7 +156,7 @@ public class AuthenticationManagerTests
         private static AuthenticateFixture ForPasswordVerificationResult(
             PasswordVerificationResult result)
         {
-            var user = ModelFactory.CreateUser() with { HashedPassword = HashedPassword };
+            var user = new ModelFactory().CreateUser() with { HashedPassword = HashedPassword };
 
             var fixture = new AuthenticateFixture(user);
 
@@ -306,7 +306,7 @@ public class AuthenticationManagerTests
 
         private ChangePasswordFixture(string? hashedPassword)
         {
-            this.User = ModelFactory.CreateUser() with { HashedPassword = hashedPassword };
+            this.User = new ModelFactory().CreateUser() with { HashedPassword = hashedPassword };
 
             this.HttpContext.SetCurrentUser(this.User);
 
@@ -570,7 +570,7 @@ public class AuthenticationManagerTests
 
         public string RedactedToken { get; } = "passwo…";
 
-        public User User { get; } = ModelFactory.CreateUser();
+        public User User { get; } = new ModelFactory().CreateUser();
 
         public string NewHashedPassword { get; } = "new-hashed-password";
 
@@ -691,7 +691,7 @@ public class AuthenticationManagerTests
 
         public static SendPasswordResetLinkFixture ForSuccess()
         {
-            var fixture = new SendPasswordResetLinkFixture(ModelFactory.CreateUser());
+            var fixture = new SendPasswordResetLinkFixture(new ModelFactory().CreateUser());
 
             fixture.MockRandomTokenGenerator
                 .Setup(x => x.Generate(12))
@@ -760,7 +760,7 @@ public class AuthenticationManagerTests
 
         public DefaultHttpContext HttpContext { get; } = new();
 
-        public User User { get; } = ModelFactory.CreateUser();
+        public User User { get; } = new ModelFactory().CreateUser();
 
         public ClaimsPrincipal UserPrincipal { get; } = new();
 
@@ -943,7 +943,7 @@ public class AuthenticationManagerTests
 
         public CookieValidatePrincipalContext CookieContext { get; }
 
-        public User User { get; } = ModelFactory.CreateUser() with
+        public User User { get; } = new ModelFactory().CreateUser() with
         {
             Id = UserId,
             SecurityStamp = UserSecurityStamp,

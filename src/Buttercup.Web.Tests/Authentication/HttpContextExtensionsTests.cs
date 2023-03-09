@@ -7,12 +7,14 @@ namespace Buttercup.Web.Authentication;
 
 public class HttpContextExtensionsTests
 {
+    private readonly ModelFactory modelFactory = new();
+
     #region GetCurrentUser
 
     [Fact]
     public void GetCurrentUserReturnsUserFromItems()
     {
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.CreateUser();
 
         var httpContext = new DefaultHttpContext();
 
@@ -36,7 +38,7 @@ public class HttpContextExtensionsTests
     [Fact]
     public void SetCurrentUserAddsUserToItems()
     {
-        var user = ModelFactory.CreateUser();
+        var user = this.modelFactory.CreateUser();
 
         var httpContext = new DefaultHttpContext();
 

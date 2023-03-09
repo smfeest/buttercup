@@ -5,9 +5,9 @@ namespace Buttercup.TestUtils;
 /// <summary>
 /// Provides methods for instantiating dummy models in tests.
 /// </summary>
-public static class ModelFactory
+public class ModelFactory
 {
-    private static int counter;
+    private int counter;
 
     /// <summary>
     /// Instantiates a new <see cref="Recipe" /> object with unique property values.
@@ -17,9 +17,9 @@ public static class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
-    public static Recipe CreateRecipe(bool includeOptionalAttributes = false)
+    public Recipe CreateRecipe(bool includeOptionalAttributes = false)
     {
-        var i = Interlocked.Increment(ref counter);
+        var i = ++counter;
 
         return new(
             i,
@@ -47,7 +47,7 @@ public static class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
-    public static RecipeAttributes CreateRecipeAttributes(bool includeOptionalAttributes = false) =>
+    public RecipeAttributes CreateRecipeAttributes(bool includeOptionalAttributes = false) =>
         new(CreateRecipe(includeOptionalAttributes));
 
     /// <summary>
@@ -58,9 +58,9 @@ public static class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public static User CreateUser(bool includeOptionalAttributes = false)
+    public User CreateUser(bool includeOptionalAttributes = false)
     {
-        var i = Interlocked.Increment(ref counter);
+        var i = ++counter;
 
         return new(
             i,

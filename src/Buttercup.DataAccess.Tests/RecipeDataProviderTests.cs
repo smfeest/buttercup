@@ -9,6 +9,7 @@ namespace Buttercup.DataAccess;
 public class RecipeDataProviderTests
 {
     private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly ModelFactory modelFactory = new();
     private readonly RecipeDataProvider recipeDataProvider;
 
     public RecipeDataProviderTests()
@@ -27,7 +28,7 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var attributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: true);
+        var attributes = this.modelFactory.CreateRecipeAttributes(includeOptionalAttributes: true);
 
         var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
 
@@ -60,7 +61,7 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var attributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: false);
+        var attributes = this.modelFactory.CreateRecipeAttributes(includeOptionalAttributes: false);
 
         var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
 
@@ -81,7 +82,7 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var attributes = ModelFactory.CreateRecipeAttributes() with
+        var attributes = this.modelFactory.CreateRecipeAttributes() with
         {
             Title = " new-recipe-title ",
             Ingredients = " new-recipe-ingredients ",
@@ -145,11 +146,11 @@ public class RecipeDataProviderTests
         var sampleDataHelper = new SampleDataHelper(connection);
 
         var recipeB = await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe() with { Title = "recipe-title-b" });
+            this.modelFactory.CreateRecipe() with { Title = "recipe-title-b" });
         var recipeC = await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe() with { Title = "recipe-title-c" });
+            this.modelFactory.CreateRecipe() with { Title = "recipe-title-c" });
         var recipeA = await sampleDataHelper.InsertRecipe(
-            ModelFactory.CreateRecipe() with { Title = "recipe-title-a" });
+            this.modelFactory.CreateRecipe() with { Title = "recipe-title-a" });
 
         var expected = new Recipe[] {
             recipeA,
@@ -206,7 +207,7 @@ public class RecipeDataProviderTests
 
         for (var i = 1; i <= 15; i++)
         {
-            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            await sampleDataHelper.InsertRecipe(this.modelFactory.CreateRecipe() with
             {
                 Title = $"recipe-{i}-title",
                 Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i),
@@ -237,7 +238,7 @@ public class RecipeDataProviderTests
 
         for (var i = 1; i <= 10; i++)
         {
-            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            await sampleDataHelper.InsertRecipe(this.modelFactory.CreateRecipe() with
             {
                 Title = $"recently-updated-{i}",
                 Created = new(2010, 1, 2, 3, 4, 5),
@@ -249,7 +250,7 @@ public class RecipeDataProviderTests
         {
             var timestamp = new DateTime(2016, 8, i, 9, 10, 11);
 
-            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            await sampleDataHelper.InsertRecipe(this.modelFactory.CreateRecipe() with
             {
                 Title = $"recently-created-never-updated-{i}",
                 Created = timestamp,
@@ -259,7 +260,7 @@ public class RecipeDataProviderTests
 
         for (var i = 1; i <= 15; i++)
         {
-            await sampleDataHelper.InsertRecipe(ModelFactory.CreateRecipe() with
+            await sampleDataHelper.InsertRecipe(this.modelFactory.CreateRecipe() with
             {
                 Title = $"recently-created-and-updated-{i}",
                 Created = new(2016, 9, i, 9, 10, 11),
@@ -331,7 +332,7 @@ public class RecipeDataProviderTests
         var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
         var currentUser = await sampleDataHelper.InsertUser();
 
-        var newAttributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: true);
+        var newAttributes = this.modelFactory.CreateRecipeAttributes(includeOptionalAttributes: true);
 
         await this.recipeDataProvider.UpdateRecipe(
             connection, original.Id, newAttributes, original.Revision, currentUser.Id);
@@ -368,7 +369,7 @@ public class RecipeDataProviderTests
         var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
         var currentUser = await sampleDataHelper.InsertUser();
 
-        var newAttributes = ModelFactory.CreateRecipeAttributes(includeOptionalAttributes: false);
+        var newAttributes = this.modelFactory.CreateRecipeAttributes(includeOptionalAttributes: false);
 
         await this.recipeDataProvider.UpdateRecipe(
             connection, original.Id, newAttributes, original.Revision, currentUser.Id);
@@ -393,7 +394,7 @@ public class RecipeDataProviderTests
         var original = await sampleDataHelper.InsertRecipe();
         var currentUser = await sampleDataHelper.InsertUser();
 
-        var newAttributes = ModelFactory.CreateRecipeAttributes() with
+        var newAttributes = this.modelFactory.CreateRecipeAttributes() with
         {
             Title = " new-recipe-title ",
             Ingredients = " new-recipe-ingredients ",
@@ -430,7 +431,7 @@ public class RecipeDataProviderTests
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.UpdateRecipe(
-                connection, id, ModelFactory.CreateRecipeAttributes(), 0, currentUser.Id));
+                connection, id, this.modelFactory.CreateRecipeAttributes(), 0, currentUser.Id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -451,7 +452,7 @@ public class RecipeDataProviderTests
             () => this.recipeDataProvider.UpdateRecipe(
                 connection,
                 recipe.Id,
-                ModelFactory.CreateRecipeAttributes(),
+                this.modelFactory.CreateRecipeAttributes(),
                 staleRevision,
                 currentUser.Id));
 
