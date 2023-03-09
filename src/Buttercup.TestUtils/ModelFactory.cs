@@ -2,10 +2,21 @@ using Buttercup.Models;
 
 namespace Buttercup.TestUtils;
 
+/// <summary>
+/// Provides methods for instantiating dummy models in tests.
+/// </summary>
 public static class ModelFactory
 {
     private static int counter;
 
+    /// <summary>
+    /// Instantiates a new <see cref="Recipe" /> object with unique property values.
+    /// </summary>
+    /// <param name="includeOptionalAttributes">
+    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="Recipe" /> object.</returns>
     public static Recipe CreateRecipe(bool includeOptionalAttributes = false)
     {
         var i = Interlocked.Increment(ref counter);
@@ -28,9 +39,25 @@ public static class ModelFactory
             i + 4);
     }
 
+    /// <summary>
+    /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.
+    /// </summary>
+    /// <param name="includeOptionalAttributes">
+    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
     public static RecipeAttributes CreateRecipeAttributes(bool includeOptionalAttributes = false) =>
         new(CreateRecipe(includeOptionalAttributes));
 
+    /// <summary>
+    /// Instantiates a new <see cref="User" /> object with unique property values.
+    /// </summary>
+    /// <param name="includeOptionalAttributes">
+    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="User" /> object.</returns>
     public static User CreateUser(bool includeOptionalAttributes = false)
     {
         var i = Interlocked.Increment(ref counter);
