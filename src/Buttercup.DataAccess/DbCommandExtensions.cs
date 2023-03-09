@@ -2,9 +2,6 @@ using System.Data.Common;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// Provides extension methods for <see cref="DbCommand" />.
-/// </summary>
 internal static class DbCommandExtensions
 {
     /// <summary>

@@ -2,9 +2,6 @@ using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// Provides extension methods for <see cref="MySqlDataReader" />.
-/// </summary>
 internal static class MySqlDataReaderExtensions
 {
     /// <summary>

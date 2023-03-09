@@ -2,16 +2,12 @@ using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// The default implementation of <see cref="IAuthenticationEventDataProvider" />.
-/// </summary>
 internal sealed class AuthenticationEventDataProvider : IAuthenticationEventDataProvider
 {
     private readonly IClock clock;
 
     public AuthenticationEventDataProvider(IClock clock) => this.clock = clock;
 
-    /// <inheritdoc />
     public async Task<long> LogEvent(
         MySqlConnection connection, string eventName, long? userId = null, string? email = null)
     {

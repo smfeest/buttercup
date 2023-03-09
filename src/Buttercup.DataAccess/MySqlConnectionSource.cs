@@ -3,19 +3,10 @@ using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// The default implementation of <see cref="IMySqlConnectionSource" />.
-/// </summary>
 internal class MySqlConnectionSource : IMySqlConnectionSource
 {
     private readonly string connectionString;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MySqlConnectionSource" /> class.
-    /// </summary>
-    /// <param name="optionsAccessor">
-    /// The data access options accessor.
-    /// </param>
     public MySqlConnectionSource(IOptions<DataAccessOptions> optionsAccessor)
     {
         if (string.IsNullOrEmpty(optionsAccessor.Value.ConnectionString))
@@ -32,7 +23,6 @@ internal class MySqlConnectionSource : IMySqlConnectionSource
         }.ToString();
     }
 
-    /// <inheritdoc />
     public async Task<MySqlConnection> OpenConnection()
     {
         var connection = new MySqlConnection(this.connectionString);

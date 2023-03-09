@@ -3,16 +3,12 @@ using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// The default implementation of <see cref="IUserDataProvider" />.
-/// </summary>
 internal sealed class UserDataProvider : IUserDataProvider
 {
     private readonly IClock clock;
 
     public UserDataProvider(IClock clock) => this.clock = clock;
 
-    /// <inheritdoc />
     public async Task<User?> FindUserByEmail(MySqlConnection connection, string email)
     {
         using var command = connection.CreateCommand();
@@ -25,7 +21,6 @@ internal sealed class UserDataProvider : IUserDataProvider
         return await reader.ReadAsync() ? ReadUser(reader) : null;
     }
 
-    /// <inheritdoc />
     public async Task<User> GetUser(MySqlConnection connection, long id)
     {
         using var command = connection.CreateCommand();
@@ -38,7 +33,6 @@ internal sealed class UserDataProvider : IUserDataProvider
         return await reader.ReadAsync() ? ReadUser(reader) : throw UserNotFound(id);
     }
 
-    /// <inheritdoc />
     public async Task<IList<User>> GetUsers(
         MySqlConnection connection, IReadOnlyCollection<long> ids)
     {
@@ -64,7 +58,6 @@ internal sealed class UserDataProvider : IUserDataProvider
         return users;
     }
 
-    /// <inheritdoc />
     public async Task UpdatePassword(
         MySqlConnection connection, long userId, string hashedPassword, string securityStamp)
     {
@@ -88,7 +81,6 @@ internal sealed class UserDataProvider : IUserDataProvider
         }
     }
 
-    /// <inheritdoc />
     public async Task UpdatePreferences(MySqlConnection connection, long userId, string timeZone)
     {
         using var command = connection.CreateCommand();

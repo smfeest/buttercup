@@ -2,16 +2,12 @@ using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// The default implementation of <see cref="IPasswordResetTokenDataProvider" />.
-/// </summary>
 internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataProvider
 {
     private readonly IClock clock;
 
     public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
 
-    /// <inheritdoc />
     public async Task DeleteExpiredTokens(MySqlConnection connection, DateTime cutOff)
     {
         using var command = connection.CreateCommand();
@@ -22,7 +18,6 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
         await command.ExecuteNonQueryAsync();
     }
 
-    /// <inheritdoc />
     public async Task DeleteTokensForUser(MySqlConnection connection, long userId)
     {
         using var command = connection.CreateCommand();
@@ -33,7 +28,6 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
         await command.ExecuteNonQueryAsync();
     }
 
-    /// <inheritdoc />
     public async Task<long?> GetUserIdForToken(MySqlConnection connection, string token)
     {
         using var command = connection.CreateCommand();
@@ -44,7 +38,6 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
         return await command.ExecuteScalarAsync<uint?>();
     }
 
-    /// <inheritdoc />
     public async Task InsertToken(MySqlConnection connection, long userId, string token)
     {
         using var command = connection.CreateCommand();

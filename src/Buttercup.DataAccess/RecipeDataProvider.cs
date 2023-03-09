@@ -3,16 +3,12 @@ using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
-/// <summary>
-/// The default implementation of <see cref="IRecipeDataProvider" />.
-/// </summary>
 internal sealed class RecipeDataProvider : IRecipeDataProvider
 {
     private readonly IClock clock;
 
     public RecipeDataProvider(IClock clock) => this.clock = clock;
 
-    /// <inheritdoc />
     public async Task<long> AddRecipe(
         MySqlConnection connection, RecipeAttributes attributes, long currentUserId)
     {
@@ -28,7 +24,6 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         return command.LastInsertedId;
     }
 
-    /// <inheritdoc />
     public async Task DeleteRecipe(MySqlConnection connection, long id)
     {
         using var command = connection.CreateCommand();
@@ -42,11 +37,9 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         }
     }
 
-    /// <inheritdoc />
     public Task<IList<Recipe>> GetAllRecipes(MySqlConnection connection) =>
         GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
 
-    /// <inheritdoc />
     public async Task<Recipe> GetRecipe(MySqlConnection connection, long id)
     {
         using var command = connection.CreateCommand();
@@ -59,11 +52,9 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         return await reader.ReadAsync() ? ReadRecipe(reader) : throw RecipeNotFound(id);
     }
 
-    /// <inheritdoc />
     public Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection) =>
         GetRecipes(connection, "SELECT * FROM recipe ORDER BY created DESC LIMIT 10");
 
-    /// <inheritdoc />
     public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection)
     {
         var query = @"SELECT *
@@ -75,7 +66,6 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         return GetRecipes(connection, query);
     }
 
-    /// <inheritdoc />
     public async Task<IList<Recipe>> GetRecipes(
         MySqlConnection connection, IReadOnlyCollection<long> ids) =>
         ids.Count == 0 ?
@@ -84,7 +74,6 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
                 connection,
                 $"SELECT * FROM recipe WHERE id IN ({string.Join(',', ids)}) ORDER BY id");
 
-    /// <inheritdoc />
     public async Task UpdateRecipe(
         MySqlConnection connection,
         long id,

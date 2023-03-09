@@ -4,24 +4,12 @@ using SendGrid.Helpers.Mail;
 
 namespace Buttercup.Email;
 
-/// <summary>
-/// The default implementation of <see cref="IEmailSender" />.
-/// </summary>
 internal class EmailSender : IEmailSender
 {
     private readonly string fromAddress;
 
     private readonly ISendGridClient sendGridClient;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EmailSender" /> class.
-    /// </summary>
-    /// <param name="sendGridClientAccessor">
-    /// The SendGrid client accessor.
-    /// </param>
-    /// <param name="optionsAccessor">
-    /// The email options accessor.
-    /// </param>
     public EmailSender(
         ISendGridClientAccessor sendGridClientAccessor, IOptions<EmailOptions> optionsAccessor)
     {
@@ -36,7 +24,6 @@ internal class EmailSender : IEmailSender
         this.fromAddress = optionsAccessor.Value.FromAddress;
     }
 
-    /// <inheritdoc />
     public Task Send(string toAddress, string subject, string body)
     {
         var message = new SendGridMessage()
