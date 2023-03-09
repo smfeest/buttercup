@@ -12,53 +12,53 @@ public class ModelFactory
     /// <summary>
     /// Instantiates a new <see cref="Recipe" /> object with unique property values.
     /// </summary>
-    /// <param name="includeOptionalAttributes">
+    /// <param name="setOptionalAttributes">
     /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
     /// null.
     /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
-    public Recipe BuildRecipe(bool includeOptionalAttributes = false)
+    public Recipe BuildRecipe(bool setOptionalAttributes = false)
     {
         var i = ++counter;
 
         return new(
             i,
             $"recipe-{i}-title",
-            includeOptionalAttributes ? i + 1 : null,
-            includeOptionalAttributes ? i + 2 : null,
-            includeOptionalAttributes ? i + 3 : null,
+            setOptionalAttributes ? i + 1 : null,
+            setOptionalAttributes ? i + 2 : null,
+            setOptionalAttributes ? i + 3 : null,
             $"recipe-{i}-ingredients",
             $"recipe-{i}-method",
-            includeOptionalAttributes ? $"recipe-{i}-suggestions" : null,
-            includeOptionalAttributes ? $"recipe-{i}-remarks" : null,
-            includeOptionalAttributes ? $"recipe-{i}-source" : null,
+            setOptionalAttributes ? $"recipe-{i}-suggestions" : null,
+            setOptionalAttributes ? $"recipe-{i}-remarks" : null,
+            setOptionalAttributes ? $"recipe-{i}-source" : null,
             new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),
-            includeOptionalAttributes ? i + 4 : null,
+            setOptionalAttributes ? i + 4 : null,
             new DateTime(2002, 3, 4, 5, 6, 7).AddSeconds(i),
-            includeOptionalAttributes ? i + 5 : null,
+            setOptionalAttributes ? i + 5 : null,
             i + 4);
     }
 
     /// <summary>
     /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.
     /// </summary>
-    /// <param name="includeOptionalAttributes">
+    /// <param name="setOptionalAttributes">
     /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
     /// null.
     /// </param>
     /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
-    public RecipeAttributes BuildRecipeAttributes(bool includeOptionalAttributes = false) =>
-        new(BuildRecipe(includeOptionalAttributes));
+    public RecipeAttributes BuildRecipeAttributes(bool setOptionalAttributes = false) =>
+        new(BuildRecipe(setOptionalAttributes));
 
     /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.
     /// </summary>
-    /// <param name="includeOptionalAttributes">
+    /// <param name="setOptionalAttributes">
     /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
     /// null.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User BuildUser(bool includeOptionalAttributes = false)
+    public User BuildUser(bool setOptionalAttributes = false)
     {
         var i = ++counter;
 
@@ -66,8 +66,8 @@ public class ModelFactory
             i,
             $"user-{i}-name",
              $"user-{i}@example.com",
-            includeOptionalAttributes ? $"user-{i}-password" : null,
-            includeOptionalAttributes ? new DateTime(2000, 1, 2, 3, 4, 5).AddSeconds(i) : null,
+            setOptionalAttributes ? $"user-{i}-password" : null,
+            setOptionalAttributes ? new DateTime(2000, 1, 2, 3, 4, 5).AddSeconds(i) : null,
             "secstamp",
             $"user-{i}-time-zone",
             new DateTime(2001, 2, 3, 4, 5, 6).AddSeconds(i),

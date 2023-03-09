@@ -28,7 +28,7 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var attributes = this.modelFactory.BuildRecipeAttributes(includeOptionalAttributes: true);
+        var attributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: true);
 
         var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
 
@@ -61,7 +61,7 @@ public class RecipeDataProviderTests
 
         var currentUser = await new SampleDataHelper(connection).InsertUser();
 
-        var attributes = this.modelFactory.BuildRecipeAttributes(includeOptionalAttributes: false);
+        var attributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: false);
 
         var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
 
@@ -332,7 +332,7 @@ public class RecipeDataProviderTests
         var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
         var currentUser = await sampleDataHelper.InsertUser();
 
-        var newAttributes = this.modelFactory.BuildRecipeAttributes(includeOptionalAttributes: true);
+        var newAttributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: true);
 
         await this.recipeDataProvider.UpdateRecipe(
             connection, original.Id, newAttributes, original.Revision, currentUser.Id);
@@ -369,7 +369,7 @@ public class RecipeDataProviderTests
         var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
         var currentUser = await sampleDataHelper.InsertUser();
 
-        var newAttributes = this.modelFactory.BuildRecipeAttributes(includeOptionalAttributes: false);
+        var newAttributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: false);
 
         await this.recipeDataProvider.UpdateRecipe(
             connection, original.Id, newAttributes, original.Revision, currentUser.Id);
