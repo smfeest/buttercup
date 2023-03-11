@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Buttercup.DataAccess;
 
@@ -22,7 +23,7 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddDataAccessServices(
         this IServiceCollection services, Action<DataAccessOptions> configure) =>
-        services.Configure(configure).AddDataAccessServices();
+        services.AddDataAccessServices(options => options.Configure(configure));
 
     /// <summary>
     /// Adds data access services to the service collection.
@@ -38,13 +39,19 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddDataAccessServices(
         this IServiceCollection services, IConfiguration configuration) =>
-        services.Configure<DataAccessOptions>(configuration).AddDataAccessServices();
+        services.AddDataAccessServices(options => options.Bind(configuration));
 
-    private static IServiceCollection AddDataAccessServices(this IServiceCollection services) =>
-        services
+    private static IServiceCollection AddDataAccessServices(
+        this IServiceCollection services,
+        Action<OptionsBuilder<DataAccessOptions>> buildOptionsAction)
+    {
+        buildOptionsAction(services.AddOptions<DataAccessOptions>().ValidateDataAnnotations());
+
+        return services
             .AddTransient<IAuthenticationEventDataProvider, AuthenticationEventDataProvider>()
             .AddTransient<IMySqlConnectionSource, MySqlConnectionSource>()
             .AddTransient<IPasswordResetTokenDataProvider, PasswordResetTokenDataProvider>()
             .AddTransient<IRecipeDataProvider, RecipeDataProvider>()
             .AddTransient<IUserDataProvider, UserDataProvider>();
+    }
 }
