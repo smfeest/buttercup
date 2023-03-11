@@ -52,8 +52,10 @@ public class EmailSenderTests
     private static async Task<SendGridMessage> Send()
     {
         var mockClient = new Mock<ISendGridClient>();
-        var clientAccessor = Mock.Of<ISendGridClientAccessor>(x => x.SendGridClient == mockClient.Object);
-        var options = Options.Create(new EmailOptions { FromAddress = FromAddress });
+        var clientAccessor = Mock.Of<ISendGridClientAccessor>(
+            x => x.SendGridClient == mockClient.Object);
+        var options = Options.Create(
+            new EmailOptions { ApiKey = string.Empty, FromAddress = FromAddress });
         var emailSender = new EmailSender(clientAccessor, options);
 
         SendGridMessage? sentMessage = null;

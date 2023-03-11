@@ -7,12 +7,15 @@ namespace Buttercup.Email;
 
 public class ServiceCollectionExtensionsTests
 {
+    private const string FakeApiKey = "fake-api-key";
+    private const string FakeFromAddress = "fake-from@example.com";
+
     #region AddEmailServices
 
     [Fact]
     public void AddEmailServicesAddsEmailSender() =>
         Assert.Contains(
-            new ServiceCollection().AddEmailServices(options => { }),
+            new ServiceCollection().AddEmailServices(ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IEmailSender) &&
                 serviceDescriptor.ImplementationType == typeof(EmailSender) &&
@@ -21,43 +24,59 @@ public class ServiceCollectionExtensionsTests
     [Fact]
     public void AddEmailServicesAddsSendGridClientAccessor() =>
         Assert.Contains(
-            new ServiceCollection().AddEmailServices(options => { }),
+            new ServiceCollection().AddEmailServices(ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(ISendGridClientAccessor) &&
                 serviceDescriptor.ImplementationType == typeof(SendGridClientAccessor) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddEmailServicesConfiguresOptions()
+    public void AddEmailServicesWithConfigureActionConfiguresOptions()
     {
-        var serviceProvider = new ServiceCollection()
-            .AddEmailServices(options => options.ApiKey = "api-key")
-            .BuildServiceProvider();
+        var options = new ServiceCollection()
+            .AddEmailServices(ConfigureOptions)
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<EmailOptions>>();
 
-        var options = serviceProvider.GetRequiredService<IOptions<EmailOptions>>();
-
-        Assert.Equal("api-key", options.Value.ApiKey);
+        Assert.Equal(FakeApiKey, options.Value.ApiKey);
+        Assert.Equal(FakeFromAddress, options.Value.FromAddress);
     }
 
     [Fact]
-    public void AddEmailServicesBindsConfiguration()
+    public void AddEmailServicesWithConfigurationBindsConfiguration()
     {
-        var configurationData = new Dictionary<string, string?>()
-        {
-            ["ApiKey"] = "api-key",
-        };
-
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configurationData)
+            .AddInMemoryCollection(new Dictionary<string, string?>()
+            {
+                ["ApiKey"] = FakeApiKey,
+                ["FromAddress"] = FakeFromAddress,
+            })
             .Build();
 
-        var serviceProvider = new ServiceCollection()
+        var options = new ServiceCollection()
             .AddEmailServices(configuration)
-            .BuildServiceProvider();
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<EmailOptions>>();
 
-        var options = serviceProvider.GetRequiredService<IOptions<EmailOptions>>();
+        Assert.Equal(FakeApiKey, options.Value.ApiKey);
+        Assert.Equal(FakeFromAddress, options.Value.FromAddress);
+    }
 
-        Assert.Equal("api-key", options.Value.ApiKey);
+    [Fact]
+    public void AddEmailServicesValidatesOptions()
+    {
+        var options = new ServiceCollection()
+            .AddEmailServices(options => { })
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<EmailOptions>>();
+
+        Assert.Throws<OptionsValidationException>(() => options.Value);
+    }
+
+    private static void ConfigureOptions(EmailOptions options)
+    {
+        options.ApiKey = FakeApiKey;
+        options.FromAddress = FakeFromAddress;
     }
 
     #endregion

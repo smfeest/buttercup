@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Buttercup.Email;
 
@@ -22,7 +23,7 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddEmailServices(
         this IServiceCollection services, Action<EmailOptions> configure) =>
-        services.Configure(configure).AddEmailServices();
+        services.AddEmailServices(options => options.Configure(configure));
 
     /// <summary>
     /// Adds email services to the service collection.
@@ -38,10 +39,16 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddEmailServices(
         this IServiceCollection services, IConfiguration configuration) =>
-        services.Configure<EmailOptions>(configuration).AddEmailServices();
+        services.AddEmailServices(options => options.Bind(configuration));
 
-    private static IServiceCollection AddEmailServices(this IServiceCollection services) =>
-        services
+    private static IServiceCollection AddEmailServices(
+        this IServiceCollection services,
+        Action<OptionsBuilder<EmailOptions>> buildOptionsAction)
+    {
+        buildOptionsAction(services.AddOptions<EmailOptions>().ValidateDataAnnotations());
+
+        return services
             .AddTransient<IEmailSender, EmailSender>()
             .AddTransient<ISendGridClientAccessor, SendGridClientAccessor>();
+    }
 }
