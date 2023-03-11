@@ -57,36 +57,43 @@ public class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddDataAccessServicesConfiguresOptions()
+    public void AddDataAccessServicesWithConfigureActionConfiguresOptions()
     {
-        var serviceProvider = new ServiceCollection()
+        var options = new ServiceCollection()
             .AddDataAccessServices(ConfigureOptions)
-            .BuildServiceProvider();
-
-        var options = serviceProvider.GetRequiredService<IOptions<DataAccessOptions>>();
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<DataAccessOptions>>();
 
         Assert.Equal(ConnectionString, options.Value.ConnectionString);
     }
 
     [Fact]
-    public void AddDataAccessServicesBindsConfiguration()
+    public void AddDataAccessServicesWithConfigurationBindsConfiguration()
     {
-        var configurationData = new Dictionary<string, string?>()
-        {
-            ["ConnectionString"] = ConnectionString,
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configurationData)
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?>()
+            {
+                ["ConnectionString"] = ConnectionString,
+            })
             .Build();
 
-        var serviceProvider = new ServiceCollection()
+        var options = new ServiceCollection()
             .AddDataAccessServices(configuration)
-            .BuildServiceProvider();
-
-        var options = serviceProvider.GetRequiredService<IOptions<DataAccessOptions>>();
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<DataAccessOptions>>();
 
         Assert.Equal(ConnectionString, options.Value.ConnectionString);
+    }
+
+    [Fact]
+    public void AddDataAccessServicesValidatesOptions()
+    {
+        var options = new ServiceCollection()
+            .AddDataAccessServices(options => options.ConnectionString = string.Empty)
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<DataAccessOptions>>();
+
+        Assert.Throws<OptionsValidationException>(() => options.Value);
     }
 
     private static void ConfigureOptions(DataAccessOptions options) =>

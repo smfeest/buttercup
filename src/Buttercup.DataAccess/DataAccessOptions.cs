@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Buttercup.DataAccess;
 
 /// <summary>
@@ -11,5 +13,6 @@ public class DataAccessOptions
     /// <value>
     /// The database connection string.
     /// </value>
-    public string? ConnectionString { get; set; }
+    [Required]
+    public required string ConnectionString { get; set; }
 }

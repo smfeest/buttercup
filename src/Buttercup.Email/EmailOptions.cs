@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Buttercup.Email;
 
 /// <summary>
@@ -11,7 +13,8 @@ public class EmailOptions
     /// <value>
     /// The SendGrid API key.
     /// </value>
-    public string? ApiKey { get; set; }
+    [Required]
+    public required string ApiKey { get; set; }
 
     /// <summary>
     /// Gets or sets the from address.
@@ -19,5 +22,6 @@ public class EmailOptions
     /// <value>
     /// The from address.
     /// </value>
-    public string? FromAddress { get; set; }
+    [Required]
+    public required string FromAddress { get; set; }
 }

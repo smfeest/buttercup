@@ -13,13 +13,6 @@ internal class EmailSender : IEmailSender
     public EmailSender(
         ISendGridClientAccessor sendGridClientAccessor, IOptions<EmailOptions> optionsAccessor)
     {
-        if (string.IsNullOrEmpty(optionsAccessor.Value.FromAddress))
-        {
-            throw new ArgumentException(
-                "FromAddress must not be null or empty",
-                nameof(optionsAccessor));
-        }
-
         this.sendGridClient = sendGridClientAccessor.SendGridClient;
         this.fromAddress = optionsAccessor.Value.FromAddress;
     }
