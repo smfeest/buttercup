@@ -32,4 +32,6 @@ dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visi
 dotnet_diagnostic.CA1822.severity = none # Mark members as static
 
 [*.sln]
+charset = utf-8-bom
+end_of_line = crlf
 indent_style = tab

@@ -1,4 +1,5 @@
 * text=auto
+*.sln text eol=crlf
 
 *.png binary
 *.woff binary
