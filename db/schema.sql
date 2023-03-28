@@ -1,4 +1,4 @@
-CREATE TABLE authentication_event (
+CREATE TABLE authentication_events (
   id BIGINT NOT NULL AUTO_INCREMENT,
   time DATETIME NOT NULL,
   event VARCHAR(50) NOT NULL,
@@ -7,14 +7,14 @@ CREATE TABLE authentication_event (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE password_reset_token (
+CREATE TABLE password_reset_tokens (
   token CHAR(48) NOT NULL,
   user_id BIGINT NOT NULL,
   created DATETIME NOT NULL,
   PRIMARY KEY (token)
 ) ENGINE=InnoDB;
 
-CREATE TABLE recipe (
+CREATE TABLE recipes (
   id BIGINT NOT NULL AUTO_INCREMENT,
   title VARCHAR(250) NOT NULL,
   preparation_minutes INT,
@@ -33,7 +33,7 @@ CREATE TABLE recipe (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE user (
+CREATE TABLE users (
   id BIGINT NOT NULL AUTO_INCREMENT,
   name VARCHAR(250) NOT NULL,
   email VARCHAR(250) NOT NULL,
@@ -45,27 +45,27 @@ CREATE TABLE user (
   modified DATETIME NOT NULL,
   revision INT NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY user_u1 (email)
+  UNIQUE KEY users_u1 (email)
 ) ENGINE=InnoDB;
 
-ALTER TABLE authentication_event
-  ADD FOREIGN KEY authentication_event_FK1 (user_id)
-    REFERENCES user (id)
+ALTER TABLE authentication_events
+  ADD FOREIGN KEY authentication_events_FK1 (user_id)
+    REFERENCES users (id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION;
 
-ALTER TABLE password_reset_token
-  ADD FOREIGN KEY password_reset_token_FK1 (user_id)
-    REFERENCES user (id)
+ALTER TABLE password_reset_tokens
+  ADD FOREIGN KEY password_reset_tokens_FK1 (user_id)
+    REFERENCES users (id)
     ON DELETE CASCADE
     ON UPDATE NO ACTION;
 
-ALTER TABLE recipe
-  ADD FOREIGN KEY recipe_FK1 (created_by_user_id)
-    REFERENCES user (id)
+ALTER TABLE recipes
+  ADD FOREIGN KEY recipes_FK1 (created_by_user_id)
+    REFERENCES users (id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  ADD FOREIGN KEY recipe_FK2 (modified_by_user_id)
-    REFERENCES user (id)
+  ADD FOREIGN KEY recipes_FK2 (modified_by_user_id)
+    REFERENCES users (id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION;

@@ -29,7 +29,7 @@ public class PasswordResetTokenDataProviderTests
         {
             using var command = connection.CreateCommand();
 
-            command.CommandText = @"INSERT password_reset_token(token, user_id, created)
+            command.CommandText = @"INSERT password_reset_tokens(token, user_id, created)
                 VALUES (@token, @user_id, @created)";
 
             command.Parameters.AddWithValue("@token", token);
@@ -50,7 +50,7 @@ public class PasswordResetTokenDataProviderTests
 
         using (var command = connection.CreateCommand())
         {
-            command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_token";
+            command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_tokens";
             survivingTokens = (string?)await command.ExecuteScalarAsync();
         }
 
@@ -81,7 +81,7 @@ public class PasswordResetTokenDataProviderTests
 
         using (var command = connection.CreateCommand())
         {
-            command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_token";
+            command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_tokens";
             survivingTokens = (string?)await command.ExecuteScalarAsync();
         }
 
@@ -133,7 +133,7 @@ public class PasswordResetTokenDataProviderTests
 
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT * FROM password_reset_token WHERE token = 'sample-token'";
+        command.CommandText = "SELECT * FROM password_reset_tokens WHERE token = 'sample-token'";
 
         using var reader = await command.ExecuteReaderAsync();
 

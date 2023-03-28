@@ -13,7 +13,7 @@ internal sealed class UserDataProvider : IUserDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT * FROM user WHERE email = @email";
+        command.CommandText = "SELECT * FROM users WHERE email = @email";
         command.Parameters.AddWithValue("@email", email);
 
         using var reader = await command.ExecuteReaderAsync();
@@ -25,7 +25,7 @@ internal sealed class UserDataProvider : IUserDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT * FROM user WHERE id = @id";
+        command.CommandText = "SELECT * FROM users WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
 
         using var reader = await command.ExecuteReaderAsync();
@@ -44,7 +44,7 @@ internal sealed class UserDataProvider : IUserDataProvider
         using var command = connection.CreateCommand();
 
         command.CommandText =
-            $"SELECT * FROM user WHERE id IN ({string.Join(',', ids)}) ORDER BY id";
+            $"SELECT * FROM users WHERE id IN ({string.Join(',', ids)}) ORDER BY id";
 
         using var reader = await command.ExecuteReaderAsync();
 
@@ -63,7 +63,7 @@ internal sealed class UserDataProvider : IUserDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = @"UPDATE user
+        command.CommandText = @"UPDATE users
             SET hashed_password = @hashed_password,
                 security_stamp = @security_stamp,
                 password_created = @time,
@@ -85,7 +85,7 @@ internal sealed class UserDataProvider : IUserDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = @"UPDATE user
+        command.CommandText = @"UPDATE users
             SET time_zone = @time_zone,
                 modified = @time,
                 revision = revision + 1

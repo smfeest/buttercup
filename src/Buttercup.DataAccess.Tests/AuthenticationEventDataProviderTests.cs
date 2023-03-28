@@ -30,7 +30,7 @@ public class AuthenticationEventDataProviderTests
 
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
+        command.CommandText = "SELECT * FROM authentication_events WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
 
         using var reader = await command.ExecuteReaderAsync();
@@ -52,7 +52,7 @@ public class AuthenticationEventDataProviderTests
 
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT * FROM authentication_event WHERE id = @id";
+        command.CommandText = "SELECT * FROM authentication_events WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
 
         using var reader = await command.ExecuteReaderAsync();
