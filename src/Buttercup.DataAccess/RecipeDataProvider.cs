@@ -14,7 +14,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
+        command.CommandText = @"INSERT recipes (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
             VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @current_user_id, @timestamp, @current_user_id, 0)";
 
         this.AddInsertUpdateParameters(command, attributes, currentUserId);
@@ -28,7 +28,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = "DELETE FROM recipe WHERE id = @id";
+        command.CommandText = "DELETE FROM recipes WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
 
         if (await command.ExecuteNonQueryAsync() == 0)
@@ -38,13 +38,13 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     }
 
     public Task<IList<Recipe>> GetAllRecipes(MySqlConnection connection) =>
-        GetRecipes(connection, "SELECT * FROM recipe ORDER BY title");
+        GetRecipes(connection, "SELECT * FROM recipes ORDER BY title");
 
     public async Task<Recipe> GetRecipe(MySqlConnection connection, long id)
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT * FROM recipe WHERE id = @id";
+        command.CommandText = "SELECT * FROM recipes WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
 
         using var reader = await command.ExecuteReaderAsync();
@@ -53,13 +53,13 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     }
 
     public Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection) =>
-        GetRecipes(connection, "SELECT * FROM recipe ORDER BY created DESC LIMIT 10");
+        GetRecipes(connection, "SELECT * FROM recipes ORDER BY created DESC LIMIT 10");
 
     public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection)
     {
         var query = @"SELECT *
-            FROM recipe
-            LEFT JOIN (SELECT id AS added_id FROM recipe ORDER BY created DESC LIMIT 10) AS added ON added_id = id
+            FROM recipes
+            LEFT JOIN (SELECT id AS added_id FROM recipes ORDER BY created DESC LIMIT 10) AS added ON added_id = id
             WHERE created != modified AND added_id IS NULL
             ORDER BY modified DESC LIMIT 10";
 
@@ -72,7 +72,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
             Array.Empty<Recipe>() :
             await GetRecipes(
                 connection,
-                $"SELECT * FROM recipe WHERE id IN ({string.Join(',', ids)}) ORDER BY id");
+                $"SELECT * FROM recipes WHERE id IN ({string.Join(',', ids)}) ORDER BY id");
 
     public async Task UpdateRecipe(
         MySqlConnection connection,
@@ -83,7 +83,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = @"UPDATE recipe
+        command.CommandText = @"UPDATE recipes
             SET title = @title, preparation_minutes = @preparation_minutes,
                 cooking_minutes = @cooking_minutes, servings = @servings,
                 ingredients = @ingredients, method = @method, suggestions = @suggestions,
@@ -122,7 +122,7 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = "SELECT revision FROM recipe WHERE id = @id";
+        command.CommandText = "SELECT revision FROM recipes WHERE id = @id";
         command.Parameters.AddWithValue("@id", id);
 
         var currentRevision = await command.ExecuteScalarAsync();

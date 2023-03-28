@@ -13,7 +13,7 @@ internal sealed class AuthenticationEventDataProvider : IAuthenticationEventData
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = @"INSERT authentication_event (time, event, user_id, email)
+        command.CommandText = @"INSERT authentication_events (time, event, user_id, email)
             VALUES (@time, @event, @user_id, @email)";
 
         command.Parameters.AddWithValue("@time", this.clock.UtcNow);

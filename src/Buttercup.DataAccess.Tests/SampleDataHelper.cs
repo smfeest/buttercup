@@ -32,7 +32,7 @@ public sealed class SampleDataHelper
 
         using var command = this.connection.CreateCommand();
 
-        command.CommandText = @"INSERT recipe(id, title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
+        command.CommandText = @"INSERT recipes(id, title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
             VALUES (@id, @title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @created, @created_by_user_id, @modified, @modified_by_user_id, @revision);";
 
         command.Parameters.AddWithValue("@id", recipe.Id);
@@ -63,7 +63,7 @@ public sealed class SampleDataHelper
     {
         using var command = this.connection.CreateCommand();
 
-        command.CommandText = @"INSERT user(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
+        command.CommandText = @"INSERT users(id, name, email, hashed_password, password_created, security_stamp, time_zone, created, modified, revision)
             VALUES (@id, @name, @email, @hashed_password, @password_created, @security_stamp, @time_zone, @created, @modified, @revision);";
 
         command.Parameters.AddWithValue("@id", user.Id);
