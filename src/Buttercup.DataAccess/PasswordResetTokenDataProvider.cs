@@ -35,7 +35,7 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
         command.CommandText = "SELECT user_id FROM password_reset_token WHERE token = @token";
         command.Parameters.AddWithValue("@token", token);
 
-        return await command.ExecuteScalarAsync<uint?>();
+        return await command.ExecuteScalarAsync<long?>();
     }
 
     public async Task InsertToken(MySqlConnection connection, long userId, string token)

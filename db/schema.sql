@@ -1,40 +1,40 @@
 CREATE TABLE authentication_event (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id BIGINT NOT NULL AUTO_INCREMENT,
   time DATETIME NOT NULL,
   event VARCHAR(50) NOT NULL,
-  user_id INT UNSIGNED,
+  user_id BIGINT,
   email VARCHAR(250),
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE password_reset_token (
   token CHAR(48) NOT NULL,
-  user_id INT UNSIGNED NOT NULL,
+  user_id BIGINT NOT NULL,
   created DATETIME NOT NULL,
   PRIMARY KEY (token)
 ) ENGINE=InnoDB;
 
 CREATE TABLE recipe (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id BIGINT NOT NULL AUTO_INCREMENT,
   title VARCHAR(250) NOT NULL,
-  preparation_minutes SMALLINT UNSIGNED,
-  cooking_minutes SMALLINT UNSIGNED,
-  servings SMALLINT UNSIGNED,
+  preparation_minutes INT,
+  cooking_minutes INT,
+  servings INT,
   ingredients TEXT NOT NULL,
   method TEXT NOT NULL,
   suggestions TEXT,
   remarks TEXT,
   source VARCHAR(250),
   created DATETIME NOT NULL,
-  created_by_user_id INT UNSIGNED,
+  created_by_user_id BIGINT,
   modified DATETIME NOT NULL,
-  modified_by_user_id INT UNSIGNED,
-  revision SMALLINT UNSIGNED NOT NULL,
+  modified_by_user_id BIGINT,
+  revision INT NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE user (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id BIGINT NOT NULL AUTO_INCREMENT,
   name VARCHAR(250) NOT NULL,
   email VARCHAR(250) NOT NULL,
   hashed_password VARCHAR(250),
@@ -43,7 +43,7 @@ CREATE TABLE user (
   time_zone VARCHAR(50) NOT NULL,
   created DATETIME NOT NULL,
   modified DATETIME NOT NULL,
-  revision SMALLINT UNSIGNED NOT NULL,
+  revision INT NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY user_u1 (email)
 ) ENGINE=InnoDB;
