@@ -37,7 +37,7 @@ CREATE TABLE user (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(250) NOT NULL,
   email VARCHAR(250) NOT NULL,
-  hashed_password CHAR(84),
+  hashed_password VARCHAR(250),
   password_created DATETIME,
   security_stamp CHAR(8) NOT NULL,
   time_zone VARCHAR(50) NOT NULL,
