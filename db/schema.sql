@@ -16,7 +16,7 @@ CREATE TABLE password_reset_token (
 
 CREATE TABLE recipe (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  title VARCHAR(255) NOT NULL,
+  title VARCHAR(250) NOT NULL,
   preparation_minutes SMALLINT UNSIGNED,
   cooking_minutes SMALLINT UNSIGNED,
   servings SMALLINT UNSIGNED,
@@ -24,7 +24,7 @@ CREATE TABLE recipe (
   method TEXT NOT NULL,
   suggestions TEXT,
   remarks TEXT,
-  source VARCHAR(255),
+  source VARCHAR(250),
   created DATETIME NOT NULL,
   created_by_user_id INT UNSIGNED,
   modified DATETIME NOT NULL,
