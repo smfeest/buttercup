@@ -14,8 +14,8 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     {
         using var command = connection.CreateCommand();
 
-        command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id)
-            VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @current_user_id, @timestamp, @current_user_id)";
+        command.CommandText = @"INSERT recipe (title, preparation_minutes, cooking_minutes, servings, ingredients, method, suggestions, remarks, source, created, created_by_user_id, modified, modified_by_user_id, revision)
+            VALUES (@title, @preparation_minutes, @cooking_minutes, @servings, @ingredients, @method, @suggestions, @remarks, @source, @timestamp, @current_user_id, @timestamp, @current_user_id, 0)";
 
         this.AddInsertUpdateParameters(command, attributes, currentUserId);
 
