@@ -29,7 +29,7 @@ CREATE TABLE recipe (
   created_by_user_id INT UNSIGNED,
   modified DATETIME NOT NULL,
   modified_by_user_id INT UNSIGNED,
-  revision SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  revision SMALLINT UNSIGNED NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
@@ -43,7 +43,7 @@ CREATE TABLE user (
   time_zone VARCHAR(50) NOT NULL,
   created DATETIME NOT NULL,
   modified DATETIME NOT NULL,
-  revision SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  revision SMALLINT UNSIGNED NOT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY user_u1 (email)
 ) ENGINE=InnoDB;

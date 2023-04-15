@@ -23,8 +23,8 @@
 3.  Insert a user account:
 
         mysql -u buttercup_dev buttercup_app << SQL
-          INSERT user (name, email, security_stamp, time_zone, created, modified)
-          VALUES ('<your-name>', '<your-email>', '', 'Etc/UTC', UTC_TIMESTAMP, UTC_TIMESTAMP)
+          INSERT user (name, email, security_stamp, time_zone, created, modified, revision)
+          VALUES ('<your-name>', '<your-email>', '', 'Etc/UTC', UTC_TIMESTAMP, UTC_TIMESTAMP, 0)
         SQL
 
     Once the application is running, you'll be able to use the password reset
