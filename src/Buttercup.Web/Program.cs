@@ -4,6 +4,7 @@ using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.EntityModel;
+using Buttercup.Web;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
@@ -48,9 +49,11 @@ services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 
+var connectionString = configuration.GetRequiredConnectionString("AppDb");
+
 services
     .AddCoreServices()
-    .AddDataAccessServices(configuration.GetSection("DataAccess"))
+    .AddDataAccessServices(options => options.ConnectionString = connectionString)
     .AddEmailServices(configuration.GetSection("Email"));
 
 services
