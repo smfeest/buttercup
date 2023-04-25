@@ -3,64 +3,80 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a recipe.
 /// </summary>
-/// <param name="Id">
-/// The recipe ID.
-/// </param>
-/// <param name="Title">
-/// The title.
-/// </param>
-/// <param name="PreparationMinutes">
-/// The preparation time in minutes.
-/// </param>
-/// <param name="CookingMinutes">
-/// The cooking time in minutes.
-/// </param>
-/// <param name="Servings">
-/// The number of servings.
-/// </param>
-/// <param name="Ingredients">
-/// The ingredients.
-/// </param>
-/// <param name="Method">
-/// The method.
-/// </param>
-/// <param name="Suggestions">
-/// The suggestions.
-/// </param>
-/// <param name="Remarks">
-/// The remarks.
-/// </param>
-/// <param name="Source">
-/// The source.
-/// </param>
-/// <param name="Created">
-/// The date and time at which the record was created.
-/// </param>
-/// <param name="CreatedByUserId">
-/// The user ID of the user who created the record.
-/// </param>
-/// <param name="Modified">
-/// The date and time at which the record was last modified.
-/// </param>
-/// <param name="ModifiedByUserId">
-/// The user ID of the user who last modified the record.
-/// </param>
-/// <param name="Revision">
-/// The revision number.
-/// </param>
-public sealed record Recipe(
-    long Id,
-    string Title,
-    int? PreparationMinutes,
-    int? CookingMinutes,
-    int? Servings,
-    string Ingredients,
-    string Method,
-    string? Suggestions,
-    string? Remarks,
-    string? Source,
-    DateTime Created,
-    long? CreatedByUserId,
-    DateTime Modified,
-    long? ModifiedByUserId,
-    int Revision);
+public sealed record Recipe
+{
+    /// <summary>
+    /// Gets or sets the primary key of the recipe.
+    /// </summary>
+    public long Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the recipe title.
+    /// </summary>
+    public required string Title { get; set; }
+
+    /// <summary>
+    /// Gets or sets the preparation time in minutes.
+    /// </summary>
+    public int? PreparationMinutes { get; set; }
+
+    /// <summary>
+    /// Gets or sets the cooking time in minutes.
+    /// </summary>
+    public int? CookingMinutes { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number of servings.
+    /// </summary>
+    public int? Servings { get; set; }
+
+    /// <summary>
+    /// Gets or sets the ingredients.
+    /// </summary>
+    public required string Ingredients { get; set; }
+
+    /// <summary>
+    /// Gets or sets the method.
+    /// </summary>
+    public required string Method { get; set; }
+
+    /// <summary>
+    /// Gets or sets the suggestions for the recipe.
+    /// </summary>
+    public string? Suggestions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the remarks for the recipe.
+    /// </summary>
+    public string? Remarks { get; set; }
+
+    /// <summary>
+    /// Gets or sets the source of the recipe.
+    /// </summary>
+    public string? Source { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time at which the recipe was added.
+    /// </summary>
+    public required DateTime Created { get; set; }
+
+    /// <summary>
+    /// Gets or sets the primary key of the user who added the recipe.
+    /// </summary>
+    public long? CreatedByUserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time at which the recipe was last modified.
+    /// </summary>
+    public required DateTime Modified { get; set; }
+
+    /// <summary>
+    /// Gets or sets the primary key of the user who last modified the recipe.
+    /// </summary>
+    public long? ModifiedByUserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the revision number for concurrency control.
+    /// </summary>
+    public int Revision { get; set; }
+}
