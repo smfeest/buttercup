@@ -54,17 +54,19 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User BuildUser(bool setOptionalAttributes = false) => new(
-        this.NextInt(),
-        this.NextString("name"),
-        $"user-{this.NextInt()}@example.com",
-        setOptionalAttributes ? this.NextString("password-hash") : null,
-        setOptionalAttributes ? this.NextDateTime() : null,
-        this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
-        this.NextString("time-zone"),
-        this.NextDateTime(),
-        this.NextDateTime(),
-        this.NextInt());
+    public User BuildUser(bool setOptionalAttributes = false) => new()
+    {
+        Id = this.NextInt(),
+        Name = this.NextString("name"),
+        Email = $"user-{this.NextInt()}@example.com",
+        HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
+        PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
+        SecurityStamp = this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
+        TimeZone = this.NextString("time-zone"),
+        Created = this.NextDateTime(),
+        Modified = this.NextDateTime(),
+        Revision = this.NextInt(),
+    };
 
     /// <summary>
     /// Generates a unique UTC date and time.
