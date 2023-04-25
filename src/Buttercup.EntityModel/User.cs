@@ -3,45 +3,56 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a user.
 /// </summary>
-/// <param name="Id">
-/// The user ID.
-/// </param>
-/// <param name="Name">
-/// The name.
-/// </param>
-/// <param name="Email">
-/// The email address.
-/// </param>
-/// <param name="HashedPassword">
-/// The hashed password.
-/// </param>
-/// <param name="PasswordCreated">
-/// The date and time at which the user last changed their password.
-/// </param>
-/// <param name="SecurityStamp">
-/// The security stamp; an opaque string that changes whenever the user's existing
-/// sessions need to be invalidate.
-/// </param>
-/// <param name="TimeZone">
-/// The TZ ID of the user's time zone.
-/// </param>
-/// <param name="Created">
-/// The date and time at which the record was created.
-/// </param>
-/// <param name="Modified">
-/// The date and time at which the record was last modified.
-/// </param>
-/// <param name="Revision">
-/// The revision number.
-/// </param>
-public sealed record User(
-    long Id,
-    string Name,
-    string Email,
-    string? HashedPassword,
-    DateTime? PasswordCreated,
-    string SecurityStamp,
-    string TimeZone,
-    DateTime Created,
-    DateTime Modified,
-    int Revision);
+public sealed record User
+{
+    /// <summary>
+    /// Gets or sets the primary key of the user.
+    /// </summary>
+    public long Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user's name.
+    /// </summary>
+    public required string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user's email address.
+    /// </summary>
+    public required string Email { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user's hashed password, or null if the user does not have a password set.
+    /// </summary>
+    public string? HashedPassword { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time at which the user last changed their password.
+    /// </summary>
+    public DateTime? PasswordCreated { get; set; }
+
+    /// <summary>
+    /// Gets or sets security stamp; an opaque string that changes whenever the user's existing
+    /// sessions need to be invalidate.
+    /// </summary>
+    public required string SecurityStamp { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user's time zone as a TZID (e.g. 'Europe/London').
+    /// </summary>
+    public required string TimeZone { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time at which the user was created.
+    /// </summary>
+    public required DateTime Created { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time at which the user was last modified.
+    /// </summary>
+    public required DateTime Modified { get; set; }
+
+    /// <summary>
+    /// Gets or sets the revision number for concurrency control.
+    /// </summary>
+    public int Revision { get; set; }
+}

@@ -100,17 +100,19 @@ internal sealed class UserDataProvider : IUserDataProvider
         }
     }
 
-    private static User ReadUser(MySqlDataReader reader) => new(
-        reader.GetInt64("id"),
-        reader.GetString("name"),
-        reader.GetString("email"),
-        reader.GetNullableString("hashed_password"),
-        reader.GetNullableDateTime("password_created"),
-        reader.GetString("security_stamp"),
-        reader.GetString("time_zone"),
-        reader.GetDateTime("created"),
-        reader.GetDateTime("modified"),
-        reader.GetInt32("revision"));
+    private static User ReadUser(MySqlDataReader reader) => new()
+    {
+        Id = reader.GetInt64("id"),
+        Name = reader.GetString("name"),
+        Email = reader.GetString("email"),
+        HashedPassword = reader.GetNullableString("hashed_password"),
+        PasswordCreated = reader.GetNullableDateTime("password_created"),
+        SecurityStamp = reader.GetString("security_stamp"),
+        TimeZone = reader.GetString("time_zone"),
+        Created = reader.GetDateTime("created"),
+        Modified = reader.GetDateTime("modified"),
+        Revision = reader.GetInt32("revision"),
+    };
 
     private static NotFoundException UserNotFound(long userId) =>
         new($"User {userId} not found");
