@@ -32,22 +32,24 @@ public class RecipeDataProviderTests
 
         var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
 
-        var expected = new Recipe(
-            id,
-            attributes.Title,
-            attributes.PreparationMinutes,
-            attributes.CookingMinutes,
-            attributes.Servings,
-            attributes.Ingredients,
-            attributes.Method,
-            attributes.Suggestions,
-            attributes.Remarks,
-            attributes.Source,
-            this.fakeTime,
-            currentUser.Id,
-            this.fakeTime,
-            currentUser.Id,
-            0);
+        var expected = new Recipe
+        {
+            Id = id,
+            Title = attributes.Title,
+            PreparationMinutes = attributes.PreparationMinutes,
+            CookingMinutes = attributes.CookingMinutes,
+            Servings = attributes.Servings,
+            Ingredients = attributes.Ingredients,
+            Method = attributes.Method,
+            Suggestions = attributes.Suggestions,
+            Remarks = attributes.Remarks,
+            Source = attributes.Source,
+            Created = this.fakeTime,
+            CreatedByUserId = currentUser.Id,
+            Modified = this.fakeTime,
+            ModifiedByUserId = currentUser.Id,
+            Revision = 0,
+        };
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, id);
 
@@ -309,22 +311,24 @@ public class RecipeDataProviderTests
         await this.recipeDataProvider.UpdateRecipe(
             connection, original.Id, newAttributes, original.Revision, currentUser.Id);
 
-        var expected = new Recipe(
-            original.Id,
-            newAttributes.Title,
-            newAttributes.PreparationMinutes,
-            newAttributes.CookingMinutes,
-            newAttributes.Servings,
-            newAttributes.Ingredients,
-            newAttributes.Method,
-            newAttributes.Suggestions,
-            newAttributes.Remarks,
-            newAttributes.Source,
-            original.Created,
-            original.CreatedByUserId,
-            this.fakeTime,
-            currentUser.Id,
-            original.Revision + 1);
+        var expected = new Recipe
+        {
+            Id = original.Id,
+            Title = newAttributes.Title,
+            PreparationMinutes = newAttributes.PreparationMinutes,
+            CookingMinutes = newAttributes.CookingMinutes,
+            Servings = newAttributes.Servings,
+            Ingredients = newAttributes.Ingredients,
+            Method = newAttributes.Method,
+            Suggestions = newAttributes.Suggestions,
+            Remarks = newAttributes.Remarks,
+            Source = newAttributes.Source,
+            Created = original.Created,
+            CreatedByUserId = original.CreatedByUserId,
+            Modified = this.fakeTime,
+            ModifiedByUserId = currentUser.Id,
+            Revision = original.Revision + 1,
+        };
 
         var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
 

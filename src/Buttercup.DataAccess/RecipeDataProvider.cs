@@ -151,22 +151,24 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         return recipes;
     }
 
-    private static Recipe ReadRecipe(MySqlDataReader reader) => new(
-        reader.GetInt64("id"),
-        reader.GetString("title"),
-        reader.GetNullableInt32("preparation_minutes"),
-        reader.GetNullableInt32("cooking_minutes"),
-        reader.GetNullableInt32("servings"),
-        reader.GetString("ingredients"),
-        reader.GetString("method"),
-        reader.GetNullableString("suggestions"),
-        reader.GetNullableString("remarks"),
-        reader.GetNullableString("source"),
-        reader.GetDateTime("created"),
-        reader.GetNullableInt64("created_by_user_id"),
-        reader.GetDateTime("modified"),
-        reader.GetNullableInt64("modified_by_user_id"),
-        reader.GetInt32("revision"));
+    private static Recipe ReadRecipe(MySqlDataReader reader) => new()
+    {
+        Id = reader.GetInt64("id"),
+        Title = reader.GetString("title"),
+        PreparationMinutes = reader.GetNullableInt32("preparation_minutes"),
+        CookingMinutes = reader.GetNullableInt32("cooking_minutes"),
+        Servings = reader.GetNullableInt32("servings"),
+        Ingredients = reader.GetString("ingredients"),
+        Method = reader.GetString("method"),
+        Suggestions = reader.GetNullableString("suggestions"),
+        Remarks = reader.GetNullableString("remarks"),
+        Source = reader.GetNullableString("source"),
+        Created = reader.GetDateTime("created"),
+        CreatedByUserId = reader.GetNullableInt64("created_by_user_id"),
+        Modified = reader.GetDateTime("modified"),
+        ModifiedByUserId = reader.GetNullableInt64("modified_by_user_id"),
+        Revision = reader.GetInt32("revision"),
+    };
 
     private static NotFoundException RecipeNotFound(long id) => new($"Recipe {id} not found");
 }
