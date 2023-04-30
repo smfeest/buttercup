@@ -3,7 +3,8 @@ using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Api;
 
-[ExtendObjectType<Recipe>]
+[ExtendObjectType<Recipe>(
+    IgnoreProperties = new[] { nameof(Recipe.CreatedByUser), nameof(Recipe.ModifiedByUser) })]
 public class RecipeExtension
 {
     [BindMember(nameof(Recipe.CreatedByUserId))]
