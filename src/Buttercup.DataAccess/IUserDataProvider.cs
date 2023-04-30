@@ -1,4 +1,4 @@
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using MySqlConnector;
 
 namespace Buttercup.DataAccess;

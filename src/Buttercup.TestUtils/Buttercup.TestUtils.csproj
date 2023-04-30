@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\Buttercup.Models\Buttercup.Models.csproj" />
+    <ProjectReference Include="..\Buttercup.EntityModel\Buttercup.EntityModel.csproj" />
   </ItemGroup>
 </Project>

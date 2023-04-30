@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>Buttercup.Models</RootNamespace>
+    <RootNamespace>Buttercup.EntityModel</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
@@ -16,7 +16,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Buttercup.Models\Buttercup.Models.csproj" />
+    <ProjectReference Include="..\Buttercup.EntityModel\Buttercup.EntityModel.csproj" />
     <ProjectReference Include="..\Buttercup.TestUtils\Buttercup.TestUtils.csproj" />
   </ItemGroup>
 </Project>

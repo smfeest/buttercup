@@ -1,5 +1,5 @@
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;

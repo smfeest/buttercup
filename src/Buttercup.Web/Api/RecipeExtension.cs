@@ -1,5 +1,5 @@
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Api;
 

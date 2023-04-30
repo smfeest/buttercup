@@ -1,4 +1,4 @@
-namespace Buttercup.Models;
+namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a user.

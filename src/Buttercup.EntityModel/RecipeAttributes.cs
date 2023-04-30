@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Buttercup.Models;
+namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a recipe's attributes.

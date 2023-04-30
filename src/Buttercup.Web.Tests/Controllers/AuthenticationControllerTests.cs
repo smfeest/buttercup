@@ -1,4 +1,4 @@
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;

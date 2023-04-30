@@ -1,5 +1,5 @@
 using System.Globalization;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 
 namespace Buttercup.TestUtils;
 

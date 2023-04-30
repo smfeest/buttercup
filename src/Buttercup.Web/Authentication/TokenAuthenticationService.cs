@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Authentication;
 

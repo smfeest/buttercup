@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Moq;
 using MySqlConnector;

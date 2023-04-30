@@ -3,7 +3,7 @@ using Bugsnag.AspNet.Core;
 using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
