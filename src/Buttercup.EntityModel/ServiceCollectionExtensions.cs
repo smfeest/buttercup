@@ -25,5 +25,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, string connectionString) => services
             .AddSingleton<ServerVersion>(ServerVersion.AutoDetect(connectionString))
             .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) => options
-                .UseMySql(connectionString, serviceProvider.GetRequiredService<ServerVersion>()));
+                .UseMySql(
+                    connectionString,
+                    serviceProvider.GetRequiredService<ServerVersion>(),
+                    mysqlOptions => mysqlOptions.MigrationsHistoryTable("__migrations_history"))
+                .UseSnakeCaseNamingConvention());
 }
