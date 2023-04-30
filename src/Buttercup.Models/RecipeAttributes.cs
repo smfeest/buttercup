@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Buttercup.EntityModel;
 
 namespace Buttercup.Models;
 

@@ -1,5 +1,4 @@
 using Buttercup.EntityModel;
-using Buttercup.Models;
 using Buttercup.TestUtils;
 using MySqlConnector;
 
