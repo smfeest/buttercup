@@ -6,5 +6,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
     <ProjectReference Include="..\Buttercup.Models\Buttercup.Models.csproj" />
+    <ProjectReference Include="..\Buttercup.EntityModel\Buttercup.EntityModel.csproj" />
   </ItemGroup>
 </Project>

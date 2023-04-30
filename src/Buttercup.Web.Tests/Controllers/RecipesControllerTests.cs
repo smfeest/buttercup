@@ -1,4 +1,5 @@
 using Buttercup.DataAccess;
+using Buttercup.EntityModel;
 using Buttercup.Models;
 using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;

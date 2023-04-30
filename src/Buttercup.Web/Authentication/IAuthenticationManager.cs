@@ -1,4 +1,4 @@
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Buttercup.DataAccess;
+using Buttercup.EntityModel;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
 using HotChocolate.Authorization;

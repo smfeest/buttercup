@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.TestUtils;
 using Microsoft.Extensions.Logging;
