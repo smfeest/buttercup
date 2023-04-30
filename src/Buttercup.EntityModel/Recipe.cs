@@ -61,6 +61,11 @@ public sealed record Recipe
     public required DateTime Created { get; set; }
 
     /// <summary>
+    /// Gets or sets the user who added the recipe.
+    /// </summary>
+    public User? CreatedByUser { get; set; }
+
+    /// <summary>
     /// Gets or sets the primary key of the user who added the recipe.
     /// </summary>
     public long? CreatedByUserId { get; set; }
@@ -69,6 +74,11 @@ public sealed record Recipe
     /// Gets or sets the date and time at which the recipe was last modified.
     /// </summary>
     public required DateTime Modified { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user who last modified the recipe.
+    /// </summary>
+    public User? ModifiedByUser { get; set; }
 
     /// <summary>
     /// Gets or sets the primary key of the user who last modified the recipe.
