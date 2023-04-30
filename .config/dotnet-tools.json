@@ -5,6 +5,10 @@
     "dotnet-reportgenerator-globaltool": {
       "version": "4.8.13",
       "commands": ["reportgenerator"]
+    },
+    "dotnet-ef": {
+      "version": "7.0.5",
+      "commands": ["dotnet-ef"]
     }
   }
 }
