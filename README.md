@@ -10,17 +10,20 @@
 
 ## Setting up the database
 
-1.  Create the _buttercup_dev_ user that will be used to connect to the
+1.  Restore .NET tools:
+
+        dotnet tool restore
+
+2.  Create the _buttercup_dev_ user that will be used to connect to the
     application and test databases:
 
         mysql -u root -p < db/dev-user.sql
 
-2.  Create the _buttercup_app_ application database:
+3.  Create the application database:
 
-        mysql -u buttercup_dev -e 'DROP DATABASE IF EXISTS buttercup_app; CREATE DATABASE buttercup_app'
-        mysql -u buttercup_dev buttercup_app < db/schema.sql
+        dotnet ef database update -s src/Buttercup.Web
 
-3.  Insert a user account:
+4.  Insert a user account:
 
         mysql -u buttercup_dev buttercup_app << SQL
           INSERT users (name, email, security_stamp, time_zone, created, modified, revision)
