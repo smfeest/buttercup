@@ -93,3 +93,13 @@
 
       cd src/Buttercup.Web
       npx stylelint styles/
+
+## Database migrations
+
+- To create a new database migration:
+
+      dotnet ef migrations add <MIGRATION_NAME> -s src/Buttercup.Web -p src/Buttercup.EntityModel.Migrations
+
+- To run all pending database migrations
+
+      dotnet ef database update -s src/Buttercup.Web
