@@ -1,3 +1,5 @@
+using Buttercup.EntityModel;
+using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
 namespace Buttercup.DataAccess;
@@ -10,6 +12,9 @@ public static class TestDatabase
     private const string Server = "localhost";
     private const string User = "buttercup_dev";
     private const string DatabaseName = "buttercup_test";
+
+    private static readonly Lazy<ServerVersion> serverVersion = new(
+        () => ServerVersion.AutoDetect(BuildConnectionString()));
 
     /// <summary>
     /// Builds a connection string to connect to the test database.
@@ -34,6 +39,21 @@ public static class TestDatabase
         configure?.Invoke(builder);
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="AppDbContext" /> that connects to the test database.
+    /// </summary>
+    /// <returns>
+    /// The new <see cref="AppDbContext" />.
+    /// </returns>
+    public static AppDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder()
+            .UseAppDbOptions(BuildConnectionString(), serverVersion.Value)
+            .Options;
+
+        return new(options);
     }
 
     /// <summary>
