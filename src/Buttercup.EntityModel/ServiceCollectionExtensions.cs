@@ -24,12 +24,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAppDbContextFactory(
         this IServiceCollection services, string connectionString) => services
             .AddSingleton<ServerVersion>(ServerVersion.AutoDetect(connectionString))
-            .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) => options
-                .UseMySql(
-                    connectionString,
-                    serviceProvider.GetRequiredService<ServerVersion>(),
-                    mysqlOptions => mysqlOptions
-                        .MigrationsAssembly("Buttercup.EntityModel.Migrations")
-                        .MigrationsHistoryTable("__migrations_history"))
-                .UseSnakeCaseNamingConvention());
+            .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) =>
+                options.UseAppDbOptions(connectionString,
+                serviceProvider.GetRequiredService<ServerVersion>()));
 }
