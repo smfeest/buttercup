@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Buttercup.EntityModel;
 
 /// <summary>
@@ -13,16 +16,19 @@ public sealed record User
     /// <summary>
     /// Gets or sets the user's name.
     /// </summary>
+    [StringLength(250)]
     public required string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the user's email address.
     /// </summary>
+    [StringLength(250)]
     public required string Email { get; set; }
 
     /// <summary>
     /// Gets or sets the user's hashed password, or null if the user does not have a password set.
     /// </summary>
+    [StringLength(250)]
     public string? HashedPassword { get; set; }
 
     /// <summary>
@@ -34,11 +40,14 @@ public sealed record User
     /// Gets or sets security stamp; an opaque string that changes whenever the user's existing
     /// sessions need to be invalidate.
     /// </summary>
+    [Column(TypeName = "char")]
+    [StringLength(8)]
     public required string SecurityStamp { get; set; }
 
     /// <summary>
     /// Gets or sets the user's time zone as a TZID (e.g. 'Europe/London').
     /// </summary>
+    [StringLength(50)]
     public required string TimeZone { get; set; }
 
     /// <summary>
