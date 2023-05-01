@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
                 .UseMySql(
                     connectionString,
                     serviceProvider.GetRequiredService<ServerVersion>(),
-                    mysqlOptions => mysqlOptions.MigrationsHistoryTable("__migrations_history"))
+                    mysqlOptions => mysqlOptions
+                        .MigrationsAssembly("Buttercup.EntityModel.Migrations")
+                        .MigrationsHistoryTable("__migrations_history"))
                 .UseSnakeCaseNamingConvention());
 }

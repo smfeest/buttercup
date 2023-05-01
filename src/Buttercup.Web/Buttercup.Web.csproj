@@ -21,5 +21,6 @@
     <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
     <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
     <ProjectReference Include="..\Buttercup.EntityModel\Buttercup.EntityModel.csproj" />
+    <ProjectReference Include="..\Buttercup.EntityModel.Migrations\Buttercup.EntityModel.Migrations.csproj" />
   </ItemGroup>
 </Project>
