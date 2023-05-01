@@ -21,7 +21,4 @@
     <ProjectReference Include="..\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
     <ProjectReference Include="..\Buttercup.TestUtils\Buttercup.TestUtils.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="../../db/schema.sql" CopyToOutputDirectory="Always" />
-  </ItemGroup>
 </Project>

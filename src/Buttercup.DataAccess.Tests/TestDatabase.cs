@@ -84,28 +84,9 @@ public static class TestDatabase
     /// </returns>
     public static async Task Recreate()
     {
-        using var connection = new MySqlConnection(
-            BuildConnectionString(builder => builder.Database = null));
+        using var dbContext = CreateDbContext();
 
-        await connection.OpenAsync();
-
-        await ExecuteCommand(
-            connection,
-            $"DROP DATABASE IF EXISTS `{DatabaseName}`;CREATE DATABASE `{DatabaseName}`");
-
-        await connection.ChangeDatabaseAsync(DatabaseName);
-
-        var commandText = await File.ReadAllTextAsync("schema.sql");
-
-        await ExecuteCommand(connection, commandText);
-    }
-
-    private static async Task ExecuteCommand(MySqlConnection connection, string commandText)
-    {
-        using var command = connection.CreateCommand();
-
-        command.CommandText = commandText;
-
-        await command.ExecuteNonQueryAsync();
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
 }
