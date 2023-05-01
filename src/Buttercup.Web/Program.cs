@@ -52,6 +52,7 @@ services.Configure<ForwardedHeadersOptions>(
 var connectionString = configuration.GetRequiredConnectionString("AppDb");
 
 services
+    .AddAppDbContextFactory(connectionString)
     .AddCoreServices()
     .AddDataAccessServices(options => options.ConnectionString = connectionString)
     .AddEmailServices(configuration.GetSection("Email"));
