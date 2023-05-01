@@ -35,6 +35,7 @@ public static class DbContextOptionsBuilderExtensions
                 mysqlOptions => mysqlOptions
                     .MigrationsAssembly("Buttercup.EntityModel.Migrations")
                     .MigrationsHistoryTable("__migrations_history"))
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .UseSnakeCaseNamingConvention();
 
     private static string AddConnectionStringOptions(string baseConnectionString) =>
