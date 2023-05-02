@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.DataAccess;
 
-[Collection("Database collection")]
+[Collection(nameof(DatabaseCollection))]
 public class AuthenticationEventDataProviderTests
 {
     private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
