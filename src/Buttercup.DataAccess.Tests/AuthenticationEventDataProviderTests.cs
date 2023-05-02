@@ -8,11 +8,14 @@ namespace Buttercup.DataAccess;
 [Collection(nameof(DatabaseCollection))]
 public class AuthenticationEventDataProviderTests
 {
+    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
     private readonly AuthenticationEventDataProvider authenticationEventDataProvider;
 
-    public AuthenticationEventDataProviderTests()
+    public AuthenticationEventDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
+        this.databaseFixture = databaseFixture;
+
         var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
 
         this.authenticationEventDataProvider = new(clock);
@@ -23,7 +26,7 @@ public class AuthenticationEventDataProviderTests
     [Fact]
     public async Task LogEventInsertsEvent()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var user = new ModelFactory().BuildUser();
@@ -52,7 +55,7 @@ public class AuthenticationEventDataProviderTests
     [Fact]
     public async Task LogEventAcceptsNullUserIdAndEmail()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var id = await this.authenticationEventDataProvider.LogEvent(dbContext, "sample-event");
