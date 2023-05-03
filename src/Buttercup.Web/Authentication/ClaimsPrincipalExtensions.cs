@@ -15,7 +15,7 @@ public static class ClaimsPrincipalExtensions
     /// The principal.
     /// </param>
     /// <returns>
-    /// The user ID, or null if the principal does not have a name identifer claim.
+    /// The user ID, or null if the principal does not have a name identifier claim.
     /// </returns>
     public static long? GetUserId(this ClaimsPrincipal principal)
     {
