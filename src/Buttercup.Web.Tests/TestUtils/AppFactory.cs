@@ -22,7 +22,8 @@ public class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyncLifeti
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
         builder
             .UseSetting("ConnectionStrings:AppDb", this.DatabaseFixture.ConnectionString)
-            .UseSetting("Email:ApiKey", "fake-key");
+            .UseSetting("Email:ApiKey", "fake-key")
+            .UseSetting("HostBuilder:ReloadConfigOnChange", bool.FalseString);
 
     Task IAsyncLifetime.InitializeAsync() =>
         ((IAsyncLifetime)this.DatabaseFixture).InitializeAsync();
