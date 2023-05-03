@@ -23,7 +23,9 @@ public class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyncLifeti
         builder
             .UseSetting("ConnectionStrings:AppDb", this.DatabaseFixture.ConnectionString)
             .UseSetting("Email:ApiKey", "fake-key")
-            .UseSetting("HostBuilder:ReloadConfigOnChange", bool.FalseString);
+            .UseSetting("HostBuilder:ReloadConfigOnChange", bool.FalseString)
+            .UseSetting("Logging:LogLevel:Default", "Warning")
+            .UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning");
 
     Task IAsyncLifetime.InitializeAsync() =>
         ((IAsyncLifetime)this.DatabaseFixture).InitializeAsync();
