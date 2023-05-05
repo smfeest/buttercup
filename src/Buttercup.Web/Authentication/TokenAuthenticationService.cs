@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Authentication;
 
@@ -9,6 +10,7 @@ public class TokenAuthenticationService : ITokenAuthenticationService
     private readonly IAccessTokenEncoder accessTokenEncoder;
     private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;
     private readonly IClock clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<TokenAuthenticationService> logger;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly IUserDataProvider userDataProvider;
@@ -17,6 +19,7 @@ public class TokenAuthenticationService : ITokenAuthenticationService
         IAccessTokenEncoder accessTokenEncoder,
         IAuthenticationEventDataProvider authenticationEventDataProvider,
         IClock clock,
+        IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<TokenAuthenticationService> logger,
         IMySqlConnectionSource mySqlConnectionSource,
         IUserDataProvider userDataProvider)
@@ -24,6 +27,7 @@ public class TokenAuthenticationService : ITokenAuthenticationService
         this.accessTokenEncoder = accessTokenEncoder;
         this.authenticationEventDataProvider = authenticationEventDataProvider;
         this.clock = clock;
+        this.dbContextFactory = dbContextFactory;
         this.logger = logger;
         this.mySqlConnectionSource = mySqlConnectionSource;
         this.userDataProvider = userDataProvider;
@@ -36,10 +40,10 @@ public class TokenAuthenticationService : ITokenAuthenticationService
 
         LogMessages.TokenIssued(this.logger, user.Id, user.Email, null);
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, "access_token_issued", user.Id);
+            dbContext, "access_token_issued", user.Id);
 
         return token;
     }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
 namespace Buttercup.Web.Authentication;
@@ -16,6 +17,7 @@ public class AuthenticationManager : IAuthenticationManager
     private readonly IAuthenticationMailer authenticationMailer;
     private readonly IAuthenticationService authenticationService;
     private readonly IClock clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly ILogger<AuthenticationManager> logger;
     private readonly IPasswordHasher<User> passwordHasher;
@@ -30,6 +32,7 @@ public class AuthenticationManager : IAuthenticationManager
         IAuthenticationMailer authenticationMailer,
         IAuthenticationService authenticationService,
         IClock clock,
+        IDbContextFactory<AppDbContext> dbContextFactory,
         IMySqlConnectionSource mySqlConnectionSource,
         ILogger<AuthenticationManager> logger,
         IPasswordHasher<User> passwordHasher,
@@ -43,6 +46,7 @@ public class AuthenticationManager : IAuthenticationManager
         this.authenticationMailer = authenticationMailer;
         this.authenticationService = authenticationService;
         this.clock = clock;
+        this.dbContextFactory = dbContextFactory;
         this.mySqlConnectionSource = mySqlConnectionSource;
         this.logger = logger;
         this.passwordHasher = passwordHasher;
@@ -56,6 +60,7 @@ public class AuthenticationManager : IAuthenticationManager
     public async Task<User?> Authenticate(string email, string password)
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = await this.userDataProvider.FindUserByEmail(connection, email);
 
@@ -64,7 +69,7 @@ public class AuthenticationManager : IAuthenticationManager
             AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "authentication_failure:unrecognized_email", null, email);
+                dbContext, "authentication_failure:unrecognized_email", null, email);
 
             return null;
         }
@@ -74,7 +79,7 @@ public class AuthenticationManager : IAuthenticationManager
             AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "authentication_failure:no_password_set", user.Id, email);
+                dbContext, "authentication_failure:no_password_set", user.Id, email);
 
             return null;
         }
@@ -84,7 +89,7 @@ public class AuthenticationManager : IAuthenticationManager
             AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "authentication_failure:incorrect_password", user.Id, email);
+                dbContext, "authentication_failure:incorrect_password", user.Id, email);
 
             return null;
         }
@@ -92,7 +97,7 @@ public class AuthenticationManager : IAuthenticationManager
         AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, "authentication_success", user.Id, email);
+            dbContext, "authentication_success", user.Id, email);
 
         return user;
     }
@@ -101,13 +106,14 @@ public class AuthenticationManager : IAuthenticationManager
         HttpContext httpContext, string currentPassword, string newPassword)
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = httpContext.GetCurrentUser()!;
 
         if (user.HashedPassword == null)
         {
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "password_change_failure:no_password_set", user.Id);
+                dbContext, "password_change_failure:no_password_set", user.Id);
 
             throw new InvalidOperationException(
                 $"User {user.Id} ({user.Email}) does not have a password.");
@@ -119,7 +125,7 @@ public class AuthenticationManager : IAuthenticationManager
                 this.logger, user.Id, user.Email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "password_change_failure:incorrect_password", user.Id);
+                dbContext, "password_change_failure:incorrect_password", user.Id);
 
             return false;
         }
@@ -129,7 +135,7 @@ public class AuthenticationManager : IAuthenticationManager
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, "password_change_success", user.Id);
+            dbContext, "password_change_success", user.Id);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -141,6 +147,7 @@ public class AuthenticationManager : IAuthenticationManager
     public async Task<bool> PasswordResetTokenIsValid(string token)
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var userId = await this.ValidatePasswordResetToken(connection, token);
 
@@ -154,7 +161,7 @@ public class AuthenticationManager : IAuthenticationManager
             PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "password_reset_failure:invalid_token");
+                dbContext, "password_reset_failure:invalid_token");
         }
 
         return userId.HasValue;
@@ -163,6 +170,7 @@ public class AuthenticationManager : IAuthenticationManager
     public async Task<User> ResetPassword(string token, string newPassword)
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var userId = await this.ValidatePasswordResetToken(connection, token);
 
@@ -171,7 +179,7 @@ public class AuthenticationManager : IAuthenticationManager
             ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "password_reset_failure:invalid_token");
+                dbContext, "password_reset_failure:invalid_token");
 
             throw new InvalidTokenException("Password reset token is invalid");
         }
@@ -183,7 +191,7 @@ public class AuthenticationManager : IAuthenticationManager
         ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, "password_reset_success", userId.Value);
+            dbContext, "password_reset_success", userId.Value);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -193,6 +201,7 @@ public class AuthenticationManager : IAuthenticationManager
     public async Task SendPasswordResetLink(ActionContext actionContext, string email)
     {
         using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = await this.userDataProvider.FindUserByEmail(connection, email);
 
@@ -201,7 +210,7 @@ public class AuthenticationManager : IAuthenticationManager
             SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             await this.authenticationEventDataProvider.LogEvent(
-                connection, "password_reset_failure:unrecognized_email", null, email);
+                dbContext, "password_reset_failure:unrecognized_email", null, email);
 
             return;
         }
@@ -220,7 +229,7 @@ public class AuthenticationManager : IAuthenticationManager
         SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
 
         await this.authenticationEventDataProvider.LogEvent(
-            connection, "password_reset_link_sent", user.Id, email);
+            dbContext, "password_reset_link_sent", user.Id, email);
     }
 
     public async Task SignIn(HttpContext httpContext, User user)
@@ -231,9 +240,9 @@ public class AuthenticationManager : IAuthenticationManager
 
         SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.authenticationEventDataProvider.LogEvent(connection, "sign_in", user.Id);
+        await this.authenticationEventDataProvider.LogEvent(dbContext, "sign_in", user.Id);
     }
 
     public async Task SignOut(HttpContext httpContext)
@@ -248,9 +257,9 @@ public class AuthenticationManager : IAuthenticationManager
 
             SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
 
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
+            using var dbContext = this.dbContextFactory.CreateDbContext();
 
-            await this.authenticationEventDataProvider.LogEvent(connection, "sign_out", userId);
+            await this.authenticationEventDataProvider.LogEvent(dbContext, "sign_out", userId);
         }
     }
 

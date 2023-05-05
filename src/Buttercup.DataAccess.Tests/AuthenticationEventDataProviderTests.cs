@@ -1,3 +1,5 @@
+using Buttercup.EntityModel;
+using Buttercup.TestUtils;
 using Moq;
 using Xunit;
 
@@ -21,46 +23,54 @@ public class AuthenticationEventDataProviderTests
     [Fact]
     public async Task LogEventInsertsEvent()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = await new SampleDataHelper(connection).InsertUser();
+        var user = new ModelFactory().BuildUser();
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
 
         var id = await this.authenticationEventDataProvider.LogEvent(
-            connection, "sample-event", user.Id, "sample@example.com");
+            dbContext, "sample-event", user.Id, "sample@example.com");
 
-        using var command = connection.CreateCommand();
+        var expectedEvent = new AuthenticationEvent
+        {
+            Id = id,
+            Time = this.fakeTime,
+            Event = "sample-event",
+            UserId = user.Id,
+            Email = "sample@example.com"
+        };
 
-        command.CommandText = "SELECT * FROM authentication_events WHERE id = @id";
-        command.Parameters.AddWithValue("@id", id);
+        dbContext.ChangeTracker.Clear();
 
-        using var reader = await command.ExecuteReaderAsync();
+        var actualEvent = await dbContext.AuthenticationEvents.FindAsync(id);
 
-        await reader.ReadAsync();
-
-        Assert.Equal(this.fakeTime, reader.GetDateTime("time"));
-        Assert.Equal("sample-event", reader.GetString("event"));
-        Assert.Equal(user.Id, reader.GetInt64("user_id"));
-        Assert.Equal("sample@example.com", reader.GetString("email"));
+        Assert.Equal(expectedEvent, actualEvent);
     }
 
     [Fact]
     public async Task LogEventAcceptsNullUserIdAndEmail()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var id = await this.authenticationEventDataProvider.LogEvent(connection, "sample-event");
+        var id = await this.authenticationEventDataProvider.LogEvent(dbContext, "sample-event");
 
-        using var command = connection.CreateCommand();
+        var expectedEvent = new AuthenticationEvent
+        {
+            Id = id,
+            Time = this.fakeTime,
+            Event = "sample-event",
+            UserId = null,
+            Email = null
+        };
 
-        command.CommandText = "SELECT * FROM authentication_events WHERE id = @id";
-        command.Parameters.AddWithValue("@id", id);
+        dbContext.ChangeTracker.Clear();
 
-        using var reader = await command.ExecuteReaderAsync();
+        var actualEvent = await dbContext.AuthenticationEvents.FindAsync(id);
 
-        await reader.ReadAsync();
-
-        Assert.True(await reader.IsDBNullAsync(reader.GetOrdinal("user_id")));
-        Assert.True(await reader.IsDBNullAsync(reader.GetOrdinal("email")));
+        Assert.Equal(expectedEvent, actualEvent);
     }
 
     #endregion

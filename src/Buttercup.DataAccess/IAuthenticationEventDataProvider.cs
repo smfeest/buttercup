@@ -1,4 +1,4 @@
-using MySqlConnector;
+using Buttercup.EntityModel;
 
 namespace Buttercup.DataAccess;
 
@@ -10,8 +10,8 @@ public interface IAuthenticationEventDataProvider
     /// <summary>
     /// Logs an authentication event.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="eventName">
     /// The event name.
@@ -26,8 +26,5 @@ public interface IAuthenticationEventDataProvider
     /// A task for the operation. The result is the event ID.
     /// </returns>
     Task<long> LogEvent(
-        MySqlConnection connection,
-        string eventName,
-        long? userId = null,
-        string? email = null);
+        AppDbContext dbContext, string eventName, long? userId = null, string? email = null);
 }
