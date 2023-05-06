@@ -89,7 +89,8 @@ public class RecipesControllerTests
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
-        Assert.Equal(5L, redirectResult.RouteValues!["id"]);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(5L, redirectResult.RouteValues["id"]);
     }
 
     [Fact]
@@ -154,7 +155,8 @@ public class RecipesControllerTests
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
-        Assert.Equal(3L, redirectResult.RouteValues!["id"]);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(3L, redirectResult.RouteValues["id"]);
     }
 
     [Fact]
@@ -196,8 +198,10 @@ public class RecipesControllerTests
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(editModel, viewResult.Model);
 
-        var error = Assert.Single(
-            fixture.RecipesController.ModelState[nameof(EditRecipeViewModel.Attributes)]!.Errors);
+        var formState = fixture.RecipesController.ModelState[nameof(EditRecipeViewModel.Attributes)];
+        Assert.NotNull(formState);
+
+        var error = Assert.Single(formState.Errors);
         Assert.Equal("translated-stale-edit-error", error.ErrorMessage);
     }
 

@@ -207,9 +207,10 @@ public class AuthenticationControllerTests
 
         await fixture.SignInPost();
 
-        var error = Assert.Single(
-            fixture.AuthenticationController.ModelState[string.Empty]!.Errors);
+        var formState = fixture.AuthenticationController.ModelState[string.Empty];
+        Assert.NotNull(formState);
 
+        var error = Assert.Single(formState.Errors);
         Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
     }
 
@@ -313,8 +314,9 @@ public class AuthenticationControllerTests
 
         var result = fixture.AuthenticationController.SignOut();
 
-        var cacheControlHeader = fixture.HttpContext.Response.GetTypedHeaders().CacheControl!;
+        var cacheControlHeader = fixture.HttpContext.Response.GetTypedHeaders().CacheControl;
 
+        Assert.NotNull(cacheControlHeader);
         Assert.True(cacheControlHeader.NoCache);
         Assert.True(cacheControlHeader.NoStore);
     }

@@ -31,7 +31,8 @@ public class EnsureSignedOutAttributeTests
 
         Assert.Equal("Authentication", redirectResult.ControllerName);
         Assert.Equal(nameof(AuthenticationController.SignOut), redirectResult.ActionName);
-        Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues!["returnUrl"]);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(new PathString(RequestPath), redirectResult.RouteValues["returnUrl"]);
     }
 
     [Fact]
@@ -40,8 +41,9 @@ public class EnsureSignedOutAttributeTests
         var actionExecutingContext = CallOnActionExecuting(null);
 
         var cacheControlHeader =
-            actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl!;
+            actionExecutingContext.HttpContext.Response.GetTypedHeaders().CacheControl;
 
+        Assert.NotNull(cacheControlHeader);
         Assert.True(cacheControlHeader.NoCache);
         Assert.True(cacheControlHeader.NoStore);
     }
