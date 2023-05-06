@@ -532,7 +532,7 @@ public class AuthenticationManagerTests
         await fixture.ResetPassword();
 
         fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordChangeNotification(fixture.User!.Email));
+            x => x.SendPasswordChangeNotification(fixture.User.Email));
     }
 
     [Fact]
