@@ -1,4 +1,4 @@
-using MySqlConnector;
+using Buttercup.EntityModel;
 
 namespace Buttercup.DataAccess;
 
@@ -10,8 +10,8 @@ public interface IPasswordResetTokenDataProvider
     /// <summary>
     /// Deletes all password reset tokens that were created before a specific date and time.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="cutOff">
     /// The cut off date and time.
@@ -19,13 +19,13 @@ public interface IPasswordResetTokenDataProvider
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task DeleteExpiredTokens(MySqlConnection connection, DateTime cutOff);
+    Task DeleteExpiredTokens(AppDbContext dbContext, DateTime cutOff);
 
     /// <summary>
     /// Deletes all password reset tokens belonging to a user.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="userId">
     /// The user ID.
@@ -33,13 +33,13 @@ public interface IPasswordResetTokenDataProvider
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task DeleteTokensForUser(MySqlConnection connection, long userId);
+    Task DeleteTokensForUser(AppDbContext dbContext, long userId);
 
     /// <summary>
     /// Tries to get the user ID associated with a password reset token.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="token">
     /// The password reset token.
@@ -48,13 +48,13 @@ public interface IPasswordResetTokenDataProvider
     /// A task for the operation. The result is the user ID, or a null reference if no matching
     /// token is found.
     /// </returns>
-    Task<long?> GetUserIdForToken(MySqlConnection connection, string token);
+    Task<long?> GetUserIdForToken(AppDbContext dbContext, string token);
 
     /// <summary>
     /// Inserts a password reset token.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="userId">
     /// The user ID.
@@ -65,5 +65,5 @@ public interface IPasswordResetTokenDataProvider
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task InsertToken(MySqlConnection connection, long userId, string token);
+    Task InsertToken(AppDbContext dbContext, long userId, string token);
 }

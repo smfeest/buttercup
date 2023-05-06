@@ -252,7 +252,7 @@ public class AuthenticationManagerTests
         await fixture.ChangePassword();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.User.Id));
+            x => x.DeleteTokensForUser(fixture.DbContextFactory.FakeDbContext, fixture.User.Id));
     }
 
     [Fact]
@@ -374,8 +374,8 @@ public class AuthenticationManagerTests
 
         await fixture.PasswordResetTokenIsValid();
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteExpiredTokens(fixture.MySqlConnection, fixture.UtcNow.AddDays(-1)));
+        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
+            fixture.DbContextFactory.FakeDbContext, fixture.UtcNow.AddDays(-1)));
     }
 
     [Fact]
@@ -457,8 +457,8 @@ public class AuthenticationManagerTests
 
         await fixture.ResetPassword();
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteExpiredTokens(fixture.MySqlConnection, fixture.UtcNow.AddDays(-1)));
+        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
+            fixture.DbContextFactory.FakeDbContext, fixture.UtcNow.AddDays(-1)));
     }
 
     [Fact]
@@ -519,7 +519,7 @@ public class AuthenticationManagerTests
         await fixture.ResetPassword();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.User.Id));
+            x => x.DeleteTokensForUser(fixture.DbContextFactory.FakeDbContext, fixture.User.Id));
     }
 
     [Fact]
@@ -607,7 +607,7 @@ public class AuthenticationManagerTests
         await fixture.SendPasswordResetLink();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-            fixture.MySqlConnection, fixture.User!.Id, fixture.Token));
+            fixture.DbContextFactory.FakeDbContext, fixture.User!.Id, fixture.Token));
     }
 
     [Fact]
@@ -1034,7 +1034,7 @@ public class AuthenticationManagerTests
 
         public void SetupGetUserIdForToken(string token, long? userId) =>
             this.MockPasswordResetTokenDataProvider
-                .Setup(x => x.GetUserIdForToken(this.MySqlConnection, token))
+                .Setup(x => x.GetUserIdForToken(this.DbContextFactory.FakeDbContext, token))
                 .ReturnsAsync(userId);
 
         public void AssertAuthenticationEventLogged(

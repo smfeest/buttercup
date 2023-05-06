@@ -130,7 +130,7 @@ public class AuthenticationManager : IAuthenticationManager
             return false;
         }
 
-        var newSecurityStamp = await this.SetPassword(connection, user, newPassword);
+        var newSecurityStamp = await this.SetPassword(connection, dbContext, user, newPassword);
 
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
@@ -146,10 +146,9 @@ public class AuthenticationManager : IAuthenticationManager
 
     public async Task<bool> PasswordResetTokenIsValid(string token)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var userId = await this.ValidatePasswordResetToken(connection, token);
+        var userId = await this.ValidatePasswordResetToken(dbContext, token);
 
         if (userId.HasValue)
         {
@@ -172,7 +171,7 @@ public class AuthenticationManager : IAuthenticationManager
         using var connection = await this.mySqlConnectionSource.OpenConnection();
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var userId = await this.ValidatePasswordResetToken(connection, token);
+        var userId = await this.ValidatePasswordResetToken(dbContext, token);
 
         if (!userId.HasValue)
         {
@@ -186,7 +185,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         var user = await this.userDataProvider.GetUser(connection, userId.Value);
 
-        var newSecurityStamp = await this.SetPassword(connection, user, newPassword);
+        var newSecurityStamp = await this.SetPassword(connection, dbContext, user, newPassword);
 
         ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
@@ -219,7 +218,7 @@ public class AuthenticationManager : IAuthenticationManager
 
         var token = this.randomTokenGenerator.Generate(12);
 
-        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, token);
+        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, token);
 
         var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
         var link = urlHelper.Link("ResetPassword", new { token })!;
@@ -308,7 +307,7 @@ public class AuthenticationManager : IAuthenticationManager
     private static string RedactToken(string token) => $"{token[..6]}…";
 
     private async Task<string> SetPassword(
-        MySqlConnection connection, User user, string newPassword)
+        MySqlConnection connection, AppDbContext dbContext, User user, string newPassword)
     {
         var hashedPassword = this.passwordHasher.HashPassword(user, newPassword);
 
@@ -317,7 +316,7 @@ public class AuthenticationManager : IAuthenticationManager
         await this.userDataProvider.UpdatePassword(
             connection, user.Id, hashedPassword, securityStamp);
 
-        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, user.Id);
+        await this.passwordResetTokenDataProvider.DeleteTokensForUser(dbContext, user.Id);
 
         return securityStamp;
     }
@@ -335,13 +334,12 @@ public class AuthenticationManager : IAuthenticationManager
         this.authenticationService.SignOutAsync(
             httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
-    private async Task<long?> ValidatePasswordResetToken(
-        MySqlConnection connection, string token)
+    private async Task<long?> ValidatePasswordResetToken(AppDbContext dbContext, string token)
     {
         await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
-            connection, this.clock.UtcNow.AddDays(-1));
+            dbContext, this.clock.UtcNow.AddDays(-1));
 
-        return await this.passwordResetTokenDataProvider.GetUserIdForToken(connection, token);
+        return await this.passwordResetTokenDataProvider.GetUserIdForToken(dbContext, token);
     }
 
     private bool VerifyPassword(User user, string hashedPassword, string password) =>
