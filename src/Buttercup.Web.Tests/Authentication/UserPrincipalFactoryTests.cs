@@ -22,12 +22,20 @@ public class UserPrincipalFactoryTests
         Assert.Equal(this.user.Email, this.CreatePrincipal().FindFirstValue(ClaimTypes.Email));
 
     [Fact]
-    public void PrincipalHasEmailAsIdentityName() =>
-        Assert.Equal(this.user.Email, this.CreatePrincipal().Identity!.Name);
+    public void PrincipalHasEmailAsIdentityName()
+    {
+        var identity = this.CreatePrincipal().Identity;
+        Assert.NotNull(identity);
+        Assert.Equal(this.user.Email, identity.Name);
+    }
 
     [Fact]
-    public void PrincipalHasAuthenticationType() =>
-        Assert.Equal(AuthenticationType, this.CreatePrincipal().Identity!.AuthenticationType);
+    public void PrincipalHasAuthenticationType()
+    {
+        var identity = this.CreatePrincipal().Identity;
+        Assert.NotNull(identity);
+        Assert.Equal(AuthenticationType, identity.AuthenticationType);
+    }
 
     private ClaimsPrincipal CreatePrincipal() =>
         new UserPrincipalFactory().Create(this.user, AuthenticationType);

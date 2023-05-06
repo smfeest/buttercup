@@ -76,7 +76,7 @@ public class TokenAuthenticationHandlerTests : IAsyncLifetime
         var result = await this.tokenAuthenticationHandler.AuthenticateAsync();
 
         Assert.NotNull(result.Failure);
-        Assert.Equal("Invalid access token", result.Failure!.Message);
+        Assert.Equal("Invalid access token", result.Failure.Message);
     }
 
     [Theory]
@@ -102,7 +102,8 @@ public class TokenAuthenticationHandlerTests : IAsyncLifetime
         var result = await this.tokenAuthenticationHandler.AuthenticateAsync();
 
         Assert.True(result.Succeeded);
-        Assert.Equal(SchemeName, result.Ticket!.AuthenticationScheme);
+        Assert.NotNull(result.Ticket);
+        Assert.Equal(SchemeName, result.Ticket.AuthenticationScheme);
         Assert.Same(principal, result.Ticket.Principal);
     }
 

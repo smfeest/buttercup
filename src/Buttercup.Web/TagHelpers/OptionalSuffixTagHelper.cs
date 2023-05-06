@@ -29,11 +29,11 @@ public class OptionalSuffixTagHelper : TagHelper
     /// The model expression.
     /// </value>
     [HtmlAttributeName(ForAttributeName)]
-    public ModelExpression? For { get; set; }
+    public required ModelExpression For { get; set; }
 
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
-        if (!this.For!.Metadata.IsRequired)
+        if (!this.For.Metadata.IsRequired)
         {
             var span = new TagBuilder("span");
             span.AddCssClass("form-field__optional-label");

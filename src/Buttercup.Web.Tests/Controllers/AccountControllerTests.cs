@@ -71,13 +71,12 @@ public class AccountControllerTests
 
         await fixture.ChangePasswordPost();
 
-        var errors = fixture
+        var modelState = fixture
             .AccountController
-            .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)]!
-            .Errors;
+            .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)];
+        Assert.NotNull(modelState);
 
-        var error = Assert.Single(errors);
-
+        var error = Assert.Single(modelState.Errors);
         Assert.Equal("translated-wrong-password-error", error.ErrorMessage);
     }
 
