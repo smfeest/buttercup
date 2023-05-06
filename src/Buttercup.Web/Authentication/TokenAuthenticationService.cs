@@ -12,7 +12,6 @@ public class TokenAuthenticationService : ITokenAuthenticationService
     private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<TokenAuthenticationService> logger;
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly IUserDataProvider userDataProvider;
 
     public TokenAuthenticationService(
@@ -21,7 +20,6 @@ public class TokenAuthenticationService : ITokenAuthenticationService
         IClock clock,
         IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<TokenAuthenticationService> logger,
-        IMySqlConnectionSource mySqlConnectionSource,
         IUserDataProvider userDataProvider)
     {
         this.accessTokenEncoder = accessTokenEncoder;
@@ -29,7 +27,6 @@ public class TokenAuthenticationService : ITokenAuthenticationService
         this.clock = clock;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
-        this.mySqlConnectionSource = mySqlConnectionSource;
         this.userDataProvider = userDataProvider;
     }
 
@@ -80,9 +77,9 @@ public class TokenAuthenticationService : ITokenAuthenticationService
 
         try
         {
-            using var connection = await this.mySqlConnectionSource.OpenConnection();
+            using var dbContext = this.dbContextFactory.CreateDbContext();
 
-            user = await this.userDataProvider.GetUser(connection, payload.UserId);
+            user = await this.userDataProvider.GetUser(dbContext, payload.UserId);
         }
         catch (NotFoundException)
         {

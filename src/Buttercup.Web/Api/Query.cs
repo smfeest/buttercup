@@ -3,16 +3,23 @@ using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.Web.Authentication;
 using HotChocolate.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Api;
 
 [QueryType]
 public sealed class Query
 {
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IMySqlConnectionSource mySqlConnectionSource;
 
-    public Query(IMySqlConnectionSource mySqlConnectionSource) =>
+    public Query(
+        IDbContextFactory<AppDbContext> dbContextFactory,
+        IMySqlConnectionSource mySqlConnectionSource)
+    {
+        this.dbContextFactory = dbContextFactory;
         this.mySqlConnectionSource = mySqlConnectionSource;
+    }
 
     public async Task<User?> CurrentUser(
         [Service] IUserDataProvider userDataProvider, ClaimsPrincipal principal)
@@ -24,9 +31,9 @@ public sealed class Query
             return null;
         }
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await userDataProvider.GetUser(connection, userId.Value);
+        return await userDataProvider.GetUser(dbContext, userId.Value);
     }
 
     [Authorize]

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 
 namespace Buttercup.Web.Authentication;
 
@@ -18,7 +17,6 @@ public class AuthenticationManager : IAuthenticationManager
     private readonly IAuthenticationService authenticationService;
     private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly ILogger<AuthenticationManager> logger;
     private readonly IPasswordHasher<User> passwordHasher;
     private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
@@ -33,7 +31,6 @@ public class AuthenticationManager : IAuthenticationManager
         IAuthenticationService authenticationService,
         IClock clock,
         IDbContextFactory<AppDbContext> dbContextFactory,
-        IMySqlConnectionSource mySqlConnectionSource,
         ILogger<AuthenticationManager> logger,
         IPasswordHasher<User> passwordHasher,
         IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
@@ -47,7 +44,6 @@ public class AuthenticationManager : IAuthenticationManager
         this.authenticationService = authenticationService;
         this.clock = clock;
         this.dbContextFactory = dbContextFactory;
-        this.mySqlConnectionSource = mySqlConnectionSource;
         this.logger = logger;
         this.passwordHasher = passwordHasher;
         this.passwordResetTokenDataProvider = passwordResetTokenDataProvider;
@@ -59,10 +55,9 @@ public class AuthenticationManager : IAuthenticationManager
 
     public async Task<User?> Authenticate(string email, string password)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.userDataProvider.FindUserByEmail(connection, email);
+        var user = await this.userDataProvider.FindUserByEmail(dbContext, email);
 
         if (user == null)
         {
@@ -105,7 +100,6 @@ public class AuthenticationManager : IAuthenticationManager
     public async Task<bool> ChangePassword(
         HttpContext httpContext, string currentPassword, string newPassword)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = httpContext.GetCurrentUser()!;
@@ -130,7 +124,7 @@ public class AuthenticationManager : IAuthenticationManager
             return false;
         }
 
-        var newSecurityStamp = await this.SetPassword(connection, dbContext, user, newPassword);
+        var newSecurityStamp = await this.SetPassword(dbContext, user, newPassword);
 
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
@@ -168,7 +162,6 @@ public class AuthenticationManager : IAuthenticationManager
 
     public async Task<User> ResetPassword(string token, string newPassword)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var userId = await this.ValidatePasswordResetToken(dbContext, token);
@@ -183,9 +176,9 @@ public class AuthenticationManager : IAuthenticationManager
             throw new InvalidTokenException("Password reset token is invalid");
         }
 
-        var user = await this.userDataProvider.GetUser(connection, userId.Value);
+        var user = await this.userDataProvider.GetUser(dbContext, userId.Value);
 
-        var newSecurityStamp = await this.SetPassword(connection, dbContext, user, newPassword);
+        var newSecurityStamp = await this.SetPassword(dbContext, user, newPassword);
 
         ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
@@ -199,10 +192,9 @@ public class AuthenticationManager : IAuthenticationManager
 
     public async Task SendPasswordResetLink(ActionContext actionContext, string email)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.userDataProvider.FindUserByEmail(connection, email);
+        var user = await this.userDataProvider.FindUserByEmail(dbContext, email);
 
         if (user == null)
         {
@@ -280,9 +272,9 @@ public class AuthenticationManager : IAuthenticationManager
 
         User user;
 
-        using (var connection = await this.mySqlConnectionSource.OpenConnection())
+        using (var dbContext = this.dbContextFactory.CreateDbContext())
         {
-            user = await this.userDataProvider.GetUser(connection, userId.Value);
+            user = await this.userDataProvider.GetUser(dbContext, userId.Value);
         }
 
         var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
@@ -306,15 +298,14 @@ public class AuthenticationManager : IAuthenticationManager
 
     private static string RedactToken(string token) => $"{token[..6]}…";
 
-    private async Task<string> SetPassword(
-        MySqlConnection connection, AppDbContext dbContext, User user, string newPassword)
+    private async Task<string> SetPassword(AppDbContext dbContext, User user, string newPassword)
     {
         var hashedPassword = this.passwordHasher.HashPassword(user, newPassword);
 
         var securityStamp = this.randomTokenGenerator.Generate(2);
 
         await this.userDataProvider.UpdatePassword(
-            connection, user.Id, hashedPassword, securityStamp);
+            dbContext, user.Id, hashedPassword, securityStamp);
 
         await this.passwordResetTokenDataProvider.DeleteTokensForUser(dbContext, user.Id);
 

@@ -1,3 +1,4 @@
+using Buttercup.TestUtils;
 using Moq;
 using Xunit;
 
@@ -21,11 +22,14 @@ public class UserDataProviderTests
     [Fact]
     public async Task FindUserByEmailReturnsUser()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var expected = await new SampleDataHelper(connection).InsertUser();
+        var expected = new ModelFactory().BuildUser();
+        dbContext.Users.Add(expected);
+        await dbContext.SaveChangesAsync();
 
-        var actual = await this.userDataProvider.FindUserByEmail(connection, expected.Email);
+        var actual = await this.userDataProvider.FindUserByEmail(dbContext, expected.Email);
 
         Assert.Equal(expected, actual);
     }
@@ -33,12 +37,14 @@ public class UserDataProviderTests
     [Fact]
     public async Task FindUserByEmailReturnsNullIfNoMatchFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        await new SampleDataHelper(connection).InsertUser();
+        dbContext.Users.Add(new ModelFactory().BuildUser());
+        await dbContext.SaveChangesAsync();
 
         var actual = await this.userDataProvider.FindUserByEmail(
-            connection, "non-existent@example.com");
+            dbContext, "non-existent@example.com");
 
         Assert.Null(actual);
     }
@@ -50,11 +56,16 @@ public class UserDataProviderTests
     [Fact]
     public async Task GetUserReturnsUser()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var expected = await new SampleDataHelper(connection).InsertUser();
+        var expected = new ModelFactory().BuildUser();
+        dbContext.Users.Add(expected);
+        await dbContext.SaveChangesAsync();
 
-        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
+        dbContext.ChangeTracker.Clear();
+
+        var actual = await this.userDataProvider.GetUser(dbContext, expected.Id);
 
         Assert.Equal(expected, actual);
     }
@@ -62,14 +73,18 @@ public class UserDataProviderTests
     [Fact]
     public async Task GetUserThrowsIfRecordNotFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var otherUser = await new SampleDataHelper(connection).InsertUser();
+        var modelFactory = new ModelFactory();
 
-        var id = otherUser.Id + 1;
+        dbContext.Users.Add(modelFactory.BuildUser());
+        await dbContext.SaveChangesAsync();
+
+        var id = modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.GetUser(connection, id));
+            () => this.userDataProvider.GetUser(dbContext, id));
 
         Assert.Equal($"User {id} not found", exception.Message);
     }
@@ -81,31 +96,27 @@ public class UserDataProviderTests
     [Fact]
     public async Task GetUsersReturnsUsersWithMatchingIds()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var modelFactory = new ModelFactory();
 
         var allUsers = new[]
         {
-            await sampleDataHelper.InsertUser(),
-            await sampleDataHelper.InsertUser(),
-            await sampleDataHelper.InsertUser(),
+            modelFactory.BuildUser(),
+            modelFactory.BuildUser(),
+            modelFactory.BuildUser(),
         };
+
+        dbContext.Users.AddRange(allUsers);
+        await dbContext.SaveChangesAsync();
 
         var expected = new[] { allUsers[0], allUsers[2] };
 
         var actual = await this.userDataProvider.GetUsers(
-            connection, new[] { allUsers[0].Id, allUsers[2].Id });
+            dbContext, expected.Select(u => u.Id).ToArray());
 
         Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public async Task GetUsersReturnsEmptyListWhenIdListIsEmpty()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        Assert.Empty(await this.userDataProvider.GetUsers(connection, Array.Empty<long>()));
     }
 
     #endregion
@@ -115,12 +126,17 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePasswordUpdatesHashedPassword()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var original = await new SampleDataHelper(connection).InsertUser();
+        var original = new ModelFactory().BuildUser();
+        dbContext.Users.Add(original);
+        await dbContext.SaveChangesAsync();
 
         await this.userDataProvider.UpdatePassword(
-            connection, original.Id, "new-hashed-password", "newstamp");
+            dbContext, original.Id, "new-hashed-password", "newstamp");
+
+        dbContext.ChangeTracker.Clear();
 
         var expected = original with
         {
@@ -131,7 +147,7 @@ public class UserDataProviderTests
             Revision = original.Revision + 1,
         };
 
-        var actual = await this.userDataProvider.GetUser(connection, original.Id);
+        var actual = await dbContext.Users.FindAsync(original.Id);
 
         Assert.Equal(expected, actual);
     }
@@ -139,15 +155,19 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePasswordThrowsIfRecordNotFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var otherUser = await new SampleDataHelper(connection).InsertUser();
+        var modelFactory = new ModelFactory();
 
-        var id = otherUser.Id + 1;
+        dbContext.Users.Add(modelFactory.BuildUser());
+        await dbContext.SaveChangesAsync();
+
+        var id = modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
-                connection, id, "new-hashed-password", "newstamp"));
+                dbContext, id, "new-hashed-password", "newstamp"));
 
         Assert.Equal($"User {id} not found", exception.Message);
     }
@@ -159,11 +179,16 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePreferencesUpdatesPreferences()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var original = await new SampleDataHelper(connection).InsertUser();
+        var original = new ModelFactory().BuildUser();
+        dbContext.Users.Add(original);
+        await dbContext.SaveChangesAsync();
 
-        await this.userDataProvider.UpdatePreferences(connection, original.Id, "new-time-zone");
+        await this.userDataProvider.UpdatePreferences(dbContext, original.Id, "new-time-zone");
+
+        dbContext.ChangeTracker.Clear();
 
         var expected = original with
         {
@@ -172,7 +197,7 @@ public class UserDataProviderTests
             Revision = original.Revision + 1,
         };
 
-        var actual = await this.userDataProvider.GetUser(connection, original.Id);
+        var actual = await dbContext.Users.FindAsync(original.Id);
 
         Assert.Equal(expected, actual);
     }
@@ -180,34 +205,20 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePreferencesThrowsIfRecordNotFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var otherUser = await new SampleDataHelper(connection).InsertUser();
+        var modelFactory = new ModelFactory();
 
-        var id = otherUser.Id + 1;
+        dbContext.Users.Add(modelFactory.BuildUser());
+        await dbContext.SaveChangesAsync();
+
+        var id = modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.UpdatePreferences(connection, id, "new-time-zone"));
+            () => this.userDataProvider.UpdatePreferences(dbContext, id, "new-time-zone"));
 
         Assert.Equal($"User {id} not found", exception.Message);
-    }
-
-    #endregion
-
-    #region ReadUser
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ReadUserReadsAllAttributes(bool includeOptionalAttributes)
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var expected = await new SampleDataHelper(connection).InsertUser(includeOptionalAttributes);
-
-        var actual = await this.userDataProvider.GetUser(connection, expected.Id);
-
-        Assert.Equal(expected, actual);
     }
 
     #endregion
