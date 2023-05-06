@@ -5,7 +5,6 @@ using Buttercup.TestUtils;
 using Buttercup.Web.TestUtils;
 using Microsoft.Extensions.Logging;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Authentication;
@@ -174,12 +173,12 @@ public class TokenAuthenticationServiceTests
 
         public void SetupUserNotFound() =>
             this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.MySqlConnection, this.User.Id))
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, this.User.Id))
                 .ThrowsAsync(new NotFoundException(string.Empty));
 
         public void SetupGetUserSuccess() =>
             this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.MySqlConnection, this.User.Id))
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, this.User.Id))
                 .ReturnsAsync(this.User);
 
         public Task<User?> ValidateAccessToken() =>
@@ -193,8 +192,6 @@ public class TokenAuthenticationServiceTests
         public TokenAuthenticationServiceFixture()
         {
             var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
             this.TokenAuthenticationService = new(
                 this.MockAccessTokenEncoder.Object,
@@ -202,7 +199,6 @@ public class TokenAuthenticationServiceTests
                 clock,
                 this.DbContextFactory,
                 this.Logger,
-                mySqlConnectionSource,
                 this.MockUserDataProvider.Object);
         }
 
@@ -216,8 +212,6 @@ public class TokenAuthenticationServiceTests
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 
         public ListLogger<TokenAuthenticationService> Logger { get; } = new();
-
-        public MySqlConnection MySqlConnection { get; } = new();
 
         public TokenAuthenticationService TokenAuthenticationService { get; }
 

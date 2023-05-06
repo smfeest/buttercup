@@ -10,6 +10,7 @@ namespace Buttercup.Web.Api;
 
 public sealed class QueryTests : IDisposable
 {
+    private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly Query query;
     private readonly ModelFactory modelFactory = new();
     private readonly MySqlConnection mySqlConnection = new();
@@ -19,10 +20,14 @@ public sealed class QueryTests : IDisposable
         var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
             x => x.OpenConnection() == Task.FromResult(this.mySqlConnection));
 
-        this.query = new(mySqlConnectionSource);
+        this.query = new(dbContextFactory, mySqlConnectionSource);
     }
 
-    public void Dispose() => this.mySqlConnection.Dispose();
+    public void Dispose()
+    {
+        this.dbContextFactory.Dispose();
+        this.mySqlConnection.Dispose();
+    }
 
     #region CurrentUser
 
@@ -32,7 +37,7 @@ public sealed class QueryTests : IDisposable
         var user = this.modelFactory.BuildUser();
 
         var userDataProvider = Mock.Of<IUserDataProvider>(
-            x => x.GetUser(this.mySqlConnection, 1234) == Task.FromResult(user));
+            x => x.GetUser(this.dbContextFactory.FakeDbContext, 1234) == Task.FromResult(user));
 
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "1234") }));

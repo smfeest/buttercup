@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Authentication;
@@ -131,7 +130,8 @@ public class AuthenticationManagerTests
             this.User = user;
 
             this.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.SuppliedEmail))
+                .Setup(
+                    x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
                 .ReturnsAsync(user);
         }
 
@@ -238,7 +238,7 @@ public class AuthenticationManagerTests
         await fixture.ChangePassword();
 
         fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-            fixture.MySqlConnection,
+            fixture.DbContextFactory.FakeDbContext,
             fixture.User.Id,
             fixture.HashedNewPassword,
             fixture.NewSecurityStamp));
@@ -503,7 +503,7 @@ public class AuthenticationManagerTests
         await fixture.ResetPassword();
 
         fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-            fixture.MySqlConnection,
+            fixture.DbContextFactory.FakeDbContext,
             fixture.User.Id,
             fixture.NewHashedPassword,
             fixture.NewSecurityStamp));
@@ -673,7 +673,8 @@ public class AuthenticationManagerTests
                 .Returns(this.MockUrlHelper.Object);
 
             this.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.SuppliedEmail))
+                .Setup(
+                    x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
                 .ReturnsAsync(user);
         }
 
@@ -980,8 +981,6 @@ public class AuthenticationManagerTests
         public AuthenticationManagerFixture()
         {
             var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
             this.AuthenticationManager = new(
                 this.MockAuthenticationEventDataProvider.Object,
@@ -989,7 +988,6 @@ public class AuthenticationManagerTests
                 this.MockAuthenticationService.Object,
                 clock,
                 this.DbContextFactory,
-                mySqlConnectionSource,
                 this.Logger,
                 this.MockPasswordHasher.Object,
                 this.MockPasswordResetTokenDataProvider.Object,
@@ -1006,8 +1004,6 @@ public class AuthenticationManagerTests
         public FakeDbContextFactory DbContextFactory { get; } = new();
 
         public ListLogger<AuthenticationManager> Logger { get; } = new();
-
-        public MySqlConnection MySqlConnection { get; } = new();
 
         public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
 
@@ -1029,7 +1025,7 @@ public class AuthenticationManagerTests
 
         public void SetupGetUser(long id, User user) =>
             this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.MySqlConnection, id))
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, id))
                 .ReturnsAsync(user);
 
         public void SetupGetUserIdForToken(string token, long? userId) =>

@@ -1,5 +1,6 @@
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Api;
 
@@ -10,12 +11,12 @@ public class UserExtension
     [DataLoader]
     public static async Task<IReadOnlyDictionary<long, User>> GetUsersByIdAsync(
         IReadOnlyList<long> keys,
-        IMySqlConnectionSource mySqlConnectionSource,
+        IDbContextFactory<AppDbContext> dbContextFactory,
         IUserDataProvider userDataProvider)
     {
-        using var connection = await mySqlConnectionSource.OpenConnection();
+        using var dbContext = dbContextFactory.CreateDbContext();
 
-        var users = await userDataProvider.GetUsers(connection, keys);
+        var users = await userDataProvider.GetUsers(dbContext, keys);
 
         return users.ToDictionary(x => x.Id);
     }
