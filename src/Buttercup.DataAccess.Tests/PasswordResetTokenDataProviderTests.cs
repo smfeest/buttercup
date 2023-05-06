@@ -1,3 +1,5 @@
+using Buttercup.TestUtils;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -21,40 +23,28 @@ public class PasswordResetTokenDataProviderTests
     [Fact]
     public async Task DeleteExpiredTokensDeletesExpiredTokens()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = await new SampleDataHelper(connection).InsertUser();
+        var user = new ModelFactory().BuildUser();
+        dbContext.Users.Add(user);
 
-        async Task InsertToken(string token, DateTime created)
-        {
-            using var command = connection.CreateCommand();
+        void AddToken(string token, DateTime created) => dbContext.PasswordResetTokens.Add(
+            new() { Token = token, UserId = user.Id, Created = created });
 
-            command.CommandText = @"INSERT password_reset_tokens(token, user_id, created)
-                VALUES (@token, @user_id, @created)";
+        AddToken("token-a", new(2000, 1, 2, 11, 59, 59));
+        AddToken("token-b", new(2000, 1, 2, 12, 00, 00));
+        AddToken("token-c", new(2000, 1, 2, 12, 00, 01));
 
-            command.Parameters.AddWithValue("@token", token);
-            command.Parameters.AddWithValue("@user_id", user.Id);
-            command.Parameters.AddWithValue("@created", created);
-
-            await command.ExecuteNonQueryAsync();
-        }
-
-        await InsertToken("token-a", new(2000, 1, 2, 11, 59, 59));
-        await InsertToken("token-b", new(2000, 1, 2, 12, 00, 00));
-        await InsertToken("token-c", new(2000, 1, 2, 12, 00, 01));
+        await dbContext.SaveChangesAsync();
 
         await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
-            connection, new(2000, 1, 2, 12, 00, 00));
+            dbContext, new(2000, 1, 2, 12, 00, 00));
 
-        string? survivingTokens;
+        var survivingTokens =
+            await dbContext.PasswordResetTokens.Select(x => x.Token).ToListAsync();
 
-        using (var command = connection.CreateCommand())
-        {
-            command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_tokens";
-            survivingTokens = (string?)await command.ExecuteScalarAsync();
-        }
-
-        Assert.Equal("token-b,token-c", survivingTokens);
+        Assert.Equal(new[] { "token-b", "token-c" }, survivingTokens);
     }
 
     #endregion
@@ -64,28 +54,29 @@ public class PasswordResetTokenDataProviderTests
     [Fact]
     public async Task DeleteTokensForUserDeletesTokensBelongingToUser()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var modelFactory = new ModelFactory();
 
-        var user = await sampleDataHelper.InsertUser();
-        var otherUser = await sampleDataHelper.InsertUser();
+        var user = modelFactory.BuildUser();
+        var otherUser = modelFactory.BuildUser();
+        dbContext.Users.AddRange(user, otherUser);
 
-        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "token-a");
-        await this.passwordResetTokenDataProvider.InsertToken(connection, otherUser.Id, "token-b");
-        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "token-c");
+        void AddToken(long userId, string token) => dbContext.PasswordResetTokens.Add(
+            new() { Token = token, UserId = userId, Created = DateTime.UtcNow });
 
-        await this.passwordResetTokenDataProvider.DeleteTokensForUser(connection, user.Id);
+        AddToken(user.Id, "token-a");
+        AddToken(otherUser.Id, "token-b");
+        AddToken(user.Id, "token-c");
 
-        string? survivingTokens;
+        await dbContext.SaveChangesAsync();
 
-        using (var command = connection.CreateCommand())
-        {
-            command.CommandText = "SELECT GROUP_CONCAT(token) FROM password_reset_tokens";
-            survivingTokens = (string?)await command.ExecuteScalarAsync();
-        }
+        await this.passwordResetTokenDataProvider.DeleteTokensForUser(dbContext, user.Id);
 
-        Assert.Equal("token-b", survivingTokens);
+        var survivingToken = await dbContext.PasswordResetTokens.Select(x => x.Token).SingleAsync();
+
+        Assert.Equal("token-b", survivingToken);
     }
 
     #endregion
@@ -95,14 +86,19 @@ public class PasswordResetTokenDataProviderTests
     [Fact]
     public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = await new SampleDataHelper(connection).InsertUser();
+        var user = new ModelFactory().BuildUser();
+        dbContext.Users.Add(user);
 
-        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "sample-token");
+        dbContext.PasswordResetTokens.Add(
+            new() { UserId = user.Id, Token = "sample-token", Created = DateTime.UtcNow });
+
+        await dbContext.SaveChangesAsync();
 
         var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            connection, "sample-token");
+            dbContext, "sample-token");
 
         Assert.Equal(user.Id, actual);
     }
@@ -110,10 +106,10 @@ public class PasswordResetTokenDataProviderTests
     [Fact]
     public async Task GetUserIdForTokenReturnsNullIfNoMatchFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
 
         var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            connection, "sample-token");
+            dbContext, "sample-token");
 
         Assert.Null(actual);
     }
@@ -125,22 +121,22 @@ public class PasswordResetTokenDataProviderTests
     [Fact]
     public async Task InsertTokenInsertsToken()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = await new SampleDataHelper(connection).InsertUser();
+        var user = new ModelFactory().BuildUser();
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
 
-        await this.passwordResetTokenDataProvider.InsertToken(connection, user.Id, "sample-token");
+        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, "sample-token");
 
-        using var command = connection.CreateCommand();
+        dbContext.ChangeTracker.Clear();
 
-        command.CommandText = "SELECT * FROM password_reset_tokens WHERE token = 'sample-token'";
+        var actual = await dbContext.PasswordResetTokens.FindAsync("sample-token");
 
-        using var reader = await command.ExecuteReaderAsync();
-
-        await reader.ReadAsync();
-
-        Assert.Equal(user.Id, reader.GetInt64("user_id"));
-        Assert.Equal(this.fakeTime, reader.GetDateTime("created"));
+        Assert.NotNull(actual);
+        Assert.Equal(user.Id, actual.UserId);
+        Assert.Equal(this.fakeTime, actual.Created);
     }
 
     #endregion
