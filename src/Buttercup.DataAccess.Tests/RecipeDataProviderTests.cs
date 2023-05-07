@@ -209,53 +209,83 @@ public class RecipeDataProviderTests
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
         var sampleDataHelper = new SampleDataHelper(connection);
+        var baseDateTime = this.modelFactory.NextDateTime();
 
-        for (var i = 1; i <= 10; i++)
-        {
-            await sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
+        Task<Recipe> InsertRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
+            sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
             {
-                Title = $"recently-updated-{i}",
-                Created = new(2010, 1, 2, 3, 4, 5),
-                Modified = new(2016, 7, i, 9, 10, 11),
+                Created = baseDateTime.AddDays(-createdDaysAgo),
+                Modified = baseDateTime.AddDays(-modifiedDaysAgo),
             });
-        }
 
-        for (var i = 1; i <= 5; i++)
+        var allRecipes = new[]
         {
-            var timestamp = new DateTime(2016, 8, i, 9, 10, 11);
+            await InsertRecipe(0, 12),
+            await InsertRecipe(0, 11),
+            await InsertRecipe(0, 1),
+            await InsertRecipe(0, 3), // explicitly excluded
+            await InsertRecipe(1, 13),
+            await InsertRecipe(1, 2),
+            await InsertRecipe(7, 7), // never-updated
+            await InsertRecipe(1, 14),
+            await InsertRecipe(0, 5), // explicitly excluded
+            await InsertRecipe(0, 6),
+            await InsertRecipe(1, 16),
+            await InsertRecipe(4, 4), // never-updated
+            await InsertRecipe(1, 8),
+            await InsertRecipe(2, 10),
+            await InsertRecipe(2, 9),
+            await InsertRecipe(1, 15),
+        };
 
-            await sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
+        var expected = new[]
+        {
+            allRecipes[2],
+            allRecipes[5],
+            allRecipes[9],
+            allRecipes[12],
+            allRecipes[14],
+            allRecipes[13],
+            allRecipes[1],
+            allRecipes[0],
+            allRecipes[4],
+            allRecipes[7],
+        };
+
+        var actual = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
+            connection, new[] { allRecipes[3].Id, allRecipes[8].Id });
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task GetRecentlyUpdatedRecipesAcceptsEmptyExclusionList()
+    {
+        using var connection = await TestDatabase.OpenConnectionWithRollback();
+
+        var sampleDataHelper = new SampleDataHelper(connection);
+        var baseDateTime = this.modelFactory.NextDateTime();
+
+        Task<Recipe> InsertRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
+            sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
             {
-                Title = $"recently-created-never-updated-{i}",
-                Created = timestamp,
-                Modified = timestamp,
+                Created = baseDateTime.AddDays(-createdDaysAgo),
+                Modified = baseDateTime.AddDays(-modifiedDaysAgo),
             });
-        }
 
-        for (var i = 1; i <= 15; i++)
+        var allRecipes = new[]
         {
-            await sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
-            {
-                Title = $"recently-created-and-updated-{i}",
-                Created = new(2016, 9, i, 9, 10, 11),
-                Modified = new(2016, 10, i, 9, 10, 11),
-            });
-        }
+            await InsertRecipe(2, 3),
+            await InsertRecipe(0, 1),
+            await InsertRecipe(2, 2),
+        };
 
-        var recipes = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
-            connection);
+        var expected = new[] { allRecipes[1], allRecipes[0] };
 
-        Assert.Equal(10, recipes.Count);
+        var actual = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
+            connection, Array.Empty<long>());
 
-        for (var i = 0; i < 5; i++)
-        {
-            Assert.Equal($"recently-created-and-updated-{5 - i}", recipes[i].Title);
-        }
-
-        for (var i = 0; i < 5; i++)
-        {
-            Assert.Equal($"recently-updated-{10 - i}", recipes[5 + i].Title);
-        }
+        Assert.Equal(expected, actual);
     }
 
     #endregion
