@@ -19,24 +19,32 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
-    public Recipe BuildRecipe(bool setOptionalAttributes = false) => new()
+    public Recipe BuildRecipe(bool setOptionalAttributes = false)
     {
-        Id = this.NextInt(),
-        Title = this.NextString("title"),
-        PreparationMinutes = setOptionalAttributes ? this.NextInt() : null,
-        CookingMinutes = setOptionalAttributes ? this.NextInt() : null,
-        Servings = setOptionalAttributes ? this.NextInt() : null,
-        Ingredients = this.NextString("ingredients"),
-        Method = this.NextString("method"),
-        Suggestions = setOptionalAttributes ? this.NextString("suggestions") : null,
-        Remarks = setOptionalAttributes ? this.NextString("remarks") : null,
-        Source = setOptionalAttributes ? this.NextString("source") : null,
-        Created = this.NextDateTime(),
-        CreatedByUserId = setOptionalAttributes ? this.NextInt() : null,
-        Modified = this.NextDateTime(),
-        ModifiedByUserId = setOptionalAttributes ? this.NextInt() : null,
-        Revision = this.NextInt(),
-    };
+        var createdByUser = setOptionalAttributes ? this.BuildUser() : null;
+        var modifiedByUser = setOptionalAttributes ? this.BuildUser() : null;
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Title = this.NextString("title"),
+            PreparationMinutes = setOptionalAttributes ? this.NextInt() : null,
+            CookingMinutes = setOptionalAttributes ? this.NextInt() : null,
+            Servings = setOptionalAttributes ? this.NextInt() : null,
+            Ingredients = this.NextString("ingredients"),
+            Method = this.NextString("method"),
+            Suggestions = setOptionalAttributes ? this.NextString("suggestions") : null,
+            Remarks = setOptionalAttributes ? this.NextString("remarks") : null,
+            Source = setOptionalAttributes ? this.NextString("source") : null,
+            Created = this.NextDateTime(),
+            CreatedByUser = createdByUser,
+            CreatedByUserId = createdByUser?.Id,
+            Modified = this.NextDateTime(),
+            ModifiedByUser = modifiedByUser,
+            ModifiedByUserId = modifiedByUser?.Id,
+            Revision = this.NextInt(),
+        };
+    }
 
     /// <summary>
     /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.

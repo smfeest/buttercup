@@ -476,10 +476,11 @@ public class RecipeDataProviderTests
     {
         using var connection = await TestDatabase.OpenConnectionWithRollback();
 
-        var expected = await new SampleDataHelper(connection).InsertRecipe(
+        var original = await new SampleDataHelper(connection).InsertRecipe(
             includeOptionalAttributes);
 
-        var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
+        var expected = original with { CreatedByUser = null, ModifiedByUser = null };
+        var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
 
         Assert.Equal(expected, actual);
     }

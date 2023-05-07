@@ -16,18 +16,16 @@ public sealed class SampleDataHelper
 
     public async Task<Recipe> InsertRecipe(Recipe recipe, bool insertRelatedRecords = false)
     {
-        async Task InsertRelatedUser(long? userId)
-        {
-            if (userId.HasValue)
-            {
-                await this.InsertUser(this.modelFactory.BuildUser() with { Id = userId.Value });
-            }
-        }
-
         if (insertRelatedRecords)
         {
-            await InsertRelatedUser(recipe.CreatedByUserId);
-            await InsertRelatedUser(recipe.ModifiedByUserId);
+            if (recipe.CreatedByUser != null)
+            {
+                await this.InsertUser(recipe.CreatedByUser);
+            }
+            if (recipe.ModifiedByUser != null)
+            {
+                await this.InsertUser(recipe.ModifiedByUser);
+            }
         }
 
         using var command = this.connection.CreateCommand();
