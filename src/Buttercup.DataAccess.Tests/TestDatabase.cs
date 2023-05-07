@@ -57,26 +57,6 @@ public static class TestDatabase
     }
 
     /// <summary>
-    /// Opens a connection to the test database with an open transaction
-    /// that will be automatically rolled back when the connection is
-    /// disposed.
-    /// </summary>
-    /// <returns>
-    /// A task for the operation. The result is the new connection.
-    /// </returns>
-    public static async Task<MySqlConnection> OpenConnectionWithRollback()
-    {
-        var connection = new MySqlConnection(BuildConnectionString(
-            builder => builder.IgnoreCommandTransaction = true));
-
-        await connection.OpenAsync();
-
-        await connection.BeginTransactionAsync();
-
-        return connection;
-    }
-
-    /// <summary>
     /// Recreates the test database.
     /// </summary>
     /// <returns>

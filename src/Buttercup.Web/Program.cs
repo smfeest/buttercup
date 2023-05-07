@@ -47,12 +47,10 @@ services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 
-var connectionString = configuration.GetRequiredConnectionString("AppDb");
-
 services
-    .AddAppDbContextFactory(connectionString)
+    .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
-    .AddDataAccessServices(options => options.ConnectionString = connectionString)
+    .AddDataAccessServices()
     .AddEmailServices(configuration.GetSection("Email"));
 
 services
