@@ -2,7 +2,6 @@ using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -68,18 +67,16 @@ public class RecipeExtensionTests
     [Fact]
     public async void GetRecipesByIdAsyncFetchesRecipesById()
     {
-        using var mySqlConnection = new MySqlConnection();
-        var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-            x => x.OpenConnection() == Task.FromResult(mySqlConnection));
+        using var dbContextFactory = new FakeDbContextFactory();
 
         IList<Recipe> recipes = new[] { this.modelFactory.BuildRecipe(), this.modelFactory.BuildRecipe() };
         var recipeIds = recipes.Select(recipe => recipe.Id).ToArray();
 
         var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
-            x => x.GetRecipes(mySqlConnection, recipeIds) == Task.FromResult(recipes));
+            x => x.GetRecipes(dbContextFactory.FakeDbContext, recipeIds) == Task.FromResult(recipes));
 
         var result = await RecipeExtension.GetRecipesByIdAsync(
-            recipeIds, mySqlConnectionSource, recipeDataProvider);
+            recipeIds, dbContextFactory, recipeDataProvider);
 
         Assert.Equal(result[recipeIds[0]], recipes[0]);
         Assert.Equal(result[recipeIds[1]], recipes[1]);

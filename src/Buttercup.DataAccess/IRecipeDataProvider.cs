@@ -1,6 +1,5 @@
 using Buttercup.EntityModel;
 using Buttercup.Models;
-using MySqlConnector;
 
 namespace Buttercup.DataAccess;
 
@@ -12,8 +11,8 @@ public interface IRecipeDataProvider
     /// <summary>
     /// Adds a new recipe.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="attributes">
     /// The recipe attributes.
@@ -24,14 +23,13 @@ public interface IRecipeDataProvider
     /// <returns>
     /// A task for the operation. The task result is the ID of the new recipe.
     /// </returns>
-    Task<long> AddRecipe(
-        MySqlConnection connection, RecipeAttributes attributes, long currentUserId);
+    Task<long> AddRecipe(AppDbContext dbContext, RecipeAttributes attributes, long currentUserId);
 
     /// <summary>
     /// Deletes a recipe.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="id">
     /// The recipe ID.
@@ -42,24 +40,24 @@ public interface IRecipeDataProvider
     /// <exception cref="NotFoundException">
     /// No matching recipe was found.
     /// </exception>
-    Task DeleteRecipe(MySqlConnection connection, long id);
+    Task DeleteRecipe(AppDbContext dbContext, long id);
 
     /// <summary>
     /// Gets all the recipes ordered by title.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<IList<Recipe>> GetAllRecipes(MySqlConnection connection);
+    Task<IList<Recipe>> GetAllRecipes(AppDbContext dbContext);
 
     /// <summary>
     /// Gets a recipe.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="id">
     /// The recipe ID.
@@ -70,18 +68,18 @@ public interface IRecipeDataProvider
     /// <exception cref="NotFoundException">
     /// No matching recipe was found.
     /// </exception>
-    Task<Recipe> GetRecipe(MySqlConnection connection, long id);
+    Task<Recipe> GetRecipe(AppDbContext dbContext, long id);
 
     /// <summary>
     /// Gets the ten most recently added recipes.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection);
+    Task<IList<Recipe>> GetRecentlyAddedRecipes(AppDbContext dbContext);
 
     /// <summary>
     /// Gets the ten most recently updated recipes.
@@ -90,8 +88,8 @@ public interface IRecipeDataProvider
     /// Recipes that haven't been updated since they were added, and those with the IDs specified in
     /// <paramref name="excludeRecipeIds" />, are excluded from this list.
     /// </remarks>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="excludeRecipeIds">
     /// The IDs of the recipes that should be excluded.
@@ -100,13 +98,13 @@ public interface IRecipeDataProvider
     /// A task for the operation.
     /// </returns>
     Task<IList<Recipe>> GetRecentlyUpdatedRecipes(
-        MySqlConnection connection, IReadOnlyCollection<long> excludeRecipeIds);
+        AppDbContext dbContext, IReadOnlyCollection<long> excludeRecipeIds);
 
     /// <summary>
     /// Gets a batch of recipes.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="ids">
     /// The recipe IDs.
@@ -114,13 +112,13 @@ public interface IRecipeDataProvider
     /// <returns>
     /// A task for the operation. The result the list of recipes with matching IDs.
     /// </returns>
-    Task<IList<Recipe>> GetRecipes(MySqlConnection connection, IReadOnlyCollection<long> ids);
+    Task<IList<Recipe>> GetRecipes(AppDbContext dbContext, IReadOnlyCollection<long> ids);
 
     /// <summary>
     /// Updates a recipe.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="id">
     /// The recipe ID.
@@ -144,7 +142,7 @@ public interface IRecipeDataProvider
     /// <paramref name="baseRevision"/> does not match the current revision in the database.
     /// </exception>
     Task UpdateRecipe(
-        MySqlConnection connection,
+        AppDbContext dbContext,
         long id,
         RecipeAttributes newAttributes,
         int baseRevision,
