@@ -87,16 +87,20 @@ public interface IRecipeDataProvider
     /// Gets the ten most recently updated recipes.
     /// </summary>
     /// <remarks>
-    /// Recipes that haven't been updated since they were added, and those that are within the ten
-    /// most recently added, are excluded from this list.
+    /// Recipes that haven't been updated since they were added, and those with the IDs specified in
+    /// <paramref name="excludeRecipeIds" />, are excluded from this list.
     /// </remarks>
     /// <param name="connection">
     /// The database connection.
     /// </param>
+    /// <param name="excludeRecipeIds">
+    /// The IDs of the recipes that should be excluded.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection);
+    Task<IList<Recipe>> GetRecentlyUpdatedRecipes(
+        MySqlConnection connection, IReadOnlyCollection<long> excludeRecipeIds);
 
     /// <summary>
     /// Gets a batch of recipes.

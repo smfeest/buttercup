@@ -56,12 +56,16 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     public Task<IList<Recipe>> GetRecentlyAddedRecipes(MySqlConnection connection) =>
         GetRecipes(connection, "SELECT * FROM recipes ORDER BY created DESC LIMIT 10");
 
-    public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(MySqlConnection connection)
+    public Task<IList<Recipe>> GetRecentlyUpdatedRecipes(
+        MySqlConnection connection, IReadOnlyCollection<long> excludeRecipeIds)
     {
-        var query = @"SELECT *
+        var excludeRecipesClause = excludeRecipeIds.Count == 0 ?
+            string.Empty : $" AND id NOT IN ({string.Join(',', excludeRecipeIds)})";
+
+        var query = $@"SELECT *
             FROM recipes
-            LEFT JOIN (SELECT id AS added_id FROM recipes ORDER BY created DESC LIMIT 10) AS added ON added_id = id
-            WHERE created != modified AND added_id IS NULL
+            WHERE created != modified
+            {excludeRecipesClause}
             ORDER BY modified DESC LIMIT 10";
 
         return GetRecipes(connection, query);

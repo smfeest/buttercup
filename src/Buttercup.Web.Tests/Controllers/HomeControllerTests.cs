@@ -1,5 +1,4 @@
 using Buttercup.DataAccess;
-using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,14 +19,15 @@ public class HomeControllerTests
     {
         using var fixture = new HomeControllerFixture();
 
-        IList<Recipe> recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
-        IList<Recipe> recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        var recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
+        var recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))
             .ReturnsAsync(recentlyAddedRecipes);
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.MySqlConnection))
+            .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.MySqlConnection, recentlyAddedIds))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
         var result = await fixture.HomeController.Index();
