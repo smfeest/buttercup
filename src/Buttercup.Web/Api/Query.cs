@@ -11,15 +11,9 @@ namespace Buttercup.Web.Api;
 public sealed class Query
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
 
-    public Query(
-        IDbContextFactory<AppDbContext> dbContextFactory,
-        IMySqlConnectionSource mySqlConnectionSource)
-    {
+    public Query(IDbContextFactory<AppDbContext> dbContextFactory) =>
         this.dbContextFactory = dbContextFactory;
-        this.mySqlConnectionSource = mySqlConnectionSource;
-    }
 
     public async Task<User?> CurrentUser(
         [Service] IUserDataProvider userDataProvider, ClaimsPrincipal principal)
@@ -43,8 +37,8 @@ public sealed class Query
     [Authorize]
     public async Task<IList<Recipe>> Recipes([Service] IRecipeDataProvider recipeDataProvider)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await recipeDataProvider.GetAllRecipes(connection);
+        return await recipeDataProvider.GetAllRecipes(dbContext);
     }
 }

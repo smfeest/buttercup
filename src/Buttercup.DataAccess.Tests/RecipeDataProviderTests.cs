@@ -1,5 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -24,13 +25,18 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task AddRecipeInsertsRecipeAndReturnsId()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var currentUser = await new SampleDataHelper(connection).InsertUser();
+        var currentUser = this.modelFactory.BuildUser();
+        dbContext.Users.Add(currentUser);
+        await dbContext.SaveChangesAsync();
 
         var attributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: true);
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
+        var id = await this.recipeDataProvider.AddRecipe(dbContext, attributes, currentUser.Id);
+
+        dbContext.ChangeTracker.Clear();
 
         var expected = new Recipe
         {
@@ -51,7 +57,7 @@ public class RecipeDataProviderTests
             Revision = 0,
         };
 
-        var actual = await this.recipeDataProvider.GetRecipe(connection, id);
+        var actual = await dbContext.Recipes.FindAsync(id);
 
         Assert.Equal(expected, actual);
     }
@@ -59,16 +65,22 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task AddRecipeAcceptsNullForOptionalAttributes()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var currentUser = await new SampleDataHelper(connection).InsertUser();
+        var currentUser = this.modelFactory.BuildUser();
+        dbContext.Users.Add(currentUser);
+        await dbContext.SaveChangesAsync();
 
         var attributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: false);
 
-        var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
+        var id = await this.recipeDataProvider.AddRecipe(dbContext, attributes, currentUser.Id);
 
-        var actual = await this.recipeDataProvider.GetRecipe(connection, id);
+        dbContext.ChangeTracker.Clear();
 
+        var actual = await dbContext.Recipes.FindAsync(id);
+
+        Assert.NotNull(actual);
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
         Assert.Null(actual.Servings);
@@ -84,26 +96,31 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task DeleteRecipeReturnsRecipe()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var recipe = await new SampleDataHelper(connection).InsertRecipe();
+        var recipe = this.modelFactory.BuildRecipe();
+        dbContext.Recipes.Add(recipe);
+        await dbContext.SaveChangesAsync();
 
-        await this.recipeDataProvider.DeleteRecipe(connection, recipe.Id);
+        await this.recipeDataProvider.DeleteRecipe(dbContext, recipe.Id);
 
-        Assert.Empty(await this.recipeDataProvider.GetAllRecipes(connection));
+        Assert.False(await dbContext.Recipes.AnyAsync());
     }
 
     [Fact]
     public async Task DeleteRecipeThrowsIfRecordNotFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var otherRecipe = await new SampleDataHelper(connection).InsertRecipe();
+        dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+        await dbContext.SaveChangesAsync();
 
-        var id = otherRecipe.Id + 1;
+        var id = modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeDataProvider.DeleteRecipe(connection, id));
+            () => this.recipeDataProvider.DeleteRecipe(dbContext, id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -115,16 +132,15 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task GetAllRecipesReturnsAllRecipesInTitleOrder()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var recipeB = this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" };
+        var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
+        var recipeA = this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" };
 
-        var recipeB = await sampleDataHelper.InsertRecipe(
-            this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" });
-        var recipeC = await sampleDataHelper.InsertRecipe(
-            this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" });
-        var recipeA = await sampleDataHelper.InsertRecipe(
-            this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" });
+        dbContext.Recipes.AddRange(recipeB, recipeC, recipeA);
+        await dbContext.SaveChangesAsync();
 
         var expected = new Recipe[] {
             recipeA,
@@ -132,7 +148,7 @@ public class RecipeDataProviderTests
             recipeC,
         };
 
-        var actual = await this.recipeDataProvider.GetAllRecipes(connection);
+        var actual = await this.recipeDataProvider.GetAllRecipes(dbContext);
 
         Assert.Equal(expected, actual);
     }
@@ -144,11 +160,16 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task GetRecipeReturnsRecipe()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var expected = await new SampleDataHelper(connection).InsertRecipe();
+        var expected = this.modelFactory.BuildRecipe();
+        dbContext.Recipes.Add(expected);
+        await dbContext.SaveChangesAsync();
 
-        var actual = await this.recipeDataProvider.GetRecipe(connection, expected.Id);
+        dbContext.ChangeTracker.Clear();
+
+        var actual = await this.recipeDataProvider.GetRecipe(dbContext, expected.Id);
 
         Assert.Equal(expected, actual);
     }
@@ -156,14 +177,16 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task GetRecipeThrowsIfRecordNotFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var otherRecipe = await new SampleDataHelper(connection).InsertRecipe();
+        dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+        await dbContext.SaveChangesAsync();
 
-        var id = otherRecipe.Id + 1;
+        var id = modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeDataProvider.GetRecipe(connection, id));
+            () => this.recipeDataProvider.GetRecipe(dbContext, id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -175,28 +198,27 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task GetRecentlyAddedRecipesReturnsRecipesInReverseChronologicalOrder()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var allRecipes = new List<Recipe>();
 
-        for (var i = 1; i <= 15; i++)
+        for (var i = 0; i < 15; i++)
         {
-            await sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
+            allRecipes.Add(this.modelFactory.BuildRecipe() with
             {
-                Title = $"recipe-{i}-title",
                 Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i),
             });
         }
 
-        var recipes = await this.recipeDataProvider.GetRecentlyAddedRecipes(
-            connection);
+        dbContext.Recipes.AddRange(allRecipes);
+        await dbContext.SaveChangesAsync();
 
-        Assert.Equal(10, recipes.Count);
+        var expected = allRecipes.AsEnumerable().Reverse().Take(10);
 
-        for (var i = 0; i < 10; i++)
-        {
-            Assert.Equal($"recipe-{15 - i}-title", recipes[i].Title);
-        }
+        var actual = await this.recipeDataProvider.GetRecentlyAddedRecipes(dbContext);
+
+        Assert.Equal(expected, actual);
     }
 
     #endregion
@@ -206,37 +228,40 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task GetRecentlyUpdatedRecipesReturnsRecipesInReverseChronologicalOrder()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
         var baseDateTime = this.modelFactory.NextDateTime();
 
-        Task<Recipe> InsertRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
-            sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
+        Recipe BuildRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
+            this.modelFactory.BuildRecipe() with
             {
                 Created = baseDateTime.AddDays(-createdDaysAgo),
                 Modified = baseDateTime.AddDays(-modifiedDaysAgo),
-            });
+            };
 
         var allRecipes = new[]
         {
-            await InsertRecipe(0, 12),
-            await InsertRecipe(0, 11),
-            await InsertRecipe(0, 1),
-            await InsertRecipe(0, 3), // explicitly excluded
-            await InsertRecipe(1, 13),
-            await InsertRecipe(1, 2),
-            await InsertRecipe(7, 7), // never-updated
-            await InsertRecipe(1, 14),
-            await InsertRecipe(0, 5), // explicitly excluded
-            await InsertRecipe(0, 6),
-            await InsertRecipe(1, 16),
-            await InsertRecipe(4, 4), // never-updated
-            await InsertRecipe(1, 8),
-            await InsertRecipe(2, 10),
-            await InsertRecipe(2, 9),
-            await InsertRecipe(1, 15),
+            BuildRecipe(0, 12),
+            BuildRecipe(0, 11),
+            BuildRecipe(0, 1),
+            BuildRecipe(0, 3), // explicitly excluded
+            BuildRecipe(1, 13),
+            BuildRecipe(1, 2),
+            BuildRecipe(7, 7), // never-updated
+            BuildRecipe(1, 14),
+            BuildRecipe(0, 5), // explicitly excluded
+            BuildRecipe(0, 6),
+            BuildRecipe(1, 16),
+            BuildRecipe(4, 4), // never-updated
+            BuildRecipe(1, 8),
+            BuildRecipe(2, 10),
+            BuildRecipe(2, 9),
+            BuildRecipe(1, 15),
         };
+
+        dbContext.Recipes.AddRange(allRecipes);
+        await dbContext.SaveChangesAsync();
 
         var expected = new[]
         {
@@ -253,37 +278,7 @@ public class RecipeDataProviderTests
         };
 
         var actual = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
-            connection, new[] { allRecipes[3].Id, allRecipes[8].Id });
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public async Task GetRecentlyUpdatedRecipesAcceptsEmptyExclusionList()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var sampleDataHelper = new SampleDataHelper(connection);
-        var baseDateTime = this.modelFactory.NextDateTime();
-
-        Task<Recipe> InsertRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
-            sampleDataHelper.InsertRecipe(this.modelFactory.BuildRecipe() with
-            {
-                Created = baseDateTime.AddDays(-createdDaysAgo),
-                Modified = baseDateTime.AddDays(-modifiedDaysAgo),
-            });
-
-        var allRecipes = new[]
-        {
-            await InsertRecipe(2, 3),
-            await InsertRecipe(0, 1),
-            await InsertRecipe(2, 2),
-        };
-
-        var expected = new[] { allRecipes[1], allRecipes[0] };
-
-        var actual = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
-            connection, Array.Empty<long>());
+            dbContext, new[] { allRecipes[3].Id, allRecipes[8].Id });
 
         Assert.Equal(expected, actual);
     }
@@ -295,31 +290,27 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task GetRecipesReturnsRecipesWithMatchingIds()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var modelFactory = new ModelFactory();
 
         var allRecipes = new[]
         {
-            await sampleDataHelper.InsertRecipe(),
-            await sampleDataHelper.InsertRecipe(),
-            await sampleDataHelper.InsertRecipe(),
+            modelFactory.BuildRecipe(),
+            modelFactory.BuildRecipe(),
+            modelFactory.BuildRecipe(),
         };
+
+        dbContext.Recipes.AddRange(allRecipes);
+        await dbContext.SaveChangesAsync();
 
         var expected = new[] { allRecipes[0], allRecipes[2] };
 
         var actual = await this.recipeDataProvider.GetRecipes(
-            connection, new[] { allRecipes[0].Id, allRecipes[2].Id });
+            dbContext, expected.Select(r => r.Id).ToArray());
 
         Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public async Task GetRecipesReturnsEmptyListWhenIdListIsEmpty()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        Assert.Empty(await this.recipeDataProvider.GetRecipes(connection, Array.Empty<long>()));
     }
 
     #endregion
@@ -329,17 +320,21 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task UpdateRecipeUpdatesAllUpdatableAttributes()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+        var currentUser = this.modelFactory.BuildUser();
 
-        var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
-        var currentUser = await sampleDataHelper.InsertUser();
+        dbContext.AddRange(original, currentUser);
+        await dbContext.SaveChangesAsync();
 
         var newAttributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: true);
 
         await this.recipeDataProvider.UpdateRecipe(
-            connection, original.Id, newAttributes, original.Revision, currentUser.Id);
+            dbContext, original.Id, newAttributes, original.Revision, currentUser.Id);
+
+        dbContext.ChangeTracker.Clear();
 
         var expected = new Recipe
         {
@@ -360,7 +355,7 @@ public class RecipeDataProviderTests
             Revision = original.Revision + 1,
         };
 
-        var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
+        var actual = await dbContext.Recipes.FindAsync(original.Id);
 
         Assert.Equal(expected, actual);
     }
@@ -368,20 +363,25 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task UpdateRecipeAcceptsNullForOptionalAttributes()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+        var currentUser = this.modelFactory.BuildUser();
 
-        var original = await sampleDataHelper.InsertRecipe(includeOptionalAttributes: true);
-        var currentUser = await sampleDataHelper.InsertUser();
+        dbContext.AddRange(original, currentUser);
+        await dbContext.SaveChangesAsync();
 
         var newAttributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: false);
 
         await this.recipeDataProvider.UpdateRecipe(
-            connection, original.Id, newAttributes, original.Revision, currentUser.Id);
+            dbContext, original.Id, newAttributes, original.Revision, currentUser.Id);
 
-        var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
+        dbContext.ChangeTracker.Clear();
 
+        var actual = await dbContext.Recipes.FindAsync(original.Id);
+
+        Assert.NotNull(actual);
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
         Assert.Null(actual.Servings);
@@ -393,18 +393,19 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task UpdateRecipeThrowsIfRecordNotFound()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var otherRecipe = this.modelFactory.BuildRecipe();
+        var currentUser = this.modelFactory.BuildUser();
 
-        var otherRecipe = await sampleDataHelper.InsertRecipe();
-        var currentUser = await sampleDataHelper.InsertUser();
+        dbContext.AddRange(otherRecipe, currentUser);
 
-        var id = otherRecipe.Id + 1;
+        var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.UpdateRecipe(
-                connection, id, this.modelFactory.BuildRecipeAttributes(), 0, currentUser.Id));
+                dbContext, id, this.modelFactory.BuildRecipeAttributes(), 0, currentUser.Id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -412,18 +413,20 @@ public class RecipeDataProviderTests
     [Fact]
     public async Task UpdateRecipeThrowsIfRevisionOutOfSync()
     {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
+        using var dbContext = TestDatabase.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var sampleDataHelper = new SampleDataHelper(connection);
+        var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+        var currentUser = this.modelFactory.BuildUser();
 
-        var recipe = await sampleDataHelper.InsertRecipe();
-        var currentUser = await sampleDataHelper.InsertUser();
+        dbContext.AddRange(recipe, currentUser);
+        await dbContext.SaveChangesAsync();
 
         var staleRevision = recipe.Revision - 1;
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeDataProvider.UpdateRecipe(
-                connection,
+                dbContext,
                 recipe.Id,
                 this.modelFactory.BuildRecipeAttributes(),
                 staleRevision,
@@ -432,26 +435,6 @@ public class RecipeDataProviderTests
         Assert.Equal(
             $"Revision {staleRevision} does not match current revision {recipe.Revision}",
             exception.Message);
-    }
-
-    #endregion
-
-    #region ReadRecipe
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ReadRecipeReadsAllAttributes(bool includeOptionalAttributes)
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var original = await new SampleDataHelper(connection).InsertRecipe(
-            includeOptionalAttributes);
-
-        var expected = original with { CreatedByUser = null, ModifiedByUser = null };
-        var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
-
-        Assert.Equal(expected, actual);
     }
 
     #endregion

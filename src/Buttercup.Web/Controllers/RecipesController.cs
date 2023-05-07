@@ -5,6 +5,7 @@ using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
@@ -14,34 +15,34 @@ namespace Buttercup.Web.Controllers;
 [Route("recipes")]
 public class RecipesController : Controller
 {
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IStringLocalizer<RecipesController> localizer;
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
     private readonly IRecipeDataProvider recipeDataProvider;
 
     public RecipesController(
+        IDbContextFactory<AppDbContext> dbContextFactory,
         IStringLocalizer<RecipesController> localizer,
-        IMySqlConnectionSource mySqlConnectionSource,
         IRecipeDataProvider recipeDataProvider)
     {
+        this.dbContextFactory = dbContextFactory;
         this.localizer = localizer;
-        this.mySqlConnectionSource = mySqlConnectionSource;
         this.recipeDataProvider = recipeDataProvider;
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return this.View(await this.recipeDataProvider.GetAllRecipes(connection));
+        return this.View(await this.recipeDataProvider.GetAllRecipes(dbContext));
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
+        return this.View(await this.recipeDataProvider.GetRecipe(dbContext, id));
     }
 
     [HttpGet("new")]
@@ -55,10 +56,10 @@ public class RecipesController : Controller
             return this.View(model);
         }
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var id = await this.recipeDataProvider.AddRecipe(
-            connection, model, this.HttpContext.GetCurrentUser()!.Id);
+            dbContext, model, this.HttpContext.GetCurrentUser()!.Id);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
@@ -66,10 +67,10 @@ public class RecipesController : Controller
     [HttpGet("{id}/edit")]
     public async Task<IActionResult> Edit(long id)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         return this.View(EditRecipeViewModel.ForRecipe(
-            await this.recipeDataProvider.GetRecipe(connection, id)));
+            await this.recipeDataProvider.GetRecipe(dbContext, id)));
     }
 
     [HttpPost("{id}/edit")]
@@ -80,12 +81,12 @@ public class RecipesController : Controller
             return this.View(model);
         }
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         try
         {
             await this.recipeDataProvider.UpdateRecipe(
-                connection,
+                dbContext,
                 id,
                 model.Attributes,
                 model.BaseRevision,
@@ -105,17 +106,17 @@ public class RecipesController : Controller
     [HttpGet("{id}/delete")]
     public async Task<IActionResult> Delete(long id)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return this.View(await this.recipeDataProvider.GetRecipe(connection, id));
+        return this.View(await this.recipeDataProvider.GetRecipe(dbContext, id));
     }
 
     [HttpPost("{id}/delete")]
     public async Task<IActionResult> DeletePost(long id)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.recipeDataProvider.DeleteRecipe(connection, id);
+        await this.recipeDataProvider.DeleteRecipe(dbContext, id);
 
         return this.RedirectToAction(nameof(this.Index));
     }

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Controllers;
@@ -27,7 +26,7 @@ public class RecipesControllerTests
         IList<Recipe> recipes = Array.Empty<Recipe>();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetAllRecipes(fixture.MySqlConnection))
+            .Setup(x => x.GetAllRecipes(fixture.DbContextFactory.FakeDbContext))
             .ReturnsAsync(recipes);
 
         var result = await fixture.RecipesController.Index();
@@ -48,7 +47,7 @@ public class RecipesControllerTests
         var recipe = this.modelFactory.BuildRecipe();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecipe(fixture.MySqlConnection, 3))
+            .Setup(x => x.GetRecipe(fixture.DbContextFactory.FakeDbContext, 3))
             .ReturnsAsync(recipe);
 
         var result = await fixture.RecipesController.Show(3);
@@ -82,7 +81,8 @@ public class RecipesControllerTests
         var attributes = this.modelFactory.BuildRecipeAttributes();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.AddRecipe(fixture.MySqlConnection, attributes, fixture.User.Id))
+            .Setup(x => x.AddRecipe(
+                fixture.DbContextFactory.FakeDbContext, attributes, fixture.User.Id))
             .ReturnsAsync(5);
 
         var result = await fixture.RecipesController.New(attributes);
@@ -120,7 +120,7 @@ public class RecipesControllerTests
         var recipe = this.modelFactory.BuildRecipe();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecipe(fixture.MySqlConnection, 5))
+            .Setup(x => x.GetRecipe(fixture.DbContextFactory.FakeDbContext, 5))
             .ReturnsAsync(recipe);
 
         var result = await fixture.RecipesController.Edit(5);
@@ -147,7 +147,7 @@ public class RecipesControllerTests
 
         fixture.MockRecipeDataProvider.Verify(
             x => x.UpdateRecipe(
-                fixture.MySqlConnection,
+                fixture.DbContextFactory.FakeDbContext,
                 3,
                 editModel.Attributes,
                 editModel.BaseRevision,
@@ -186,7 +186,7 @@ public class RecipesControllerTests
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.UpdateRecipe(
-                fixture.MySqlConnection,
+                fixture.DbContextFactory.FakeDbContext,
                 3,
                 editModel.Attributes,
                 editModel.BaseRevision,
@@ -217,7 +217,7 @@ public class RecipesControllerTests
         var recipe = this.modelFactory.BuildRecipe();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecipe(fixture.MySqlConnection, 8))
+            .Setup(x => x.GetRecipe(fixture.DbContextFactory.FakeDbContext, 8))
             .ReturnsAsync(recipe);
 
         var result = await fixture.RecipesController.Delete(8);
@@ -236,7 +236,7 @@ public class RecipesControllerTests
         using var fixture = new RecipesControllerFixture();
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.DeleteRecipe(fixture.MySqlConnection, 6))
+            .Setup(x => x.DeleteRecipe(fixture.DbContextFactory.FakeDbContext, 6))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
@@ -254,25 +254,22 @@ public class RecipesControllerTests
     {
         public RecipesControllerFixture()
         {
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
-
             this.HttpContext.SetCurrentUser(this.User);
 
             this.RecipesController = new(
+                this.DbContextFactory,
                 this.MockLocalizer.Object,
-                mySqlConnectionSource,
                 this.MockRecipeDataProvider.Object)
             {
                 ControllerContext = new() { HttpContext = this.HttpContext },
             };
         }
 
+        public FakeDbContextFactory DbContextFactory { get; } = new();
+
         public DefaultHttpContext HttpContext { get; } = new();
 
         public RecipesController RecipesController { get; }
-
-        public MySqlConnection MySqlConnection { get; } = new();
 
         public User User { get; } = new ModelFactory().BuildUser();
 
@@ -280,6 +277,10 @@ public class RecipesControllerTests
 
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
-        public void Dispose() => this.RecipesController?.Dispose();
+        public void Dispose()
+        {
+            this.DbContextFactory.Dispose();
+            this.RecipesController.Dispose();
+        }
     }
 }
