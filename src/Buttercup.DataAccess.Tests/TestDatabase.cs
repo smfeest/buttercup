@@ -13,33 +13,15 @@ public static class TestDatabase
     private const string User = "buttercup_dev";
     private const string DatabaseName = "buttercup_test";
 
-    private static readonly Lazy<ServerVersion> serverVersion = new(
-        () => ServerVersion.AutoDetect(BuildConnectionString()));
-
-    /// <summary>
-    /// Builds a connection string to connect to the test database.
-    /// </summary>
-    /// <param name="configure">
-    /// A callback that can be used to customize the connection string
-    /// builder.
-    /// </param>
-    /// <returns>
-    /// The connection string.
-    /// </returns>
-    public static string BuildConnectionString(
-        Action<MySqlConnectionStringBuilder>? configure = null)
+    private static readonly string connectionString = new MySqlConnectionStringBuilder
     {
-        var builder = new MySqlConnectionStringBuilder
-        {
-            Server = Server,
-            UserID = User,
-            Database = DatabaseName,
-        };
+        Server = Server,
+        UserID = User,
+        Database = DatabaseName,
+    }.ToString();
 
-        configure?.Invoke(builder);
-
-        return builder.ToString();
-    }
+    private static readonly Lazy<ServerVersion> serverVersion = new(
+        () => ServerVersion.AutoDetect(connectionString));
 
     /// <summary>
     /// Creates a new <see cref="AppDbContext" /> that connects to the test database.
@@ -50,7 +32,7 @@ public static class TestDatabase
     public static AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder()
-            .UseAppDbOptions(BuildConnectionString(), serverVersion.Value)
+            .UseAppDbOptions(connectionString, serverVersion.Value)
             .Options;
 
         return new(options);
