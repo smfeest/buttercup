@@ -76,27 +76,24 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
         int baseRevision,
         long currentUserId)
     {
-        var updatedRows = await dbContext
-            .Recipes
-            .Where(r => r.Id == id && r.Revision == baseRevision)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(r => r.Title, newAttributes.Title)
-                .SetProperty(r => r.PreparationMinutes, newAttributes.PreparationMinutes)
-                .SetProperty(r => r.CookingMinutes, newAttributes.CookingMinutes)
-                .SetProperty(r => r.Servings, newAttributes.Servings)
-                .SetProperty(r => r.Ingredients, newAttributes.Ingredients)
-                .SetProperty(r => r.Method, newAttributes.Method)
-                .SetProperty(r => r.Suggestions, newAttributes.Suggestions)
-                .SetProperty(r => r.Remarks, newAttributes.Remarks)
-                .SetProperty(r => r.Source, newAttributes.Source)
-                .SetProperty(r => r.Modified, this.clock.UtcNow)
-                .SetProperty(r => r.ModifiedByUserId, currentUserId)
-                .SetProperty(r => r.Revision, baseRevision + 1));
+        var recipe = await dbContext.Recipes.AsTracking().SingleAsync(r => r.Id == id);
 
-        if (updatedRows == 0)
-        {
-            throw await ConcurrencyOrNotFoundException(dbContext, id, baseRevision);
-        }
+        dbContext.Entry(recipe).Property(r => r.Revision).OriginalValue = baseRevision;
+
+        recipe.Title = newAttributes.Title;
+        recipe.PreparationMinutes = newAttributes.PreparationMinutes;
+        recipe.CookingMinutes = newAttributes.CookingMinutes;
+        recipe.Servings = newAttributes.Servings;
+        recipe.Ingredients = newAttributes.Ingredients;
+        recipe.Method = newAttributes.Method;
+        recipe.Suggestions = newAttributes.Suggestions;
+        recipe.Remarks = newAttributes.Remarks;
+        recipe.Source = newAttributes.Source;
+        recipe.Modified = this.clock.UtcNow;
+        recipe.ModifiedByUserId = currentUserId;
+        recipe.Revision = baseRevision + 1;
+
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task<Exception> ConcurrencyOrNotFoundException(
