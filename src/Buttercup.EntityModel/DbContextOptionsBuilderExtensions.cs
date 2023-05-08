@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace Buttercup.EntityModel;
 
@@ -29,10 +30,16 @@ public static class DbContextOptionsBuilderExtensions
         ServerVersion serverVersion) =>
         options
             .UseMySql(
-                connectionString,
+                AddConnectionStringOptions(connectionString),
                 serverVersion,
                 mysqlOptions => mysqlOptions
                     .MigrationsAssembly("Buttercup.EntityModel.Migrations")
                     .MigrationsHistoryTable("__migrations_history"))
             .UseSnakeCaseNamingConvention();
+
+    private static string AddConnectionStringOptions(string baseConnectionString) =>
+        new MySqlConnectionStringBuilder(baseConnectionString)
+        {
+            DateTimeKind = MySqlDateTimeKind.Utc
+        }.ToString();
 }
