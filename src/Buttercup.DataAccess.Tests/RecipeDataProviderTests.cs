@@ -75,34 +75,6 @@ public class RecipeDataProviderTests
         Assert.Null(actual.Source);
     }
 
-    [Fact]
-    public async Task AddRecipeTrimsStringValues()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var currentUser = await new SampleDataHelper(connection).InsertUser();
-
-        var attributes = this.modelFactory.BuildRecipeAttributes() with
-        {
-            Title = " new-recipe-title ",
-            Ingredients = " new-recipe-ingredients ",
-            Method = " new-recipe-method ",
-            Suggestions = string.Empty,
-            Remarks = " ",
-            Source = string.Empty,
-        };
-
-        var id = await this.recipeDataProvider.AddRecipe(connection, attributes, currentUser.Id);
-        var actual = await this.recipeDataProvider.GetRecipe(connection, id);
-
-        Assert.Equal("new-recipe-title", actual.Title);
-        Assert.Equal("new-recipe-ingredients", actual.Ingredients);
-        Assert.Equal("new-recipe-method", actual.Method);
-        Assert.Null(actual.Suggestions);
-        Assert.Null(actual.Remarks);
-        Assert.Null(actual.Source);
-    }
-
     #endregion
 
     #region DeleteRecipe
@@ -379,39 +351,6 @@ public class RecipeDataProviderTests
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
         Assert.Null(actual.Servings);
-        Assert.Null(actual.Suggestions);
-        Assert.Null(actual.Remarks);
-        Assert.Null(actual.Source);
-    }
-
-    [Fact]
-    public async Task UpdateRecipeTrimsStringValues()
-    {
-        using var connection = await TestDatabase.OpenConnectionWithRollback();
-
-        var sampleDataHelper = new SampleDataHelper(connection);
-
-        var original = await sampleDataHelper.InsertRecipe();
-        var currentUser = await sampleDataHelper.InsertUser();
-
-        var newAttributes = this.modelFactory.BuildRecipeAttributes() with
-        {
-            Title = " new-recipe-title ",
-            Ingredients = " new-recipe-ingredients ",
-            Method = " new-recipe-method ",
-            Suggestions = string.Empty,
-            Remarks = " ",
-            Source = string.Empty,
-        };
-
-        await this.recipeDataProvider.UpdateRecipe(
-            connection, original.Id, newAttributes, original.Revision, currentUser.Id);
-
-        var actual = await this.recipeDataProvider.GetRecipe(connection, original.Id);
-
-        Assert.Equal("new-recipe-title", actual.Title);
-        Assert.Equal("new-recipe-ingredients", actual.Ingredients);
-        Assert.Equal("new-recipe-method", actual.Method);
         Assert.Null(actual.Suggestions);
         Assert.Null(actual.Remarks);
         Assert.Null(actual.Source);

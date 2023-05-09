@@ -104,15 +104,15 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
     private void AddInsertUpdateParameters(
         MySqlCommand command, RecipeAttributes attributes, long currentUserId)
     {
-        command.Parameters.AddWithStringValue("@title", attributes.Title);
+        command.Parameters.AddWithValue("@title", attributes.Title);
         command.Parameters.AddWithValue("@preparation_minutes", attributes.PreparationMinutes);
         command.Parameters.AddWithValue("@cooking_minutes", attributes.CookingMinutes);
         command.Parameters.AddWithValue("@servings", attributes.Servings);
-        command.Parameters.AddWithStringValue("@ingredients", attributes.Ingredients);
-        command.Parameters.AddWithStringValue("@method", attributes.Method);
-        command.Parameters.AddWithStringValue("@suggestions", attributes.Suggestions);
-        command.Parameters.AddWithStringValue("@remarks", attributes.Remarks);
-        command.Parameters.AddWithStringValue("@source", attributes.Source);
+        command.Parameters.AddWithValue("@ingredients", attributes.Ingredients);
+        command.Parameters.AddWithValue("@method", attributes.Method);
+        command.Parameters.AddWithValue("@suggestions", attributes.Suggestions);
+        command.Parameters.AddWithValue("@remarks", attributes.Remarks);
+        command.Parameters.AddWithValue("@source", attributes.Source);
         command.Parameters.AddWithValue("@timestamp", this.clock.UtcNow);
         command.Parameters.AddWithValue("@current_user_id", currentUserId);
     }
