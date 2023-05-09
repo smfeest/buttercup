@@ -5,6 +5,7 @@ using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.Models;
 using Buttercup.Web.Authentication;
+using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
 using Microsoft.AspNetCore.Authentication;
@@ -28,6 +29,7 @@ services.AddControllersWithViews()
     .AddMvcOptions(options =>
     {
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+        options.ModelBinderProviders.Insert(0, new NormalizedStringBinderProvider());
     })
     .AddDataAnnotationsLocalization()
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
