@@ -17,9 +17,9 @@ internal sealed class AuthenticationEventDataProvider : IAuthenticationEventData
             VALUES (@time, @event, @user_id, @email)";
 
         command.Parameters.AddWithValue("@time", this.clock.UtcNow);
-        command.Parameters.AddWithStringValue("@event", eventName);
+        command.Parameters.AddWithValue("@event", eventName);
         command.Parameters.AddWithValue("@user_id", userId);
-        command.Parameters.AddWithStringValue("@email", email);
+        command.Parameters.AddWithValue("@email", email);
 
         await command.ExecuteNonQueryAsync();
 
