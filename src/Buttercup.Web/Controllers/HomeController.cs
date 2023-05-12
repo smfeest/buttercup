@@ -1,31 +1,34 @@
 using Buttercup.DataAccess;
+using Buttercup.EntityModel;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
 public class HomeController : Controller
 {
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IRecipeDataProvider recipeDataProvider;
 
     public HomeController(
-        IMySqlConnectionSource mySqlConnectionSource, IRecipeDataProvider recipeDataProvider)
+        IDbContextFactory<AppDbContext> dbContextFactory, IRecipeDataProvider recipeDataProvider)
     {
-        this.mySqlConnectionSource = mySqlConnectionSource;
+        this.dbContextFactory = dbContextFactory;
         this.recipeDataProvider = recipeDataProvider;
     }
 
     [HttpGet("/")]
     public async Task<IActionResult> Index()
     {
-        var connection = await this.mySqlConnectionSource.OpenConnection();
+        var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return this.View(
-            new HomePageViewModel(
-                await this.recipeDataProvider.GetRecentlyAddedRecipes(connection),
-                await this.recipeDataProvider.GetRecentlyUpdatedRecipes(connection)));
+        var recentlyAdded = await this.recipeDataProvider.GetRecentlyAddedRecipes(dbContext);
+        var recentlyUpdated = await this.recipeDataProvider.GetRecentlyUpdatedRecipes(
+            dbContext, recentlyAdded.Select(r => r.Id).ToArray());
+
+        return this.View(new HomePageViewModel(recentlyAdded, recentlyUpdated));
     }
 }

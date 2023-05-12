@@ -1,10 +1,8 @@
 using Buttercup.DataAccess;
-using Buttercup.Models;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Controllers;
@@ -20,14 +18,16 @@ public class HomeControllerTests
     {
         using var fixture = new HomeControllerFixture();
 
-        IList<Recipe> recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
-        IList<Recipe> recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        var recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
+        var recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
 
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecentlyAddedRecipes(fixture.MySqlConnection))
+            .Setup(x => x.GetRecentlyAddedRecipes(fixture.DbContextFactory.FakeDbContext))
             .ReturnsAsync(recentlyAddedRecipes);
         fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecentlyUpdatedRecipes(fixture.MySqlConnection))
+            .Setup(x => x.GetRecentlyUpdatedRecipes(
+                fixture.DbContextFactory.FakeDbContext, recentlyAddedIds))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
         var result = await fixture.HomeController.Index();
@@ -43,20 +43,19 @@ public class HomeControllerTests
 
     private sealed class HomeControllerFixture : IDisposable
     {
-        public HomeControllerFixture()
-        {
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
+        public HomeControllerFixture() =>
+            this.HomeController = new(this.DbContextFactory, this.MockRecipeDataProvider.Object);
 
-            this.HomeController = new(mySqlConnectionSource, this.MockRecipeDataProvider.Object);
-        }
+        public FakeDbContextFactory DbContextFactory { get; } = new();
 
         public HomeController HomeController { get; }
 
-        public MySqlConnection MySqlConnection { get; } = new();
-
         public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
 
-        public void Dispose() => this.HomeController?.Dispose();
+        public void Dispose()
+        {
+            this.DbContextFactory.Dispose();
+            this.HomeController.Dispose();
+        }
     }
 }

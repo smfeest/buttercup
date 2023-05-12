@@ -1,28 +1,21 @@
 using System.Security.Claims;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Api;
 
 public sealed class QueryTests : IDisposable
 {
+    private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly Query query;
     private readonly ModelFactory modelFactory = new();
-    private readonly MySqlConnection mySqlConnection = new();
 
-    public QueryTests()
-    {
-        var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-            x => x.OpenConnection() == Task.FromResult(this.mySqlConnection));
+    public QueryTests() => this.query = new(dbContextFactory);
 
-        this.query = new(mySqlConnectionSource);
-    }
-
-    public void Dispose() => this.mySqlConnection.Dispose();
+    public void Dispose() => this.dbContextFactory.Dispose();
 
     #region CurrentUser
 
@@ -32,7 +25,7 @@ public sealed class QueryTests : IDisposable
         var user = this.modelFactory.BuildUser();
 
         var userDataProvider = Mock.Of<IUserDataProvider>(
-            x => x.GetUser(this.mySqlConnection, 1234) == Task.FromResult(user));
+            x => x.GetUser(this.dbContextFactory.FakeDbContext, 1234) == Task.FromResult(user));
 
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "1234") }));
@@ -70,7 +63,7 @@ public sealed class QueryTests : IDisposable
         IList<Recipe> expected = new[] { this.modelFactory.BuildRecipe() };
 
         var recipeDataProvider = Mock.Of<IRecipeDataProvider>(
-            x => x.GetAllRecipes(this.mySqlConnection) == Task.FromResult(expected));
+            x => x.GetAllRecipes(this.dbContextFactory.FakeDbContext) == Task.FromResult(expected));
 
         var actual = await this.query.Recipes(recipeDataProvider);
 

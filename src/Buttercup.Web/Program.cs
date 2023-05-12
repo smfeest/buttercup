@@ -3,7 +3,8 @@ using Bugsnag.AspNet.Core;
 using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
-using Buttercup.Models;
+using Buttercup.EntityModel;
+using Buttercup.Web;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
@@ -49,8 +50,9 @@ services.Configure<ForwardedHeadersOptions>(
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 
 services
+    .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
-    .AddDataAccessServices(configuration.GetSection("DataAccess"))
+    .AddDataAccessServices()
     .AddEmailServices(configuration.GetSection("Email"));
 
 services

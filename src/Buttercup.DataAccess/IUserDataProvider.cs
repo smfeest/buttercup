@@ -1,5 +1,4 @@
-using Buttercup.Models;
-using MySqlConnector;
+using Buttercup.EntityModel;
 
 namespace Buttercup.DataAccess;
 
@@ -11,8 +10,8 @@ public interface IUserDataProvider
     /// <summary>
     /// Tries to find a user by email address.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="email">
     /// The email address.
@@ -21,13 +20,13 @@ public interface IUserDataProvider
     /// A task for the operation. The result is the user, or a null reference if no matching
     /// user is found.
     /// </returns>
-    Task<User?> FindUserByEmail(MySqlConnection connection, string email);
+    Task<User?> FindUserByEmail(AppDbContext dbContext, string email);
 
     /// <summary>
     /// Gets a user.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="id">
     /// The user ID.
@@ -38,13 +37,13 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task<User> GetUser(MySqlConnection connection, long id);
+    Task<User> GetUser(AppDbContext dbContext, long id);
 
     /// <summary>
     /// Gets a batch of users.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="ids">
     /// The user IDs.
@@ -52,13 +51,13 @@ public interface IUserDataProvider
     /// <returns>
     /// A task for the operation. The result the list of users with matching IDs.
     /// </returns>
-    Task<IList<User>> GetUsers(MySqlConnection connection, IReadOnlyCollection<long> ids);
+    Task<IList<User>> GetUsers(AppDbContext dbContext, IReadOnlyCollection<long> ids);
 
     /// <summary>
     /// Updates a user's password.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="userId">
     /// The user ID.
@@ -76,13 +75,13 @@ public interface IUserDataProvider
     /// No matching user was found.
     /// </exception>
     Task UpdatePassword(
-        MySqlConnection connection, long userId, string hashedPassword, string securityStamp);
+        AppDbContext dbContext, long userId, string hashedPassword, string securityStamp);
 
     /// <summary>
     /// Updates a user's preferences.
     /// </summary>
-    /// <param name="connection">
-    /// The database connection.
+    /// <param name="dbContext">
+    /// The database context.
     /// </param>
     /// <param name="userId">
     /// The user ID.
@@ -96,5 +95,5 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task UpdatePreferences(MySqlConnection connection, long userId, string timeZone);
+    Task UpdatePreferences(AppDbContext dbContext, long userId, string timeZone);
 }

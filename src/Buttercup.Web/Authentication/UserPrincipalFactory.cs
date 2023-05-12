@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Authentication;
 

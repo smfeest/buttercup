@@ -1,8 +1,10 @@
 using Buttercup.DataAccess;
+using Buttercup.EntityModel;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
@@ -12,17 +14,17 @@ namespace Buttercup.Web.Controllers;
 public class AccountController : Controller
 {
     private readonly IAuthenticationManager authenticationManager;
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IStringLocalizer<AccountController> localizer;
     private readonly IUserDataProvider userDataProvider;
 
     public AccountController(
-        IMySqlConnectionSource mySqlConnectionSource,
+        IDbContextFactory<AppDbContext> dbContextFactory,
         IUserDataProvider userDataProvider,
         IAuthenticationManager authenticationManager,
         IStringLocalizer<AccountController> localizer)
     {
-        this.mySqlConnectionSource = mySqlConnectionSource;
+        this.dbContextFactory = dbContextFactory;
         this.userDataProvider = userDataProvider;
         this.authenticationManager = authenticationManager;
         this.localizer = localizer;
@@ -69,11 +71,11 @@ public class AccountController : Controller
             return this.View(model);
         }
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = this.HttpContext.GetCurrentUser()!;
 
-        await this.userDataProvider.UpdatePreferences(connection, user.Id, model.TimeZone);
+        await this.userDataProvider.UpdatePreferences(dbContext, user.Id, model.TimeZone);
 
         return this.RedirectToAction(nameof(this.Show));
     }

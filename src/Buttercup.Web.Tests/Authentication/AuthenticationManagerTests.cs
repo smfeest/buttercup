@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Authentication;
@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Authentication;
@@ -25,7 +24,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateLogsOnSuccess()
     {
-        var fixture = AuthenticateFixture.ForSuccess();
+        using var fixture = AuthenticateFixture.ForSuccess();
 
         await fixture.Authenticate();
 
@@ -41,7 +40,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateReturnsUserOnSuccess()
     {
-        var fixture = AuthenticateFixture.ForSuccess();
+        using var fixture = AuthenticateFixture.ForSuccess();
 
         var actual = await fixture.Authenticate();
 
@@ -51,7 +50,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateLogsIfEmailIsUnrecognized()
     {
-        var fixture = AuthenticateFixture.ForEmailNotFound();
+        using var fixture = AuthenticateFixture.ForEmailNotFound();
 
         await fixture.Authenticate();
 
@@ -66,7 +65,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateReturnsNullIfEmailIsUnrecognized()
     {
-        var fixture = AuthenticateFixture.ForEmailNotFound();
+        using var fixture = AuthenticateFixture.ForEmailNotFound();
 
         Assert.Null(await fixture.Authenticate());
     }
@@ -74,7 +73,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateLogsIfUserHasNoPassword()
     {
-        var fixture = AuthenticateFixture.ForUserHasNoPassword();
+        using var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
         await fixture.Authenticate();
 
@@ -91,7 +90,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateReturnsNullIfUserHasNoPassword()
     {
-        var fixture = AuthenticateFixture.ForUserHasNoPassword();
+        using var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
         Assert.Null(await fixture.Authenticate());
     }
@@ -99,7 +98,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateLogsIfPasswordIsIncorrect()
     {
-        var fixture = AuthenticateFixture.ForPasswordIncorrect();
+        using var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
         await fixture.Authenticate();
 
@@ -116,7 +115,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task AuthenticateReturnsNullIfPasswordIsIncorrect()
     {
-        var fixture = AuthenticateFixture.ForPasswordIncorrect();
+        using var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
         Assert.Null(await fixture.Authenticate());
     }
@@ -131,7 +130,8 @@ public class AuthenticationManagerTests
             this.User = user;
 
             this.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.SuppliedEmail))
+                .Setup(
+                    x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
                 .ReturnsAsync(user);
         }
 
@@ -158,7 +158,7 @@ public class AuthenticationManagerTests
         {
             var user = new ModelFactory().BuildUser() with { HashedPassword = HashedPassword };
 
-            var fixture = new AuthenticateFixture(user);
+            using var fixture = new AuthenticateFixture(user);
 
             fixture.MockPasswordHasher
                 .Setup(x => x.VerifyHashedPassword(user, HashedPassword, Password))
@@ -175,7 +175,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordLogsEventIfUserHasNoPassword()
     {
-        var fixture = ChangePasswordFixture.ForUserHasNoPassword();
+        using var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
         try
         {
@@ -191,7 +191,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordThrowsIfUserHasNoPassword()
     {
-        var fixture = ChangePasswordFixture.ForUserHasNoPassword();
+        using var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
         await Assert.ThrowsAsync<InvalidOperationException>(fixture.ChangePassword);
     }
@@ -199,7 +199,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordLogsIfCurrentPasswordDoesNotMatch()
     {
-        var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
+        using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
         await fixture.ChangePassword();
 
@@ -214,7 +214,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordReturnsFalseIfCurrentPasswordDoesNotMatch()
     {
-        var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
+        using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
         Assert.False(await fixture.ChangePassword());
     }
@@ -222,7 +222,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordDoesNotChangePasswordIfCurrentPasswordDoesNotMatch()
     {
-        var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
+        using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
         await fixture.ChangePassword();
 
@@ -233,12 +233,12 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordUpdatesUserOnSuccess()
     {
-        var fixture = ChangePasswordFixture.ForSuccess();
+        using var fixture = ChangePasswordFixture.ForSuccess();
 
         await fixture.ChangePassword();
 
         fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-            fixture.MySqlConnection,
+            fixture.DbContextFactory.FakeDbContext,
             fixture.User.Id,
             fixture.HashedNewPassword,
             fixture.NewSecurityStamp));
@@ -247,18 +247,18 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordDeletesPasswordResetTokensOnSuccess()
     {
-        var fixture = ChangePasswordFixture.ForSuccess();
+        using var fixture = ChangePasswordFixture.ForSuccess();
 
         await fixture.ChangePassword();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.User.Id));
+            x => x.DeleteTokensForUser(fixture.DbContextFactory.FakeDbContext, fixture.User.Id));
     }
 
     [Fact]
     public async Task ChangePasswordSendsPasswordChangeNotificationOnSuccess()
     {
-        var fixture = ChangePasswordFixture.ForSuccess();
+        using var fixture = ChangePasswordFixture.ForSuccess();
 
         await fixture.ChangePassword();
 
@@ -269,7 +269,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordLogsOnSuccess()
     {
-        var fixture = ChangePasswordFixture.ForSuccess();
+        using var fixture = ChangePasswordFixture.ForSuccess();
 
         await fixture.ChangePassword();
 
@@ -283,7 +283,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordSignsInUpdatedPrincipalOnSuccess()
     {
-        var fixture = ChangePasswordFixture.ForSuccess();
+        using var fixture = ChangePasswordFixture.ForSuccess();
 
         await fixture.ChangePassword();
 
@@ -294,7 +294,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ChangePasswordReturnsTrueOnSuccess()
     {
-        var fixture = ChangePasswordFixture.ForSuccess();
+        using var fixture = ChangePasswordFixture.ForSuccess();
 
         Assert.True(await fixture.ChangePassword());
     }
@@ -352,7 +352,7 @@ public class AuthenticationManagerTests
         private static ChangePasswordFixture ForPasswordVerificationResult(
             PasswordVerificationResult result)
         {
-            var fixture = new ChangePasswordFixture(HashedCurrentPassword);
+            using var fixture = new ChangePasswordFixture(HashedCurrentPassword);
 
             fixture.MockPasswordHasher
                 .Setup(x => x.VerifyHashedPassword(
@@ -370,18 +370,18 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
     {
-        var fixture = PasswordResetTokenFixture.ForValidToken();
+        using var fixture = PasswordResetTokenFixture.ForValidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteExpiredTokens(fixture.MySqlConnection, fixture.UtcNow.AddDays(-1)));
+        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
+            fixture.DbContextFactory.FakeDbContext, fixture.UtcNow.AddDays(-1)));
     }
 
     [Fact]
     public async Task PasswordResetTokenIsValidLogsIfValid()
     {
-        var fixture = PasswordResetTokenFixture.ForValidToken();
+        using var fixture = PasswordResetTokenFixture.ForValidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
@@ -393,7 +393,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
     {
-        var fixture = PasswordResetTokenFixture.ForValidToken();
+        using var fixture = PasswordResetTokenFixture.ForValidToken();
 
         Assert.True(await fixture.PasswordResetTokenIsValid());
     }
@@ -401,7 +401,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidLogsIfInvalid()
     {
-        var fixture = PasswordResetTokenFixture.ForInvalidToken();
+        using var fixture = PasswordResetTokenFixture.ForInvalidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
@@ -415,7 +415,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
     {
-        var fixture = PasswordResetTokenFixture.ForInvalidToken();
+        using var fixture = PasswordResetTokenFixture.ForInvalidToken();
 
         await fixture.PasswordResetTokenIsValid();
 
@@ -451,20 +451,20 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteExpiredTokens(fixture.MySqlConnection, fixture.UtcNow.AddDays(-1)));
+        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
+            fixture.DbContextFactory.FakeDbContext, fixture.UtcNow.AddDays(-1)));
     }
 
     [Fact]
     public async Task ResetPasswordLogsIfTokenIsInvalid()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupInvalidToken();
 
@@ -486,7 +486,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordThrowsIfTokenIsInvalid()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupInvalidToken();
 
@@ -496,14 +496,14 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordUpdatesUserOnSuccess()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
         fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-            fixture.MySqlConnection,
+            fixture.DbContextFactory.FakeDbContext,
             fixture.User.Id,
             fixture.NewHashedPassword,
             fixture.NewSecurityStamp));
@@ -512,20 +512,20 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordDeletesPasswordResetTokensOnSuccess()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupSuccess();
 
         await fixture.ResetPassword();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.MySqlConnection, fixture.User.Id));
+            x => x.DeleteTokensForUser(fixture.DbContextFactory.FakeDbContext, fixture.User.Id));
     }
 
     [Fact]
     public async Task ResetPasswordSendsPasswordChangeNotificationOnSuccess()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupSuccess();
 
@@ -538,7 +538,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordLogsOnSuccess()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupSuccess();
 
@@ -554,7 +554,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ResetPasswordReturnsUserWithNewSecurityStampOnSuccess()
     {
-        var fixture = new ResetPasswordFixture();
+        using var fixture = new ResetPasswordFixture();
 
         fixture.SetupSuccess();
 
@@ -602,18 +602,18 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SendPasswordResetLinkInsertsPasswordResetTokenOnSuccess()
     {
-        var fixture = SendPasswordResetLinkFixture.ForSuccess();
+        using var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
         await fixture.SendPasswordResetLink();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-            fixture.MySqlConnection, fixture.User!.Id, fixture.Token));
+            fixture.DbContextFactory.FakeDbContext, fixture.User!.Id, fixture.Token));
     }
 
     [Fact]
     public async Task SendPasswordResetLinkSendsLinkToUserOnSuccess()
     {
-        var fixture = SendPasswordResetLinkFixture.ForSuccess();
+        using var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
         await fixture.SendPasswordResetLink();
 
@@ -624,7 +624,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SendPasswordResetLinkLogsOnSuccess()
     {
-        var fixture = SendPasswordResetLinkFixture.ForSuccess();
+        using var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
         await fixture.SendPasswordResetLink();
 
@@ -639,7 +639,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SendPasswordResetLinkDoesNotSendLinkIfEmailIsUnrecognized()
     {
-        var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
+        using var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
         await fixture.SendPasswordResetLink();
 
@@ -650,7 +650,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SendPasswordResetLinkLogsIfEmailIsUnrecognized()
     {
-        var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
+        using var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
         await fixture.SendPasswordResetLink();
 
@@ -673,7 +673,8 @@ public class AuthenticationManagerTests
                 .Returns(this.MockUrlHelper.Object);
 
             this.MockUserDataProvider
-                .Setup(x => x.FindUserByEmail(this.MySqlConnection, this.SuppliedEmail))
+                .Setup(
+                    x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
                 .ReturnsAsync(user);
         }
 
@@ -691,7 +692,7 @@ public class AuthenticationManagerTests
 
         public static SendPasswordResetLinkFixture ForSuccess()
         {
-            var fixture = new SendPasswordResetLinkFixture(new ModelFactory().BuildUser());
+            using var fixture = new SendPasswordResetLinkFixture(new ModelFactory().BuildUser());
 
             fixture.MockRandomTokenGenerator
                 .Setup(x => x.Generate(12))
@@ -720,7 +721,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SignInSignsInPrincipal()
     {
-        var fixture = new SignInFixture();
+        using var fixture = new SignInFixture();
 
         await fixture.SignIn();
 
@@ -731,7 +732,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SignInSetsCurrentUser()
     {
-        var fixture = new SignInFixture();
+        using var fixture = new SignInFixture();
 
         await fixture.SignIn();
 
@@ -741,7 +742,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SignInLogsEvent()
     {
-        var fixture = new SignInFixture();
+        using var fixture = new SignInFixture();
 
         await fixture.SignIn();
 
@@ -774,7 +775,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SignOutSignsOutUser()
     {
-        var fixture = SignOutFixture.ForUserSignedIn();
+        using var fixture = SignOutFixture.ForUserSignedIn();
 
         await fixture.SignOut();
 
@@ -785,7 +786,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SignOutLogsIfUserPreviouslySignedIn()
     {
-        var fixture = SignOutFixture.ForUserSignedIn();
+        using var fixture = SignOutFixture.ForUserSignedIn();
 
         await fixture.SignOut();
 
@@ -798,12 +799,13 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task SignOutDoesNotLogsIfNoUserPreviouslySignedIn()
     {
-        var fixture = SignOutFixture.ForNoUserSignedIn();
+        using var fixture = SignOutFixture.ForNoUserSignedIn();
 
         await fixture.SignOut();
 
         fixture.MockAuthenticationEventDataProvider.Verify(
-            x => x.LogEvent(fixture.MySqlConnection, "sign_out", null, null), Times.Never);
+            x => x.LogEvent(fixture.DbContextFactory.FakeDbContext, "sign_out", null, null),
+            Times.Never);
     }
 
     private sealed class SignOutFixture : AuthenticationManagerFixture
@@ -820,7 +822,7 @@ public class AuthenticationManagerTests
 
         public static SignOutFixture ForUserSignedIn()
         {
-            var fixture = new SignOutFixture(76);
+            using var fixture = new SignOutFixture(76);
 
             var claims = new Claim[]
             {
@@ -844,7 +846,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalDoesNotRejectPrincipalWhenUnauthenticated()
     {
-        var fixture = ValidatePrincipalFixture.ForUnauthenticated();
+        using var fixture = ValidatePrincipalFixture.ForUnauthenticated();
 
         await fixture.ValidatePrincipal();
 
@@ -854,7 +856,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
     {
-        var fixture = ValidatePrincipalFixture.ForCorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -864,7 +866,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
     {
-        var fixture = ValidatePrincipalFixture.ForCorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -874,7 +876,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalLogsWhenStampIsCorrect()
     {
-        var fixture = ValidatePrincipalFixture.ForCorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -886,7 +888,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalLogsWhenStampIsIncorrect()
     {
-        var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -898,7 +900,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
     {
-        var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -908,7 +910,7 @@ public class AuthenticationManagerTests
     [Fact]
     public async Task ValidatePrincipalSignsUserOutWhenStampIsIncorrect()
     {
-        var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -962,7 +964,7 @@ public class AuthenticationManagerTests
 
         private static ValidatePrincipalFixture ForAuthenticated(string principalSecurityStamp)
         {
-            var fixture = new ValidatePrincipalFixture(
+            using var fixture = new ValidatePrincipalFixture(
                 new(ClaimTypes.NameIdentifier, UserId.ToString(CultureInfo.InvariantCulture)),
                 new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
 
@@ -974,20 +976,18 @@ public class AuthenticationManagerTests
 
     #endregion
 
-    private class AuthenticationManagerFixture
+    private class AuthenticationManagerFixture : IDisposable
     {
         public AuthenticationManagerFixture()
         {
             var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
             this.AuthenticationManager = new(
                 this.MockAuthenticationEventDataProvider.Object,
                 this.MockAuthenticationMailer.Object,
                 this.MockAuthenticationService.Object,
                 clock,
-                mySqlConnectionSource,
+                this.DbContextFactory,
                 this.Logger,
                 this.MockPasswordHasher.Object,
                 this.MockPasswordResetTokenDataProvider.Object,
@@ -1001,9 +1001,9 @@ public class AuthenticationManagerTests
 
         public AuthenticationManager AuthenticationManager { get; }
 
-        public ListLogger<AuthenticationManager> Logger { get; } = new();
+        public FakeDbContextFactory DbContextFactory { get; } = new();
 
-        public MySqlConnection MySqlConnection { get; } = new();
+        public ListLogger<AuthenticationManager> Logger { get; } = new();
 
         public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
 
@@ -1025,17 +1025,19 @@ public class AuthenticationManagerTests
 
         public void SetupGetUser(long id, User user) =>
             this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.MySqlConnection, id))
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, id))
                 .ReturnsAsync(user);
 
         public void SetupGetUserIdForToken(string token, long? userId) =>
             this.MockPasswordResetTokenDataProvider
-                .Setup(x => x.GetUserIdForToken(this.MySqlConnection, token))
+                .Setup(x => x.GetUserIdForToken(this.DbContextFactory.FakeDbContext, token))
                 .ReturnsAsync(userId);
 
         public void AssertAuthenticationEventLogged(
             string eventName, long? userId = null, string? email = null) =>
             this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                this.MySqlConnection, eventName, userId, email));
+                this.DbContextFactory.FakeDbContext, eventName, userId, email));
+
+        public void Dispose() => this.DbContextFactory.Dispose();
     }
 }

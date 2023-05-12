@@ -1,5 +1,5 @@
 using System.Globalization;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 
 namespace Buttercup.TestUtils;
 
@@ -18,22 +18,32 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
-    public Recipe BuildRecipe(bool setOptionalAttributes = false) => new(
-        this.NextInt(),
-        this.NextString("title"),
-        setOptionalAttributes ? this.NextInt() : null,
-        setOptionalAttributes ? this.NextInt() : null,
-        setOptionalAttributes ? this.NextInt() : null,
-        this.NextString("ingredients"),
-        this.NextString("method"),
-        setOptionalAttributes ? this.NextString("suggestions") : null,
-        setOptionalAttributes ? this.NextString("remarks") : null,
-        setOptionalAttributes ? this.NextString("source") : null,
-        this.NextDateTime(),
-        setOptionalAttributes ? this.NextInt() : null,
-        this.NextDateTime(),
-        setOptionalAttributes ? this.NextInt() : null,
-        this.NextInt());
+    public Recipe BuildRecipe(bool setOptionalAttributes = false)
+    {
+        var createdByUser = setOptionalAttributes ? this.BuildUser() : null;
+        var modifiedByUser = setOptionalAttributes ? this.BuildUser() : null;
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Title = this.NextString("title"),
+            PreparationMinutes = setOptionalAttributes ? this.NextInt() : null,
+            CookingMinutes = setOptionalAttributes ? this.NextInt() : null,
+            Servings = setOptionalAttributes ? this.NextInt() : null,
+            Ingredients = this.NextString("ingredients"),
+            Method = this.NextString("method"),
+            Suggestions = setOptionalAttributes ? this.NextString("suggestions") : null,
+            Remarks = setOptionalAttributes ? this.NextString("remarks") : null,
+            Source = setOptionalAttributes ? this.NextString("source") : null,
+            Created = this.NextDateTime(),
+            CreatedByUser = createdByUser,
+            CreatedByUserId = createdByUser?.Id,
+            Modified = this.NextDateTime(),
+            ModifiedByUser = modifiedByUser,
+            ModifiedByUserId = modifiedByUser?.Id,
+            Revision = this.NextInt(),
+        };
+    }
 
     /// <summary>
     /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.
@@ -54,17 +64,19 @@ public class ModelFactory
     /// null.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User BuildUser(bool setOptionalAttributes = false) => new(
-        this.NextInt(),
-        this.NextString("name"),
-        $"user-{this.NextInt()}@example.com",
-        setOptionalAttributes ? this.NextString("password-hash") : null,
-        setOptionalAttributes ? this.NextDateTime() : null,
-        this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
-        this.NextString("time-zone"),
-        this.NextDateTime(),
-        this.NextDateTime(),
-        this.NextInt());
+    public User BuildUser(bool setOptionalAttributes = false) => new()
+    {
+        Id = this.NextInt(),
+        Name = this.NextString("name"),
+        Email = $"user-{this.NextInt()}@example.com",
+        HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
+        PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
+        SecurityStamp = this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
+        TimeZone = this.NextString("time-zone"),
+        Created = this.NextDateTime(),
+        Modified = this.NextDateTime(),
+        Revision = this.NextInt(),
+    };
 
     /// <summary>
     /// Generates a unique UTC date and time.

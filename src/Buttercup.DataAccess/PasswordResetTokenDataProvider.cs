@@ -1,4 +1,5 @@
-using MySqlConnector;
+using Buttercup.EntityModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.DataAccess;
 
@@ -8,46 +9,27 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
 
     public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
 
-    public async Task DeleteExpiredTokens(MySqlConnection connection, DateTime cutOff)
+    public Task DeleteExpiredTokens(AppDbContext dbContext, DateTime cutOff) =>
+        dbContext.PasswordResetTokens.Where(t => t.Created < cutOff).ExecuteDeleteAsync();
+
+    public Task DeleteTokensForUser(AppDbContext dbContext, long userId) =>
+        dbContext.PasswordResetTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync();
+
+    public Task<long?> GetUserIdForToken(AppDbContext dbContext, string token) =>
+        dbContext
+            .PasswordResetTokens.Where(t => t.Token == token)
+            .Select<PasswordResetToken, long?>(t => t.UserId)
+            .SingleOrDefaultAsync();
+
+    public async Task InsertToken(AppDbContext dbContext, long userId, string token)
     {
-        using var command = connection.CreateCommand();
+        dbContext.PasswordResetTokens.Add(new()
+        {
+            Token = token,
+            UserId = userId,
+            Created = this.clock.UtcNow,
+        });
 
-        command.CommandText = @"DELETE FROM password_reset_token WHERE created < @cut_off";
-        command.Parameters.AddWithValue("@cut_off", cutOff);
-
-        await command.ExecuteNonQueryAsync();
-    }
-
-    public async Task DeleteTokensForUser(MySqlConnection connection, long userId)
-    {
-        using var command = connection.CreateCommand();
-
-        command.CommandText = @"DELETE FROM password_reset_token WHERE user_id = @user_id";
-        command.Parameters.AddWithValue("@user_id", userId);
-
-        await command.ExecuteNonQueryAsync();
-    }
-
-    public async Task<long?> GetUserIdForToken(MySqlConnection connection, string token)
-    {
-        using var command = connection.CreateCommand();
-
-        command.CommandText = "SELECT user_id FROM password_reset_token WHERE token = @token";
-        command.Parameters.AddWithValue("@token", token);
-
-        return await command.ExecuteScalarAsync<uint?>();
-    }
-
-    public async Task InsertToken(MySqlConnection connection, long userId, string token)
-    {
-        using var command = connection.CreateCommand();
-
-        command.CommandText = @"INSERT password_reset_token(token, user_id, created)
-            VALUES(@token, @user_id, @created)";
-        command.Parameters.AddWithValue("@token", token);
-        command.Parameters.AddWithValue("@user_id", userId);
-        command.Parameters.AddWithValue("@created", this.clock.UtcNow);
-
-        await command.ExecuteNonQueryAsync();
+        await dbContext.SaveChangesAsync();
     }
 }

@@ -1,18 +1,19 @@
 using System.Security.Claims;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.Web.Authentication;
 using HotChocolate.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Api;
 
 [QueryType]
 public sealed class Query
 {
-    private readonly IMySqlConnectionSource mySqlConnectionSource;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
 
-    public Query(IMySqlConnectionSource mySqlConnectionSource) =>
-        this.mySqlConnectionSource = mySqlConnectionSource;
+    public Query(IDbContextFactory<AppDbContext> dbContextFactory) =>
+        this.dbContextFactory = dbContextFactory;
 
     public async Task<User?> CurrentUser(
         [Service] IUserDataProvider userDataProvider, ClaimsPrincipal principal)
@@ -24,9 +25,9 @@ public sealed class Query
             return null;
         }
 
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await userDataProvider.GetUser(connection, userId.Value);
+        return await userDataProvider.GetUser(dbContext, userId.Value);
     }
 
     [Authorize]
@@ -36,8 +37,8 @@ public sealed class Query
     [Authorize]
     public async Task<IList<Recipe>> Recipes([Service] IRecipeDataProvider recipeDataProvider)
     {
-        using var connection = await this.mySqlConnectionSource.OpenConnection();
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await recipeDataProvider.GetAllRecipes(connection);
+        return await recipeDataProvider.GetAllRecipes(dbContext);
     }
 }

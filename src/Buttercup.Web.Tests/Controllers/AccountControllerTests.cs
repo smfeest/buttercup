@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Controllers;
@@ -179,7 +178,7 @@ public class AccountControllerTests
 
         fixture.MockUserDataProvider
             .Setup(x => x.UpdatePreferences(
-                fixture.MySqlConnection, currentUser.Id, viewModel.TimeZone))
+                fixture.DbContextFactory.FakeDbContext, currentUser.Id, viewModel.TimeZone))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
@@ -195,13 +194,9 @@ public class AccountControllerTests
 
     private class AccountControllerFixture : IDisposable
     {
-        public AccountControllerFixture()
-        {
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
-
+        public AccountControllerFixture() =>
             this.AccountController = new(
-                mySqlConnectionSource,
+                this.DbContextFactory,
                 this.MockUserDataProvider.Object,
                 this.MockAuthenticationManager.Object,
                 this.MockLocalizer.Object)
@@ -211,13 +206,12 @@ public class AccountControllerTests
                     HttpContext = this.HttpContext,
                 },
             };
-        }
 
         public AccountController AccountController { get; }
 
-        public DefaultHttpContext HttpContext { get; } = new();
+        public FakeDbContextFactory DbContextFactory { get; } = new();
 
-        public MySqlConnection MySqlConnection { get; } = new();
+        public DefaultHttpContext HttpContext { get; } = new();
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 

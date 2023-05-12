@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Buttercup.Models;
+namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a recipe's attributes.
@@ -41,7 +41,7 @@ public sealed record RecipeAttributes
     /// The title.
     /// </value>
     [Required(ErrorMessage = "Error_RequiredField")]
-    [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
+    [StringLength(250, ErrorMessage = "Error_TooManyCharacters")]
     public string Title { get; init; } = string.Empty;
 
     /// <summary>
@@ -115,6 +115,6 @@ public sealed record RecipeAttributes
     /// <value>
     /// The source.
     /// </value>
-    [StringLength(255, ErrorMessage = "Error_TooManyCharacters")]
+    [StringLength(250, ErrorMessage = "Error_TooManyCharacters")]
     public string? Source { get; init; }
 }

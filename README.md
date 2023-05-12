@@ -10,21 +10,24 @@
 
 ## Setting up the database
 
-1.  Create the _buttercup_dev_ user that will be used to connect to the
+1.  Restore .NET tools:
+
+        dotnet tool restore
+
+2.  Create the _buttercup_dev_ user that will be used to connect to the
     application and test databases:
 
         mysql -u root -p < db/dev-user.sql
 
-2.  Create the _buttercup_app_ application database:
+3.  Create the application database:
 
-        mysql -u buttercup_dev -e 'DROP DATABASE IF EXISTS buttercup_app; CREATE DATABASE buttercup_app'
-        mysql -u buttercup_dev buttercup_app < db/schema.sql
+        dotnet ef database update -s src/Buttercup.Web
 
-3.  Insert a user account:
+4.  Insert a user account:
 
         mysql -u buttercup_dev buttercup_app << SQL
-          INSERT user (name, email, security_stamp, time_zone, created, modified)
-          VALUES ('<your-name>', '<your-email>', '', 'Etc/UTC', UTC_TIMESTAMP, UTC_TIMESTAMP)
+          INSERT users (name, email, security_stamp, time_zone, created, modified, revision)
+          VALUES ('<your-name>', '<your-email>', '', 'Etc/UTC', UTC_TIMESTAMP, UTC_TIMESTAMP, 0)
         SQL
 
     Once the application is running, you'll be able to use the password reset
@@ -90,3 +93,13 @@
 
       cd src/Buttercup.Web
       npx stylelint styles/
+
+## Database migrations
+
+- To create a new database migration:
+
+      dotnet ef migrations add <MIGRATION_NAME> -s src/Buttercup.Web -p src/Buttercup.EntityModel.Migrations
+
+- To run all pending database migrations:
+
+      dotnet ef database update -s src/Buttercup.Web

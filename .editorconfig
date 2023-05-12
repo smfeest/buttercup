@@ -13,6 +13,7 @@ indent_size = 4
 
 # Code style preference
 csharp_style_expression_bodied_constructors = true
+csharp_style_expression_bodied_local_functions = true
 csharp_style_expression_bodied_methods = true
 csharp_style_namespace_declarations = file_scoped
 csharp_style_var_elsewhere = true
@@ -30,6 +31,11 @@ dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visi
 
 # Code quality analysis rules
 dotnet_diagnostic.CA1822.severity = none # Mark members as static
+
+[src/Buttercup.EntityModel.Migrations/**.cs]
+
+# Compiler warnings
+dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member
 
 [*.sln]
 charset = utf-8-bom

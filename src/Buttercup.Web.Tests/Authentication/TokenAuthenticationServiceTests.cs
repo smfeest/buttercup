@@ -1,11 +1,10 @@
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
-using Buttercup.Models;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.TestUtils;
 using Microsoft.Extensions.Logging;
 using Moq;
-using MySqlConnector;
 using Xunit;
 
 namespace Buttercup.Web.Authentication;
@@ -17,7 +16,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task IssueAccessTokenEmitsLogMessage()
     {
-        var fixture = new IssueAccessTokenFixture();
+        using var fixture = new IssueAccessTokenFixture();
 
         await fixture.IssueAccessToken();
 
@@ -29,18 +28,18 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task IssueAccessTokenLogsAuthenticationEvent()
     {
-        var fixture = new IssueAccessTokenFixture();
+        using var fixture = new IssueAccessTokenFixture();
 
         await fixture.IssueAccessToken();
 
         fixture.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-            fixture.MySqlConnection, "access_token_issued", fixture.User.Id, null));
+            fixture.DbContextFactory.FakeDbContext, "access_token_issued", fixture.User.Id, null));
     }
 
     [Fact]
     public async Task IssueAccessTokenReturnsToken()
     {
-        var fixture = new IssueAccessTokenFixture();
+        using var fixture = new IssueAccessTokenFixture();
 
         Assert.Equal(fixture.AccessToken, await fixture.IssueAccessToken());
     }
@@ -67,7 +66,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenIsNotBase64UrlEncoded()
     {
-        var fixture = new ValidateAccessTokenFixture();
+        using var fixture = new ValidateAccessTokenFixture();
 
         fixture.SetupDecodeFailure(new FormatException());
 
@@ -80,7 +79,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenIsMalformed()
     {
-        var fixture = new ValidateAccessTokenFixture();
+        using var fixture = new ValidateAccessTokenFixture();
 
         fixture.SetupDecodeFailure(new CryptographicException());
 
@@ -94,7 +93,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenHasExpired()
     {
-        var fixture = new ValidateAccessTokenFixture();
+        using var fixture = new ValidateAccessTokenFixture();
 
         fixture.SetupDecodeSuccess(tokenAge: new(24, 0, 1));
 
@@ -108,7 +107,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task ValidateAccessTokenLogsAndReturnsNullWhenUserDoesNotExist()
     {
-        var fixture = new ValidateAccessTokenFixture();
+        using var fixture = new ValidateAccessTokenFixture();
 
         fixture.SetupDecodeSuccess();
         fixture.SetupUserNotFound();
@@ -123,7 +122,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task ValidateAccessTokenLogsAndReturnsNullWhenSecurityStampHasChanged()
     {
-        var fixture = new ValidateAccessTokenFixture();
+        using var fixture = new ValidateAccessTokenFixture();
 
         fixture.SetupDecodeSuccess(securityStamp: "stale-security-stamp");
         fixture.SetupGetUserSuccess();
@@ -138,7 +137,7 @@ public class TokenAuthenticationServiceTests
     [Fact]
     public async Task ValidateAccessTokenLogsAndReturnsUserOnSuccess()
     {
-        var fixture = new ValidateAccessTokenFixture();
+        using var fixture = new ValidateAccessTokenFixture();
 
         fixture.SetupDecodeSuccess();
         fixture.SetupGetUserSuccess();
@@ -174,12 +173,12 @@ public class TokenAuthenticationServiceTests
 
         public void SetupUserNotFound() =>
             this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.MySqlConnection, this.User.Id))
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, this.User.Id))
                 .ThrowsAsync(new NotFoundException(string.Empty));
 
         public void SetupGetUserSuccess() =>
             this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.MySqlConnection, this.User.Id))
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, this.User.Id))
                 .ReturnsAsync(this.User);
 
         public Task<User?> ValidateAccessToken() =>
@@ -188,22 +187,22 @@ public class TokenAuthenticationServiceTests
 
     #endregion
 
-    private class TokenAuthenticationServiceFixture
+    private class TokenAuthenticationServiceFixture : IDisposable
     {
         public TokenAuthenticationServiceFixture()
         {
             var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-            var mySqlConnectionSource = Mock.Of<IMySqlConnectionSource>(
-                x => x.OpenConnection() == Task.FromResult(this.MySqlConnection));
 
             this.TokenAuthenticationService = new(
                 this.MockAccessTokenEncoder.Object,
                 this.MockAuthenticationEventDataProvider.Object,
                 clock,
+                this.DbContextFactory,
                 this.Logger,
-                mySqlConnectionSource,
                 this.MockUserDataProvider.Object);
         }
+
+        public FakeDbContextFactory DbContextFactory { get; } = new();
 
         public Mock<IAccessTokenEncoder> MockAccessTokenEncoder { get; } = new();
 
@@ -214,10 +213,10 @@ public class TokenAuthenticationServiceTests
 
         public ListLogger<TokenAuthenticationService> Logger { get; } = new();
 
-        public MySqlConnection MySqlConnection { get; } = new();
-
         public TokenAuthenticationService TokenAuthenticationService { get; }
 
         public DateTime UtcNow { get; } = DateTime.UtcNow;
+
+        public void Dispose() => this.DbContextFactory.Dispose();
     }
 }

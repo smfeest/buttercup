@@ -1,3 +1,5 @@
+using Buttercup.EntityModel;
+using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 
 namespace Buttercup.DataAccess;
@@ -11,49 +13,29 @@ public static class TestDatabase
     private const string User = "buttercup_dev";
     private const string DatabaseName = "buttercup_test";
 
-    /// <summary>
-    /// Builds a connection string to connect to the test database.
-    /// </summary>
-    /// <param name="configure">
-    /// A callback that can be used to customize the connection string
-    /// builder.
-    /// </param>
-    /// <returns>
-    /// The connection string.
-    /// </returns>
-    public static string BuildConnectionString(
-        Action<MySqlConnectionStringBuilder>? configure = null)
+    private static readonly string connectionString = new MySqlConnectionStringBuilder
     {
-        var builder = new MySqlConnectionStringBuilder
-        {
-            Server = Server,
-            UserID = User,
-            Database = DatabaseName,
-        };
+        Server = Server,
+        UserID = User,
+        Database = DatabaseName,
+    }.ToString();
 
-        configure?.Invoke(builder);
-
-        return builder.ToString();
-    }
+    private static readonly Lazy<ServerVersion> serverVersion = new(
+        () => ServerVersion.AutoDetect(connectionString));
 
     /// <summary>
-    /// Opens a connection to the test database with an open transaction
-    /// that will be automatically rolled back when the connection is
-    /// disposed.
+    /// Creates a new <see cref="AppDbContext" /> that connects to the test database.
     /// </summary>
     /// <returns>
-    /// A task for the operation. The result is the new connection.
+    /// The new <see cref="AppDbContext" />.
     /// </returns>
-    public static async Task<MySqlConnection> OpenConnectionWithRollback()
+    public static AppDbContext CreateDbContext()
     {
-        var connection = new MySqlConnection(BuildConnectionString(
-            builder => builder.IgnoreCommandTransaction = true));
+        var options = new DbContextOptionsBuilder()
+            .UseAppDbOptions(connectionString, serverVersion.Value)
+            .Options;
 
-        await connection.OpenAsync();
-
-        await connection.BeginTransactionAsync();
-
-        return connection;
+        return new(options);
     }
 
     /// <summary>
@@ -64,28 +46,9 @@ public static class TestDatabase
     /// </returns>
     public static async Task Recreate()
     {
-        using var connection = new MySqlConnection(
-            BuildConnectionString(builder => builder.Database = null));
+        using var dbContext = CreateDbContext();
 
-        await connection.OpenAsync();
-
-        await ExecuteCommand(
-            connection,
-            $"DROP DATABASE IF EXISTS `{DatabaseName}`;CREATE DATABASE `{DatabaseName}`");
-
-        await connection.ChangeDatabaseAsync(DatabaseName);
-
-        var commandText = await File.ReadAllTextAsync("schema.sql");
-
-        await ExecuteCommand(connection, commandText);
-    }
-
-    private static async Task ExecuteCommand(MySqlConnection connection, string commandText)
-    {
-        using var command = connection.CreateCommand();
-
-        command.CommandText = commandText;
-
-        await command.ExecuteNonQueryAsync();
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
 }

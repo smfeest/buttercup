@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{864FF837-9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.DataAccess.Tests", "src\Buttercup.DataAccess.Tests\Buttercup.DataAccess.Tests.csproj", "{F8F03E36-FF14-454B-8AC8-B3951A145F8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.Models", "src\Buttercup.Models\Buttercup.Models.csproj", "{1156740E-3129-4AAF-B314-EE3B23D9A955}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.EntityModel", "src\Buttercup.EntityModel\Buttercup.EntityModel.csproj", "{1156740E-3129-4AAF-B314-EE3B23D9A955}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.Web.Tests", "src\Buttercup.Web.Tests\Buttercup.Web.Tests.csproj", "{03F1F886-AE14-418C-8F3D-7FA60D9A35E7}"
 EndProject
@@ -26,7 +26,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.Core.Tests", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.TestUtils", "src\Buttercup.TestUtils\Buttercup.TestUtils.csproj", "{CD585868-D0F5-4225-80FE-A5DA89C45D99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.Models.Tests", "src\Buttercup.Models.Tests\Buttercup.Models.Tests.csproj", "{74E29475-061B-4C91-A48E-5253F409E98D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.EntityModel.Tests", "src\Buttercup.EntityModel.Tests\Buttercup.EntityModel.Tests.csproj", "{74E29475-061B-4C91-A48E-5253F409E98D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buttercup.EntityModel.Migrations", "src\Buttercup.EntityModel.Migrations\Buttercup.EntityModel.Migrations.csproj", "{60B23947-A81F-4776-9F4B-3DD562B2D33B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -173,6 +175,18 @@ Global
 		{74E29475-061B-4C91-A48E-5253F409E98D}.Release|x64.Build.0 = Release|Any CPU
 		{74E29475-061B-4C91-A48E-5253F409E98D}.Release|x86.ActiveCfg = Release|Any CPU
 		{74E29475-061B-4C91-A48E-5253F409E98D}.Release|x86.Build.0 = Release|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Debug|x64.Build.0 = Debug|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Debug|x86.Build.0 = Debug|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Release|x64.ActiveCfg = Release|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Release|x64.Build.0 = Release|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Release|x86.ActiveCfg = Release|Any CPU
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C1FBF99E-812B-4376-B483-73F708864933} = {309ABF0B-35CC-40DE-BCDF-E326309442D1}
@@ -186,5 +200,6 @@ Global
 		{DF245389-2F9A-4CDC-B1FB-54C2A425205E} = {864FF837-927B-4383-95CC-436E222E63CB}
 		{CD585868-D0F5-4225-80FE-A5DA89C45D99} = {309ABF0B-35CC-40DE-BCDF-E326309442D1}
 		{74E29475-061B-4C91-A48E-5253F409E98D} = {309ABF0B-35CC-40DE-BCDF-E326309442D1}
+		{60B23947-A81F-4776-9F4B-3DD562B2D33B} = {309ABF0B-35CC-40DE-BCDF-E326309442D1}
 	EndGlobalSection
 EndGlobal
