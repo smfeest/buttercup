@@ -66,6 +66,22 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime
         return new(options);
     }
 
+    /// <summary>
+    /// Deletes all records from the database.
+    /// </summary>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    public async Task ClearDatabase()
+    {
+        using var dbContext = CreateDbContext();
+
+        await dbContext.AuthenticationEvents.ExecuteDeleteAsync();
+        await dbContext.PasswordResetTokens.ExecuteDeleteAsync();
+        await dbContext.Recipes.ExecuteDeleteAsync();
+        await dbContext.Users.ExecuteDeleteAsync();
+    }
+
     private async Task DeleteDatabase()
     {
         using var dbContext = CreateDbContext();
