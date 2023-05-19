@@ -3,7 +3,6 @@ using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.TestUtils;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 

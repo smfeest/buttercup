@@ -1,6 +1,5 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Buttercup.Web.Authentication;

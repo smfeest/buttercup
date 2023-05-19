@@ -1,7 +1,5 @@
 using Buttercup.Web.TestUtils;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 

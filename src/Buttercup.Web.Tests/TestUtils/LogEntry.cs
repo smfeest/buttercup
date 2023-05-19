@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace Buttercup.Web.TestUtils;
 
 public record LogEntry(
