@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Buttercup.Web;

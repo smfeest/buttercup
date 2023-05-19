@@ -1,6 +1,5 @@
 using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Buttercup.Web.Localization;
