@@ -1,4 +1,6 @@
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Buttercup.Web.Authentication;
 using Buttercup.Web.Controllers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -26,6 +28,28 @@ public class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyncLifeti
             .UseSetting("HostBuilder:ReloadConfigOnChange", bool.FalseString)
             .UseSetting("Logging:LogLevel:Default", "Warning")
             .UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning");
+
+    /// <summary>
+    /// Creates an <see cref="HttpClient" /> with a default `Authorization` header that contains an
+    /// access token for the specified user.
+    /// </summary>
+    /// <param name="user">
+    /// The user.
+    /// </param>
+    /// <returns>
+    /// The <see cref="HttpClient" />.
+    /// </returns>
+    public async Task<HttpClient> CreateClientForApiUser(User user)
+    {
+        var accessToken = await this.Services.GetRequiredService<ITokenAuthenticationService>()
+            .IssueAccessToken(user);
+
+        var client = this.CreateClient();
+
+        client.DefaultRequestHeaders.Authorization = new("Bearer", accessToken);
+
+        return client;
+    }
 
     Task IAsyncLifetime.InitializeAsync() =>
         ((IAsyncLifetime)this.DatabaseFixture).InitializeAsync();
