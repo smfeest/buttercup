@@ -41,4 +41,16 @@ public static class JsonAssert
 
         Assert.Equal(expected, actual);
     }
+
+    /// <summary>
+    /// Verifies that the value of a JSON element is null.
+    /// </summary>
+    /// <param name="element">
+    /// The JSON element.
+    /// </param>
+    /// <exception cref="EqualException">
+    /// The value of <paramref name="element" /> is not null.
+    /// </exception>
+    public static void ValueIsNull(JsonElement element) =>
+        Assert.Equal(JsonValueKind.Null, element.ValueKind);
 }
