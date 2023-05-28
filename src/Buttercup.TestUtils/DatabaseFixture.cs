@@ -82,6 +82,24 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime
         await dbContext.Users.ExecuteDeleteAsync();
     }
 
+    /// <summary>
+    /// Inserts a collection of entities into the database.
+    /// </summary>
+    /// <param name="entities">
+    /// The entities to insert.
+    /// </param>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    public async Task InsertEntities(params object[] entities)
+    {
+        using var dbContext = this.CreateDbContext();
+
+        dbContext.AddRange(entities);
+
+        await dbContext.SaveChangesAsync();
+    }
+
     private async Task DeleteDatabase()
     {
         using var dbContext = CreateDbContext();
