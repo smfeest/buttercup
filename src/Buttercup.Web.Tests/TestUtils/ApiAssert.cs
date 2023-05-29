@@ -11,6 +11,38 @@ namespace Buttercup.Web.TestUtils;
 public static class ApiAssert
 {
     /// <summary>
+    /// Verifies that a response has an unsuccessful HTTP status code, an errors field containing a
+    /// single error with a specific error code, and no data field.
+    /// </summary>
+    /// <param name="expectedErrorCode">
+    /// The expected error code.
+    /// </param>
+    /// <param name="response">
+    /// The response.
+    /// </param>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    public static async Task ErrorResponse(string expectedErrorCode, HttpResponseMessage response)
+    {
+        Assert.False(response.IsSuccessStatusCode);
+
+        var document = await response.Content.ReadAsJsonDocument();
+
+        Assert.False(document.RootElement.TryGetProperty("data", out _));
+        Assert.True(document.RootElement.TryGetProperty("errors", out var errorsElement));
+
+        var actualErrorCode = errorsElement
+            .EnumerateArray()
+            .Single()
+            .GetProperty("extensions")
+            .GetProperty("code")
+            .GetString();
+
+        Assert.Equal(expectedErrorCode, actualErrorCode);
+    }
+
+    /// <summary>
     /// Verifies that a response has the <see cref="HttpStatusCode.OK" /> status code, a data field,
     /// and no error field.
     /// </summary>
