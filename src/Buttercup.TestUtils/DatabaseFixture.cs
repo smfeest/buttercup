@@ -95,7 +95,13 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime
     {
         using var dbContext = this.CreateDbContext();
 
-        dbContext.AddRange(entities);
+        static IEnumerable<object> Flatten(IEnumerable<object> input) =>
+            input.SelectMany(
+                item => item is IEnumerable<object> enumerable ?
+                    Flatten(enumerable) :
+                    new[] { item });
+
+        dbContext.AddRange(Flatten(entities));
 
         await dbContext.SaveChangesAsync();
     }
