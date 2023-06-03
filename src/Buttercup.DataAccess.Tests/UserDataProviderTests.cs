@@ -94,36 +94,6 @@ public class UserDataProviderTests
 
     #endregion
 
-    #region GetUsers
-
-    [Fact]
-    public async Task GetUsersReturnsUsersWithMatchingIds()
-    {
-        using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
-
-        var modelFactory = new ModelFactory();
-
-        var allUsers = new[]
-        {
-            modelFactory.BuildUser(),
-            modelFactory.BuildUser(),
-            modelFactory.BuildUser(),
-        };
-
-        dbContext.Users.AddRange(allUsers);
-        await dbContext.SaveChangesAsync();
-
-        var expected = new[] { allUsers[0], allUsers[2] };
-
-        var actual = await this.userDataProvider.GetUsers(
-            dbContext, expected.Select(u => u.Id).ToArray());
-
-        Assert.Equal(expected, actual);
-    }
-
-    #endregion
-
     #region UpdatePassword
 
     [Fact]

@@ -100,20 +100,6 @@ public interface IRecipeDataProvider
         AppDbContext dbContext, IReadOnlyCollection<long> excludeRecipeIds);
 
     /// <summary>
-    /// Gets a batch of recipes.
-    /// </summary>
-    /// <param name="dbContext">
-    /// The database context.
-    /// </param>
-    /// <param name="ids">
-    /// The recipe IDs.
-    /// </param>
-    /// <returns>
-    /// A task for the operation. The result the list of recipes with matching IDs.
-    /// </returns>
-    Task<IList<Recipe>> GetRecipes(AppDbContext dbContext, IReadOnlyCollection<long> ids);
-
-    /// <summary>
     /// Updates a recipe.
     /// </summary>
     /// <param name="dbContext">
