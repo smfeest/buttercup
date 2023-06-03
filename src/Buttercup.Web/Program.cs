@@ -42,8 +42,10 @@ services.AddControllersWithViews()
 services.AddGraphQLServer()
     .AddApiTypes()
     .AddAuthorization()
+    .AddProjections()
     .AllowIntrospection(isDevelopment)
-    .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment);
+    .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
+    .RegisterDbContext<AppDbContext>(DbContextKind.Pooled);
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =

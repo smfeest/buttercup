@@ -64,10 +64,6 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
             .Take(10)
             .ToArrayAsync();
 
-    public async Task<IList<Recipe>> GetRecipes(
-        AppDbContext dbContext, IReadOnlyCollection<long> ids) =>
-        await dbContext.Recipes.Where(r => ids.Contains(r.Id)).ToArrayAsync();
-
     public async Task UpdateRecipe(
         AppDbContext dbContext,
         long id,

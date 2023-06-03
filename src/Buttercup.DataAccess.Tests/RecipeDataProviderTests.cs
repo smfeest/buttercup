@@ -288,36 +288,6 @@ public class RecipeDataProviderTests
 
     #endregion
 
-    #region GetRecipes
-
-    [Fact]
-    public async Task GetRecipesReturnsRecipesWithMatchingIds()
-    {
-        using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
-
-        var modelFactory = new ModelFactory();
-
-        var allRecipes = new[]
-        {
-            modelFactory.BuildRecipe(),
-            modelFactory.BuildRecipe(),
-            modelFactory.BuildRecipe(),
-        };
-
-        dbContext.Recipes.AddRange(allRecipes);
-        await dbContext.SaveChangesAsync();
-
-        var expected = new[] { allRecipes[0], allRecipes[2] };
-
-        var actual = await this.recipeDataProvider.GetRecipes(
-            dbContext, expected.Select(r => r.Id).ToArray());
-
-        Assert.Equal(expected, actual);
-    }
-
-    #endregion
-
     #region UpdateRecipe
 
     [Fact]

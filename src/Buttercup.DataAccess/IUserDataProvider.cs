@@ -40,20 +40,6 @@ public interface IUserDataProvider
     Task<User> GetUser(AppDbContext dbContext, long id);
 
     /// <summary>
-    /// Gets a batch of users.
-    /// </summary>
-    /// <param name="dbContext">
-    /// The database context.
-    /// </param>
-    /// <param name="ids">
-    /// The user IDs.
-    /// </param>
-    /// <returns>
-    /// A task for the operation. The result the list of users with matching IDs.
-    /// </returns>
-    Task<IList<User>> GetUsers(AppDbContext dbContext, IReadOnlyCollection<long> ids);
-
-    /// <summary>
     /// Updates a user's password.
     /// </summary>
     /// <param name="dbContext">
