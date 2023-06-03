@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="MySqlConnector" Version="2.2.6" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.4.2" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Buttercup.EntityModel\Buttercup.EntityModel.csproj" />
   </ItemGroup>
 </Project>

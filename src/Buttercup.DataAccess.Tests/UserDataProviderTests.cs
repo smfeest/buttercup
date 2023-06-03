@@ -4,14 +4,17 @@ using Xunit;
 
 namespace Buttercup.DataAccess;
 
-[Collection("Database collection")]
+[Collection(nameof(DatabaseCollection))]
 public class UserDataProviderTests
 {
+    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
     private readonly UserDataProvider userDataProvider;
 
-    public UserDataProviderTests()
+    public UserDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
+        this.databaseFixture = databaseFixture;
+
         var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
 
         this.userDataProvider = new(clock);
@@ -22,7 +25,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task FindUserByEmailReturnsUser()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var expected = new ModelFactory().BuildUser();
@@ -37,7 +40,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task FindUserByEmailReturnsNullIfNoMatchFound()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         dbContext.Users.Add(new ModelFactory().BuildUser());
@@ -56,7 +59,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task GetUserReturnsUser()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var expected = new ModelFactory().BuildUser();
@@ -73,7 +76,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task GetUserThrowsIfRecordNotFound()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var modelFactory = new ModelFactory();
@@ -96,7 +99,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task GetUsersReturnsUsersWithMatchingIds()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var modelFactory = new ModelFactory();
@@ -126,7 +129,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePasswordUpdatesHashedPassword()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var original = new ModelFactory().BuildUser();
@@ -155,7 +158,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePasswordThrowsIfRecordNotFound()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var modelFactory = new ModelFactory();
@@ -179,7 +182,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePreferencesUpdatesPreferences()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var original = new ModelFactory().BuildUser();
@@ -205,7 +208,7 @@ public class UserDataProviderTests
     [Fact]
     public async Task UpdatePreferencesThrowsIfRecordNotFound()
     {
-        using var dbContext = TestDatabase.CreateDbContext();
+        using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var modelFactory = new ModelFactory();

@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Encodings.Web;
 using Buttercup.TestUtils;
 using Buttercup.Web.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Xunit;
 

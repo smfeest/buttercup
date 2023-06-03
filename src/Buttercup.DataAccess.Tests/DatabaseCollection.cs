@@ -3,11 +3,11 @@ using Xunit;
 
 namespace Buttercup.DataAccess;
 
-[CollectionDefinition("Database collection")]
+[CollectionDefinition(nameof(DatabaseCollection))]
 [SuppressMessage(
     "Naming",
     "CA1711:IdentifiersShouldNotHaveIncorrectSuffix",
     Justification = "Represents an xUnit test collection")]
-public class DatabaseCollection : ICollectionFixture<DatabaseFixture>
+public class DatabaseCollection : ICollectionFixture<DatabaseCollectionFixture>
 {
 }
