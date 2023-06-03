@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.Web.Authentication;
 using HotChocolate.Authorization;
@@ -15,30 +14,22 @@ public sealed class Query
     public Query(IDbContextFactory<AppDbContext> dbContextFactory) =>
         this.dbContextFactory = dbContextFactory;
 
-    public async Task<User?> CurrentUser(
-        [Service] IUserDataProvider userDataProvider, ClaimsPrincipal principal)
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)
     {
         var userId = principal.GetUserId();
 
-        if (!userId.HasValue)
-        {
-            return null;
-        }
-
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await userDataProvider.GetUser(dbContext, userId.Value);
+        return userId.HasValue ? dbContext.Users.Where(u => u.Id == userId) : null;
     }
 
     [Authorize]
-    public async Task<Recipe?> Recipe(IRecipesByIdDataLoader recipeLoader, long id) =>
-        await recipeLoader.LoadAsync(id);
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Recipe> Recipe(AppDbContext dbContext, long id) =>
+        dbContext.Recipes.Where(r => r.Id == id);
 
     [Authorize]
-    public async Task<IList<Recipe>> Recipes([Service] IRecipeDataProvider recipeDataProvider)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await recipeDataProvider.GetAllRecipes(dbContext);
-    }
+    [UseProjection]
+    public IQueryable<Recipe> Recipes(AppDbContext dbContext) => dbContext.Recipes;
 }
