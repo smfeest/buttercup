@@ -1,6 +1,6 @@
 namespace Buttercup.Web.TestUtils;
 
-public sealed class ListLogger<T> : ILogger<T>
+public sealed class ListLogger<TCategoryName> : ILogger<TCategoryName>
 {
     private readonly List<LogEntry> entries = new();
 
