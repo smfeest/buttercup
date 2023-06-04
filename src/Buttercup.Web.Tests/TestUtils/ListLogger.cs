@@ -17,4 +17,7 @@ public sealed class ListLogger<TCategoryName> : ILogger<TCategoryName>
         Exception? exception,
         Func<TState, Exception?, string> formatter) =>
         this.entries.Add(new(logLevel, eventId, formatter(state, exception), state, exception));
+
+    public record LogEntry(
+        LogLevel LogLevel, EventId EventId, string Message, object? State, Exception? Exception);
 }
