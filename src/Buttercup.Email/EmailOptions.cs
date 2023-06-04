@@ -5,7 +5,7 @@ namespace Buttercup.Email;
 /// <summary>
 /// The email options.
 /// </summary>
-public class EmailOptions
+public sealed class EmailOptions
 {
     /// <summary>
     /// Gets or sets the SendGrid API key.

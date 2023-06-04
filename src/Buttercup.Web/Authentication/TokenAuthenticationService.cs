@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Authentication;
 
-public class TokenAuthenticationService : ITokenAuthenticationService
+public sealed class TokenAuthenticationService : ITokenAuthenticationService
 {
     private readonly IAccessTokenEncoder accessTokenEncoder;
     private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;

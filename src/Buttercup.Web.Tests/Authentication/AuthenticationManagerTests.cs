@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class AuthenticationManagerTests
+public sealed class AuthenticationManagerTests
 {
     #region Authenticate
 

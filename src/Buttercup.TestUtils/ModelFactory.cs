@@ -6,7 +6,7 @@ namespace Buttercup.TestUtils;
 /// <summary>
 /// Provides methods for instantiating dummy models in tests.
 /// </summary>
-public class ModelFactory
+public sealed class ModelFactory
 {
     private int nextInt = 1;
 

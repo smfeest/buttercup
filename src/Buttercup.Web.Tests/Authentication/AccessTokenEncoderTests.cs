@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class AccessTokenEncoderTests
+public sealed class AccessTokenEncoderTests
 {
     public AccessTokenEncoderTests()
     {

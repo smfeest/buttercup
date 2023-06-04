@@ -13,7 +13,7 @@ namespace Buttercup.Web.TagHelpers;
 /// The tag helper is intended to be used in conjunction with <see cref="LabelTagHelper" />.
 /// </remarks>
 [HtmlTargetElement("label", Attributes = ForAttributeName)]
-public class OptionalSuffixTagHelper : TagHelper
+public sealed class OptionalSuffixTagHelper : TagHelper
 {
     private const string ForAttributeName = "asp-for";
 

@@ -7,7 +7,7 @@ using Xunit;
 namespace Buttercup.DataAccess;
 
 [Collection(nameof(DatabaseCollection))]
-public class RecipeDataProviderTests
+public sealed class RecipeDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
     private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);

@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class AccessTokenSerializerTests
+public sealed class AccessTokenSerializerTests
 {
     [Fact]
     public void RoundTripsAllProperties()

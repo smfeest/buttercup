@@ -6,7 +6,7 @@ namespace Buttercup.Web.Binders;
 /// <summary>
 /// A model binder that trims all strings and converts empty strings to null.
 /// </summary>
-public class NormalizedStringBinder : IModelBinder
+public sealed class NormalizedStringBinder : IModelBinder
 {
     public Task BindModelAsync(ModelBindingContext bindingContext)
     {

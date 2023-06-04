@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class ClaimsPrincipalExtensionsTests
+public sealed class ClaimsPrincipalExtensionsTests
 {
     #region GetUserId
 

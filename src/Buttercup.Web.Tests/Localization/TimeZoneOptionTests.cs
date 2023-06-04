@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Buttercup.Web.Localization;
 
-public class TimeZoneOptionTests
+public sealed class TimeZoneOptionTests
 {
     #region Constructor
 

@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup;
 
-public class ServiceCollectionExtensionsTests
+public sealed class ServiceCollectionExtensionsTests
 {
     #region AddCoreServices
 

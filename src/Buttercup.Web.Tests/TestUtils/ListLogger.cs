@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Buttercup.Web.TestUtils;
 
-public class ListLogger<T> : ILogger<T>
+public sealed class ListLogger<T> : ILogger<T>
 {
     private readonly List<LogEntry> entries = new();
 

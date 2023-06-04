@@ -2,7 +2,7 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Localization;
 
-public class TimeZoneOptionsHelper : ITimeZoneOptionsHelper
+public sealed class TimeZoneOptionsHelper : ITimeZoneOptionsHelper
 {
     private readonly IClock clock;
     private readonly IStringLocalizer<TimeZoneOptionsHelper> localizer;

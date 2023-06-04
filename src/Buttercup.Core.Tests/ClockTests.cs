@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Buttercup;
 
-public class ClockTests
+public sealed class ClockTests
 {
     #region UtcNow
 

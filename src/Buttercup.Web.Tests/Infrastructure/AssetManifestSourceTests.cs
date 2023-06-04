@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Web.Infrastructure;
 
-public class AssetManifestSourceTests
+public sealed class AssetManifestSourceTests
 {
     #region ProductionManifest
 

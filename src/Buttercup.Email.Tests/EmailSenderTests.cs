@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Buttercup.Email;
 
-public class EmailSenderTests
+public sealed class EmailSenderTests
 {
     private const string FromAddress = "from@example.com";
     private const string ToAddress = "to@example.com";

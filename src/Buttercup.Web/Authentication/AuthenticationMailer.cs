@@ -3,7 +3,7 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Authentication;
 
-public class AuthenticationMailer : IAuthenticationMailer
+public sealed class AuthenticationMailer : IAuthenticationMailer
 {
     private readonly IEmailSender emailSender;
     private readonly IStringLocalizer<AuthenticationMailer> localizer;

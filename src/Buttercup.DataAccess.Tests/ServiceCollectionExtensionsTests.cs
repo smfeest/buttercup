@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.DataAccess;
 
-public class ServiceCollectionExtensionsTests
+public sealed class ServiceCollectionExtensionsTests
 {
     private const string ConnectionString = "connection-string";
 

@@ -3,7 +3,7 @@ namespace Buttercup.Web.Localization;
 /// <summary>
 /// Represents a time zone option.
 /// </summary>
-public class TimeZoneOption
+public sealed class TimeZoneOption
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TimeZoneOption"/> class.

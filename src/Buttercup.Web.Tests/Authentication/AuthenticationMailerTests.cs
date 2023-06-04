@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class AuthenticationMailerTests
+public sealed class AuthenticationMailerTests
 {
     #region SendPasswordChangeNotification
 

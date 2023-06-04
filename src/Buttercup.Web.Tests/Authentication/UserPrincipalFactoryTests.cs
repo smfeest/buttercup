@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class UserPrincipalFactoryTests
+public sealed class UserPrincipalFactoryTests
 {
     private const string AuthenticationType = "sample-authentication-type";
 

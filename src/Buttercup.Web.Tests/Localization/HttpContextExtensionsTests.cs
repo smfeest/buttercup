@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Localization;
 
-public class HttpContextExtensionsTests
+public sealed class HttpContextExtensionsTests
 {
     #region ToUserTime
 

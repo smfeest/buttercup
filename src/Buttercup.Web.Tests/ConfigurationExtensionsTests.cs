@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Buttercup.Web;
 
-public class ConfigurationExtensionsTests
+public sealed class ConfigurationExtensionsTests
 {
     [Fact]
     public void GetRequiredConnectionStringReturnsSpecifiedConnectionString() =>

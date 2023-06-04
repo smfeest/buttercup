@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Buttercup.Web.TagHelpers;
 
-public class UserDateTimeTagHelperTests
+public sealed class UserDateTimeTagHelperTests
 {
     [Fact]
     public void SuppressesOutputWhenDateTimeIsNull()

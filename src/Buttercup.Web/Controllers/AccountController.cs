@@ -11,7 +11,7 @@ namespace Buttercup.Web.Controllers;
 
 [Authorize]
 [Route("account")]
-public class AccountController : Controller
+public sealed class AccountController : Controller
 {
     private readonly IAuthenticationManager authenticationManager;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;

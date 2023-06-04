@@ -6,7 +6,7 @@ using Xunit;
 namespace Buttercup.DataAccess;
 
 [Collection(nameof(DatabaseCollection))]
-public class PasswordResetTokenDataProviderTests
+public sealed class PasswordResetTokenDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
 

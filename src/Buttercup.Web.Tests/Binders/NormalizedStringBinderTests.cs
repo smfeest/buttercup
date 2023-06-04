@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Binders;
 
-public class NormalizedStringBinderTests
+public sealed class NormalizedStringBinderTests
 {
     private const string ModelName = "ExampleModelName";
 

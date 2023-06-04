@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class TokenAuthenticationServiceTests
+public sealed class TokenAuthenticationServiceTests
 {
     #region IssueAccessToken
 

@@ -13,7 +13,7 @@ namespace Buttercup.Web.Controllers;
 [Authorize]
 [HandleNotFoundExceptionAttribute]
 [Route("recipes")]
-public class RecipesController : Controller
+public sealed class RecipesController : Controller
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IStringLocalizer<RecipesController> localizer;

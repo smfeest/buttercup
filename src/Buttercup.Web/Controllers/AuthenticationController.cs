@@ -6,7 +6,7 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
 
-public class AuthenticationController : Controller
+public sealed class AuthenticationController : Controller
 {
     private readonly IAuthenticationManager authenticationManager;
     private readonly IStringLocalizer<AuthenticationController> localizer;

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers;
 
-public class ErrorController : Controller
+public sealed class ErrorController : Controller
 {
     [Route("/error")]
     public IActionResult Error() => this.View(new ErrorViewModel(

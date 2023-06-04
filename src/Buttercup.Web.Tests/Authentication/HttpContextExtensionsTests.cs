@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class HttpContextExtensionsTests
+public sealed class HttpContextExtensionsTests
 {
     private readonly ModelFactory modelFactory = new();
 

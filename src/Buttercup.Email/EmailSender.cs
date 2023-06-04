@@ -4,7 +4,7 @@ using SendGrid.Helpers.Mail;
 
 namespace Buttercup.Email;
 
-internal class EmailSender : IEmailSender
+internal sealed class EmailSender : IEmailSender
 {
     private readonly string fromAddress;
 

@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Models;
 
-public class PreferencesViewModelTests
+public sealed class PreferencesViewModelTests
 {
     #region Constructor(User)
 

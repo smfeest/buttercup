@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class CookieAuthenticationEventsHandlerTests
+public sealed class CookieAuthenticationEventsHandlerTests
 {
     #region ValidatePrincipal
 

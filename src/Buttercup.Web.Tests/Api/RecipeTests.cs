@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public class RecipeTests : EndToEndTests<RecipeTests>
+public sealed class RecipeTests : EndToEndTests<RecipeTests>
 {
     public RecipeTests(AppFactory<RecipeTests> appFactory) : base(appFactory)
     {

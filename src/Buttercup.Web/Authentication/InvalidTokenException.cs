@@ -3,7 +3,7 @@ namespace Buttercup.Web.Authentication;
 /// <summary>
 /// Represents the exception that is thrown when an invalid token is provided.
 /// </summary>
-public class InvalidTokenException : Exception
+public sealed class InvalidTokenException : Exception
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="InvalidTokenException"/> class.

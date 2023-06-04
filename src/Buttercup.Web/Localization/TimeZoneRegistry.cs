@@ -1,6 +1,6 @@
 namespace Buttercup.Web.Localization;
 
-public class TimeZoneRegistry : ITimeZoneRegistry
+public sealed class TimeZoneRegistry : ITimeZoneRegistry
 {
     public IList<TimeZoneInfo> GetSupportedTimeZones() => TimeZoneInfo.GetSystemTimeZones();
 

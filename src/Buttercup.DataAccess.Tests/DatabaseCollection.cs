@@ -8,6 +8,6 @@ namespace Buttercup.DataAccess;
     "Naming",
     "CA1711:IdentifiersShouldNotHaveIncorrectSuffix",
     Justification = "Represents an xUnit test collection")]
-public class DatabaseCollection : ICollectionFixture<DatabaseCollectionFixture>
+public sealed class DatabaseCollection : ICollectionFixture<DatabaseCollectionFixture>
 {
 }

@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.TagHelpers;
 
-public class ListFromLinesTagHelperTests
+public sealed class ListFromLinesTagHelperTests
 {
     [Theory]
     [InlineData(null)]

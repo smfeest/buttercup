@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Models;
 
-public class EditRecipeViewModelTests
+public sealed class EditRecipeViewModelTests
 {
     #region ForRecipe
 

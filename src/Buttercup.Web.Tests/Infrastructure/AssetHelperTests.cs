@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Web.Infrastructure;
 
-public class AssetHelperTests
+public sealed class AssetHelperTests
 {
     #region Url
 

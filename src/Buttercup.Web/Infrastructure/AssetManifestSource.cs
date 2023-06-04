@@ -3,7 +3,7 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Buttercup.Web.Infrastructure;
 
-public class AssetManifestSource : IAssetManifestSource
+public sealed class AssetManifestSource : IAssetManifestSource
 {
     private readonly IFileProvider fileProvider;
     private readonly IAssetManifestReader manifestReader;

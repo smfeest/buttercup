@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
-public class HomeController : Controller
+public sealed class HomeController : Controller
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IRecipeDataProvider recipeDataProvider;

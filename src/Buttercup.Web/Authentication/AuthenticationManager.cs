@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Authentication;
 
-public class AuthenticationManager : IAuthenticationManager
+public sealed class AuthenticationManager : IAuthenticationManager
 {
     private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;
     private readonly IAuthenticationMailer authenticationMailer;

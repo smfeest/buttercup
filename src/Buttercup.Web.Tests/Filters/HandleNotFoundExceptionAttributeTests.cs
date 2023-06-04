@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Web.Filters;
 
-public class HandleNotFoundExceptionAttributeTests
+public sealed class HandleNotFoundExceptionAttributeTests
 {
     #region OnActionExecuting
 

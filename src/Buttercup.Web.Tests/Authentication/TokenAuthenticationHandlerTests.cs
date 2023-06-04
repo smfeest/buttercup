@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class TokenAuthenticationHandlerTests : IAsyncLifetime
+public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 {
     private const string SchemeName = "ExampleScheme";
 

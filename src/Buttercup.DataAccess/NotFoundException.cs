@@ -3,7 +3,7 @@ namespace Buttercup.DataAccess;
 /// <summary>
 /// Represents the exception that is thrown when a record does not exist.
 /// </summary>
-public class NotFoundException : Exception
+public sealed class NotFoundException : Exception
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="NotFoundException"/> class.

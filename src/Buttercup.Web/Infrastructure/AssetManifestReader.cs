@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Buttercup.Web.Infrastructure;
 
-public class AssetManifestReader : IAssetManifestReader
+public sealed class AssetManifestReader : IAssetManifestReader
 {
     public IDictionary<string, string> ReadManifest(Stream stream)
     {

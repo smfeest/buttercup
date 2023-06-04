@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Buttercup.Web.Authentication;
 
-public class CookieAuthenticationEventsHandler : CookieAuthenticationEvents
+public sealed class CookieAuthenticationEventsHandler : CookieAuthenticationEvents
 {
     private readonly IAuthenticationManager authenticationManager;
 

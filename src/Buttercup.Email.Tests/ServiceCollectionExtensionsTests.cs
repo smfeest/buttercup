@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Email;
 
-public class ServiceCollectionExtensionsTests
+public sealed class ServiceCollectionExtensionsTests
 {
     private const string FakeApiKey = "fake-api-key";
     private const string FakeFromAddress = "fake-from@example.com";

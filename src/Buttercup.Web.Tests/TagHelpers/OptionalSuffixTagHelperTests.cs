@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Buttercup.Web.TagHelpers;
 
-public class OptionalSuffixTagHelperTests
+public sealed class OptionalSuffixTagHelperTests
 {
     [Theory]
     [InlineData(false, true)]

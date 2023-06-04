@@ -6,7 +6,7 @@ namespace Buttercup.Web.TagHelpers;
 /// A tag helper that adds a list item for each non-empty line in a string.
 /// </summary>
 [HtmlTargetElement(Attributes = InputAttributeName)]
-public class ListFromLinesTagHelper : TagHelper
+public sealed class ListFromLinesTagHelper : TagHelper
 {
     private const string InputAttributeName = "lines-in";
 

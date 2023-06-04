@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Buttercup.Web.Controllers;
 
-public class HomeControllerTests
+public sealed class HomeControllerTests
 {
     private readonly ModelFactory modelFactory = new();
 

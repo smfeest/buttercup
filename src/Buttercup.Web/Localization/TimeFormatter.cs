@@ -2,7 +2,7 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Localization;
 
-public class TimeFormatter : ITimeFormatter
+public sealed class TimeFormatter : ITimeFormatter
 {
     private readonly IStringLocalizer<TimeFormatter> localizer;
 

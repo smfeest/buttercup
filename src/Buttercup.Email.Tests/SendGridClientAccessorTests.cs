@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Buttercup.Email;
 
-public class SendGridClientAccessorTests
+public sealed class SendGridClientAccessorTests
 {
     [Fact]
     public void ProvidesTheSendGridClient()

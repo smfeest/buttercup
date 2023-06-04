@@ -9,7 +9,7 @@ namespace Buttercup.Web.TagHelpers;
 /// <summary>
 /// A tag helper that renders a date and time in the current user's time zone.
 /// </summary>
-public class UserDateTimeTagHelper : TagHelper
+public sealed class UserDateTimeTagHelper : TagHelper
 {
     /// <summary>
     /// Gets or sets the date and time.

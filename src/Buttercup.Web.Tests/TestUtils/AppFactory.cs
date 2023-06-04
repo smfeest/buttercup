@@ -13,7 +13,7 @@ namespace Buttercup.Web.TestUtils;
 /// <typeparam name="T">
 /// The test class.
 /// </typeparam>
-public class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyncLifetime
+public sealed class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyncLifetime
 {
     /// <summary>
     /// Gets the database fixture.

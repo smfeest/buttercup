@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public class RandomNumberGeneratorFactoryTests
+public sealed class RandomNumberGeneratorFactoryTests
 {
     #region Create
 

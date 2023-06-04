@@ -3,7 +3,7 @@ namespace Buttercup.DataAccess;
 /// <summary>
 /// Represents the exception that is thrown when a concurrency error occurs.
 /// </summary>
-public class ConcurrencyException : Exception
+public sealed class ConcurrencyException : Exception
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ConcurrencyException"/> class.

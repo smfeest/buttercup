@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Infrastructure;
 
-public class AssetManifestReaderTests
+public sealed class AssetManifestReaderTests
 {
     [Fact]
     public void ReturnsManifestDeserializedFromJson()

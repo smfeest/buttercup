@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Buttercup.Web.Localization;
 
-public class TimeZoneRegistryTests
+public sealed class TimeZoneRegistryTests
 {
     #region GetSupportedTimeZones
 

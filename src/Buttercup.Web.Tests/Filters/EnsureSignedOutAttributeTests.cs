@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Buttercup.Web.Filters;
 
-public class EnsureSignedOutAttributeTests
+public sealed class EnsureSignedOutAttributeTests
 {
     private const string RequestPath = "/path/to/action";
 

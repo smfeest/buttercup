@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Web.Binders;
 
-public class NormalizedStringBinderProviderTests
+public sealed class NormalizedStringBinderProviderTests
 {
     #region GetBinder
 

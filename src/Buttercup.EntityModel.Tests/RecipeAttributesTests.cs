@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Buttercup.EntityModel;
 
-public class RecipeAttributesTests
+public sealed class RecipeAttributesTests
 {
     #region Constructor(Recipe)
 

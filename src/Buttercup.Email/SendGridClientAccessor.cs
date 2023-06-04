@@ -3,7 +3,7 @@ using SendGrid;
 
 namespace Buttercup.Email;
 
-internal class SendGridClientAccessor : ISendGridClientAccessor
+internal sealed class SendGridClientAccessor : ISendGridClientAccessor
 {
     public SendGridClientAccessor(IOptions<EmailOptions> optionsAccessor)
     {

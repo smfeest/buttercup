@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Buttercup.Web.Infrastructure;
 
-public class AssetHelper : IAssetHelper
+public sealed class AssetHelper : IAssetHelper
 {
     private readonly IAssetManifestSource assetManifestSource;
     private readonly IWebHostEnvironment hostEnvironment;

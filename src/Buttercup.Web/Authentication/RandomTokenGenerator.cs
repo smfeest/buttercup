@@ -1,6 +1,6 @@
 namespace Buttercup.Web.Authentication;
 
-public class RandomTokenGenerator : IRandomTokenGenerator
+public sealed class RandomTokenGenerator : IRandomTokenGenerator
 {
     public RandomTokenGenerator(IRandomNumberGeneratorFactory randomNumberGeneratorFactory) =>
         this.RandomNumberGeneratorFactory = randomNumberGeneratorFactory;

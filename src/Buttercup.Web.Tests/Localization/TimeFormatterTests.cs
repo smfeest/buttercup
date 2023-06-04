@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Buttercup.Web.Localization;
 
-public class TimeFormatterTests
+public sealed class TimeFormatterTests
 {
     #region AsHoursAndMinutes
 

@@ -5,7 +5,7 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a session with the application database.
 /// </summary>
-public class AppDbContext : DbContext
+public sealed class AppDbContext : DbContext
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AppDbContext" /> class.
