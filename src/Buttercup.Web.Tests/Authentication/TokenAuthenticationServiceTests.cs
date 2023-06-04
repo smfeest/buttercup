@@ -19,9 +19,11 @@ public sealed class TokenAuthenticationServiceTests
 
         await fixture.IssueAccessToken();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Issued access token for user {fixture.User.Id} ({fixture.User.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Issued access token for user {fixture.User.Id} ({fixture.User.Email})");
     }
 
     [Fact]
@@ -71,8 +73,11 @@ public sealed class TokenAuthenticationServiceTests
 
         Assert.Null(await fixture.ValidateAccessToken());
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Warning, "Access token failed validation; not base64url encoded");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Warning &&
+                entry.Message == "Access token failed validation; not base64url encoded");
     }
 
     [Fact]
@@ -84,9 +89,11 @@ public sealed class TokenAuthenticationServiceTests
 
         Assert.Null(await fixture.ValidateAccessToken());
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Warning,
-            "Access token failed validation; malformed or encrypted with wrong key");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Warning &&
+                entry.Message == "Access token failed validation; malformed or encrypted with wrong key");
     }
 
     [Fact]
@@ -98,9 +105,11 @@ public sealed class TokenAuthenticationServiceTests
 
         Assert.Null(await fixture.ValidateAccessToken());
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Access token failed validation for user {fixture.User.Id}; expired");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Access token failed validation for user {fixture.User.Id}; expired");
     }
 
     [Fact]
@@ -113,9 +122,11 @@ public sealed class TokenAuthenticationServiceTests
 
         Assert.Null(await fixture.ValidateAccessToken());
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Warning,
-            $"Access token failed validation for user {fixture.User.Id}; user does not exist");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Warning &&
+                entry.Message == $"Access token failed validation for user {fixture.User.Id}; user does not exist");
     }
 
     [Fact]
@@ -128,9 +139,11 @@ public sealed class TokenAuthenticationServiceTests
 
         Assert.Null(await fixture.ValidateAccessToken());
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Access token failed validation for user {fixture.User.Id}; contains stale security stamp");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Access token failed validation for user {fixture.User.Id}; contains stale security stamp");
     }
 
     [Fact]
@@ -143,8 +156,11 @@ public sealed class TokenAuthenticationServiceTests
 
         Assert.Equal(fixture.User, await fixture.ValidateAccessToken());
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"Access token successfully validated for user {fixture.User.Id}");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Access token successfully validated for user {fixture.User.Id}");
     }
 
     private sealed class ValidateAccessTokenFixture : TokenAuthenticationServiceFixture

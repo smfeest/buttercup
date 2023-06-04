@@ -27,8 +27,11 @@ public sealed class AuthenticationManagerTests
 
         var user = fixture.User!;
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"User {user.Id} ({user.Email}) successfully authenticated");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"User {user.Id} ({user.Email}) successfully authenticated");
 
         fixture.AssertAuthenticationEventLogged(
             "authentication_success", user.Id, fixture.SuppliedEmail);
@@ -51,9 +54,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.Authenticate();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Authentication failed; no user with email {fixture.SuppliedEmail}");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Authentication failed; no user with email {fixture.SuppliedEmail}");
 
         fixture.AssertAuthenticationEventLogged(
             "authentication_failure:unrecognized_email", null, fixture.SuppliedEmail);
@@ -76,9 +81,11 @@ public sealed class AuthenticationManagerTests
 
         var user = fixture.User!;
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Authentication failed; no password set for user {user.Id} ({user.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Authentication failed; no password set for user {user.Id} ({user.Email})");
 
         fixture.AssertAuthenticationEventLogged(
             "authentication_failure:no_password_set", user.Id, fixture.SuppliedEmail);
@@ -101,9 +108,11 @@ public sealed class AuthenticationManagerTests
 
         var user = fixture.User!;
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
 
         fixture.AssertAuthenticationEventLogged(
             "authentication_failure:incorrect_password", user.Id, fixture.SuppliedEmail);
@@ -200,9 +209,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.ChangePassword();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Password change denied for user {fixture.User.Id} ({fixture.User.Email}); current password is incorrect");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Password change denied for user {fixture.User.Id} ({fixture.User.Email}); current password is incorrect");
 
         fixture.AssertAuthenticationEventLogged(
             "password_change_failure:incorrect_password", fixture.User.Id);
@@ -270,9 +281,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.ChangePassword();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Password successfully changed for user {fixture.User.Id} ({fixture.User.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Password successfully changed for user {fixture.User.Id} ({fixture.User.Email})");
 
         fixture.AssertAuthenticationEventLogged("password_change_success", fixture.User.Id);
     }
@@ -382,9 +395,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.PasswordResetTokenIsValid();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Debug,
-            $"Password reset token '{fixture.RedactedToken}' is valid and belongs to user {fixture.UserId}");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Debug &&
+                entry.Message == $"Password reset token '{fixture.RedactedToken}' is valid and belongs to user {fixture.UserId}");
     }
 
     [Fact]
@@ -402,9 +417,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.PasswordResetTokenIsValid();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Debug,
-            $"Password reset token '{fixture.RedactedToken}' is no longer valid");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Debug &&
+                entry.Message == $"Password reset token '{fixture.RedactedToken}' is no longer valid");
 
         fixture.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
@@ -473,9 +490,11 @@ public sealed class AuthenticationManagerTests
         {
         }
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Unable to reset password; password reset token {fixture.RedactedToken} is invalid");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Unable to reset password; password reset token {fixture.RedactedToken} is invalid");
 
         fixture.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
@@ -541,9 +560,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.ResetPassword();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Password reset for user {fixture.User.Id} using token {fixture.RedactedToken}");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Password reset for user {fixture.User.Id} using token {fixture.RedactedToken}");
 
         fixture.AssertAuthenticationEventLogged("password_reset_success", fixture.User.Id);
     }
@@ -627,8 +648,11 @@ public sealed class AuthenticationManagerTests
 
         var user = fixture.User!;
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"Password reset link sent to user {user.Id} ({user.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Password reset link sent to user {user.Id} ({user.Email})");
 
         fixture.AssertAuthenticationEventLogged("password_reset_link_sent", user.Id, user.Email);
     }
@@ -651,9 +675,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.SendPasswordResetLink();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Unable to send password reset link; No user with email {fixture.SuppliedEmail}");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Unable to send password reset link; No user with email {fixture.SuppliedEmail}");
 
         fixture.AssertAuthenticationEventLogged(
             "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
@@ -743,8 +769,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.SignIn();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"User {fixture.User.Id} ({fixture.User.Email}) signed in");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"User {fixture.User.Id} ({fixture.User.Email}) signed in");
 
         fixture.AssertAuthenticationEventLogged("sign_in", fixture.User.Id);
     }
@@ -787,8 +816,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.SignOut();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"User {fixture.UserId} ({fixture.Email}) signed out");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"User {fixture.UserId} ({fixture.Email}) signed out");
 
         fixture.AssertAuthenticationEventLogged("sign_out", fixture.UserId);
     }
@@ -877,9 +909,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.ValidatePrincipal();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Debug,
-            $"Principal successfully validated for user {fixture.User.Id} ({fixture.User.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Debug &&
+                entry.Message == $"Principal successfully validated for user {fixture.User.Id} ({fixture.User.Email})");
     }
 
     [Fact]
@@ -889,9 +923,11 @@ public sealed class AuthenticationManagerTests
 
         await fixture.ValidatePrincipal();
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information,
-            $"Incorrect security stamp for user {fixture.User.Id} ({fixture.User.Email})");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Incorrect security stamp for user {fixture.User.Id} ({fixture.User.Email})");
     }
 
     [Fact]

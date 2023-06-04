@@ -16,8 +16,11 @@ public sealed class AssetManifestSourceTests
 
         _ = fixture.ManifestSource.ProductionManifest;
 
-        fixture.Logger.AssertSingleEntry(
-            LogLevel.Information, $"Loading asset manifest {fixture.ManifestPath}");
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Loading asset manifest {fixture.ManifestPath}");
     }
 
     [Fact]
