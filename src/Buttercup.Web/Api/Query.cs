@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Buttercup.EntityModel;
-using Buttercup.Web.Authentication;
+using Buttercup.Security;
 using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,4 +1,4 @@
-using Buttercup.Web.Authentication;
+using Buttercup.Security;
 
 namespace Buttercup.Web.Api;
 

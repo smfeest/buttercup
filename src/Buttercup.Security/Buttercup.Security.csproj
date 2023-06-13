@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
+    <ProjectReference Include="..\Buttercup.EntityModel\Buttercup.EntityModel.csproj" />
+    <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
+  </ItemGroup>
+</Project>

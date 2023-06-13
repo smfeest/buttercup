@@ -1,5 +1,5 @@
 using Buttercup.EntityModel;
-using Buttercup.Web.Authentication;
+using Buttercup.Security;
 using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Identity;
 using Xunit;
