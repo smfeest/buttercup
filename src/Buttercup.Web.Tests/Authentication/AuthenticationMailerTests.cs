@@ -1,5 +1,5 @@
 using Buttercup.Email;
-using Buttercup.Web.TestUtils;
+using Buttercup.TestUtils;
 using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;

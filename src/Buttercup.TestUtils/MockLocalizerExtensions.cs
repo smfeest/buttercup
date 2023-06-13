@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Localization;
 using Moq;
 
-namespace Buttercup.Web.TestUtils;
+namespace Buttercup.TestUtils;
 
 /// <summary>
 /// Provides extension methods for string localizer mocks.
 /// </summary>
-internal static class MockLocalizerExtensions
+public static class MockLocalizerExtensions
 {
     /// <summary>
     /// Specifies the string that should be returned when a named resource is requested without
