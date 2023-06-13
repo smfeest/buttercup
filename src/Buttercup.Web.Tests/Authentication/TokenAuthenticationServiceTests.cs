@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
-using Buttercup.Web.TestUtils;
 using Moq;
 using Xunit;
 

@@ -1,4 +1,6 @@
-namespace Buttercup.Web.TestUtils;
+using Microsoft.Extensions.Logging;
+
+namespace Buttercup.TestUtils;
 
 /// <summary>
 /// A fake logger that stores log entries in a list.

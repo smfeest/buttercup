@@ -3,7 +3,6 @@ using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
-using Buttercup.Web.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
