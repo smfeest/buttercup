@@ -3,6 +3,9 @@ using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Authentication;
 
+/// <summary>
+/// Defines the contract for the user principal factory.
+/// </summary>
 public interface IUserPrincipalFactory
 {
     /// <summary>
