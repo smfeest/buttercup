@@ -1,3 +1,4 @@
+using Buttercup.Security;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Buttercup.Web.Authentication;

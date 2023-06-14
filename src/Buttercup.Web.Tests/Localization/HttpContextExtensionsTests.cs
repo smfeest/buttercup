@@ -1,5 +1,5 @@
+using Buttercup.Security;
 using Buttercup.TestUtils;
-using Buttercup.Web.Authentication;
 using Xunit;
 
 namespace Buttercup.Web.Localization;

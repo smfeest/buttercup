@@ -1,4 +1,4 @@
-using Buttercup.Web.Authentication;
+using Buttercup.Security;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;

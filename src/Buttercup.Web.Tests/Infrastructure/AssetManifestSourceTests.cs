@@ -1,4 +1,4 @@
-using Buttercup.Web.TestUtils;
+using Buttercup.TestUtils;
 using Microsoft.Extensions.FileProviders;
 using Moq;
 using Xunit;

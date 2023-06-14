@@ -1,6 +1,6 @@
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
-using Buttercup.Web.Authentication;
+using Buttercup.Security;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

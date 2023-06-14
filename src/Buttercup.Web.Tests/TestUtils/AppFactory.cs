@@ -1,6 +1,6 @@
 using Buttercup.EntityModel;
+using Buttercup.Security;
 using Buttercup.TestUtils;
-using Buttercup.Web.Authentication;
 using Buttercup.Web.Controllers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;

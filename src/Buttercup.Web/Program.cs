@@ -4,6 +4,7 @@ using Buttercup;
 using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.EntityModel;
+using Buttercup.Security;
 using Buttercup.Web;
 using Buttercup.Web.Authentication;
 using Buttercup.Web.Binders;
@@ -13,7 +14,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 
@@ -55,7 +55,8 @@ services
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
     .AddDataAccessServices()
-    .AddEmailServices(configuration.GetSection("Email"));
+    .AddEmailServices(configuration.GetSection("Email"))
+    .AddSecurityServices();
 
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -78,16 +79,7 @@ services
     .AddBugsnag();
 
 services
-    .AddTransient<IPasswordHasher<User>, PasswordHasher<User>>()
-    .AddTransient<IAccessTokenEncoder, AccessTokenEncoder>()
-    .AddTransient<IAccessTokenSerializer, AccessTokenSerializer>()
-    .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
-    .AddTransient<IAuthenticationManager, AuthenticationManager>()
     .AddTransient<CookieAuthenticationEventsHandler>()
-    .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
-    .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
-    .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>()
-    .AddTransient<IUserPrincipalFactory, UserPrincipalFactory>()
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
     .AddSingleton<IAssetManifestSource, AssetManifestSource>()
