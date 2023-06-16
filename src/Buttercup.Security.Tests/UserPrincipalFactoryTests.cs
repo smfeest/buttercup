@@ -30,6 +30,12 @@ public sealed class UserPrincipalFactoryTests
     }
 
     [Fact]
+    public void PrincipalHasSecurityStampClaim() =>
+        Assert.Equal(
+            this.user.SecurityStamp,
+            this.CreatePrincipal().FindFirstValue(CustomClaimTypes.SecurityStamp));
+
+    [Fact]
     public void PrincipalHasAuthenticationType()
     {
         var identity = this.CreatePrincipal().Identity;
