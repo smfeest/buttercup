@@ -31,7 +31,7 @@ public sealed class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Show() => this.View(this.HttpContext.GetCurrentUser());
+    public async Task<IActionResult> Show() => this.View(await this.GetCurrentUser());
 
     [HttpGet("change-password")]
     public IActionResult ChangePassword() => this.View();
@@ -60,8 +60,8 @@ public sealed class AccountController : Controller
     }
 
     [HttpGet("preferences")]
-    public IActionResult Preferences() =>
-        this.View(new PreferencesViewModel(this.HttpContext.GetCurrentUser()!));
+    public async Task<IActionResult> Preferences() =>
+        this.View(new PreferencesViewModel(await this.GetCurrentUser()));
 
     [HttpPost("preferences")]
     public async Task<IActionResult> Preferences(PreferencesViewModel model)
@@ -73,10 +73,16 @@ public sealed class AccountController : Controller
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = this.HttpContext.GetCurrentUser()!;
-
-        await this.userDataProvider.UpdatePreferences(dbContext, user.Id, model.TimeZone);
+        await this.userDataProvider.UpdatePreferences(
+            dbContext, this.User.GetUserId(), model.TimeZone);
 
         return this.RedirectToAction(nameof(this.Show));
+    }
+
+    private async Task<User> GetCurrentUser()
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await this.userDataProvider.GetUser(dbContext, this.HttpContext.User.GetUserId());
     }
 }

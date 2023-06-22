@@ -1,4 +1,5 @@
 using Buttercup.DataAccess;
+using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
@@ -11,20 +12,16 @@ namespace Buttercup.Web.Controllers;
 
 public sealed class AccountControllerTests
 {
-    private readonly ModelFactory modelFactory = new();
-
     #region Show (GET)
 
     [Fact]
-    public void ShowReturnsViewResultWithCurrentUser()
+    public async void ShowReturnsViewResultWithCurrentUser()
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = this.modelFactory.BuildUser();
+        var user = fixture.SetupCurrentUser();
 
-        fixture.HttpContext.SetCurrentUser(user);
-
-        var result = fixture.AccountController.Show();
+        var result = await fixture.AccountController.Show();
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(user, viewResult.Model);
     }
@@ -129,15 +126,13 @@ public sealed class AccountControllerTests
     #region Preferences (GET)
 
     [Fact]
-    public void PreferencesGetReturnsViewResultWithViewModel()
+    public async void PreferencesGetReturnsViewResultWithViewModel()
     {
         using var fixture = new AccountControllerFixture();
 
-        var user = this.modelFactory.BuildUser();
+        var user = fixture.SetupCurrentUser();
 
-        fixture.HttpContext.SetCurrentUser(user);
-
-        var result = fixture.AccountController.Preferences();
+        var result = await fixture.AccountController.Preferences();
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
@@ -168,15 +163,13 @@ public sealed class AccountControllerTests
     {
         using var fixture = new AccountControllerFixture();
 
-        var currentUser = this.modelFactory.BuildUser();
-
-        fixture.HttpContext.SetCurrentUser(currentUser);
+        var user = fixture.SetupCurrentUser();
 
         var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
 
         fixture.MockUserDataProvider
             .Setup(x => x.UpdatePreferences(
-                fixture.DbContextFactory.FakeDbContext, currentUser.Id, viewModel.TimeZone))
+                fixture.DbContextFactory.FakeDbContext, user.Id, viewModel.TimeZone))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
@@ -192,6 +185,8 @@ public sealed class AccountControllerTests
 
     private class AccountControllerFixture : IDisposable
     {
+        private readonly ModelFactory modelFactory = new();
+
         public AccountControllerFixture() =>
             this.AccountController = new(
                 this.DbContextFactory,
@@ -216,6 +211,19 @@ public sealed class AccountControllerTests
         public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
 
         public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
+
+        public User SetupCurrentUser()
+        {
+            var user = this.modelFactory.BuildUser();
+
+            this.HttpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
+
+            this.MockUserDataProvider
+                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, user.Id))
+                .ReturnsAsync(user);
+
+            return user;
+        }
 
         public void Dispose() => this.AccountController?.Dispose();
     }
