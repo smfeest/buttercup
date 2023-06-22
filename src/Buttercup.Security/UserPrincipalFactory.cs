@@ -17,6 +17,6 @@ internal sealed class UserPrincipalFactory : IUserPrincipalFactory
             new(CustomClaimTypes.TimeZone, user.TimeZone),
         };
 
-        return new(new ClaimsIdentity(claims, authenticationType, ClaimTypes.Email, null));
+        return new(new ClaimsIdentity(claims, authenticationType));
     }
 }

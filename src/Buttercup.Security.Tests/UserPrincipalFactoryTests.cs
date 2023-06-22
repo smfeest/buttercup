@@ -26,14 +26,6 @@ public sealed class UserPrincipalFactoryTests
         Assert.Equal(this.user.Email, this.CreatePrincipal().FindFirstValue(ClaimTypes.Email));
 
     [Fact]
-    public void PrincipalHasEmailAsIdentityName()
-    {
-        var identity = this.CreatePrincipal().Identity;
-        Assert.NotNull(identity);
-        Assert.Equal(this.user.Email, identity.Name);
-    }
-
-    [Fact]
     public void PrincipalHasSecurityStampClaim() =>
         Assert.Equal(
             this.user.SecurityStamp,
@@ -50,6 +42,14 @@ public sealed class UserPrincipalFactoryTests
         var identity = this.CreatePrincipal().Identity;
         Assert.NotNull(identity);
         Assert.Equal(AuthenticationType, identity.AuthenticationType);
+    }
+
+    [Fact]
+    public void IdentityGetsNameFromNameClaim()
+    {
+        var identity = this.CreatePrincipal().Identity;
+        Assert.NotNull(identity);
+        Assert.Equal(this.user.Name, identity.Name);
     }
 
     private ClaimsPrincipal CreatePrincipal() =>
