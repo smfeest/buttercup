@@ -18,6 +18,10 @@ public sealed class UserPrincipalFactoryTests
         this.CreatePrincipal().FindFirstValue(ClaimTypes.NameIdentifier));
 
     [Fact]
+    public void PrincipalHasNameClaim() =>
+        Assert.Equal(this.user.Name, this.CreatePrincipal().FindFirstValue(ClaimTypes.Name));
+
+    [Fact]
     public void PrincipalHasEmailClaim() =>
         Assert.Equal(this.user.Email, this.CreatePrincipal().FindFirstValue(ClaimTypes.Email));
 
@@ -34,6 +38,11 @@ public sealed class UserPrincipalFactoryTests
         Assert.Equal(
             this.user.SecurityStamp,
             this.CreatePrincipal().FindFirstValue(CustomClaimTypes.SecurityStamp));
+
+    [Fact]
+    public void PrincipalHasTimeZoneClaim() =>
+        Assert.Equal(
+            this.user.TimeZone, this.CreatePrincipal().FindFirstValue(CustomClaimTypes.TimeZone));
 
     [Fact]
     public void PrincipalHasAuthenticationType()
