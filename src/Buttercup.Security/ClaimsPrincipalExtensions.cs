@@ -9,6 +9,21 @@ namespace Buttercup.Security;
 public static class ClaimsPrincipalExtensions
 {
     /// <summary>
+    /// Gets the user ID stored in the principal's first name identifier claim.
+    /// </summary>
+    /// <param name="principal">
+    /// The principal.
+    /// </param>
+    /// <returns>
+    /// The user ID.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Principal does not have a name identifier claim.
+    /// </exception>
+    public static long GetUserId(this ClaimsPrincipal principal) => principal.TryGetUserId() ??
+        throw new InvalidOperationException("Principal has no name identifier claim");
+
+    /// <summary>
     /// Gets the user ID stored in the principal's first <see cref="ClaimTypes.NameIdentifier"/>
     /// claim, if the principal has any such claim.
     /// </summary>
