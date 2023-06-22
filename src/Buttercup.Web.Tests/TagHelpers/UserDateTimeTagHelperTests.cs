@@ -1,7 +1,7 @@
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Buttercup.Security;
-using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Xunit;
 
@@ -74,10 +74,10 @@ public sealed class UserDateTimeTagHelperTests
     {
         public UserDateTimeTagHelperFixture()
         {
-            var httpContext = new DefaultHttpContext();
+            var identity = new ClaimsIdentity(
+                new Claim[] { new(CustomClaimTypes.TimeZone, "Etc/GMT-5") });
 
-            httpContext.SetCurrentUser(
-                new ModelFactory().BuildUser() with { TimeZone = "Etc/GMT-5" });
+            var httpContext = new DefaultHttpContext { User = new(identity) };
 
             this.TagHelper = new()
             {

@@ -1,5 +1,5 @@
+using System.Security.Claims;
 using Buttercup.Security;
-using Buttercup.TestUtils;
 using Xunit;
 
 namespace Buttercup.Web.Localization;
@@ -11,9 +11,10 @@ public sealed class HttpContextExtensionsTests
     [Fact]
     public void ToUserTimeReturnsTimeInUserTimeZone()
     {
-        var httpContext = new DefaultHttpContext();
+        var identity = new ClaimsIdentity(
+            new Claim[] { new(CustomClaimTypes.TimeZone, "Etc/GMT+10") });
 
-        httpContext.SetCurrentUser(new ModelFactory().BuildUser() with { TimeZone = "Etc/GMT+10" });
+        var httpContext = new DefaultHttpContext { User = new(identity) };
 
         var utcDateTime = new DateTime(2010, 11, 12, 13, 14, 15, DateTimeKind.Utc);
 
