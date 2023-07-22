@@ -5,24 +5,24 @@ namespace Buttercup.Security;
 
 public sealed class ClaimsPrincipalExtensionsTests
 {
-    #region GetUserId
+    #region TryGetUserId
 
     [Fact]
-    public void GetUserIdReturnsParsedNameIdentifier()
+    public void TryGetUserIdReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "7214") }));
 
-        Assert.Equal(7214, principal.GetUserId());
+        Assert.Equal(7214, principal.TryGetUserId());
     }
 
     [Fact]
-    public void GetUserIdReturnsNullWhenNameIdentifierIsMissing()
+    public void TryGetUserIdReturnsNullWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));
 
-        Assert.Null(principal.GetUserId());
+        Assert.Null(principal.TryGetUserId());
     }
 
     #endregion

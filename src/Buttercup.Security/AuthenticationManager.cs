@@ -242,7 +242,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     {
         await this.SignOutCurrentUser(httpContext);
 
-        var userId = httpContext.User.GetUserId();
+        var userId = httpContext.User.TryGetUserId();
 
         if (userId.HasValue)
         {
@@ -265,7 +265,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             return;
         }
 
-        var userId = principal.GetUserId();
+        var userId = principal.TryGetUserId();
 
         if (!userId.HasValue)
         {
