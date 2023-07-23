@@ -231,8 +231,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     {
         await this.SignInUser(httpContext, user);
 
-        httpContext.SetCurrentUser(user);
-
         SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -285,8 +283,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
 
         if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
         {
-            context.HttpContext.SetCurrentUser(user);
-
             ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
         }
         else

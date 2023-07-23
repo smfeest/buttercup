@@ -757,16 +757,6 @@ public sealed class AuthenticationManagerTests
     }
 
     [Fact]
-    public async Task SignInSetsCurrentUser()
-    {
-        using var fixture = new SignInFixture();
-
-        await fixture.SignIn();
-
-        Assert.Equal(fixture.User, fixture.HttpContext.GetCurrentUser());
-    }
-
-    [Fact]
     public async Task SignInLogsEvent()
     {
         using var fixture = new SignInFixture();
@@ -884,16 +874,6 @@ public sealed class AuthenticationManagerTests
         await fixture.ValidatePrincipal();
 
         Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
-    }
-
-    [Fact]
-    public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
-    {
-        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
-
-        await fixture.ValidatePrincipal();
-
-        Assert.Equal(fixture.User, fixture.CookieContext.HttpContext.GetCurrentUser());
     }
 
     [Fact]
