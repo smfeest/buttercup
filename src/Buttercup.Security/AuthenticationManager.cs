@@ -104,7 +104,9 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = httpContext.GetCurrentUser()!;
+        var userId = httpContext.User.GetUserId();
+
+        var user = await this.userDataProvider.GetUser(dbContext, userId);
 
         if (user.HashedPassword == null)
         {

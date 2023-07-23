@@ -320,7 +320,9 @@ public sealed class AuthenticationManagerTests
         {
             this.User = new ModelFactory().BuildUser() with { HashedPassword = hashedPassword };
 
-            this.HttpContext.SetCurrentUser(this.User);
+            this.HttpContext = new() { User = PrincipalFactory.CreateWithUserId(this.User.Id) };
+
+            this.SetupGetUser(this.User.Id, this.User);
 
             this.MockPasswordHasher
                 .Setup(x => x.HashPassword(this.User, this.NewPassword))
@@ -338,7 +340,7 @@ public sealed class AuthenticationManagerTests
                 .Returns(this.UpdatedPrincipal);
         }
 
-        public DefaultHttpContext HttpContext { get; } = new();
+        public DefaultHttpContext HttpContext { get; }
 
         public User User { get; }
 
