@@ -283,6 +283,10 @@ internal sealed class AuthenticationManager : IAuthenticationManager
 
         if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
         {
+            var newClaims = new Claim[] { new(ClaimTypes.Email, user.Email) };
+            var newIdentity = new ClaimsIdentity(principal.Identity, newClaims);
+            context.ReplacePrincipal(new(newIdentity));
+
             context.HttpContext.SetCurrentUser(user);
 
             ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);

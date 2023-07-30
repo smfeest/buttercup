@@ -11,7 +11,6 @@ internal sealed class UserPrincipalFactory : IUserPrincipalFactory
         var claims = new Claim[]
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-            new(ClaimTypes.Email, user.Email),
             new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
         };
 
