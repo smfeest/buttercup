@@ -37,6 +37,12 @@ public sealed class UserPrincipalFactoryTests
             this.user.TimeZone, this.CreatePrincipal().FindFirstValue(CustomClaimTypes.TimeZone));
 
     [Fact]
+    public void PrincipalHasRevisionClaim() =>
+        Assert.Equal(
+            this.user.Revision.ToString(CultureInfo.InvariantCulture),
+            this.CreatePrincipal().FindFirstValue(CustomClaimTypes.UserRevision));
+
+    [Fact]
     public void PrincipalHasAuthenticationType()
     {
         var identity = this.CreatePrincipal().Identity;
