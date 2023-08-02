@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
@@ -104,7 +105,9 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = httpContext.GetCurrentUser()!;
+        var userId = httpContext.User.GetUserId();
+
+        var user = await this.userDataProvider.GetUser(dbContext, userId);
 
         if (user.HashedPassword == null)
         {
@@ -229,8 +232,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     {
         await this.SignInUser(httpContext, user);
 
-        httpContext.SetCurrentUser(user);
-
         SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -242,7 +243,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     {
         await this.SignOutCurrentUser(httpContext);
 
-        var userId = httpContext.User.GetUserId();
+        var userId = httpContext.User.TryGetUserId();
 
         if (userId.HasValue)
         {
@@ -265,7 +266,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             return;
         }
 
-        var userId = principal.GetUserId();
+        var userId = principal.TryGetUserId();
 
         if (!userId.HasValue)
         {
@@ -281,13 +282,7 @@ internal sealed class AuthenticationManager : IAuthenticationManager
 
         var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
 
-        if (string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
-        {
-            context.HttpContext.SetCurrentUser(user);
-
-            ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
-        }
-        else
+        if (!string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
         {
             ValidatePrincipalLogMessages.IncorrectSecurityStamp(
                 this.logger, user.Id, user.Email, null);
@@ -295,6 +290,22 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             context.RejectPrincipal();
 
             await this.SignOutCurrentUser(context.HttpContext);
+
+            return;
+        }
+
+        ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
+
+        var userRevision = principal.FindFirstValue(CustomClaimTypes.UserRevision);
+
+        if (userRevision is null ||
+            int.Parse(userRevision, CultureInfo.InvariantCulture) != user.Revision)
+        {
+            context.ReplacePrincipal(this.userPrincipalFactory.Create(user, context.Scheme.Name));
+            context.ShouldRenew = true;
+
+            ValidatePrincipalLogMessages.RefreshedClaimsPrincipal(
+                this.logger, user.Id, user.Email, null);
         }
     }
 
@@ -441,5 +452,11 @@ internal sealed class AuthenticationManager : IAuthenticationManager
                 LogLevel.Debug,
                 215,
                 "Principal successfully validated for user {UserId} ({Email})");
+
+        public static readonly Action<ILogger, long, string, Exception?> RefreshedClaimsPrincipal =
+            LoggerMessage.Define<long, string>(
+                LogLevel.Information,
+                216,
+                "Refreshed claims principal for user {UserId} ({Email})");
     }
 }

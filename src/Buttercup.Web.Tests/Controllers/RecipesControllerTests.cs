@@ -1,6 +1,5 @@
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
-using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -80,7 +79,7 @@ public sealed class RecipesControllerTests
 
         fixture.MockRecipeDataProvider
             .Setup(x => x.AddRecipe(
-                fixture.DbContextFactory.FakeDbContext, attributes, fixture.User.Id))
+                fixture.DbContextFactory.FakeDbContext, attributes, fixture.CurrentUserId))
             .ReturnsAsync(5);
 
         var result = await fixture.RecipesController.New(attributes);
@@ -149,7 +148,7 @@ public sealed class RecipesControllerTests
                 3,
                 editModel.Attributes,
                 editModel.BaseRevision,
-                fixture.User.Id));
+                fixture.CurrentUserId));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -188,7 +187,7 @@ public sealed class RecipesControllerTests
                 3,
                 editModel.Attributes,
                 editModel.BaseRevision,
-                fixture.User.Id))
+                fixture.CurrentUserId))
             .ThrowsAsync(new ConcurrencyException());
 
         var result = await fixture.RecipesController.Edit(3, editModel);
@@ -252,7 +251,7 @@ public sealed class RecipesControllerTests
     {
         public RecipesControllerFixture()
         {
-            this.HttpContext.SetCurrentUser(this.User);
+            this.HttpContext.User = PrincipalFactory.CreateWithUserId(this.CurrentUserId);
 
             this.RecipesController = new(
                 this.DbContextFactory,
@@ -269,7 +268,7 @@ public sealed class RecipesControllerTests
 
         public RecipesController RecipesController { get; }
 
-        public User User { get; } = new ModelFactory().BuildUser();
+        public long CurrentUserId { get; } = new ModelFactory().NextInt();
 
         public Mock<IStringLocalizer<RecipesController>> MockLocalizer { get; } = new();
 

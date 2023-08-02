@@ -16,7 +16,7 @@
       <li>
         <div class="popover-menu__item top-bar__user">
           <div class="top-bar__user-label">@Localizer["Label_SignedInAs"]</div>
-          <div>@ViewContext.HttpContext.GetCurrentUser()!.Name</div>
+          <div>@ViewContext.HttpContext.User.Identity.Name</div>
         </div>
       </li>
       <li><a class="popover-menu__item" asp-controller="Account" asp-action="Show">@Localizer["Label_YourAccount"]</a></li>

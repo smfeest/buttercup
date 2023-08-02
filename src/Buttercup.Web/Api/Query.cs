@@ -18,7 +18,7 @@ public sealed class Query
     [UseProjection]
     public IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)
     {
-        var userId = principal.GetUserId();
+        var userId = principal.TryGetUserId();
 
         return userId.HasValue ? dbContext.Users.Where(u => u.Id == userId) : null;
     }

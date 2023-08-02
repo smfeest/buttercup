@@ -320,7 +320,9 @@ public sealed class AuthenticationManagerTests
         {
             this.User = new ModelFactory().BuildUser() with { HashedPassword = hashedPassword };
 
-            this.HttpContext.SetCurrentUser(this.User);
+            this.HttpContext = new() { User = PrincipalFactory.CreateWithUserId(this.User.Id) };
+
+            this.SetupGetUser(this.User.Id, this.User);
 
             this.MockPasswordHasher
                 .Setup(x => x.HashPassword(this.User, this.NewPassword))
@@ -338,7 +340,7 @@ public sealed class AuthenticationManagerTests
                 .Returns(this.UpdatedPrincipal);
         }
 
-        public DefaultHttpContext HttpContext { get; } = new();
+        public DefaultHttpContext HttpContext { get; }
 
         public User User { get; }
 
@@ -755,16 +757,6 @@ public sealed class AuthenticationManagerTests
     }
 
     [Fact]
-    public async Task SignInSetsCurrentUser()
-    {
-        using var fixture = new SignInFixture();
-
-        await fixture.SignIn();
-
-        Assert.Equal(fixture.User, fixture.HttpContext.GetCurrentUser());
-    }
-
-    [Fact]
     public async Task SignInLogsEvent()
     {
         using var fixture = new SignInFixture();
@@ -885,43 +877,9 @@ public sealed class AuthenticationManagerTests
     }
 
     [Fact]
-    public async Task ValidatePrincipalSetsCurrentUserWhenStampIsCorrect()
+    public async Task ValidatePrincipalLogsWhenSecurityStampIsStale()
     {
-        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
-
-        await fixture.ValidatePrincipal();
-
-        Assert.Equal(fixture.User, fixture.CookieContext.HttpContext.GetCurrentUser());
-    }
-
-    [Fact]
-    public async Task ValidatePrincipalDoesNotRejectPrincipalWhenStampIsCorrect()
-    {
-        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
-
-        await fixture.ValidatePrincipal();
-
-        Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
-    }
-
-    [Fact]
-    public async Task ValidatePrincipalLogsWhenStampIsCorrect()
-    {
-        using var fixture = ValidatePrincipalFixture.ForCorrectStamp();
-
-        await fixture.ValidatePrincipal();
-
-        Assert.Contains(
-            fixture.Logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Debug &&
-                entry.Message == $"Principal successfully validated for user {fixture.User.Id} ({fixture.User.Email})");
-    }
-
-    [Fact]
-    public async Task ValidatePrincipalLogsWhenStampIsIncorrect()
-    {
-        using var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForStaleSecurityStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -933,9 +891,9 @@ public sealed class AuthenticationManagerTests
     }
 
     [Fact]
-    public async Task ValidatePrincipalRejectsPrincipalWhenStampIsIncorrect()
+    public async Task ValidatePrincipalRejectsPrincipalWhenSecurityStampIsStale()
     {
-        using var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForStaleSecurityStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -943,9 +901,9 @@ public sealed class AuthenticationManagerTests
     }
 
     [Fact]
-    public async Task ValidatePrincipalSignsUserOutWhenStampIsIncorrect()
+    public async Task ValidatePrincipalSignsUserOutWhenSecurityStampIsStale()
     {
-        using var fixture = ValidatePrincipalFixture.ForIncorrectStamp();
+        using var fixture = ValidatePrincipalFixture.ForStaleSecurityStamp();
 
         await fixture.ValidatePrincipal();
 
@@ -956,14 +914,79 @@ public sealed class AuthenticationManagerTests
                 null));
     }
 
+    [Fact]
+    public async Task ValidatePrincipalLogsWhenSecurityStampIsCurrent()
+    {
+        using var fixture = ValidatePrincipalFixture.ForNoUserRevision();
+
+        await fixture.ValidatePrincipal();
+
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Debug &&
+                entry.Message == $"Principal successfully validated for user {fixture.User.Id} ({fixture.User.Email})");
+    }
+
+    [Fact]
+    public async Task ValidatePrincipalReplacesPrincipalWhenUserRevisionIsMissing()
+    {
+        using var fixture = ValidatePrincipalFixture.ForNoUserRevision();
+
+        await fixture.ValidatePrincipal();
+
+        Assert.Same(fixture.UpdatedPrincipal, fixture.CookieContext.Principal);
+    }
+
+    [Fact]
+    public async Task ValidatePrincipalReplacesPrincipalWhenUserRevisionIsStale()
+    {
+        using var fixture = ValidatePrincipalFixture.ForStaleUserRevision();
+
+        await fixture.ValidatePrincipal();
+
+        Assert.Same(fixture.UpdatedPrincipal, fixture.CookieContext.Principal);
+    }
+
+    [Fact]
+    public async Task ValidatePrincipalRenewsCookieWhenPrincipalIsReplaced()
+    {
+        using var fixture = ValidatePrincipalFixture.ForNoUserRevision();
+
+        await fixture.ValidatePrincipal();
+
+        Assert.True(fixture.CookieContext.ShouldRenew);
+    }
+
+    [Fact]
+    public async Task ValidatePrincipalLogsWhenPrincipalIsReplaced()
+    {
+        using var fixture = ValidatePrincipalFixture.ForNoUserRevision();
+
+        await fixture.ValidatePrincipal();
+
+        Assert.Contains(
+            fixture.Logger.Entries,
+            entry =>
+                entry.LogLevel == LogLevel.Information &&
+                entry.Message == $"Refreshed claims principal for user {fixture.User.Id} ({fixture.User.Email})");
+    }
+
+    [Fact]
+    public async Task ValidatePrincipalRetainsPrincipalWhenUserRevisionIsCurrent()
+    {
+        using var fixture = ValidatePrincipalFixture.ForCurrentUserRevision();
+
+        await fixture.ValidatePrincipal();
+
+        Assert.Same(fixture.InitialPrincipal, fixture.CookieContext.Principal);
+    }
+
     private sealed class ValidatePrincipalFixture : AuthenticationManagerFixture
     {
-        private const long UserId = 34;
-        private const string UserSecurityStamp = "user-security-stamp";
-
-        private ValidatePrincipalFixture(params Claim[] claims)
+        private ValidatePrincipalFixture(Func<User, Claim[]> claimsFactory)
         {
-            this.InitialPrincipal = new(new ClaimsIdentity(claims));
+            this.InitialPrincipal = new(new ClaimsIdentity(claimsFactory(this.User)));
 
             var scheme = new AuthenticationScheme(
                 CookieAuthenticationDefaults.AuthenticationScheme,
@@ -974,39 +997,67 @@ public sealed class AuthenticationManagerTests
                 CookieAuthenticationDefaults.AuthenticationScheme);
 
             this.CookieContext = new(new DefaultHttpContext(), scheme, new(), ticket);
+
+            this.SetupGetUser(this.User.Id, this.User);
+
+            this.MockUserPrincipalFactory
+                .Setup(x => x.Create(
+                    this.User, CookieAuthenticationDefaults.AuthenticationScheme))
+                .Returns(this.UpdatedPrincipal);
         }
 
-        public ClaimsPrincipal InitialPrincipal { get; }
+        public ClaimsPrincipal? InitialPrincipal { get; }
+
+        public ClaimsPrincipal UpdatedPrincipal { get; } = new();
 
         public CookieValidatePrincipalContext CookieContext { get; }
 
-        public User User { get; } = new ModelFactory().BuildUser() with
-        {
-            Id = UserId,
-            SecurityStamp = UserSecurityStamp,
-        };
+        public User User { get; } = new ModelFactory().BuildUser();
 
-        public static ValidatePrincipalFixture ForUnauthenticated() => new();
+        public static ValidatePrincipalFixture ForUnauthenticated() =>
+            new(_ => Array.Empty<Claim>());
 
-        public static ValidatePrincipalFixture ForCorrectStamp() =>
-            ForAuthenticated(UserSecurityStamp);
+        public static ValidatePrincipalFixture ForNoSecurityStamp() =>
+            new(user => new[]
+            {
+                CreateFormattableClaim(ClaimTypes.NameIdentifier, user.Id),
+            });
 
-        public static ValidatePrincipalFixture ForIncorrectStamp() =>
-            ForAuthenticated("stale-security-stamp");
+        public static ValidatePrincipalFixture ForStaleSecurityStamp() =>
+            new(user => new[]
+            {
+                CreateFormattableClaim(ClaimTypes.NameIdentifier, user.Id),
+                new(CustomClaimTypes.SecurityStamp, "stale-security-stamp"),
+            });
+
+        public static ValidatePrincipalFixture ForNoUserRevision() =>
+            new(user => new[]
+            {
+                CreateFormattableClaim(ClaimTypes.NameIdentifier, user.Id),
+                new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+            });
+
+        public static ValidatePrincipalFixture ForStaleUserRevision() =>
+            new(user => new[]
+            {
+                CreateFormattableClaim(ClaimTypes.NameIdentifier, user.Id),
+                new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+                CreateFormattableClaim(CustomClaimTypes.UserRevision, user.Revision - 1),
+            });
+
+        public static ValidatePrincipalFixture ForCurrentUserRevision() =>
+            new(user => new[]
+            {
+                CreateFormattableClaim(ClaimTypes.NameIdentifier, user.Id),
+                new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
+                CreateFormattableClaim(CustomClaimTypes.UserRevision, user.Revision),
+            });
 
         public Task ValidatePrincipal() =>
             this.AuthenticationManager.ValidatePrincipal(this.CookieContext);
 
-        private static ValidatePrincipalFixture ForAuthenticated(string principalSecurityStamp)
-        {
-            using var fixture = new ValidatePrincipalFixture(
-                new(ClaimTypes.NameIdentifier, UserId.ToString(CultureInfo.InvariantCulture)),
-                new(CustomClaimTypes.SecurityStamp, principalSecurityStamp));
-
-            fixture.SetupGetUser(UserId, fixture.User);
-
-            return fixture;
-        }
+        private static Claim CreateFormattableClaim(string type, IFormattable value) =>
+            new(type, value.ToString(null, CultureInfo.InvariantCulture));
     }
 
     #endregion

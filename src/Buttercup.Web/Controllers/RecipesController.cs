@@ -59,7 +59,7 @@ public sealed class RecipesController : Controller
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var id = await this.recipeDataProvider.AddRecipe(
-            dbContext, model, this.HttpContext.GetCurrentUser()!.Id);
+            dbContext, model, this.User.GetUserId());
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
@@ -90,7 +90,7 @@ public sealed class RecipesController : Controller
                 id,
                 model.Attributes,
                 model.BaseRevision,
-                this.HttpContext.GetCurrentUser()!.Id);
+                this.User.GetUserId());
         }
         catch (ConcurrencyException)
         {

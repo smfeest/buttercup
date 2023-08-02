@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Buttercup.Security;
 
 namespace Buttercup.Web.Localization;
@@ -33,10 +34,10 @@ public static class HttpContextExtensions
                 $"{nameof(dateTime)} is not a UTC date and time", nameof(dateTime));
         }
 
-        var user = httpContext.GetCurrentUser();
-
         var utc = new DateTimeOffset(dateTime);
 
-        return user == null ? utc : TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, user.TimeZone);
+        var timeZone = httpContext.User.FindFirstValue(CustomClaimTypes.TimeZone);
+
+        return timeZone == null ? utc : TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, timeZone);
     }
 }

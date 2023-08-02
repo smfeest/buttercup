@@ -17,12 +17,34 @@ public sealed class ClaimsPrincipalExtensionsTests
     }
 
     [Fact]
-    public void GetUserIdReturnsNullWhenNameIdentifierIsMissing()
+    public void GetUserIdThrowsWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));
 
-        Assert.Null(principal.GetUserId());
+        Assert.Throws<InvalidOperationException>(() => principal.GetUserId());
+    }
+
+    #endregion
+
+    #region TryGetUserId
+
+    [Fact]
+    public void TryGetUserIdReturnsParsedNameIdentifier()
+    {
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "7214") }));
+
+        Assert.Equal(7214, principal.TryGetUserId());
+    }
+
+    [Fact]
+    public void TryGetUserIdReturnsNullWhenNameIdentifierIsMissing()
+    {
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));
+
+        Assert.Null(principal.TryGetUserId());
     }
 
     #endregion
