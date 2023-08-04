@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
@@ -257,58 +256,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         }
     }
 
-    public async Task ValidatePrincipal(CookieValidatePrincipalContext context)
-    {
-        var principal = context.Principal;
-
-        if (principal == null)
-        {
-            return;
-        }
-
-        var userId = principal.TryGetUserId();
-
-        if (!userId.HasValue)
-        {
-            return;
-        }
-
-        User user;
-
-        using (var dbContext = this.dbContextFactory.CreateDbContext())
-        {
-            user = await this.userDataProvider.GetUser(dbContext, userId.Value);
-        }
-
-        var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
-
-        if (!string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
-        {
-            ValidatePrincipalLogMessages.IncorrectSecurityStamp(
-                this.logger, user.Id, user.Email, null);
-
-            context.RejectPrincipal();
-
-            await this.SignOutCurrentUser(context.HttpContext);
-
-            return;
-        }
-
-        ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
-
-        var userRevision = principal.FindFirstValue(CustomClaimTypes.UserRevision);
-
-        if (userRevision is null ||
-            int.Parse(userRevision, CultureInfo.InvariantCulture) != user.Revision)
-        {
-            context.ReplacePrincipal(this.userPrincipalFactory.Create(user, context.Scheme.Name));
-            context.ShouldRenew = true;
-
-            ValidatePrincipalLogMessages.RefreshedClaimsPrincipal(
-                this.logger, user.Id, user.Email, null);
-        }
-    }
-
     private static string RedactToken(string token) => $"{token[..6]}…";
 
     private async Task<string> SetPassword(AppDbContext dbContext, User user, string newPassword)
@@ -439,24 +386,5 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         public static readonly Action<ILogger, long, string?, Exception?> SignedOut =
             LoggerMessage.Define<long, string?>(
                 LogLevel.Information, 213, "User {UserId} ({Email}) signed out");
-    }
-
-    private static class ValidatePrincipalLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> IncorrectSecurityStamp =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 214, "Incorrect security stamp for user {UserId} ({Email})");
-
-        public static readonly Action<ILogger, long, string, Exception?> Success =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Debug,
-                215,
-                "Principal successfully validated for user {UserId} ({Email})");
-
-        public static readonly Action<ILogger, long, string, Exception?> RefreshedClaimsPrincipal =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                216,
-                "Refreshed claims principal for user {UserId} ({Email})");
     }
 }
