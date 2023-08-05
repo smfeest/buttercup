@@ -60,7 +60,7 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime
     public AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder()
-            .UseAppDbOptions(this.ConnectionString, serverVersion.Value)
+            .UseAppDbOptions(this.ConnectionString, this.serverVersion.Value)
             .Options;
 
         return new(options);
@@ -74,7 +74,7 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime
     /// </returns>
     public async Task ClearDatabase()
     {
-        using var dbContext = CreateDbContext();
+        using var dbContext = this.CreateDbContext();
 
         await dbContext.AuthenticationEvents.ExecuteDeleteAsync();
         await dbContext.PasswordResetTokens.ExecuteDeleteAsync();
@@ -108,14 +108,14 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime
 
     private async Task DeleteDatabase()
     {
-        using var dbContext = CreateDbContext();
+        using var dbContext = this.CreateDbContext();
 
         await dbContext.Database.EnsureDeletedAsync();
     }
 
     private async Task RecreateDatabase()
     {
-        using var dbContext = CreateDbContext();
+        using var dbContext = this.CreateDbContext();
 
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.EnsureCreatedAsync();

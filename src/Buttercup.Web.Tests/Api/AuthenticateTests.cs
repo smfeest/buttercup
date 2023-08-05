@@ -18,7 +18,7 @@ public sealed class AuthenticateTests : EndToEndTests<AuthenticateTests>
     [Fact]
     public async Task AuthenticatingSuccessfully()
     {
-        await InsertUser();
+        await this.InsertUser();
 
         using var client = this.AppFactory.CreateClient();
         using var response = await PostAuthenticateMutation(client, new(UserEmail, UserPassword));
@@ -49,7 +49,7 @@ public sealed class AuthenticateTests : EndToEndTests<AuthenticateTests>
     [Fact]
     public async Task FailingToAuthenticateDueToIncorrectPassword()
     {
-        await InsertUser();
+        await this.InsertUser();
 
         using var client = this.AppFactory.CreateClient();
         using var response = await PostAuthenticateMutation(
