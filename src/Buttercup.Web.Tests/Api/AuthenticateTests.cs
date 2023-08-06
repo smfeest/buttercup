@@ -58,7 +58,7 @@ public sealed class AuthenticateTests : EndToEndTests<AuthenticateTests>
 
         var dataElement = ApiAssert.SuccessResponse(document);
 
-        JsonAssert.Equals(new AuthenticatePayload(false), dataElement.GetProperty("authenticate"));
+        JsonAssert.ValueEquals(new AuthenticatePayload(false), dataElement.GetProperty("authenticate"));
     }
 
     private async Task InsertUser()
