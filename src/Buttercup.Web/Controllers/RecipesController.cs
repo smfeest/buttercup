@@ -11,7 +11,7 @@ using Microsoft.Extensions.Localization;
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
-[HandleNotFoundExceptionAttribute]
+[HandleNotFoundException]
 [Route("recipes")]
 public sealed class RecipesController : Controller
 {
