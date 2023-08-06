@@ -332,7 +332,7 @@ public sealed class AuthenticationManagerTests
                 .Setup(x => x.Generate(2))
                 .Returns(this.NewSecurityStamp);
 
-            var userForUpdatedPrincipal = this.User with { SecurityStamp = NewSecurityStamp };
+            var userForUpdatedPrincipal = this.User with { SecurityStamp = this.NewSecurityStamp };
 
             this.MockUserPrincipalFactory
                 .Setup(x => x.Create(

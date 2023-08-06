@@ -5,8 +5,6 @@ namespace Buttercup.DataAccess;
 
 public sealed class ServiceCollectionExtensionsTests
 {
-    private const string ConnectionString = "connection-string";
-
     #region AddDataAccessServices
 
     [Fact]

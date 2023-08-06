@@ -54,7 +54,7 @@ public sealed class ModelFactory
     /// </param>
     /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
     public RecipeAttributes BuildRecipeAttributes(bool setOptionalAttributes = false) =>
-        new(BuildRecipe(setOptionalAttributes));
+        new(this.BuildRecipe(setOptionalAttributes));
 
     /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.

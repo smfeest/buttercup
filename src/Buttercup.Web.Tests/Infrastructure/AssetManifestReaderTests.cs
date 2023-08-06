@@ -8,7 +8,8 @@ public sealed class AssetManifestReaderTests
     [Fact]
     public void ReturnsManifestDeserializedFromJson()
     {
-        var bytes = Encoding.UTF8.GetBytes("{\"alpha\":\"beta\",\"gamma\":\"delta\"}");
+        var bytes = Encoding.UTF8.GetBytes(
+            /*lang=json,strict*/ """{"alpha": "beta", "gamma":"delta"}""");
 
         using var stream = new MemoryStream(bytes);
 

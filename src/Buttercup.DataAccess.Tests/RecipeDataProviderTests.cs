@@ -120,7 +120,7 @@ public sealed class RecipeDataProviderTests
         dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
         await dbContext.SaveChangesAsync();
 
-        var id = modelFactory.NextInt();
+        var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.DeleteRecipe(dbContext, id));
@@ -186,7 +186,7 @@ public sealed class RecipeDataProviderTests
         dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
         await dbContext.SaveChangesAsync();
 
-        var id = modelFactory.NextInt();
+        var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeDataProvider.GetRecipe(dbContext, id));

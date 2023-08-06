@@ -2,18 +2,12 @@ using System.Security.Claims;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using HotChocolate.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Api;
 
 [QueryType]
 public sealed class Query
 {
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-
-    public Query(IDbContextFactory<AppDbContext> dbContextFactory) =>
-        this.dbContextFactory = dbContextFactory;
-
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)

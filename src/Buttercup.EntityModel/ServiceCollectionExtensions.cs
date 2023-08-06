@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddAppDbContextFactory(
         this IServiceCollection services, string connectionString) => services
-            .AddSingleton<ServerVersion>(ServerVersion.AutoDetect(connectionString))
+            .AddSingleton(ServerVersion.AutoDetect(connectionString))
             .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) =>
                 options.UseAppDbOptions(connectionString,
                 serviceProvider.GetRequiredService<ServerVersion>()));
