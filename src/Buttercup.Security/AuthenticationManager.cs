@@ -100,11 +100,9 @@ internal sealed class AuthenticationManager : IAuthenticationManager
     }
 
     public async Task<bool> ChangePassword(
-        HttpContext httpContext, string currentPassword, string newPassword)
+        long userId, string currentPassword, string newPassword)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        var userId = httpContext.User.GetUserId();
 
         var user = await this.userDataProvider.GetUser(dbContext, userId);
 
@@ -137,8 +135,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
-        await this.SignInUser(httpContext, user with { SecurityStamp = newSecurityStamp });
-
         return true;
     }
 
@@ -162,6 +158,26 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         }
 
         return userId.HasValue;
+    }
+
+    public async Task<bool> RefreshPrincipal(HttpContext httpContext)
+    {
+        var authenticateResult = await this.authenticationService.AuthenticateAsync(
+            httpContext, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        if (!authenticateResult.Succeeded)
+        {
+            return false;
+        }
+
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var user = await this.userDataProvider.GetUser(
+            dbContext, authenticateResult.Principal.GetUserId());
+
+        await this.SignInUser(httpContext, user, authenticateResult.Properties);
+
+        return true;
     }
 
     public async Task<User> ResetPassword(string token, string newPassword)
@@ -272,13 +288,14 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         return securityStamp;
     }
 
-    private async Task SignInUser(HttpContext httpContext, User user)
+    private async Task SignInUser(
+        HttpContext httpContext, User user, AuthenticationProperties? properties = null)
     {
         var principal = this.userPrincipalFactory.Create(
             user, CookieAuthenticationDefaults.AuthenticationScheme);
 
         await this.authenticationService.SignInAsync(
-            httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, null);
+            httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
     }
 
     private Task SignOutCurrentUser(HttpContext httpContext) =>

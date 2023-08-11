@@ -292,17 +292,6 @@ public sealed class AuthenticationManagerTests
     }
 
     [Fact]
-    public async Task ChangePasswordSignsInUpdatedPrincipalOnSuccess()
-    {
-        using var fixture = ChangePasswordFixture.ForSuccess();
-
-        await fixture.ChangePassword();
-
-        fixture.MockAuthenticationService.Verify(x => x.SignInAsync(fixture.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme, fixture.UpdatedPrincipal, null));
-    }
-
-    [Fact]
     public async Task ChangePasswordReturnsTrueOnSuccess()
     {
         using var fixture = ChangePasswordFixture.ForSuccess();
@@ -319,8 +308,6 @@ public sealed class AuthenticationManagerTests
         {
             this.User = new ModelFactory().BuildUser() with { HashedPassword = hashedPassword };
 
-            this.HttpContext = new() { User = PrincipalFactory.CreateWithUserId(this.User.Id) };
-
             this.SetupGetUser(this.User.Id, this.User);
 
             this.MockPasswordHasher
@@ -330,16 +317,7 @@ public sealed class AuthenticationManagerTests
             this.MockRandomTokenGenerator
                 .Setup(x => x.Generate(2))
                 .Returns(this.NewSecurityStamp);
-
-            var userForUpdatedPrincipal = this.User with { SecurityStamp = this.NewSecurityStamp };
-
-            this.MockUserPrincipalFactory
-                .Setup(x => x.Create(
-                    userForUpdatedPrincipal, CookieAuthenticationDefaults.AuthenticationScheme))
-                .Returns(this.UpdatedPrincipal);
         }
-
-        public DefaultHttpContext HttpContext { get; }
 
         public User User { get; }
 
@@ -348,8 +326,6 @@ public sealed class AuthenticationManagerTests
         public string HashedNewPassword { get; } = "hashed-new-password";
 
         public string NewSecurityStamp { get; } = "new-security-stamp";
-
-        public ClaimsPrincipal UpdatedPrincipal { get; } = new();
 
         public static ChangePasswordFixture ForUserHasNoPassword() => new(null);
 
@@ -360,7 +336,7 @@ public sealed class AuthenticationManagerTests
             ForPasswordVerificationResult(PasswordVerificationResult.Success);
 
         public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
-            this.HttpContext, CurrentPassword, this.NewPassword);
+            this.User.Id, CurrentPassword, this.NewPassword);
 
         private static ChangePasswordFixture ForPasswordVerificationResult(
             PasswordVerificationResult result)
@@ -459,6 +435,85 @@ public sealed class AuthenticationManagerTests
 
         public Task<bool> PasswordResetTokenIsValid() =>
             this.AuthenticationManager.PasswordResetTokenIsValid(Token);
+    }
+
+    #endregion
+
+    #region RefreshPrincipal
+
+    [Fact]
+    public async Task RefreshPrincipalReturnsFalseWhenUnauthenticated()
+    {
+        using var fixture = new RefreshPrincipalFixture();
+
+        fixture.SetupUnauthenticated();
+
+        Assert.False(await fixture.RefreshPrincipal());
+    }
+
+    [Fact]
+    public async Task RefreshPrincipalSignsInUpdatedPrincipalWhenAuthenticated()
+    {
+        using var fixture = new RefreshPrincipalFixture();
+
+        fixture.SetupAuthenticated();
+
+        await fixture.RefreshPrincipal();
+
+        fixture.MockAuthenticationService.Verify(
+            x => x.SignInAsync(
+                fixture.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                fixture.UpdatedPrincipal,
+                fixture.AuthenticationProperties));
+    }
+
+    [Fact]
+    public async Task RefreshPrincipalReturnsTrueWhenAuthenticated()
+    {
+        using var fixture = new RefreshPrincipalFixture();
+
+        fixture.SetupAuthenticated();
+
+        Assert.True(await fixture.RefreshPrincipal());
+    }
+
+    private sealed class RefreshPrincipalFixture : AuthenticationManagerFixture
+    {
+        public DefaultHttpContext HttpContext { get; } = new();
+
+        public AuthenticationProperties AuthenticationProperties { get; } = new();
+
+        public User User { get; } = new ModelFactory().BuildUser();
+
+        public ClaimsPrincipal UpdatedPrincipal { get; } = new();
+
+        public void SetupUnauthenticated() =>
+            this.SetupAuthenticateAsync(AuthenticateResult.NoResult());
+
+        public void SetupAuthenticated()
+        {
+            var ticket = new AuthenticationTicket(
+                PrincipalFactory.CreateWithUserId(this.User.Id),
+                this.AuthenticationProperties,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+            var result = AuthenticateResult.Success(ticket);
+
+            this.SetupAuthenticateAsync(result);
+            this.SetupGetUser(this.User.Id, this.User);
+            this.MockUserPrincipalFactory
+                .Setup(x => x.Create(this.User, CookieAuthenticationDefaults.AuthenticationScheme))
+                .Returns(this.UpdatedPrincipal);
+        }
+
+        public Task<bool> RefreshPrincipal() =>
+            this.AuthenticationManager.RefreshPrincipal(this.HttpContext);
+
+        private void SetupAuthenticateAsync(AuthenticateResult authenticateResult) =>
+            this.MockAuthenticationService
+                .Setup(x => x.AuthenticateAsync(
+                    this.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme))
+                .ReturnsAsync(authenticateResult);
     }
 
     #endregion

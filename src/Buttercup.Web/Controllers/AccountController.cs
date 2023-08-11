@@ -44,8 +44,10 @@ public sealed class AccountController : Controller
             return this.View(model);
         }
 
+        var userId = this.HttpContext.User.GetUserId();
+
         var passwordChanged = await this.authenticationManager.ChangePassword(
-            this.HttpContext, model.CurrentPassword, model.NewPassword);
+            userId, model.CurrentPassword, model.NewPassword);
 
         if (!passwordChanged)
         {
@@ -55,6 +57,8 @@ public sealed class AccountController : Controller
 
             return this.View(model);
         }
+
+        await this.authenticationManager.RefreshPrincipal(this.HttpContext);
 
         return this.RedirectToAction(nameof(this.Show));
     }

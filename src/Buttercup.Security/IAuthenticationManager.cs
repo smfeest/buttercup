@@ -27,8 +27,8 @@ public interface IAuthenticationManager
     /// <summary>
     /// Changes a user's password.
     /// </summary>
-    /// <param name="httpContext">
-    /// The HTTP context for the current request.
+    /// <param name="userId">
+    /// The user ID.
     /// </param>
     /// <param name="currentPassword">
     /// The current password for verification.
@@ -43,8 +43,7 @@ public interface IAuthenticationManager
     /// <exception cref="InvalidOperationException">
     /// The user doesn't have a password.
     /// </exception>
-    Task<bool> ChangePassword(
-        HttpContext httpContext, string currentPassword, string newPassword);
+    Task<bool> ChangePassword(long userId, string currentPassword, string newPassword);
 
     /// <summary>
     /// Validates a password reset token.
@@ -57,6 +56,19 @@ public interface IAuthenticationManager
     /// if it isn't.
     /// </returns>
     Task<bool> PasswordResetTokenIsValid(string token);
+
+    /// <summary>
+    /// Refreshes the claims principal for the signed in user, if any, based on the latest
+    /// attributes in the database.
+    /// </summary>
+    /// <param name="httpContext">
+    /// The HTTP context for the current request.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result is <b>true</b> if there was a claims principal to
+    /// refresh, <b>false</b> otherwise.
+    /// </returns>
+    Task<bool> RefreshPrincipal(HttpContext httpContext);
 
     /// <summary>
     /// Resets a user's password.
