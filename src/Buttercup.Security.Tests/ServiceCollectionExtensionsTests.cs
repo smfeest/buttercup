@@ -46,12 +46,21 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsAuthenticationManager() =>
+    public void AddSecurityServicesAddsCookieAuthenticationService() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IAuthenticationManager) &&
-                serviceDescriptor.ImplementationType == typeof(AuthenticationManager) &&
+                serviceDescriptor.ServiceType == typeof(ICookieAuthenticationService) &&
+                serviceDescriptor.ImplementationType == typeof(CookieAuthenticationService) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
+    public void AddSecurityServicesAddsPasswordAuthenticationService() =>
+        Assert.Contains(
+            new ServiceCollection().AddSecurityServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IPasswordAuthenticationService) &&
+                serviceDescriptor.ImplementationType == typeof(PasswordAuthenticationService) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]

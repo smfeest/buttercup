@@ -8,14 +8,17 @@ namespace Buttercup.Web.Controllers;
 
 public sealed class AuthenticationController : Controller
 {
-    private readonly IAuthenticationManager authenticationManager;
+    private readonly ICookieAuthenticationService cookieAuthenticationService;
+    private readonly IPasswordAuthenticationService passwordAuthenticationService;
     private readonly IStringLocalizer<AuthenticationController> localizer;
 
     public AuthenticationController(
-        IAuthenticationManager authenticationManager,
+        ICookieAuthenticationService cookieAuthenticationService,
+        IPasswordAuthenticationService passwordAuthenticationService,
         IStringLocalizer<AuthenticationController> localizer)
     {
-        this.authenticationManager = authenticationManager;
+        this.cookieAuthenticationService = cookieAuthenticationService;
+        this.passwordAuthenticationService = passwordAuthenticationService;
         this.localizer = localizer;
     }
 
@@ -30,7 +33,7 @@ public sealed class AuthenticationController : Controller
             return this.View(model);
         }
 
-        await this.authenticationManager.SendPasswordResetLink(
+        await this.passwordAuthenticationService.SendPasswordResetLink(
             this.ControllerContext, model.Email);
 
         return this.View("RequestPasswordResetConfirmation", model);
@@ -39,7 +42,7 @@ public sealed class AuthenticationController : Controller
     [HttpGet("reset-password/{token}", Name = "ResetPassword")]
     [EnsureSignedOut]
     public async Task<IActionResult> ResetPassword(string token) =>
-        await this.authenticationManager.PasswordResetTokenIsValid(token) ?
+        await this.passwordAuthenticationService.PasswordResetTokenIsValid(token) ?
             this.View() :
             this.View("ResetPasswordInvalidToken");
 
@@ -53,9 +56,9 @@ public sealed class AuthenticationController : Controller
 
         try
         {
-            var user = await this.authenticationManager.ResetPassword(token, model.Password);
+            var user = await this.passwordAuthenticationService.ResetPassword(token, model.Password);
 
-            await this.authenticationManager.SignIn(this.HttpContext, user);
+            await this.cookieAuthenticationService.SignIn(this.HttpContext, user);
 
             return this.RedirectToHome();
         }
@@ -77,7 +80,7 @@ public sealed class AuthenticationController : Controller
             return this.View(model);
         }
 
-        var user = await this.authenticationManager.Authenticate(model.Email, model.Password);
+        var user = await this.passwordAuthenticationService.Authenticate(model.Email, model.Password);
 
         if (user == null)
         {
@@ -87,7 +90,7 @@ public sealed class AuthenticationController : Controller
             return this.View(model);
         }
 
-        await this.authenticationManager.SignIn(this.HttpContext, user);
+        await this.cookieAuthenticationService.SignIn(this.HttpContext, user);
 
         return this.Url.IsLocalUrl(returnUrl) ?
             this.Redirect(returnUrl) :
@@ -97,7 +100,7 @@ public sealed class AuthenticationController : Controller
     [HttpGet("sign-out")]
     public async Task<IActionResult> SignOut(string? returnUrl = null)
     {
-        await this.authenticationManager.SignOut(this.HttpContext);
+        await this.cookieAuthenticationService.SignOut(this.HttpContext);
 
         this.HttpContext.Response.GetTypedHeaders().CacheControl =
             new() { NoCache = true, NoStore = true };

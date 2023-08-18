@@ -50,7 +50,7 @@ public sealed class AuthenticationControllerTests
         var model = new RequestPasswordResetViewModel { Email = "sample-user@example.com" };
         var result = await fixture.AuthenticationController.RequestPasswordReset(model);
 
-        fixture.MockAuthenticationManager.Verify(x => x.SendPasswordResetLink(
+        fixture.MockPasswordAuthenticationService.Verify(x => x.SendPasswordResetLink(
             fixture.ControllerContext, "sample-user@example.com"));
     }
 
@@ -77,7 +77,7 @@ public sealed class AuthenticationControllerTests
     {
         using var fixture = new AuthenticationControllerFixture();
 
-        fixture.MockAuthenticationManager
+        fixture.MockPasswordAuthenticationService
             .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
             .ReturnsAsync(true);
 
@@ -92,7 +92,7 @@ public sealed class AuthenticationControllerTests
     {
         using var fixture = new AuthenticationControllerFixture();
 
-        fixture.MockAuthenticationManager
+        fixture.MockPasswordAuthenticationService
             .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
             .ReturnsAsync(false);
 
@@ -126,7 +126,7 @@ public sealed class AuthenticationControllerTests
     {
         using var fixture = new AuthenticationControllerFixture();
 
-        fixture.MockAuthenticationManager
+        fixture.MockPasswordAuthenticationService
             .Setup(x => x.ResetPassword("sample-token", "sample-password"))
             .ThrowsAsync(new InvalidTokenException());
 
@@ -144,14 +144,14 @@ public sealed class AuthenticationControllerTests
 
         var user = this.modelFactory.BuildUser();
 
-        fixture.MockAuthenticationManager
+        fixture.MockPasswordAuthenticationService
             .Setup(x => x.ResetPassword("sample-token", "sample-password"))
             .ReturnsAsync(user);
 
         await fixture.AuthenticationController.ResetPassword(
             "sample-token", new() { Password = "sample-password" });
 
-        fixture.MockAuthenticationManager.Verify(x => x.SignIn(fixture.HttpContext, user));
+        fixture.MockCookieAuthenticationService.Verify(x => x.SignIn(fixture.HttpContext, user));
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public sealed class AuthenticationControllerTests
 
         await fixture.SignInPost();
 
-        fixture.MockAuthenticationManager.Verify(x => x.SignIn(fixture.HttpContext, user));
+        fixture.MockCookieAuthenticationService.Verify(x => x.SignIn(fixture.HttpContext, user));
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public sealed class AuthenticationControllerTests
         };
 
         public void SetupAuthenticate(User? user) =>
-            this.MockAuthenticationManager
+            this.MockPasswordAuthenticationService
                 .Setup(x => x.Authenticate("sample@example.com", "sample-password"))
                 .ReturnsAsync(user);
 
@@ -302,7 +302,7 @@ public sealed class AuthenticationControllerTests
 
         var result = fixture.AuthenticationController.SignOut();
 
-        fixture.MockAuthenticationManager.Verify(x => x.SignOut(fixture.HttpContext));
+        fixture.MockCookieAuthenticationService.Verify(x => x.SignOut(fixture.HttpContext));
     }
 
     [Fact]
@@ -358,7 +358,8 @@ public sealed class AuthenticationControllerTests
             };
 
             this.AuthenticationController = new(
-                this.MockAuthenticationManager.Object,
+                this.MockCookieAuthenticationService.Object,
+                this.MockPasswordAuthenticationService.Object,
                 this.MockLocalizer.Object)
             {
                 ControllerContext = this.ControllerContext,
@@ -372,7 +373,10 @@ public sealed class AuthenticationControllerTests
 
         public DefaultHttpContext HttpContext { get; } = new();
 
-        public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
+        public Mock<ICookieAuthenticationService> MockCookieAuthenticationService { get; } = new();
+
+        public Mock<IPasswordAuthenticationService> MockPasswordAuthenticationService { get; } =
+            new();
 
         public Mock<IStringLocalizer<AuthenticationController>> MockLocalizer { get; } = new();
 

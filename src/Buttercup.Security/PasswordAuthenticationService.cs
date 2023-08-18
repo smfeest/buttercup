@@ -1,9 +1,5 @@
-using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -12,38 +8,33 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class AuthenticationManager : IAuthenticationManager
+internal sealed class PasswordAuthenticationService : IPasswordAuthenticationService
 {
     private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;
     private readonly IAuthenticationMailer authenticationMailer;
-    private readonly IAuthenticationService authenticationService;
     private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-    private readonly ILogger<AuthenticationManager> logger;
+    private readonly ILogger<PasswordAuthenticationService> logger;
     private readonly IPasswordHasher<User> passwordHasher;
     private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
     private readonly IRandomTokenGenerator randomTokenGenerator;
     private readonly IUrlHelperFactory urlHelperFactory;
     private readonly IUserDataProvider userDataProvider;
-    private readonly IUserPrincipalFactory userPrincipalFactory;
 
-    public AuthenticationManager(
+    public PasswordAuthenticationService(
         IAuthenticationEventDataProvider authenticationEventDataProvider,
         IAuthenticationMailer authenticationMailer,
-        IAuthenticationService authenticationService,
         IClock clock,
         IDbContextFactory<AppDbContext> dbContextFactory,
-        ILogger<AuthenticationManager> logger,
+        ILogger<PasswordAuthenticationService> logger,
         IPasswordHasher<User> passwordHasher,
         IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
         IRandomTokenGenerator randomTokenGenerator,
         IUrlHelperFactory urlHelperFactory,
-        IUserDataProvider userDataProvider,
-        IUserPrincipalFactory userPrincipalFactory)
+        IUserDataProvider userDataProvider)
     {
         this.authenticationEventDataProvider = authenticationEventDataProvider;
         this.authenticationMailer = authenticationMailer;
-        this.authenticationService = authenticationService;
         this.clock = clock;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
@@ -52,7 +43,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         this.randomTokenGenerator = randomTokenGenerator;
         this.urlHelperFactory = urlHelperFactory;
         this.userDataProvider = userDataProvider;
-        this.userPrincipalFactory = userPrincipalFactory;
     }
 
     public async Task<User?> Authenticate(string email, string password)
@@ -160,26 +150,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
         return userId.HasValue;
     }
 
-    public async Task<bool> RefreshPrincipal(HttpContext httpContext)
-    {
-        var authenticateResult = await this.authenticationService.AuthenticateAsync(
-            httpContext, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        if (!authenticateResult.Succeeded)
-        {
-            return false;
-        }
-
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        var user = await this.userDataProvider.GetUser(
-            dbContext, authenticateResult.Principal.GetUserId());
-
-        await this.SignInUser(httpContext, user, authenticateResult.Properties);
-
-        return true;
-    }
-
     public async Task<User> ResetPassword(string token, string newPassword)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -243,35 +213,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
             dbContext, "password_reset_link_sent", user.Id, email);
     }
 
-    public async Task SignIn(HttpContext httpContext, User user)
-    {
-        await this.SignInUser(httpContext, user);
-
-        SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
-
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        await this.authenticationEventDataProvider.LogEvent(dbContext, "sign_in", user.Id);
-    }
-
-    public async Task SignOut(HttpContext httpContext)
-    {
-        await this.SignOutCurrentUser(httpContext);
-
-        var userId = httpContext.User.TryGetUserId();
-
-        if (userId.HasValue)
-        {
-            var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
-
-            SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
-
-            using var dbContext = this.dbContextFactory.CreateDbContext();
-
-            await this.authenticationEventDataProvider.LogEvent(dbContext, "sign_out", userId);
-        }
-    }
-
     private static string RedactToken(string token) => $"{token[..6]}…";
 
     private async Task<string> SetPassword(AppDbContext dbContext, User user, string newPassword)
@@ -287,20 +228,6 @@ internal sealed class AuthenticationManager : IAuthenticationManager
 
         return securityStamp;
     }
-
-    private async Task SignInUser(
-        HttpContext httpContext, User user, AuthenticationProperties? properties = null)
-    {
-        var principal = this.userPrincipalFactory.Create(
-            user, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        await this.authenticationService.SignInAsync(
-            httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
-    }
-
-    private Task SignOutCurrentUser(HttpContext httpContext) =>
-        this.authenticationService.SignOutAsync(
-            httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
     private async Task<long?> ValidatePasswordResetToken(AppDbContext dbContext, string token)
     {
@@ -389,19 +316,5 @@ internal sealed class AuthenticationManager : IAuthenticationManager
                 LogLevel.Information,
                 211,
                 "Unable to send password reset link; No user with email {Email}");
-    }
-
-    private static class SignInLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> SignedIn =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 212, "User {UserId} ({Email}) signed in");
-    }
-
-    private static class SignOutLogMessages
-    {
-        public static readonly Action<ILogger, long, string?, Exception?> SignedOut =
-            LoggerMessage.Define<long, string?>(
-                LogLevel.Information, 213, "User {UserId} ({Email}) signed out");
     }
 }

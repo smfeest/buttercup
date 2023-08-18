@@ -96,7 +96,8 @@ public sealed class AccountControllerTests
 
         await fixture.ChangePasswordPost();
 
-        fixture.MockAuthenticationManager.Verify(x => x.RefreshPrincipal(fixture.HttpContext));
+        fixture.MockCookieAuthenticationService.Verify(
+            x => x.RefreshPrincipal(fixture.HttpContext));
     }
 
     [Fact]
@@ -131,7 +132,7 @@ public sealed class AccountControllerTests
         };
 
         public void SetupChangePassword(bool result) =>
-            this.MockAuthenticationManager
+            this.MockPasswordAuthenticationService
                 .Setup(x => x.ChangePassword(this.UserId, "current-password", "new-password"))
                 .ReturnsAsync(result);
 
@@ -208,7 +209,8 @@ public sealed class AccountControllerTests
             this.AccountController = new(
                 this.DbContextFactory,
                 this.MockUserDataProvider.Object,
-                this.MockAuthenticationManager.Object,
+                this.MockCookieAuthenticationService.Object,
+                this.MockPasswordAuthenticationService.Object,
                 this.MockLocalizer.Object)
             {
                 ControllerContext = new()
@@ -225,7 +227,10 @@ public sealed class AccountControllerTests
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 
-        public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
+        public Mock<ICookieAuthenticationService> MockCookieAuthenticationService { get; } = new();
+
+        public Mock<IPasswordAuthenticationService> MockPasswordAuthenticationService { get; } =
+            new();
 
         public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
 

@@ -1,10 +1,6 @@
-using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -15,7 +11,7 @@ using Xunit;
 
 namespace Buttercup.Security;
 
-public sealed class AuthenticationManagerTests
+public sealed class PasswordAuthenticationServiceTests
 {
     #region Authenticate
 
@@ -127,7 +123,7 @@ public sealed class AuthenticationManagerTests
         Assert.Null(await fixture.Authenticate());
     }
 
-    private sealed class AuthenticateFixture : AuthenticationManagerFixture
+    private sealed class AuthenticateFixture : PasswordAuthenticationServiceFixture
     {
         private const string Password = "user-password";
         private const string HashedPassword = "hashed-password";
@@ -158,7 +154,7 @@ public sealed class AuthenticationManagerTests
             ForPasswordVerificationResult(PasswordVerificationResult.Failed);
 
         public Task<User?> Authenticate() =>
-            this.AuthenticationManager.Authenticate(this.SuppliedEmail, Password);
+            this.PasswordAuthenticationService.Authenticate(this.SuppliedEmail, Password);
 
         private static AuthenticateFixture ForPasswordVerificationResult(
             PasswordVerificationResult result)
@@ -299,7 +295,7 @@ public sealed class AuthenticationManagerTests
         Assert.True(await fixture.ChangePassword());
     }
 
-    private sealed class ChangePasswordFixture : AuthenticationManagerFixture
+    private sealed class ChangePasswordFixture : PasswordAuthenticationServiceFixture
     {
         private const string CurrentPassword = "current-password";
         private const string HashedCurrentPassword = "hashed-current-password";
@@ -335,7 +331,7 @@ public sealed class AuthenticationManagerTests
         public static ChangePasswordFixture ForSuccess() =>
             ForPasswordVerificationResult(PasswordVerificationResult.Success);
 
-        public Task<bool> ChangePassword() => this.AuthenticationManager.ChangePassword(
+        public Task<bool> ChangePassword() => this.PasswordAuthenticationService.ChangePassword(
             this.User.Id, CurrentPassword, this.NewPassword);
 
         private static ChangePasswordFixture ForPasswordVerificationResult(
@@ -415,7 +411,7 @@ public sealed class AuthenticationManagerTests
         Assert.False(await fixture.PasswordResetTokenIsValid());
     }
 
-    private sealed class PasswordResetTokenFixture : AuthenticationManagerFixture
+    private sealed class PasswordResetTokenFixture : PasswordAuthenticationServiceFixture
     {
         private const string Token = "password-reset-token";
 
@@ -434,86 +430,7 @@ public sealed class AuthenticationManagerTests
         public static PasswordResetTokenFixture ForInvalidToken() => new(null);
 
         public Task<bool> PasswordResetTokenIsValid() =>
-            this.AuthenticationManager.PasswordResetTokenIsValid(Token);
-    }
-
-    #endregion
-
-    #region RefreshPrincipal
-
-    [Fact]
-    public async Task RefreshPrincipalReturnsFalseWhenUnauthenticated()
-    {
-        using var fixture = new RefreshPrincipalFixture();
-
-        fixture.SetupUnauthenticated();
-
-        Assert.False(await fixture.RefreshPrincipal());
-    }
-
-    [Fact]
-    public async Task RefreshPrincipalSignsInUpdatedPrincipalWhenAuthenticated()
-    {
-        using var fixture = new RefreshPrincipalFixture();
-
-        fixture.SetupAuthenticated();
-
-        await fixture.RefreshPrincipal();
-
-        fixture.MockAuthenticationService.Verify(
-            x => x.SignInAsync(
-                fixture.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                fixture.UpdatedPrincipal,
-                fixture.AuthenticationProperties));
-    }
-
-    [Fact]
-    public async Task RefreshPrincipalReturnsTrueWhenAuthenticated()
-    {
-        using var fixture = new RefreshPrincipalFixture();
-
-        fixture.SetupAuthenticated();
-
-        Assert.True(await fixture.RefreshPrincipal());
-    }
-
-    private sealed class RefreshPrincipalFixture : AuthenticationManagerFixture
-    {
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public AuthenticationProperties AuthenticationProperties { get; } = new();
-
-        public User User { get; } = new ModelFactory().BuildUser();
-
-        public ClaimsPrincipal UpdatedPrincipal { get; } = new();
-
-        public void SetupUnauthenticated() =>
-            this.SetupAuthenticateAsync(AuthenticateResult.NoResult());
-
-        public void SetupAuthenticated()
-        {
-            var ticket = new AuthenticationTicket(
-                PrincipalFactory.CreateWithUserId(this.User.Id),
-                this.AuthenticationProperties,
-                CookieAuthenticationDefaults.AuthenticationScheme);
-            var result = AuthenticateResult.Success(ticket);
-
-            this.SetupAuthenticateAsync(result);
-            this.SetupGetUser(this.User.Id, this.User);
-            this.MockUserPrincipalFactory
-                .Setup(x => x.Create(this.User, CookieAuthenticationDefaults.AuthenticationScheme))
-                .Returns(this.UpdatedPrincipal);
-        }
-
-        public Task<bool> RefreshPrincipal() =>
-            this.AuthenticationManager.RefreshPrincipal(this.HttpContext);
-
-        private void SetupAuthenticateAsync(AuthenticateResult authenticateResult) =>
-            this.MockAuthenticationService
-                .Setup(x => x.AuthenticateAsync(
-                    this.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme))
-                .ReturnsAsync(authenticateResult);
+            this.PasswordAuthenticationService.PasswordResetTokenIsValid(Token);
     }
 
     #endregion
@@ -639,7 +556,7 @@ public sealed class AuthenticationManagerTests
         Assert.Equal(fixture.User with { SecurityStamp = fixture.NewSecurityStamp }, actual);
     }
 
-    private sealed class ResetPasswordFixture : AuthenticationManagerFixture
+    private sealed class ResetPasswordFixture : PasswordAuthenticationServiceFixture
     {
         private const string NewPassword = "new-password";
         private const string Token = "password-reset-token";
@@ -668,7 +585,7 @@ public sealed class AuthenticationManagerTests
         }
 
         public Task<User> ResetPassword() =>
-            this.AuthenticationManager.ResetPassword(Token, NewPassword);
+            this.PasswordAuthenticationService.ResetPassword(Token, NewPassword);
     }
 
     #endregion
@@ -743,7 +660,7 @@ public sealed class AuthenticationManagerTests
             "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
     }
 
-    private sealed class SendPasswordResetLinkFixture : AuthenticationManagerFixture
+    private sealed class SendPasswordResetLinkFixture : PasswordAuthenticationServiceFixture
     {
         private SendPasswordResetLinkFixture(User? user)
         {
@@ -791,143 +708,21 @@ public sealed class AuthenticationManagerTests
         public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
 
         public Task SendPasswordResetLink() =>
-            this.AuthenticationManager.SendPasswordResetLink(
+            this.PasswordAuthenticationService.SendPasswordResetLink(
                 this.ActionContext, this.SuppliedEmail);
     }
 
     #endregion
 
-    #region SignIn
-
-    [Fact]
-    public async Task SignInSignsInPrincipal()
+    private class PasswordAuthenticationServiceFixture : IDisposable
     {
-        using var fixture = new SignInFixture();
-
-        await fixture.SignIn();
-
-        fixture.MockAuthenticationService.Verify(x => x.SignInAsync(fixture.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme, fixture.UserPrincipal, null));
-    }
-
-    [Fact]
-    public async Task SignInLogsEvent()
-    {
-        using var fixture = new SignInFixture();
-
-        await fixture.SignIn();
-
-        Assert.Contains(
-            fixture.Logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"User {fixture.User.Id} ({fixture.User.Email}) signed in");
-
-        fixture.AssertAuthenticationEventLogged("sign_in", fixture.User.Id);
-    }
-
-    private sealed class SignInFixture : AuthenticationManagerFixture
-    {
-        public SignInFixture() =>
-            this.MockUserPrincipalFactory
-                .Setup(x => x.Create(this.User, CookieAuthenticationDefaults.AuthenticationScheme))
-                .Returns(this.UserPrincipal);
-
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public User User { get; } = new ModelFactory().BuildUser();
-
-        public ClaimsPrincipal UserPrincipal { get; } = new();
-
-        public Task SignIn() => this.AuthenticationManager.SignIn(this.HttpContext, this.User);
-    }
-
-    #endregion
-
-    #region SignOut
-
-    [Fact]
-    public async Task SignOutSignsOutUser()
-    {
-        using var fixture = SignOutFixture.ForUserSignedIn();
-
-        await fixture.SignOut();
-
-        fixture.MockAuthenticationService.Verify(x => x.SignOutAsync(
-            fixture.HttpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
-    }
-
-    [Fact]
-    public async Task SignOutLogsIfUserPreviouslySignedIn()
-    {
-        using var fixture = SignOutFixture.ForUserSignedIn();
-
-        await fixture.SignOut();
-
-        Assert.Contains(
-            fixture.Logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"User {fixture.UserId} ({fixture.Email}) signed out");
-
-        fixture.AssertAuthenticationEventLogged("sign_out", fixture.UserId);
-    }
-
-    [Fact]
-    public async Task SignOutDoesNotLogsIfNoUserPreviouslySignedIn()
-    {
-        using var fixture = SignOutFixture.ForNoUserSignedIn();
-
-        await fixture.SignOut();
-
-        fixture.MockAuthenticationEventDataProvider.Verify(
-            x => x.LogEvent(fixture.DbContextFactory.FakeDbContext, "sign_out", null, null),
-            Times.Never);
-    }
-
-    private sealed class SignOutFixture : AuthenticationManagerFixture
-    {
-        private SignOutFixture(long? userId) => this.UserId = userId;
-
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public long? UserId { get; }
-
-        public string Email { get; } = "sample@example.com";
-
-        public static SignOutFixture ForNoUserSignedIn() => new(null);
-
-        public static SignOutFixture ForUserSignedIn()
-        {
-            using var fixture = new SignOutFixture(76);
-
-            var claims = new Claim[]
-            {
-                new(ClaimTypes.NameIdentifier, "76"),
-                new(ClaimTypes.Email, fixture.Email),
-            };
-
-            fixture.HttpContext.User = new ClaimsPrincipal(
-                new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
-
-            return fixture;
-        }
-
-        public Task SignOut() => this.AuthenticationManager.SignOut(this.HttpContext);
-    }
-
-    #endregion
-
-    private class AuthenticationManagerFixture : IDisposable
-    {
-        public AuthenticationManagerFixture()
+        public PasswordAuthenticationServiceFixture()
         {
             var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
 
-            this.AuthenticationManager = new(
+            this.PasswordAuthenticationService = new(
                 this.MockAuthenticationEventDataProvider.Object,
                 this.MockAuthenticationMailer.Object,
-                this.MockAuthenticationService.Object,
                 clock,
                 this.DbContextFactory,
                 this.Logger,
@@ -935,21 +730,18 @@ public sealed class AuthenticationManagerTests
                 this.MockPasswordResetTokenDataProvider.Object,
                 this.MockRandomTokenGenerator.Object,
                 this.MockUrlHelperFactory.Object,
-                this.MockUserDataProvider.Object,
-                this.MockUserPrincipalFactory.Object);
+                this.MockUserDataProvider.Object);
         }
 
         public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
 
-        public AuthenticationManager AuthenticationManager { get; }
+        public PasswordAuthenticationService PasswordAuthenticationService { get; }
 
         public FakeDbContextFactory DbContextFactory { get; } = new();
 
-        public ListLogger<AuthenticationManager> Logger { get; } = new();
+        public ListLogger<PasswordAuthenticationService> Logger { get; } = new();
 
         public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
-
-        public Mock<IAuthenticationService> MockAuthenticationService { get; } = new();
 
         public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
 
@@ -960,8 +752,6 @@ public sealed class AuthenticationManagerTests
         public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } = new();
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
-
-        public Mock<IUserPrincipalFactory> MockUserPrincipalFactory { get; } = new();
 
         public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
