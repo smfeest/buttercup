@@ -82,14 +82,14 @@ public interface IPasswordAuthenticationService
     /// <remarks>
     /// No email is sent if there is no user with the specified email address.
     /// </remarks>
-    /// <param name="actionContext">
-    /// The current action context.
-    /// </param>
     /// <param name="email">
     /// The email address.
+    /// </param>
+    /// <param name="urlHelper">
+    /// The URL helper.
     /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task SendPasswordResetLink(ActionContext actionContext, string email);
+    Task SendPasswordResetLink(string email, IUrlHelper urlHelper);
 }

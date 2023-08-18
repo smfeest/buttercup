@@ -2,7 +2,6 @@ using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +17,6 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
     private readonly IPasswordHasher<User> passwordHasher;
     private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
     private readonly IRandomTokenGenerator randomTokenGenerator;
-    private readonly IUrlHelperFactory urlHelperFactory;
     private readonly IUserDataProvider userDataProvider;
 
     public PasswordAuthenticationService(
@@ -30,7 +28,6 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         IPasswordHasher<User> passwordHasher,
         IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
         IRandomTokenGenerator randomTokenGenerator,
-        IUrlHelperFactory urlHelperFactory,
         IUserDataProvider userDataProvider)
     {
         this.authenticationEventDataProvider = authenticationEventDataProvider;
@@ -41,7 +38,6 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         this.passwordHasher = passwordHasher;
         this.passwordResetTokenDataProvider = passwordResetTokenDataProvider;
         this.randomTokenGenerator = randomTokenGenerator;
-        this.urlHelperFactory = urlHelperFactory;
         this.userDataProvider = userDataProvider;
     }
 
@@ -180,7 +176,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         return user with { SecurityStamp = newSecurityStamp };
     }
 
-    public async Task SendPasswordResetLink(ActionContext actionContext, string email)
+    public async Task SendPasswordResetLink(string email, IUrlHelper urlHelper)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -202,7 +198,6 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, token);
 
-        var urlHelper = this.urlHelperFactory.GetUrlHelper(actionContext);
         var link = urlHelper.Link("ResetPassword", new { token })!;
 
         await this.authenticationMailer.SendPasswordResetLink(email, link);

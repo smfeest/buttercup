@@ -33,8 +33,7 @@ public sealed class AuthenticationController : Controller
             return this.View(model);
         }
 
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            this.ControllerContext, model.Email);
+        await this.passwordAuthenticationService.SendPasswordResetLink(model.Email, this.Url);
 
         return this.View("RequestPasswordResetConfirmation", model);
     }

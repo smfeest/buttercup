@@ -3,7 +3,6 @@ using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -666,10 +665,6 @@ public sealed class PasswordAuthenticationServiceTests
         {
             this.User = user;
 
-            this.MockUrlHelperFactory
-                .Setup(x => x.GetUrlHelper(this.ActionContext))
-                .Returns(this.MockUrlHelper.Object);
-
             this.MockUserDataProvider
                 .Setup(
                     x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
@@ -709,7 +704,7 @@ public sealed class PasswordAuthenticationServiceTests
 
         public Task SendPasswordResetLink() =>
             this.PasswordAuthenticationService.SendPasswordResetLink(
-                this.ActionContext, this.SuppliedEmail);
+                this.SuppliedEmail, this.MockUrlHelper.Object);
     }
 
     #endregion
@@ -729,7 +724,6 @@ public sealed class PasswordAuthenticationServiceTests
                 this.MockPasswordHasher.Object,
                 this.MockPasswordResetTokenDataProvider.Object,
                 this.MockRandomTokenGenerator.Object,
-                this.MockUrlHelperFactory.Object,
                 this.MockUserDataProvider.Object);
         }
 
@@ -748,8 +742,6 @@ public sealed class PasswordAuthenticationServiceTests
         public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } = new();
 
         public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } = new();
-
-        public Mock<IUrlHelperFactory> MockUrlHelperFactory { get; } = new();
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 

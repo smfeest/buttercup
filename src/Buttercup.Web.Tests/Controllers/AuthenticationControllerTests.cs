@@ -51,7 +51,7 @@ public sealed class AuthenticationControllerTests
         var result = await fixture.AuthenticationController.RequestPasswordReset(model);
 
         fixture.MockPasswordAuthenticationService.Verify(x => x.SendPasswordResetLink(
-            fixture.ControllerContext, "sample-user@example.com"));
+            "sample-user@example.com", fixture.MockUrlHelper.Object));
     }
 
     [Fact]
