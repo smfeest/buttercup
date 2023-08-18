@@ -13,20 +13,23 @@ namespace Buttercup.Web.Controllers;
 [Route("account")]
 public sealed class AccountController : Controller
 {
-    private readonly IAuthenticationManager authenticationManager;
+    private readonly ICookieAuthenticationService cookieAuthenticationService;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
+    private readonly IPasswordAuthenticationService passwordAuthenticationService;
     private readonly IStringLocalizer<AccountController> localizer;
     private readonly IUserDataProvider userDataProvider;
 
     public AccountController(
         IDbContextFactory<AppDbContext> dbContextFactory,
         IUserDataProvider userDataProvider,
-        IAuthenticationManager authenticationManager,
+        ICookieAuthenticationService cookieAuthenticationService,
+        IPasswordAuthenticationService passwordAuthenticationService,
         IStringLocalizer<AccountController> localizer)
     {
         this.dbContextFactory = dbContextFactory;
         this.userDataProvider = userDataProvider;
-        this.authenticationManager = authenticationManager;
+        this.cookieAuthenticationService = cookieAuthenticationService;
+        this.passwordAuthenticationService = passwordAuthenticationService;
         this.localizer = localizer;
     }
 
@@ -44,8 +47,10 @@ public sealed class AccountController : Controller
             return this.View(model);
         }
 
-        var passwordChanged = await this.authenticationManager.ChangePassword(
-            this.HttpContext, model.CurrentPassword, model.NewPassword);
+        var userId = this.HttpContext.User.GetUserId();
+
+        var passwordChanged = await this.passwordAuthenticationService.ChangePassword(
+            userId, model.CurrentPassword, model.NewPassword);
 
         if (!passwordChanged)
         {
@@ -55,6 +60,8 @@ public sealed class AccountController : Controller
 
             return this.View(model);
         }
+
+        await this.cookieAuthenticationService.RefreshPrincipal(this.HttpContext);
 
         return this.RedirectToAction(nameof(this.Show));
     }

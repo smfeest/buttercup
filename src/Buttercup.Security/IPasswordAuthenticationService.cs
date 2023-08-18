@@ -1,13 +1,12 @@
 using Buttercup.EntityModel;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Security;
 
 /// <summary>
-/// Defines the contract for the authentication manager.
+/// Defines the contract for the password authentication service.
 /// </summary>
-public interface IAuthenticationManager
+public interface IPasswordAuthenticationService
 {
     /// <summary>
     /// Authenticate a user with an email address and password.
@@ -27,8 +26,8 @@ public interface IAuthenticationManager
     /// <summary>
     /// Changes a user's password.
     /// </summary>
-    /// <param name="httpContext">
-    /// The HTTP context for the current request.
+    /// <param name="userId">
+    /// The user ID.
     /// </param>
     /// <param name="currentPassword">
     /// The current password for verification.
@@ -43,8 +42,7 @@ public interface IAuthenticationManager
     /// <exception cref="InvalidOperationException">
     /// The user doesn't have a password.
     /// </exception>
-    Task<bool> ChangePassword(
-        HttpContext httpContext, string currentPassword, string newPassword);
+    Task<bool> ChangePassword(long userId, string currentPassword, string newPassword);
 
     /// <summary>
     /// Validates a password reset token.
@@ -94,29 +92,4 @@ public interface IAuthenticationManager
     /// A task for the operation.
     /// </returns>
     Task SendPasswordResetLink(ActionContext actionContext, string email);
-
-    /// <summary>
-    /// Signs in a user.
-    /// </summary>
-    /// <param name="httpContext">
-    /// The HTTP context for the current request.
-    /// </param>
-    /// <param name="user">
-    /// The user.
-    /// </param>
-    /// <returns>
-    /// A task for the operation.
-    /// </returns>
-    Task SignIn(HttpContext httpContext, User user);
-
-    /// <summary>
-    /// Signs out the current user.
-    /// </summary>
-    /// <param name="httpContext">
-    /// The HTTP context for the current request.
-    /// </param>
-    /// <returns>
-    /// A task for the operation.
-    /// </returns>
-    Task SignOut(HttpContext httpContext);
 }

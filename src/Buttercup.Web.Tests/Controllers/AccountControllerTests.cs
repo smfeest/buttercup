@@ -88,6 +88,19 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
+    public async Task ChangePasswordRefreshesPrincipalOnSuccess()
+    {
+        using var fixture = new ChangePasswordPostFixture();
+
+        fixture.SetupChangePassword(true);
+
+        await fixture.ChangePasswordPost();
+
+        fixture.MockCookieAuthenticationService.Verify(
+            x => x.RefreshPrincipal(fixture.HttpContext));
+    }
+
+    [Fact]
     public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
     {
         using var fixture = new ChangePasswordPostFixture();
@@ -102,9 +115,15 @@ public sealed class AccountControllerTests
 
     private sealed class ChangePasswordPostFixture : AccountControllerFixture
     {
-        public ChangePasswordPostFixture() =>
+        public ChangePasswordPostFixture()
+        {
+            this.UserId = this.ModelFactory.NextInt();
+            this.HttpContext.User = PrincipalFactory.CreateWithUserId(this.UserId);
             this.MockLocalizer.SetupLocalizedString(
                 "Error_WrongPassword", "translated-wrong-password-error");
+        }
+
+        public long UserId { get; }
 
         public ChangePasswordViewModel Model { get; } = new()
         {
@@ -113,8 +132,8 @@ public sealed class AccountControllerTests
         };
 
         public void SetupChangePassword(bool result) =>
-            this.MockAuthenticationManager
-                .Setup(x => x.ChangePassword(this.HttpContext, "current-password", "new-password"))
+            this.MockPasswordAuthenticationService
+                .Setup(x => x.ChangePassword(this.UserId, "current-password", "new-password"))
                 .ReturnsAsync(result);
 
         public Task<IActionResult> ChangePasswordPost() =>
@@ -185,13 +204,13 @@ public sealed class AccountControllerTests
 
     private class AccountControllerFixture : IDisposable
     {
-        private readonly ModelFactory modelFactory = new();
 
         public AccountControllerFixture() =>
             this.AccountController = new(
                 this.DbContextFactory,
                 this.MockUserDataProvider.Object,
-                this.MockAuthenticationManager.Object,
+                this.MockCookieAuthenticationService.Object,
+                this.MockPasswordAuthenticationService.Object,
                 this.MockLocalizer.Object)
             {
                 ControllerContext = new()
@@ -208,13 +227,18 @@ public sealed class AccountControllerTests
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
 
-        public Mock<IAuthenticationManager> MockAuthenticationManager { get; } = new();
+        public Mock<ICookieAuthenticationService> MockCookieAuthenticationService { get; } = new();
+
+        public Mock<IPasswordAuthenticationService> MockPasswordAuthenticationService { get; } =
+            new();
 
         public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
 
+        public ModelFactory ModelFactory { get; } = new();
+
         public User SetupCurrentUser()
         {
-            var user = this.modelFactory.BuildUser();
+            var user = this.ModelFactory.BuildUser();
 
             this.HttpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
 

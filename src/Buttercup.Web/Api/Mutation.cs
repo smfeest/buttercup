@@ -6,11 +6,11 @@ namespace Buttercup.Web.Api;
 public sealed class Mutation
 {
     public async Task<AuthenticatePayload> Authenticate(
-        [Service] IAuthenticationManager authenticationManager,
+        [Service] IPasswordAuthenticationService passwordAuthenticationService,
         [Service] ITokenAuthenticationService tokenAuthenticationService,
         AuthenticateInput input)
     {
-        var user = await authenticationManager.Authenticate(input.Email, input.Password);
+        var user = await passwordAuthenticationService.Authenticate(input.Email, input.Password);
 
         if (user == null)
         {
