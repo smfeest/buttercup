@@ -16,11 +16,13 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 {
     private const string SchemeName = "ExampleScheme";
 
-    private readonly TokenAuthenticationHandler tokenAuthenticationHandler;
-    private readonly DefaultHttpContext httpContext = new();
-    private readonly Mock<ITokenAuthenticationService> mockTokenAuthenticationService = new();
-    private readonly Mock<IUserPrincipalFactory> mockUserPrincipalFactory = new();
     private readonly ModelFactory modelFactory = new();
+
+    private readonly DefaultHttpContext httpContext = new();
+    private readonly Mock<ITokenAuthenticationService> tokenAuthenticationServiceMock = new();
+    private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
+
+    private readonly TokenAuthenticationHandler tokenAuthenticationHandler;
 
     public TokenAuthenticationHandlerTests()
     {
@@ -32,8 +34,8 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
             NullLoggerFactory.Instance,
             Mock.Of<UrlEncoder>(),
             Mock.Of<ISystemClock>(),
-            this.mockTokenAuthenticationService.Object,
-            this.mockUserPrincipalFactory.Object);
+            this.tokenAuthenticationServiceMock.Object,
+            this.userPrincipalFactoryMock.Object);
     }
 
     public Task InitializeAsync() => this.tokenAuthenticationHandler.InitializeAsync(
@@ -69,7 +71,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     {
         this.SetAuthorizationHeader("Bearer invalid-token");
 
-        this.mockTokenAuthenticationService
+        this.tokenAuthenticationServiceMock
             .Setup(x => x.ValidateAccessToken("invalid-token"))
             .ReturnsAsync(default(User?));
 
@@ -91,11 +93,11 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 
         this.SetAuthorizationHeader(authorizationHeaderValue);
 
-        this.mockTokenAuthenticationService
+        this.tokenAuthenticationServiceMock
             .Setup(x => x.ValidateAccessToken("valid-token"))
             .ReturnsAsync(user);
 
-        this.mockUserPrincipalFactory
+        this.userPrincipalFactoryMock
             .Setup(x => x.Create(user, SchemeName))
             .Returns(principal);
 

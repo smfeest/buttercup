@@ -20,6 +20,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     private readonly ListLogger<CookieAuthenticationEventsHandler> logger = new();
     private readonly Mock<IUserDataProvider> userDataProviderMock = new();
     private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
+
     private readonly CookieAuthenticationEventsHandler cookieAuthenticationEventsHandler;
 
     public CookieAuthenticationEventsHandlerTests() =>

@@ -6,47 +6,42 @@ namespace Buttercup.Security;
 
 public sealed class AccessTokenEncoderTests
 {
+    private readonly AccessTokenPayload payload = new(1, "security-stamp", DateTime.UtcNow);
+    private readonly byte[] payloadBytes = { 1, 2, 3 };
+    private readonly byte[] encryptedBytes = { 4, 5, 6 };
+    private readonly string encryptedBase64 = "BAUG";
+
+    private readonly Mock<IAccessTokenSerializer> accessTokenSerializerMock = new();
+    private readonly Mock<IDataProtector> dataProtectorMock = new();
+
+    private readonly AccessTokenEncoder accessTokenEncoder;
+
     public AccessTokenEncoderTests()
     {
         var dataProtectionProvider = Mock.Of<IDataProtectionProvider>(
-            x => x.CreateProtector(nameof(Security.AccessTokenEncoder)) ==
-                this.MockDataProtector.Object);
+            x => x.CreateProtector(nameof(AccessTokenEncoder)) == this.dataProtectorMock.Object);
 
-        this.AccessTokenEncoder = new(
-            this.MockAccessTokenSerializer.Object,
+        this.accessTokenEncoder = new(
+            this.accessTokenSerializerMock.Object,
             dataProtectionProvider);
     }
-
-    private AccessTokenPayload Payload { get; } = new(1, "security-stamp", DateTime.UtcNow);
-
-    private byte[] PayloadBytes { get; } = { 1, 2, 3 };
-
-    private byte[] EncryptedBytes { get; } = { 4, 5, 6 };
-
-    private string EncryptedBase64 { get; } = "BAUG";
-
-    private Mock<IAccessTokenSerializer> MockAccessTokenSerializer { get; } = new();
-
-    private Mock<IDataProtector> MockDataProtector { get; } = new();
-
-    private AccessTokenEncoder AccessTokenEncoder { get; }
 
     #region Encode
 
     [Fact]
     public void EncodeReturnsEncodedPayload()
     {
-        this.MockAccessTokenSerializer
-            .Setup(x => x.Serialize(this.Payload))
-            .Returns(this.PayloadBytes);
+        this.accessTokenSerializerMock
+            .Setup(x => x.Serialize(this.payload))
+            .Returns(this.payloadBytes);
 
-        this.MockDataProtector
-            .Setup(x => x.Protect(this.PayloadBytes))
-            .Returns(this.EncryptedBytes);
+        this.dataProtectorMock
+            .Setup(x => x.Protect(this.payloadBytes))
+            .Returns(this.encryptedBytes);
 
-        var token = this.AccessTokenEncoder.Encode(this.Payload);
+        var token = this.accessTokenEncoder.Encode(this.payload);
 
-        Assert.Equal(this.EncryptedBase64, token);
+        Assert.Equal(this.encryptedBase64, token);
     }
 
     #endregion
@@ -56,17 +51,17 @@ public sealed class AccessTokenEncoderTests
     [Fact]
     public void DecodeReturnsDecodedPayload()
     {
-        this.MockDataProtector
-            .Setup(x => x.Unprotect(this.EncryptedBytes))
-            .Returns(this.PayloadBytes);
+        this.dataProtectorMock
+            .Setup(x => x.Unprotect(this.encryptedBytes))
+            .Returns(this.payloadBytes);
 
-        this.MockAccessTokenSerializer
-            .Setup(x => x.Deserialize(this.PayloadBytes))
-            .Returns(this.Payload);
+        this.accessTokenSerializerMock
+            .Setup(x => x.Deserialize(this.payloadBytes))
+            .Returns(this.payload);
 
-        var decodedPayload = this.AccessTokenEncoder.Decode(this.EncryptedBase64);
+        var decodedPayload = this.accessTokenEncoder.Decode(this.encryptedBase64);
 
-        Assert.Equal(this.Payload, decodedPayload);
+        Assert.Equal(this.payload, decodedPayload);
     }
 
     #endregion
