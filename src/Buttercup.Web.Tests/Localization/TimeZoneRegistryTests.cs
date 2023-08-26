@@ -7,7 +7,7 @@ public sealed class TimeZoneRegistryTests
     #region GetSupportedTimeZones
 
     [Fact]
-    public void GetSupportedTimeZonesReturnsSupportedTimeZones() =>
+    public void GetSupportedTimeZones_ReturnsSupportedTimeZones() =>
         Assert.Equal(
             TimeZoneInfo.GetSystemTimeZones(), new TimeZoneRegistry().GetSupportedTimeZones());
 
@@ -16,7 +16,7 @@ public sealed class TimeZoneRegistryTests
     #region GetTimeZone
 
     [Fact]
-    public void GetTimeZoneReturnsRequestedTimeZone()
+    public void GetTimeZone_ReturnsRequestedTimeZone()
     {
         const string id = "Etc/GMT-8";
 

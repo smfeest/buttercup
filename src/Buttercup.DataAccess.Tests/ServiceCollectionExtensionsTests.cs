@@ -8,7 +8,7 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddDataAccessServices
 
     [Fact]
-    public void AddDataAccessServicesAddsAuthenticationEventDataProvider() =>
+    public void AddDataAccessServices_AddsAuthenticationEventDataProvider() =>
         Assert.Contains(
             new ServiceCollection().AddDataAccessServices(),
             serviceDescriptor =>
@@ -17,7 +17,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddDataAccessServicesAddsPasswordResetTokenDataProvider() =>
+    public void AddDataAccessServices_AddsPasswordResetTokenDataProvider() =>
         Assert.Contains(
             new ServiceCollection().AddDataAccessServices(),
             serviceDescriptor =>
@@ -26,7 +26,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddDataAccessServicesAddsRecipeDataProvider() =>
+    public void AddDataAccessServices_AddsRecipeDataProvider() =>
         Assert.Contains(
             new ServiceCollection().AddDataAccessServices(),
             serviceDescriptor =>
@@ -35,7 +35,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddDataAccessServicesAddsUserDataProvider() =>
+    public void AddDataAccessServices_AddsUserDataProvider() =>
         Assert.Contains(
             new ServiceCollection().AddDataAccessServices(),
             serviceDescriptor =>

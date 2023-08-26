@@ -23,7 +23,7 @@ public sealed class PasswordResetTokenDataProviderTests
     #region DeleteExpiredTokens
 
     [Fact]
-    public async Task DeleteExpiredTokensDeletesExpiredTokens()
+    public async Task DeleteExpiredTokens_DeletesExpiredTokens()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -54,7 +54,7 @@ public sealed class PasswordResetTokenDataProviderTests
     #region DeleteTokensForUser
 
     [Fact]
-    public async Task DeleteTokensForUserDeletesTokensBelongingToUser()
+    public async Task DeleteTokensForUser_DeletesTokensBelongingToUser()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -84,7 +84,7 @@ public sealed class PasswordResetTokenDataProviderTests
     #region GetUserIdForToken
 
     [Fact]
-    public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists()
+    public async Task GetUserIdForToken_ReturnsUserIdWhenTokenExists()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -105,7 +105,7 @@ public sealed class PasswordResetTokenDataProviderTests
     }
 
     [Fact]
-    public async Task GetUserIdForTokenReturnsNullIfNoMatchFound()
+    public async Task GetUserIdForToken_ReturnsNullIfNoMatchFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
 
@@ -120,7 +120,7 @@ public sealed class PasswordResetTokenDataProviderTests
     #region InsertToken
 
     [Fact]
-    public async Task InsertTokenInsertsToken()
+    public async Task InsertToken_InsertsToken()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();

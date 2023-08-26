@@ -11,7 +11,7 @@ public sealed class RandomTokenGeneratorTests
     [Theory]
     [InlineData(1)]
     [InlineData(3)]
-    public void GenerateUses3nRandomBytes(int n)
+    public void Generate_Uses3nRandomBytes(int n)
     {
         var fixture = new RandomTokenGeneratorFixture();
 
@@ -22,7 +22,7 @@ public sealed class RandomTokenGeneratorTests
     }
 
     [Fact]
-    public void GenerateReturnsUrlSafeBase64()
+    public void Generate_ReturnsUrlSafeBase64()
     {
         var fixture = new RandomTokenGeneratorFixture();
 

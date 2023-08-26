@@ -15,7 +15,7 @@ public sealed class AccountControllerTests
     #region Show (GET)
 
     [Fact]
-    public async void ShowReturnsViewResultWithCurrentUser()
+    public async void Show_ReturnsViewResultWithCurrentUser()
     {
         using var fixture = new AccountControllerFixture();
 
@@ -31,7 +31,7 @@ public sealed class AccountControllerTests
     #region ChangePassword (GET)
 
     [Fact]
-    public void ChangePasswordGetReturnsViewResult()
+    public void ChangePassword_Get_ReturnsViewResult()
     {
         using var fixture = new AccountControllerFixture();
 
@@ -44,7 +44,7 @@ public sealed class AccountControllerTests
     #region ChangePassword (POST)
 
     [Fact]
-    public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
+    public async Task ChangePassword_Post_ModelIsInvalid_ReturnsViewResult()
     {
         using var fixture = new ChangePasswordPostFixture();
 
@@ -57,7 +57,7 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
+    public async Task ChangePassword_Post_CurrentPasswordIsIncorrect_AddsError()
     {
         using var fixture = new ChangePasswordPostFixture();
 
@@ -75,7 +75,7 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
+    public async Task ChangePassword_Post_CurrentPasswordIsIncorrect_ReturnsViewResult()
     {
         using var fixture = new ChangePasswordPostFixture();
 
@@ -88,7 +88,7 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task ChangePasswordRefreshesPrincipalOnSuccess()
+    public async Task ChangePassword_Post_Success_RefreshesPrincipal()
     {
         using var fixture = new ChangePasswordPostFixture();
 
@@ -101,7 +101,7 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
+    public async Task ChangePassword_Post_Success_RedirectsToYourAccount()
     {
         using var fixture = new ChangePasswordPostFixture();
 
@@ -145,7 +145,7 @@ public sealed class AccountControllerTests
     #region Preferences (GET)
 
     [Fact]
-    public async void PreferencesGetReturnsViewResultWithViewModel()
+    public async void Preferences_Get_ReturnsViewResultWithViewModel()
     {
         using var fixture = new AccountControllerFixture();
 
@@ -163,7 +163,7 @@ public sealed class AccountControllerTests
     #region Preferences (POST)
 
     [Fact]
-    public async Task PreferencesPostReturnsViewResultWhenModelIsInvalid()
+    public async Task Preferences_Post_InvalidModel_ReturnsViewResult()
     {
         using var fixture = new AccountControllerFixture();
 
@@ -178,7 +178,7 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
+    public async Task Preferences_Post_Success_UpdatesUserAndRedirectsToShowPage()
     {
         using var fixture = new AccountControllerFixture();
 

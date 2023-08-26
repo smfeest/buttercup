@@ -10,7 +10,7 @@ public sealed class AssetManifestSourceTests
     #region ProductionManifest
 
     [Fact]
-    public void ProductionManifestLogsManifestLocation()
+    public void ProductionManifest_LogsManifestLocation()
     {
         var fixture = new AssetManifestSourceFixture();
 
@@ -24,7 +24,7 @@ public sealed class AssetManifestSourceTests
     }
 
     [Fact]
-    public void ProductionManifestReturnsManifestAsReadOnlyDictionary()
+    public void ProductionManifest_ReturnsManifestAsReadOnlyDictionary()
     {
         var fixture = new AssetManifestSourceFixture();
 
@@ -35,7 +35,7 @@ public sealed class AssetManifestSourceTests
     }
 
     [Fact]
-    public void ProductionManifestCachesResult()
+    public void ProductionManifest_CachesResult()
     {
         var fixture = new AssetManifestSourceFixture();
 

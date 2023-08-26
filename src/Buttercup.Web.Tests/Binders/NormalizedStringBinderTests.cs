@@ -11,7 +11,7 @@ public sealed class NormalizedStringBinderTests
     #region BindModelAsync
 
     [Fact]
-    public async Task BindModelAsyncDoesNotSetStateOrModelWhenValueNotProvided()
+    public async Task BindModelAsync_ValueNotProvided_DoesNotSetStateOrModel()
     {
         var bindingContext = CreateBindingContext(ValueProviderResult.None);
 
@@ -25,7 +25,7 @@ public sealed class NormalizedStringBinderTests
     [InlineData("", null)]
     [InlineData("  \t\n   ", null)]
     [InlineData("  \tRed\nGreen Blue\n   ", "Red\nGreen Blue")]
-    public async Task BindModelAsyncSetsStateAndModelWhenValueProvided(
+    public async Task BindModelAsync_ValueProvided_SetsStateAndModel(
         string? providedValue, string? expectedModelValue)
     {
         var bindingContext = CreateBindingContext(new(providedValue));

@@ -16,7 +16,7 @@ public sealed class AuthenticationControllerTests
     #region RequestPasswordReset (GET)
 
     [Fact]
-    public void RequestPasswordResetGetReturnsViewResult()
+    public void RequestPasswordReset_Get_ReturnsViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -29,7 +29,7 @@ public sealed class AuthenticationControllerTests
     #region RequestPasswordReset (POST)
 
     [Fact]
-    public async Task RequestPasswordResetPostReturnsViewResultWhenModelIsInvalid()
+    public async Task RequestPasswordReset_Post_ReturnsViewResultWhenModelIsInvalid()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -43,7 +43,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task RequestPasswordResetPostSendsPasswordResetLink()
+    public async Task RequestPasswordReset_Post_SendsPasswordResetLink()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -55,7 +55,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task RequestPasswordResetPostReturnsViewResult()
+    public async Task RequestPasswordReset_Post_ReturnsViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -73,7 +73,7 @@ public sealed class AuthenticationControllerTests
     #region ResetPassword (GET)
 
     [Fact]
-    public async Task ResetPasswordGetReturnsDefaultViewResultWhenTokenIsValid()
+    public async Task ResetPassword_Get_TokenIsValid_ReturnsDefaultViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -88,7 +88,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task ResetPasswordGetReturnsInvalidTokenViewResultWhenTokenIsInvalid()
+    public async Task ResetPassword_Get_TokenIsInvalid_ReturnsInvalidTokenViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -107,7 +107,7 @@ public sealed class AuthenticationControllerTests
     #region ResetPassword (POST)
 
     [Fact]
-    public async Task ResetPasswordPostReturnsDefaultViewResultWhenModelIsInvalid()
+    public async Task ResetPassword_Post_InvalidModel_ReturnsDefaultViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -122,7 +122,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task ResetPasswordPostReturnsInvalidTokenViewResultWhenTokenIsInvalid()
+    public async Task ResetPassword_Post_InvalidToken_ReturnsInvalidTokenViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -138,7 +138,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task ResetPasswordPostSignsInUser()
+    public async Task ResetPassword_Post_Success_SignsInUser()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -155,7 +155,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task ResetPasswordPostRedirectsToHomeIndex()
+    public async Task ResetPassword_Post_Success_RedirectsToHomeIndex()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -171,7 +171,7 @@ public sealed class AuthenticationControllerTests
     #region SignIn (GET)
 
     [Fact]
-    public void SignInGetReturnsViewResult()
+    public void SignIn_Get_ReturnsViewResult()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -184,7 +184,7 @@ public sealed class AuthenticationControllerTests
     #region SignIn (POST)
 
     [Fact]
-    public async Task SignInPostReturnsViewResultWhenModelIsInvalid()
+    public async Task SignIn_Post_InvalidModel_ReturnsViewResult()
     {
         using var fixture = new SignInPostFixture();
 
@@ -197,7 +197,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignInPostAddsErrorWhenAuthenticationFails()
+    public async Task SignIn_Post_AuthenticationFailure_AddsError()
     {
         using var fixture = new SignInPostFixture();
 
@@ -213,7 +213,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignInPostReturnsViewResultWhenAuthenticationFails()
+    public async Task SignIn_Post_AuthenticationFailure_ReturnsViewResult()
     {
         using var fixture = new SignInPostFixture();
 
@@ -226,7 +226,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignInSignsInUserWhenSuccessful()
+    public async Task SignIn_Post_Success_SignsInUser()
     {
         using var fixture = new SignInPostFixture();
 
@@ -240,7 +240,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignInPostRedirectsToInternalUrl()
+    public async Task SignIn_Post_Success_RedirectsToInternalUrl()
     {
         using var fixture = new SignInPostFixture();
 
@@ -255,7 +255,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignInPostRedirectsDoesNotRedirectToExternalUrl()
+    public async Task SignIn_Post_Success_RedirectsDoesNotRedirectToExternalUrl()
     {
         using var fixture = new SignInPostFixture();
 
@@ -296,7 +296,7 @@ public sealed class AuthenticationControllerTests
     #region SignOut
 
     [Fact]
-    public void SignOutSignsOutUser()
+    public void SignOut_SignsOutUser()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -306,7 +306,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public void SignOutSetsCacheControlHeader()
+    public void SignOut_SetsCacheControlHeader()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -320,7 +320,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignOutRedirectsToInternalUrls()
+    public async Task SignOut_RedirectsToInternalUrls()
     {
         using var fixture = new AuthenticationControllerFixture();
 
@@ -333,7 +333,7 @@ public sealed class AuthenticationControllerTests
     }
 
     [Fact]
-    public async Task SignOutDoesNotRedirectToExternalUrls()
+    public async Task SignOut_DoesNotRedirectToExternalUrls()
     {
         using var fixture = new AuthenticationControllerFixture();
 

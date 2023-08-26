@@ -23,7 +23,7 @@ public sealed class UserDataProviderTests
     #region FindUserByEmail
 
     [Fact]
-    public async Task FindUserByEmailReturnsUser()
+    public async Task FindUserByEmail_ReturnsUser()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -38,7 +38,7 @@ public sealed class UserDataProviderTests
     }
 
     [Fact]
-    public async Task FindUserByEmailReturnsNullIfNoMatchFound()
+    public async Task FindUserByEmail_ReturnsNullIfNoMatchFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -57,7 +57,7 @@ public sealed class UserDataProviderTests
     #region GetUser
 
     [Fact]
-    public async Task GetUserReturnsUser()
+    public async Task GetUser_ReturnsUser()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -74,7 +74,7 @@ public sealed class UserDataProviderTests
     }
 
     [Fact]
-    public async Task GetUserThrowsIfRecordNotFound()
+    public async Task GetUser_ThrowsIfRecordNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -95,7 +95,7 @@ public sealed class UserDataProviderTests
     #region UpdatePassword
 
     [Fact]
-    public async Task UpdatePasswordUpdatesHashedPassword()
+    public async Task UpdatePassword_UpdatesHashedPassword()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -127,7 +127,7 @@ public sealed class UserDataProviderTests
     }
 
     [Fact]
-    public async Task UpdatePasswordThrowsIfRecordNotFound()
+    public async Task UpdatePassword_ThrowsIfRecordNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -155,7 +155,7 @@ public sealed class UserDataProviderTests
     #region UpdatePreferences
 
     [Fact]
-    public async Task UpdatePreferencesUpdatesPreferences()
+    public async Task UpdatePreferences_UpdatesPreferences()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -183,7 +183,7 @@ public sealed class UserDataProviderTests
     }
 
     [Fact]
-    public async Task UpdatePreferencesThrowsIfRecordNotFound()
+    public async Task UpdatePreferences_ThrowsIfRecordNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();

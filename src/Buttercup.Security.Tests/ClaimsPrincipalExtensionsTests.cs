@@ -8,7 +8,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     #region GetUserId
 
     [Fact]
-    public void GetUserIdReturnsParsedNameIdentifier()
+    public void GetUserId_ReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "7214") }));
@@ -17,7 +17,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     }
 
     [Fact]
-    public void GetUserIdThrowsWhenNameIdentifierIsMissing()
+    public void GetUserId_ThrowsWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));
@@ -30,7 +30,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     #region TryGetUserId
 
     [Fact]
-    public void TryGetUserIdReturnsParsedNameIdentifier()
+    public void TryGetUserId_ReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "7214") }));
@@ -39,7 +39,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     }
 
     [Fact]
-    public void TryGetUserIdReturnsNullWhenNameIdentifierIsMissing()
+    public void TryGetUserId_ReturnsNullWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));

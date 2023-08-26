@@ -29,7 +29,7 @@ public sealed class AccessTokenEncoderTests
     #region Encode
 
     [Fact]
-    public void EncodeReturnsEncodedPayload()
+    public void Encode_ReturnsEncodedPayload()
     {
         this.accessTokenSerializerMock
             .Setup(x => x.Serialize(this.payload))
@@ -49,7 +49,7 @@ public sealed class AccessTokenEncoderTests
     #region Decode
 
     [Fact]
-    public void DecodeReturnsDecodedPayload()
+    public void Decode_ReturnsDecodedPayload()
     {
         this.dataProtectorMock
             .Setup(x => x.Unprotect(this.encryptedBytes))

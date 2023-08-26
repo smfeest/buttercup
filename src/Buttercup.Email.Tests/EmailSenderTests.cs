@@ -16,7 +16,7 @@ public sealed class EmailSenderTests
     #region Send
 
     [Fact]
-    public async Task SendSetsFromAddress()
+    public async Task Send_SetsFromAddress()
     {
         var message = await Send();
 
@@ -24,7 +24,7 @@ public sealed class EmailSenderTests
     }
 
     [Fact]
-    public async Task SendSetsToAddress()
+    public async Task Send_SetsToAddress()
     {
         var message = await Send();
 
@@ -34,7 +34,7 @@ public sealed class EmailSenderTests
     }
 
     [Fact]
-    public async Task SendSetsSubject()
+    public async Task Send_SetsSubject()
     {
         var message = await Send();
 
@@ -42,7 +42,7 @@ public sealed class EmailSenderTests
     }
 
     [Fact]
-    public async Task SendSetsBody()
+    public async Task Send_SetsBody()
     {
         var message = await Send();
 

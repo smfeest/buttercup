@@ -49,7 +49,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     #region HandleAuthenticateAsync
 
     [Fact]
-    public async Task HandleAuthenticateAsyncReturnsNoResultWhenRequestHasNoAuthorizationHeader()
+    public async Task HandleAuthenticateAsync_RequestHasNoAuthorizationHeader_ReturnsNoResult()
     {
         var result = await this.tokenAuthenticationHandler.AuthenticateAsync();
 
@@ -57,7 +57,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task HandleAuthenticateAsyncReturnsNoResultWhenAuthorizationTypeIsNotBearer()
+    public async Task HandleAuthenticateAsync_AuthorizationTypeIsNotBearer_ReturnsNoResult()
     {
         this.SetAuthorizationHeader("Basic VGVzdDpUZXN0");
 
@@ -67,7 +67,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task HandleAuthenticateAsyncReturnsFailureWhenAccessTokenIsInvalid()
+    public async Task HandleAuthenticateAsync_AccessTokenIsInvalid_ReturnsFailure()
     {
         this.SetAuthorizationHeader("Bearer invalid-token");
 
@@ -85,7 +85,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     [InlineData("Bearer valid-token")]
     [InlineData("bEARER valid-token")]
     [InlineData("Bearer  valid-token ")]
-    public async Task HandleAuthenticateAsyncReturnsSuccessWhenAccessTokenIsValid(
+    public async Task HandleAuthenticateAsync_AccessTokenIsValid_ReturnsSuccess(
         string authorizationHeaderValue)
     {
         var user = this.modelFactory.BuildUser();
@@ -114,7 +114,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     #region HandleChallengeAsync
 
     [Fact]
-    public async Task HandleChallengeAsyncSetsStatusCodeAndWWWAuthenticateHeader()
+    public async Task HandleChallengeAsync_SetsStatusCodeAndWWWAuthenticateHeader()
     {
         await this.tokenAuthenticationHandler.ChallengeAsync(null);
 

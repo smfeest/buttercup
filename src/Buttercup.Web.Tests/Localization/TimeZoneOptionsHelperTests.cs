@@ -10,7 +10,7 @@ public sealed class TimeZoneOptionsHelperTests
     #region AllOptions
 
     [Fact]
-    public void AllOptionsReturnsOrderedListOfOptions()
+    public void AllOptions_ReturnsOrderedListOfOptions()
     {
         var fixture = new AllOptionsFixture();
 
@@ -48,7 +48,7 @@ public sealed class TimeZoneOptionsHelperTests
     #region OptionForTimeZone
 
     [Fact]
-    public void OptionForTimeZoneProvidesTimeZoneId()
+    public void OptionForTimeZone_ProvidesTimeZoneId()
     {
         var fixture = new OptionForTimeZoneFixture();
 
@@ -60,7 +60,7 @@ public sealed class TimeZoneOptionsHelperTests
     [Theory]
     [InlineData(2, -3)]
     [InlineData(4, -2)]
-    public void OptionForTimeZoneProvidesCurrentOffset(int month, int expectedOffsetHours)
+    public void OptionForTimeZone_ProvidesCurrentOffset(int month, int expectedOffsetHours)
     {
         var fixture = new OptionForTimeZoneFixture();
 
@@ -81,7 +81,7 @@ public sealed class TimeZoneOptionsHelperTests
     [InlineData(-1, "Format_NegativeOffset")]
     [InlineData(0, "Format_PositiveOffset")]
     [InlineData(1, "Format_PositiveOffset")]
-    public void OptionForTimeZoneProvidesFormattedOffset(int offsetHours, string expectedFormat)
+    public void OptionForTimeZone_ProvidesFormattedOffset(int offsetHours, string expectedFormat)
     {
         var fixture = new OptionForTimeZoneFixture();
 
@@ -96,7 +96,7 @@ public sealed class TimeZoneOptionsHelperTests
     }
 
     [Fact]
-    public void OptionForTimeZoneProvidesCity()
+    public void OptionForTimeZone_ProvidesCity()
     {
         var fixture = new OptionForTimeZoneFixture();
 

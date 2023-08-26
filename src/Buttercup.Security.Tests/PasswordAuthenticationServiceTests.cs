@@ -15,7 +15,7 @@ public sealed class PasswordAuthenticationServiceTests
     #region Authenticate
 
     [Fact]
-    public async Task AuthenticateLogsOnSuccess()
+    public async Task Authenticate_Success_LogsSuccessEvent()
     {
         using var fixture = AuthenticateFixture.ForSuccess();
 
@@ -34,7 +34,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateReturnsUserOnSuccess()
+    public async Task Authenticate_Success_ReturnsUser()
     {
         using var fixture = AuthenticateFixture.ForSuccess();
 
@@ -44,7 +44,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateLogsIfEmailIsUnrecognized()
+    public async Task Authenticate_EmailIsUnrecognized_LogsUnrecognizedEmailEvent()
     {
         using var fixture = AuthenticateFixture.ForEmailNotFound();
 
@@ -61,7 +61,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateReturnsNullIfEmailIsUnrecognized()
+    public async Task Authenticate_EmailIsUnrecognized_ReturnsNull()
     {
         using var fixture = AuthenticateFixture.ForEmailNotFound();
 
@@ -69,7 +69,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateLogsIfUserHasNoPassword()
+    public async Task Authenticate_UserHasNoPassword_LogsNoPasswordEvent()
     {
         using var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
@@ -88,7 +88,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateReturnsNullIfUserHasNoPassword()
+    public async Task Authenticate_UserHasNoPassword_ReturnsNull()
     {
         using var fixture = AuthenticateFixture.ForUserHasNoPassword();
 
@@ -96,7 +96,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateLogsIfPasswordIsIncorrect()
+    public async Task Authenticate_IncorrectPassword_LogsIncorrectPasswordEvent()
     {
         using var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
@@ -115,7 +115,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task AuthenticateReturnsNullIfPasswordIsIncorrect()
+    public async Task Authenticate_IncorrectPassword_ReturnsNull()
     {
         using var fixture = AuthenticateFixture.ForPasswordIncorrect();
 
@@ -175,7 +175,7 @@ public sealed class PasswordAuthenticationServiceTests
     #region ChangePassword
 
     [Fact]
-    public async Task ChangePasswordLogsEventIfUserHasNoPassword()
+    public async Task ChangePassword_UserHasNoPassword_LogsNoPasswordEvent()
     {
         using var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
@@ -191,7 +191,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordThrowsIfUserHasNoPassword()
+    public async Task ChangePassword_UserHasNoPassword_ThrowsException()
     {
         using var fixture = ChangePasswordFixture.ForUserHasNoPassword();
 
@@ -199,7 +199,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordLogsIfCurrentPasswordDoesNotMatch()
+    public async Task ChangePassword_CurrentPasswordDoesNotMatch_LogsIncorrectPasswordEvent()
     {
         using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
@@ -216,7 +216,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordReturnsFalseIfCurrentPasswordDoesNotMatch()
+    public async Task ChangePassword_CurrentPasswordDoesNotMatch_ReturnsFalse()
     {
         using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
@@ -224,7 +224,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordDoesNotChangePasswordIfCurrentPasswordDoesNotMatch()
+    public async Task ChangePassword_CurrentPasswordDoesNotMatch_DoesNotChangePassword()
     {
         using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
 
@@ -235,7 +235,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordUpdatesUserOnSuccess()
+    public async Task ChangePassword_Success_UpdatesUser()
     {
         using var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -249,7 +249,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordDeletesPasswordResetTokensOnSuccess()
+    public async Task ChangePassword_Success_DeletesPasswordResetTokens()
     {
         using var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -260,7 +260,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordSendsPasswordChangeNotificationOnSuccess()
+    public async Task ChangePassword_Success_SendsPasswordChangeNotification()
     {
         using var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -271,7 +271,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordLogsOnSuccess()
+    public async Task ChangePassword_Success_LogsSuccessEvent()
     {
         using var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -287,7 +287,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordReturnsTrueOnSuccess()
+    public async Task ChangePassword_Success_ReturnsTrue()
     {
         using var fixture = ChangePasswordFixture.ForSuccess();
 
@@ -352,7 +352,7 @@ public sealed class PasswordAuthenticationServiceTests
     #region PasswordResetTokenIsValid
 
     [Fact]
-    public async Task PasswordResetTokenIsValidDeletesExpiredTokens()
+    public async Task PasswordResetTokenIsValid_DeletesExpiredTokens()
     {
         using var fixture = PasswordResetTokenFixture.ForValidToken();
 
@@ -363,7 +363,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValidLogsIfValid()
+    public async Task PasswordResetTokenIsValid_Valid_Logs()
     {
         using var fixture = PasswordResetTokenFixture.ForValidToken();
 
@@ -377,7 +377,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValidReturnsTrueIfValid()
+    public async Task PasswordResetTokenIsValid_Valid_ReturnsTrue()
     {
         using var fixture = PasswordResetTokenFixture.ForValidToken();
 
@@ -385,7 +385,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValidLogsIfInvalid()
+    public async Task PasswordResetTokenIsValid_Invalid_Logs()
     {
         using var fixture = PasswordResetTokenFixture.ForInvalidToken();
 
@@ -401,7 +401,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValidReturnsFalseIfInvalid()
+    public async Task PasswordResetTokenIsValid_Invalid_ReturnsFalse()
     {
         using var fixture = PasswordResetTokenFixture.ForInvalidToken();
 
@@ -437,7 +437,7 @@ public sealed class PasswordAuthenticationServiceTests
     #region ResetPassword
 
     [Fact]
-    public async Task ResetPasswordDeletesExpiredPasswordResetTokens()
+    public async Task ResetPassword_DeletesExpiredPasswordResetTokens()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -450,7 +450,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordLogsIfTokenIsInvalid()
+    public async Task ResetPassword_InvalidToken_Logs()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -474,7 +474,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordThrowsIfTokenIsInvalid()
+    public async Task ResetPassword_InvalidToken_Throws()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -484,7 +484,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordUpdatesUserOnSuccess()
+    public async Task ResetPassword_Success_UpdatesUser()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -500,7 +500,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordDeletesPasswordResetTokensOnSuccess()
+    public async Task ResetPassword_Success_DeletesPasswordResetTokens()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -513,7 +513,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordSendsPasswordChangeNotificationOnSuccess()
+    public async Task ResetPassword_Success_SendsPasswordChangeNotification()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -526,7 +526,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordLogsOnSuccess()
+    public async Task ResetPassword_Success_Logs()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -544,7 +544,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ResetPasswordReturnsUserWithNewSecurityStampOnSuccess()
+    public async Task ResetPassword_Success_ReturnsUserWithNewSecurityStamp()
     {
         using var fixture = new ResetPasswordFixture();
 
@@ -592,7 +592,7 @@ public sealed class PasswordAuthenticationServiceTests
     #region SendPasswordResetLink
 
     [Fact]
-    public async Task SendPasswordResetLinkInsertsPasswordResetTokenOnSuccess()
+    public async Task SendPasswordResetLink_Success_InsertsPasswordResetToken()
     {
         using var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
@@ -603,7 +603,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SendPasswordResetLinkSendsLinkToUserOnSuccess()
+    public async Task SendPasswordResetLink_Success_SendsLinkToUser()
     {
         using var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
@@ -614,7 +614,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SendPasswordResetLinkLogsOnSuccess()
+    public async Task SendPasswordResetLink_Success_Logs()
     {
         using var fixture = SendPasswordResetLinkFixture.ForSuccess();
 
@@ -632,7 +632,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SendPasswordResetLinkDoesNotSendLinkIfEmailIsUnrecognized()
+    public async Task SendPasswordResetLink_EmailIsUnrecognized_DoesNotSendLink()
     {
         using var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 
@@ -643,7 +643,7 @@ public sealed class PasswordAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SendPasswordResetLinkLogsIfEmailIsUnrecognized()
+    public async Task SendPasswordResetLink_EmailIsUnrecognized_Logs()
     {
         using var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
 

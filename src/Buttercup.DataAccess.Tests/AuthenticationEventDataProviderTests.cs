@@ -23,7 +23,7 @@ public sealed class AuthenticationEventDataProviderTests
     #region LogEvent
 
     [Fact]
-    public async Task LogEventInsertsEvent()
+    public async Task LogEvent_InsertsEvent()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -55,7 +55,7 @@ public sealed class AuthenticationEventDataProviderTests
     }
 
     [Fact]
-    public async Task LogEventAcceptsNullUserIdAndEmail()
+    public async Task LogEvent_AcceptsNullUserIdAndEmail()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();

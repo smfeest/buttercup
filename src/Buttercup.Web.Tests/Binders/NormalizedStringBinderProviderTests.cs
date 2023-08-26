@@ -10,7 +10,7 @@ public sealed class NormalizedStringBinderProviderTests
     #region GetBinder
 
     [Fact]
-    public void GetBinderReturnsNormalizedStringBinderWhenModelTypeIsString()
+    public void GetBinder_ModelTypeIsString_ReturnsNormalizedStringBinder()
     {
         var provider = new NormalizedStringBinderProvider();
         var context = CreateContext<string>();
@@ -19,7 +19,7 @@ public sealed class NormalizedStringBinderProviderTests
     }
 
     [Fact]
-    public void GetBinderReturnsNullWhenModelTypeIsNotString()
+    public void GetBinder_ModelTypeIsNotString_ReturnsNull()
     {
         var provider = new NormalizedStringBinderProvider();
         var context = CreateContext<int>();

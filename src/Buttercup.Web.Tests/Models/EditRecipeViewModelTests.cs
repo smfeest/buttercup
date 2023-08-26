@@ -8,7 +8,7 @@ public sealed class EditRecipeViewModelTests
     #region ForRecipe
 
     [Fact]
-    public void ForRecipeCopiesValuesFromRecipe()
+    public void ForRecipe_CopiesValuesFromRecipe()
     {
         var recipe = new ModelFactory().BuildRecipe();
 

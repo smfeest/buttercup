@@ -13,7 +13,7 @@ public sealed class TokenAuthenticationServiceTests
     #region IssueAccessToken
 
     [Fact]
-    public async Task IssueAccessTokenEmitsLogMessage()
+    public async Task IssueAccessToken_EmitsLogMessage()
     {
         using var fixture = new IssueAccessTokenFixture();
 
@@ -27,7 +27,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task IssueAccessTokenLogsAuthenticationEvent()
+    public async Task IssueAccessToken_LogsAuthenticationEvent()
     {
         using var fixture = new IssueAccessTokenFixture();
 
@@ -38,7 +38,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task IssueAccessTokenReturnsToken()
+    public async Task IssueAccessToken_ReturnsToken()
     {
         using var fixture = new IssueAccessTokenFixture();
 
@@ -65,7 +65,7 @@ public sealed class TokenAuthenticationServiceTests
     #region ValidateAccessToken
 
     [Fact]
-    public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenIsNotBase64UrlEncoded()
+    public async Task ValidateAccessToken_TokenIsNotBase64UrlEncoded_LogsAndReturnsNull()
     {
         using var fixture = new ValidateAccessTokenFixture();
 
@@ -81,7 +81,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenIsMalformed()
+    public async Task ValidateAccessToken_TokenIsMalformed_LogsAndReturnsNull()
     {
         using var fixture = new ValidateAccessTokenFixture();
 
@@ -97,7 +97,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ValidateAccessTokenLogsAndReturnsNullWhenTokenHasExpired()
+    public async Task ValidateAccessToken_TokenHasExpired_LogsAndReturnsNull()
     {
         using var fixture = new ValidateAccessTokenFixture();
 
@@ -113,7 +113,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ValidateAccessTokenLogsAndReturnsNullWhenUserDoesNotExist()
+    public async Task ValidateAccessToken_UserDoesNotExist_LogsAndReturnsNull()
     {
         using var fixture = new ValidateAccessTokenFixture();
 
@@ -130,7 +130,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ValidateAccessTokenLogsAndReturnsNullWhenSecurityStampHasChanged()
+    public async Task ValidateAccessToken_SecurityStampHasChanged_LogsAndReturnsNull()
     {
         using var fixture = new ValidateAccessTokenFixture();
 
@@ -147,7 +147,7 @@ public sealed class TokenAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task ValidateAccessTokenLogsAndReturnsUserOnSuccess()
+    public async Task ValidateAccessToken_Success_LogsAndReturnsUser()
     {
         using var fixture = new ValidateAccessTokenFixture();
 

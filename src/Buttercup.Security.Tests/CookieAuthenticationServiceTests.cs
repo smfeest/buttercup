@@ -16,7 +16,7 @@ public sealed class CookieAuthenticationServiceTests
     #region RefreshPrincipal
 
     [Fact]
-    public async Task RefreshPrincipalReturnsFalseWhenUnauthenticated()
+    public async Task RefreshPrincipal_Unauthenticated_ReturnsFalse()
     {
         using var fixture = new RefreshPrincipalFixture();
 
@@ -26,7 +26,7 @@ public sealed class CookieAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task RefreshPrincipalSignsInUpdatedPrincipalWhenAuthenticated()
+    public async Task RefreshPrincipal_Authenticated_SignsInUpdatedPrincipal()
     {
         using var fixture = new RefreshPrincipalFixture();
 
@@ -43,7 +43,7 @@ public sealed class CookieAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task RefreshPrincipalReturnsTrueWhenAuthenticated()
+    public async Task RefreshPrincipal_Authenticated_ReturnsTrue()
     {
         using var fixture = new RefreshPrincipalFixture();
 
@@ -99,7 +99,7 @@ public sealed class CookieAuthenticationServiceTests
     #region SignIn
 
     [Fact]
-    public async Task SignInSignsInPrincipal()
+    public async Task SignIn_SignsInPrincipal()
     {
         using var fixture = new SignInFixture();
 
@@ -110,7 +110,7 @@ public sealed class CookieAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SignInLogsEvent()
+    public async Task SignIn_LogsEvent()
     {
         using var fixture = new SignInFixture();
 
@@ -146,7 +146,7 @@ public sealed class CookieAuthenticationServiceTests
     #region SignOut
 
     [Fact]
-    public async Task SignOutSignsOutUser()
+    public async Task SignOut_SignsOutUser()
     {
         using var fixture = SignOutFixture.ForUserSignedIn();
 
@@ -157,7 +157,7 @@ public sealed class CookieAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SignOutLogsIfUserPreviouslySignedIn()
+    public async Task SignOut_PreviouslySignedIn_LogsSignOutEvent()
     {
         using var fixture = SignOutFixture.ForUserSignedIn();
 
@@ -173,7 +173,7 @@ public sealed class CookieAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SignOutDoesNotLogsIfNoUserPreviouslySignedIn()
+    public async Task SignOut_NotPreviouslySignedIn_DoesNotLogSignOutEvent()
     {
         using var fixture = SignOutFixture.ForNoUserSignedIn();
 

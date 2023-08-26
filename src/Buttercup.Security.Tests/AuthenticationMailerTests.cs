@@ -11,7 +11,7 @@ public sealed class AuthenticationMailerTests
     #region SendPasswordChangeNotification
 
     [Fact]
-    public async Task SendPasswordChangeNotificationSendsEmail()
+    public async Task SendPasswordChangeNotification_SendsEmail()
     {
         var fixture = new AuthenticationMailerFixture();
 
@@ -30,7 +30,7 @@ public sealed class AuthenticationMailerTests
     #region SendPasswordResetLink
 
     [Fact]
-    public async Task SendPasswordResetLinkSendsEmail()
+    public async Task SendPasswordResetLink_SendsEmail()
     {
         var fixture = new AuthenticationMailerFixture();
 
