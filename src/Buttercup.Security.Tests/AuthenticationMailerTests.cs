@@ -8,20 +8,26 @@ namespace Buttercup.Security;
 
 public sealed class AuthenticationMailerTests
 {
+    private readonly Mock<IEmailSender> emailSenderMock = new();
+    private readonly Mock<IStringLocalizer<AuthenticationMailer>> localizerMock = new();
+
+    private readonly AuthenticationMailer authenticationMailer;
+
+    public AuthenticationMailerTests() =>
+        this.authenticationMailer = new(this.emailSenderMock.Object, this.localizerMock.Object);
+
     #region SendPasswordChangeNotification
 
     [Fact]
     public async Task SendPasswordChangeNotification_SendsEmail()
     {
-        var fixture = new AuthenticationMailerFixture();
-
-        fixture.MockLocalizer
+        this.localizerMock
             .SetupLocalizedString("Subject_PasswordChangeNotification", "translated-subject")
             .SetupLocalizedString("Body_PasswordChangeNotification", "translated-body");
 
-        await fixture.AuthenticationMailer.SendPasswordChangeNotification("user@example.com");
+        await this.authenticationMailer.SendPasswordChangeNotification("user@example.com");
 
-        fixture.MockEmailSender.Verify(
+        this.emailSenderMock.Verify(
             x => x.Send("user@example.com", "translated-subject", "translated-body"));
     }
 
@@ -32,33 +38,19 @@ public sealed class AuthenticationMailerTests
     [Fact]
     public async Task SendPasswordResetLink_SendsEmail()
     {
-        var fixture = new AuthenticationMailerFixture();
-
-        fixture.MockLocalizer
+        this.localizerMock
             .SetupLocalizedString("Subject_PasswordResetLink", "translated-subject")
             .SetupLocalizedString(
                 "Body_PasswordResetLink",
                 new[] { "https://example.com/reset/password" },
                 "translated-body");
 
-        await fixture.AuthenticationMailer.SendPasswordResetLink(
+        await this.authenticationMailer.SendPasswordResetLink(
             "user@example.com", "https://example.com/reset/password");
 
-        fixture.MockEmailSender.Verify(x => x.Send(
-            "user@example.com", "translated-subject", "translated-body"));
+        this.emailSenderMock.Verify(
+            x => x.Send("user@example.com", "translated-subject", "translated-body"));
     }
 
     #endregion
-
-    private sealed class AuthenticationMailerFixture
-    {
-        public AuthenticationMailerFixture() =>
-            this.AuthenticationMailer = new(this.MockEmailSender.Object, this.MockLocalizer.Object);
-
-        public AuthenticationMailer AuthenticationMailer { get; }
-
-        public Mock<IEmailSender> MockEmailSender { get; } = new();
-
-        public Mock<IStringLocalizer<AuthenticationMailer>> MockLocalizer { get; } = new();
-    }
 }
