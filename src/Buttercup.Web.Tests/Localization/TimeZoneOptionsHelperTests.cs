@@ -7,23 +7,45 @@ namespace Buttercup.Web.Localization;
 
 public sealed class TimeZoneOptionsHelperTests
 {
+    private readonly StoppedClock clock = new();
+    private readonly Mock<IStringLocalizer<TimeZoneOptionsHelper>> localizerMock = new();
+    private readonly Mock<ITimeZoneRegistry> timeZoneRegistryMock = new();
+
+    private readonly TimeZoneOptionsHelper timeZoneOptionsHelper;
+
+    public TimeZoneOptionsHelperTests() =>
+        this.timeZoneOptionsHelper = new(
+            this.clock,
+            this.localizerMock.Object,
+            this.timeZoneRegistryMock.Object);
+
     #region AllOptions
 
     [Fact]
     public void AllOptions_ReturnsOrderedListOfOptions()
     {
-        var fixture = new AllOptionsFixture();
+        var timeZones = new List<TimeZoneInfo>();
 
-        fixture
-            .AddFakeTimeZone("tz1/+3B", 3, "city-b")
-            .AddFakeTimeZone("tz2/-2", -2)
-            .AddFakeTimeZone("tz3/+0", 0)
-            .AddFakeTimeZone("tz4/+5", 5)
-            .AddFakeTimeZone("tz5/+3A", 3, "city-a")
-            .AddFakeTimeZone("tz6/-1", -1)
-            .AddFakeTimeZone("tz7/+3C", 3, "city-c")
-            .AddFakeTimeZone("tz8/-6", -6)
-            .AddFakeTimeZone("tz9/+1", 1);
+        void AddFakeTimeZone(string timeZoneId, int offsetHours, string city = "")
+        {
+            timeZones.Add(
+                TimeZoneInfo.CreateCustomTimeZone(
+                    timeZoneId, new(offsetHours, 0, 0), string.Empty, string.Empty));
+
+            this.localizerMock.SetupLocalizedString($"City_{timeZoneId}", city);
+        }
+
+        AddFakeTimeZone("tz1/+3B", 3, "city-b");
+        AddFakeTimeZone("tz2/-2", -2);
+        AddFakeTimeZone("tz3/+0", 0);
+        AddFakeTimeZone("tz4/+5", 5);
+        AddFakeTimeZone("tz5/+3A", 3, "city-a");
+        AddFakeTimeZone("tz6/-1", -1);
+        AddFakeTimeZone("tz7/+3C", 3, "city-c");
+        AddFakeTimeZone("tz8/-6", -6);
+        AddFakeTimeZone("tz9/+1", 1);
+
+        this.timeZoneRegistryMock.Setup(x => x.GetSupportedTimeZones()).Returns(timeZones);
 
         var expectedIds = new string[]
         {
@@ -38,7 +60,7 @@ public sealed class TimeZoneOptionsHelperTests
             "tz4/+5",
         };
 
-        var actualIds = fixture.TimeZoneOptionsHelper.AllOptions().Select(o => o.Id);
+        var actualIds = this.timeZoneOptionsHelper.AllOptions().Select(o => o.Id);
 
         Assert.Equal(expectedIds, actualIds);
     }
@@ -50,11 +72,11 @@ public sealed class TimeZoneOptionsHelperTests
     [Fact]
     public void OptionForTimeZone_ProvidesTimeZoneId()
     {
-        var fixture = new OptionForTimeZoneFixture();
+        this.StubGetTimeZone();
 
-        fixture.StubGetTimeZone();
+        var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
-        Assert.Equal(fixture.TimeZoneId, fixture.OptionForTimeZone().Id);
+        Assert.Equal(FakeTimeZoneId, option.Id);
     }
 
     [Theory]
@@ -62,19 +84,18 @@ public sealed class TimeZoneOptionsHelperTests
     [InlineData(4, -2)]
     public void OptionForTimeZone_ProvidesCurrentOffset(int month, int expectedOffsetHours)
     {
-        var fixture = new OptionForTimeZoneFixture();
-
         var adjustmentRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
             DateTime.MinValue,
             DateTime.MaxValue,
             new(1, 0, 0),
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 3, 1),
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 5, 1));
+        this.StubGetTimeZone(new(-3, 0, 0), new[] { adjustmentRule });
+        this.clock.UtcNow = new(2000, month, 15, 0, 0, 0, DateTimeKind.Utc);
 
-        fixture.StubGetTimeZone(new(-3, 0, 0), new[] { adjustmentRule });
-        fixture.Clock.UtcNow = new(2000, month, 15, 0, 0, 0, DateTimeKind.Utc);
+        var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
-        Assert.Equal(new(expectedOffsetHours, 0, 0), fixture.OptionForTimeZone().CurrentOffset);
+        Assert.Equal(new(expectedOffsetHours, 0, 0), option.CurrentOffset);
     }
 
     [Theory]
@@ -83,100 +104,49 @@ public sealed class TimeZoneOptionsHelperTests
     [InlineData(1, "Format_PositiveOffset")]
     public void OptionForTimeZone_ProvidesFormattedOffset(int offsetHours, string expectedFormat)
     {
-        var fixture = new OptionForTimeZoneFixture();
-
         var offset = new TimeSpan(offsetHours, 0, 0);
+        this.StubGetTimeZone(offset);
+        this.localizerMock
+            .SetupLocalizedString(expectedFormat, new object[] { offset }, "localized-offset");
 
-        fixture.StubGetTimeZone(offset);
+        var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
-        fixture.MockLocalizer.SetupLocalizedString(
-            expectedFormat, new object[] { offset }, "localized-offset");
-
-        Assert.Equal("localized-offset", fixture.OptionForTimeZone().FormattedOffset);
+        Assert.Equal("localized-offset", option.FormattedOffset);
     }
 
     [Fact]
     public void OptionForTimeZone_ProvidesCity()
     {
-        var fixture = new OptionForTimeZoneFixture();
+        this.StubGetTimeZone();
+        this.localizerMock.SetupLocalizedString($"City_{FakeTimeZoneId}", "localized-city-name");
 
-        fixture.StubGetTimeZone();
+        var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
-        fixture.MockLocalizer.SetupLocalizedString(
-            $"City_{fixture.TimeZoneId}", "localized-city-name");
+        Assert.Equal("localized-city-name", option.City);
+    }
 
-        Assert.Equal("localized-city-name", fixture.OptionForTimeZone().City);
+    private const string FakeTimeZoneId = "Fake/Time_Zone";
+
+    private void StubGetTimeZone() => this.StubGetTimeZone(TimeSpan.Zero);
+
+    private void StubGetTimeZone(TimeSpan baseUtcOffset) => this.StubGetTimeZone(
+        baseUtcOffset, Array.Empty<TimeZoneInfo.AdjustmentRule>());
+
+    private void StubGetTimeZone(
+        TimeSpan baseUtcOffset, TimeZoneInfo.AdjustmentRule[] adjustmentRules)
+    {
+        var timeZone = TimeZoneInfo.CreateCustomTimeZone(
+            FakeTimeZoneId,
+            baseUtcOffset,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            adjustmentRules);
+
+        this.timeZoneRegistryMock
+            .Setup(x => x.GetTimeZone(FakeTimeZoneId))
+            .Returns(timeZone);
     }
 
     #endregion
-
-    private class TimeZoneOptionsHelperFixture
-    {
-        public TimeZoneOptionsHelperFixture() =>
-            this.TimeZoneOptionsHelper = new(
-                this.Clock,
-                this.MockLocalizer.Object,
-                this.MockTimeZoneRegistry.Object);
-
-        public StoppedClock Clock { get; } = new();
-
-        public Mock<IStringLocalizer<TimeZoneOptionsHelper>> MockLocalizer { get; } = new();
-
-        public Mock<ITimeZoneRegistry> MockTimeZoneRegistry { get; } = new();
-
-        public TimeZoneOptionsHelper TimeZoneOptionsHelper { get; }
-    }
-
-    private sealed class AllOptionsFixture : TimeZoneOptionsHelperFixture
-    {
-        private readonly List<TimeZoneInfo> timeZones = new();
-
-        public AllOptionsFixture() =>
-            this.MockTimeZoneRegistry
-                .Setup(x => x.GetSupportedTimeZones())
-                .Returns(this.timeZones);
-
-        public AllOptionsFixture AddFakeTimeZone(string timeZoneId, int offsetHours) =>
-            this.AddFakeTimeZone(timeZoneId, offsetHours, string.Empty);
-
-        public AllOptionsFixture AddFakeTimeZone(
-            string timeZoneId, int offsetHours, string city)
-        {
-            this.timeZones.Add(TimeZoneInfo.CreateCustomTimeZone(
-                timeZoneId, new(offsetHours, 0, 0), string.Empty, string.Empty));
-
-            this.MockLocalizer.SetupLocalizedString($"City_{timeZoneId}", city);
-
-            return this;
-        }
-    }
-
-    private sealed class OptionForTimeZoneFixture : TimeZoneOptionsHelperFixture
-    {
-        public string TimeZoneId { get; } = "Sample/Time_Zone";
-
-        public void StubGetTimeZone() => this.StubGetTimeZone(TimeSpan.Zero);
-
-        public void StubGetTimeZone(TimeSpan baseUtcOffset) => this.StubGetTimeZone(
-            baseUtcOffset, Array.Empty<TimeZoneInfo.AdjustmentRule>());
-
-        public void StubGetTimeZone(
-            TimeSpan baseUtcOffset, TimeZoneInfo.AdjustmentRule[] adjustmentRules)
-        {
-            var timeZone = TimeZoneInfo.CreateCustomTimeZone(
-                this.TimeZoneId,
-                baseUtcOffset,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                adjustmentRules);
-
-            this.MockTimeZoneRegistry
-                .Setup(x => x.GetTimeZone(this.TimeZoneId))
-                .Returns(timeZone);
-        }
-
-        public TimeZoneOption OptionForTimeZone() =>
-            this.TimeZoneOptionsHelper.OptionForTimeZone(this.TimeZoneId);
-    }
 }
