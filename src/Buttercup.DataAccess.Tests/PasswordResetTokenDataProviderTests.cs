@@ -1,6 +1,5 @@
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -9,17 +8,16 @@ namespace Buttercup.DataAccess;
 public sealed class PasswordResetTokenDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
+    private readonly ModelFactory modelFactory = new();
 
-    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly StoppedClock clock = new();
     private readonly PasswordResetTokenDataProvider passwordResetTokenDataProvider;
 
     public PasswordResetTokenDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-
-        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
-
-        this.passwordResetTokenDataProvider = new(clock);
+        this.passwordResetTokenDataProvider = new(this.clock);
+        this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
     #region DeleteExpiredTokens
@@ -30,7 +28,7 @@ public sealed class PasswordResetTokenDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
 
         void AddToken(string token, DateTime created) => dbContext.PasswordResetTokens.Add(
@@ -61,10 +59,8 @@ public sealed class PasswordResetTokenDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var modelFactory = new ModelFactory();
-
-        var user = modelFactory.BuildUser();
-        var otherUser = modelFactory.BuildUser();
+        var user = this.modelFactory.BuildUser();
+        var otherUser = this.modelFactory.BuildUser();
         dbContext.Users.AddRange(user, otherUser);
 
         void AddToken(long userId, string token) => dbContext.PasswordResetTokens.Add(
@@ -93,7 +89,7 @@ public sealed class PasswordResetTokenDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
 
         dbContext.PasswordResetTokens.Add(
@@ -128,7 +124,7 @@ public sealed class PasswordResetTokenDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
@@ -140,7 +136,7 @@ public sealed class PasswordResetTokenDataProviderTests
 
         Assert.NotNull(actual);
         Assert.Equal(user.Id, actual.UserId);
-        Assert.Equal(this.fakeTime, actual.Created);
+        Assert.Equal(this.clock.UtcNow, actual.Created);
     }
 
     #endregion

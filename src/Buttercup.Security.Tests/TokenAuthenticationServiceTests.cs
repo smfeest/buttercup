@@ -49,7 +49,7 @@ public sealed class TokenAuthenticationServiceTests
     {
         public IssueAccessTokenFixture() =>
             this.MockAccessTokenEncoder
-                .Setup(x => x.Encode(new(this.User.Id, this.User.SecurityStamp, this.UtcNow)))
+                .Setup(x => x.Encode(new(this.User.Id, this.User.SecurityStamp, this.Clock.UtcNow)))
                 .Returns(this.AccessToken);
 
         public User User { get; } = new ModelFactory().BuildUser();
@@ -179,7 +179,7 @@ public sealed class TokenAuthenticationServiceTests
             var accessTokenPayload = new AccessTokenPayload(
                 this.User.Id,
                 securityStamp ?? this.User.SecurityStamp,
-                this.UtcNow.Subtract(tokenAge ?? new(24, 0, 0)));
+                this.Clock.UtcNow.Subtract(tokenAge ?? new(24, 0, 0)));
 
             this.MockAccessTokenEncoder
                 .Setup(x => x.Decode(AccessToken))
@@ -204,18 +204,16 @@ public sealed class TokenAuthenticationServiceTests
 
     private class TokenAuthenticationServiceFixture : IDisposable
     {
-        public TokenAuthenticationServiceFixture()
-        {
-            var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-
+        public TokenAuthenticationServiceFixture() =>
             this.TokenAuthenticationService = new(
                 this.MockAccessTokenEncoder.Object,
                 this.MockAuthenticationEventDataProvider.Object,
-                clock,
+                this.Clock,
                 this.DbContextFactory,
                 this.Logger,
                 this.MockUserDataProvider.Object);
-        }
+
+        public StoppedClock Clock { get; } = new();
 
         public FakeDbContextFactory DbContextFactory { get; } = new();
 
@@ -229,8 +227,6 @@ public sealed class TokenAuthenticationServiceTests
         public ListLogger<TokenAuthenticationService> Logger { get; } = new();
 
         public TokenAuthenticationService TokenAuthenticationService { get; }
-
-        public DateTime UtcNow { get; } = DateTime.UtcNow;
 
         public void Dispose() => this.DbContextFactory.Dispose();
     }

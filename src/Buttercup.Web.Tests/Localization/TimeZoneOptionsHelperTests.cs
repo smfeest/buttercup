@@ -72,9 +72,7 @@ public sealed class TimeZoneOptionsHelperTests
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 5, 1));
 
         fixture.StubGetTimeZone(new(-3, 0, 0), new[] { adjustmentRule });
-
-        fixture.MockClock.SetupGet(x => x.UtcNow).Returns(
-            new DateTime(2000, month, 15, 0, 0, 0, DateTimeKind.Utc));
+        fixture.Clock.UtcNow = new(2000, month, 15, 0, 0, 0, DateTimeKind.Utc);
 
         Assert.Equal(new(expectedOffsetHours, 0, 0), fixture.OptionForTimeZone().CurrentOffset);
     }
@@ -116,11 +114,11 @@ public sealed class TimeZoneOptionsHelperTests
     {
         public TimeZoneOptionsHelperFixture() =>
             this.TimeZoneOptionsHelper = new(
-                this.MockClock.Object,
+                this.Clock,
                 this.MockLocalizer.Object,
                 this.MockTimeZoneRegistry.Object);
 
-        public Mock<IClock> MockClock { get; } = new();
+        public StoppedClock Clock { get; } = new();
 
         public Mock<IStringLocalizer<TimeZoneOptionsHelper>> MockLocalizer { get; } = new();
 

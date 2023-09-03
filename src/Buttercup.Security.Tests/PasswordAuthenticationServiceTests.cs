@@ -359,7 +359,7 @@ public sealed class PasswordAuthenticationServiceTests
         await fixture.PasswordResetTokenIsValid();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
-            fixture.DbContextFactory.FakeDbContext, fixture.UtcNow.AddDays(-1)));
+            fixture.DbContextFactory.FakeDbContext, fixture.Clock.UtcNow.AddDays(-1)));
     }
 
     [Fact]
@@ -446,7 +446,7 @@ public sealed class PasswordAuthenticationServiceTests
         await fixture.ResetPassword();
 
         fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
-            fixture.DbContextFactory.FakeDbContext, fixture.UtcNow.AddDays(-1)));
+            fixture.DbContextFactory.FakeDbContext, fixture.Clock.UtcNow.AddDays(-1)));
     }
 
     [Fact]
@@ -711,25 +711,23 @@ public sealed class PasswordAuthenticationServiceTests
 
     private class PasswordAuthenticationServiceFixture : IDisposable
     {
-        public PasswordAuthenticationServiceFixture()
-        {
-            var clock = Mock.Of<IClock>(x => x.UtcNow == this.UtcNow);
-
+        public PasswordAuthenticationServiceFixture() =>
             this.PasswordAuthenticationService = new(
                 this.MockAuthenticationEventDataProvider.Object,
                 this.MockAuthenticationMailer.Object,
-                clock,
+                this.Clock,
                 this.DbContextFactory,
                 this.Logger,
                 this.MockPasswordHasher.Object,
                 this.MockPasswordResetTokenDataProvider.Object,
                 this.MockRandomTokenGenerator.Object,
                 this.MockUserDataProvider.Object);
-        }
 
         public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
 
         public PasswordAuthenticationService PasswordAuthenticationService { get; }
+
+        public StoppedClock Clock { get; } = new();
 
         public FakeDbContextFactory DbContextFactory { get; } = new();
 
@@ -744,8 +742,6 @@ public sealed class PasswordAuthenticationServiceTests
         public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } = new();
 
         public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
-
-        public DateTime UtcNow { get; } = new(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc);
 
         public void SetupGetUser(long id, User user) =>
             this.MockUserDataProvider

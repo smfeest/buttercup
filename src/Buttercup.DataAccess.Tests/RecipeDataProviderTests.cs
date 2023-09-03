@@ -1,7 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -10,17 +9,16 @@ namespace Buttercup.DataAccess;
 public sealed class RecipeDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
-    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
     private readonly ModelFactory modelFactory = new();
+
+    private readonly StoppedClock clock = new();
     private readonly RecipeDataProvider recipeDataProvider;
 
     public RecipeDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-
-        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
-
-        this.recipeDataProvider = new(clock);
+        this.recipeDataProvider = new(this.clock);
+        this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
     #region AddRecipe
@@ -53,9 +51,9 @@ public sealed class RecipeDataProviderTests
             Suggestions = attributes.Suggestions,
             Remarks = attributes.Remarks,
             Source = attributes.Source,
-            Created = this.fakeTime,
+            Created = this.clock.UtcNow,
             CreatedByUserId = currentUser.Id,
-            Modified = this.fakeTime,
+            Modified = this.clock.UtcNow,
             ModifiedByUserId = currentUser.Id,
             Revision = 0,
         };
@@ -323,7 +321,7 @@ public sealed class RecipeDataProviderTests
             Source = newAttributes.Source,
             Created = original.Created,
             CreatedByUserId = original.CreatedByUserId,
-            Modified = this.fakeTime,
+            Modified = this.clock.UtcNow,
             ModifiedByUserId = currentUser.Id,
             Revision = original.Revision + 1,
         };

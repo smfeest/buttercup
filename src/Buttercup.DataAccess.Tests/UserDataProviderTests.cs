@@ -1,5 +1,4 @@
 using Buttercup.TestUtils;
-using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -8,16 +7,16 @@ namespace Buttercup.DataAccess;
 public sealed class UserDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
-    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly ModelFactory modelFactory = new();
+
+    private readonly StoppedClock clock = new();
     private readonly UserDataProvider userDataProvider;
 
     public UserDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-
-        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
-
-        this.userDataProvider = new(clock);
+        this.userDataProvider = new(this.clock);
+        this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
     #region FindUserByEmail
@@ -28,7 +27,7 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var expected = new ModelFactory().BuildUser();
+        var expected = this.modelFactory.BuildUser();
         dbContext.Users.Add(expected);
         await dbContext.SaveChangesAsync();
 
@@ -43,7 +42,7 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        dbContext.Users.Add(new ModelFactory().BuildUser());
+        dbContext.Users.Add(this.modelFactory.BuildUser());
         await dbContext.SaveChangesAsync();
 
         var actual = await this.userDataProvider.FindUserByEmail(
@@ -62,7 +61,7 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var expected = new ModelFactory().BuildUser();
+        var expected = this.modelFactory.BuildUser();
         dbContext.Users.Add(expected);
         await dbContext.SaveChangesAsync();
 
@@ -79,12 +78,10 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var modelFactory = new ModelFactory();
-
-        dbContext.Users.Add(modelFactory.BuildUser());
+        dbContext.Users.Add(this.modelFactory.BuildUser());
         await dbContext.SaveChangesAsync();
 
-        var id = modelFactory.NextInt();
+        var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.GetUser(dbContext, id));
@@ -102,7 +99,7 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var original = new ModelFactory().BuildUser();
+        var original = this.modelFactory.BuildUser();
         dbContext.Users.Add(original);
         await dbContext.SaveChangesAsync();
 
@@ -114,9 +111,9 @@ public sealed class UserDataProviderTests
         var expected = original with
         {
             HashedPassword = "new-hashed-password",
-            PasswordCreated = this.fakeTime,
+            PasswordCreated = this.clock.UtcNow,
             SecurityStamp = "newstamp",
-            Modified = this.fakeTime,
+            Modified = this.clock.UtcNow,
             Revision = original.Revision + 1,
         };
 
@@ -131,12 +128,10 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var modelFactory = new ModelFactory();
-
-        dbContext.Users.Add(modelFactory.BuildUser());
+        dbContext.Users.Add(this.modelFactory.BuildUser());
         await dbContext.SaveChangesAsync();
 
-        var id = modelFactory.NextInt();
+        var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
@@ -155,7 +150,7 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var original = new ModelFactory().BuildUser();
+        var original = this.modelFactory.BuildUser();
         dbContext.Users.Add(original);
         await dbContext.SaveChangesAsync();
 
@@ -166,7 +161,7 @@ public sealed class UserDataProviderTests
         var expected = original with
         {
             TimeZone = "new-time-zone",
-            Modified = this.fakeTime,
+            Modified = this.clock.UtcNow,
             Revision = original.Revision + 1,
         };
 
@@ -181,12 +176,10 @@ public sealed class UserDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var modelFactory = new ModelFactory();
-
-        dbContext.Users.Add(modelFactory.BuildUser());
+        dbContext.Users.Add(this.modelFactory.BuildUser());
         await dbContext.SaveChangesAsync();
 
-        var id = modelFactory.NextInt();
+        var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePreferences(dbContext, id, "new-time-zone"));

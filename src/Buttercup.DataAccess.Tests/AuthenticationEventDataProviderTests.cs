@@ -1,6 +1,5 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
-using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -9,16 +8,16 @@ namespace Buttercup.DataAccess;
 public sealed class AuthenticationEventDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
-    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly ModelFactory modelFactory = new();
+
+    private readonly StoppedClock clock = new();
     private readonly AuthenticationEventDataProvider authenticationEventDataProvider;
 
     public AuthenticationEventDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-
-        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
-
-        this.authenticationEventDataProvider = new(clock);
+        this.authenticationEventDataProvider = new(this.clock);
+        this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
     #region LogEvent
@@ -29,7 +28,7 @@ public sealed class AuthenticationEventDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
@@ -39,7 +38,7 @@ public sealed class AuthenticationEventDataProviderTests
         var expectedEvent = new AuthenticationEvent
         {
             Id = id,
-            Time = this.fakeTime,
+            Time = this.clock.UtcNow,
             Event = "sample-event",
             UserId = user.Id,
             Email = "sample@example.com"
@@ -63,7 +62,7 @@ public sealed class AuthenticationEventDataProviderTests
         var expectedEvent = new AuthenticationEvent
         {
             Id = id,
-            Time = this.fakeTime,
+            Time = this.clock.UtcNow,
             Event = "sample-event",
             UserId = null,
             Email = null
