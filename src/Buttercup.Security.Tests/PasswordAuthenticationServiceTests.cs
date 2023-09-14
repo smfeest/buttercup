@@ -10,164 +10,198 @@ using Xunit;
 
 namespace Buttercup.Security;
 
-public sealed class PasswordAuthenticationServiceTests
+public sealed class PasswordAuthenticationServiceTests : IDisposable
 {
+    private readonly ModelFactory modelFactory = new();
+
+    private readonly Mock<IAuthenticationEventDataProvider> authenticationEventDataProviderMock =
+        new();
+    private readonly Mock<IAuthenticationMailer> authenticationMailerMock = new();
+    private readonly StoppedClock clock = new();
+    private readonly FakeDbContextFactory dbContextFactory = new();
+    private readonly ListLogger<PasswordAuthenticationService> logger = new();
+    private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
+    private readonly Mock<IPasswordResetTokenDataProvider> passwordResetTokenDataProviderMock =
+        new();
+    private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
+    private readonly Mock<IUserDataProvider> userDataProviderMock = new();
+
+    private readonly PasswordAuthenticationService passwordAuthenticationService;
+
+    public PasswordAuthenticationServiceTests() =>
+        this.passwordAuthenticationService = new(
+            this.authenticationEventDataProviderMock.Object,
+            this.authenticationMailerMock.Object,
+            this.clock,
+            this.dbContextFactory,
+            this.logger,
+            this.passwordHasherMock.Object,
+            this.passwordResetTokenDataProviderMock.Object,
+            this.randomTokenGeneratorMock.Object,
+            this.userDataProviderMock.Object);
+
+    public void Dispose() => this.dbContextFactory.Dispose();
+
     #region Authenticate
 
     [Fact]
     public async Task Authenticate_Success_LogsSuccessEvent()
     {
-        using var fixture = AuthenticateFixture.ForSuccess();
+        var values = this.SetupAuthenticate_Success();
 
-        await fixture.Authenticate();
-
-        var user = fixture.User!;
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"User {user.Id} ({user.Email}) successfully authenticated");
+                entry.Message == $"User {values.User.Id} ({values.User.Email}) successfully authenticated");
 
-        fixture.AssertAuthenticationEventLogged(
-            "authentication_success", user.Id, fixture.SuppliedEmail);
+        this.AssertAuthenticationEventLogged(
+            "authentication_success", values.User.Id, values.SuppliedEmail);
     }
 
     [Fact]
     public async Task Authenticate_Success_ReturnsUser()
     {
-        using var fixture = AuthenticateFixture.ForSuccess();
+        var values = this.SetupAuthenticate_Success();
 
-        var actual = await fixture.Authenticate();
+        var returnedUser = await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
-        Assert.Equal(fixture.User, actual);
+        Assert.Equal(values.User, returnedUser);
     }
 
     [Fact]
-    public async Task Authenticate_EmailIsUnrecognized_LogsUnrecognizedEmailEvent()
+    public async Task Authenticate_EmailUnrecognized_LogsUnrecognizedEmailEvent()
     {
-        using var fixture = AuthenticateFixture.ForEmailNotFound();
+        var values = this.SetupAuthenticate_EmailUnrecognized();
 
-        await fixture.Authenticate();
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Authentication failed; no user with email {fixture.SuppliedEmail}");
+                entry.Message == $"Authentication failed; no user with email {values.SuppliedEmail}");
 
-        fixture.AssertAuthenticationEventLogged(
-            "authentication_failure:unrecognized_email", null, fixture.SuppliedEmail);
+        this.AssertAuthenticationEventLogged(
+            "authentication_failure:unrecognized_email", null, values.SuppliedEmail);
     }
 
     [Fact]
-    public async Task Authenticate_EmailIsUnrecognized_ReturnsNull()
+    public async Task Authenticate_EmailUnrecognized_ReturnsNull()
     {
-        using var fixture = AuthenticateFixture.ForEmailNotFound();
+        var values = this.SetupAuthenticate_EmailUnrecognized();
 
-        Assert.Null(await fixture.Authenticate());
+        Assert.Null(
+            await this.passwordAuthenticationService.Authenticate(
+                values.SuppliedEmail, values.SuppliedPassword));
     }
 
     [Fact]
     public async Task Authenticate_UserHasNoPassword_LogsNoPasswordEvent()
     {
-        using var fixture = AuthenticateFixture.ForUserHasNoPassword();
+        var values = this.SetupAuthenticate_UserHasNoPassword();
 
-        await fixture.Authenticate();
-
-        var user = fixture.User!;
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Authentication failed; no password set for user {user.Id} ({user.Email})");
+                entry.Message == $"Authentication failed; no password set for user {values.User.Id} ({values.User.Email})");
 
-        fixture.AssertAuthenticationEventLogged(
-            "authentication_failure:no_password_set", user.Id, fixture.SuppliedEmail);
+        this.AssertAuthenticationEventLogged(
+            "authentication_failure:no_password_set", values.User.Id, values.SuppliedEmail);
     }
 
     [Fact]
     public async Task Authenticate_UserHasNoPassword_ReturnsNull()
     {
-        using var fixture = AuthenticateFixture.ForUserHasNoPassword();
+        var values = this.SetupAuthenticate_UserHasNoPassword();
 
-        Assert.Null(await fixture.Authenticate());
+        Assert.Null(
+            await this.passwordAuthenticationService.Authenticate(
+                values.SuppliedEmail, values.SuppliedPassword));
     }
 
     [Fact]
     public async Task Authenticate_IncorrectPassword_LogsIncorrectPasswordEvent()
     {
-        using var fixture = AuthenticateFixture.ForPasswordIncorrect();
+        var values = this.SetupAuthenticate_IncorrectPassword();
 
-        await fixture.Authenticate();
-
-        var user = fixture.User!;
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
+                entry.Message == $"Authentication failed; incorrect password for user {values.User.Id} ({values.User.Email})");
 
-        fixture.AssertAuthenticationEventLogged(
-            "authentication_failure:incorrect_password", user.Id, fixture.SuppliedEmail);
+        this.AssertAuthenticationEventLogged(
+            "authentication_failure:incorrect_password", values.User.Id, values.SuppliedEmail);
     }
 
     [Fact]
     public async Task Authenticate_IncorrectPassword_ReturnsNull()
     {
-        using var fixture = AuthenticateFixture.ForPasswordIncorrect();
+        var values = this.SetupAuthenticate_IncorrectPassword();
 
-        Assert.Null(await fixture.Authenticate());
+        Assert.Null(
+            await this.passwordAuthenticationService.Authenticate(
+                values.SuppliedEmail, values.SuppliedPassword));
     }
 
-    private sealed class AuthenticateFixture : PasswordAuthenticationServiceFixture
+    private sealed record AuthenticateValues(
+        string SuppliedEmail, string SuppliedPassword, User User);
+
+    private AuthenticateValues BuildAuthenticateValues(string? hashedPassword) =>
+        new(
+            this.modelFactory.NextEmail(),
+            this.modelFactory.NextString("password"),
+            this.modelFactory.BuildUser() with { HashedPassword = hashedPassword });
+
+    private AuthenticateValues SetupAuthenticate_EmailRecognized(
+        string? hashedPassword)
     {
-        private const string Password = "user-password";
-        private const string HashedPassword = "hashed-password";
+        var values = this.BuildAuthenticateValues(hashedPassword);
+        this.SetupFindUserByEmail(values.SuppliedEmail, values.User);
+        return values;
+    }
 
-        private AuthenticateFixture(User? user)
-        {
-            this.User = user;
+    private AuthenticateValues SetupAuthenticate_EmailUnrecognized()
+    {
+        var values = this.BuildAuthenticateValues(null);
+        this.SetupFindUserByEmail(values.SuppliedEmail, null);
+        return values;
+    }
 
-            this.MockUserDataProvider
-                .Setup(
-                    x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
-                .ReturnsAsync(user);
-        }
+    private AuthenticateValues SetupAuthenticate_IncorrectPassword() =>
+        this.SetupAuthenticate_UserHasPassword(PasswordVerificationResult.Failed);
 
-        public string SuppliedEmail { get; } = "supplied-email@example.com";
+    private AuthenticateValues SetupAuthenticate_Success() =>
+        this.SetupAuthenticate_UserHasPassword(PasswordVerificationResult.Success);
 
-        public User? User { get; }
+    private AuthenticateValues SetupAuthenticate_UserHasNoPassword() =>
+        this.SetupAuthenticate_EmailRecognized(null);
 
-        public static AuthenticateFixture ForSuccess() =>
-            ForPasswordVerificationResult(PasswordVerificationResult.Success);
+    private AuthenticateValues SetupAuthenticate_UserHasPassword(
+        PasswordVerificationResult passwordVerificationResult)
+    {
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        var values = this.SetupAuthenticate_EmailRecognized(hashedPassword);
 
-        public static AuthenticateFixture ForEmailNotFound() => new(null);
+        this.passwordHasherMock
+            .Setup(
+                x => x.VerifyHashedPassword(values.User, hashedPassword, values.SuppliedPassword))
+            .Returns(passwordVerificationResult);
 
-        public static AuthenticateFixture ForUserHasNoPassword() =>
-            new(new ModelFactory().BuildUser() with { HashedPassword = null });
-
-        public static AuthenticateFixture ForPasswordIncorrect() =>
-            ForPasswordVerificationResult(PasswordVerificationResult.Failed);
-
-        public Task<User?> Authenticate() =>
-            this.PasswordAuthenticationService.Authenticate(this.SuppliedEmail, Password);
-
-        private static AuthenticateFixture ForPasswordVerificationResult(
-            PasswordVerificationResult result)
-        {
-            var user = new ModelFactory().BuildUser() with { HashedPassword = HashedPassword };
-
-            using var fixture = new AuthenticateFixture(user);
-
-            fixture.MockPasswordHasher
-                .Setup(x => x.VerifyHashedPassword(user, HashedPassword, Password))
-                .Returns(result);
-
-            return fixture;
-        }
+        return values;
     }
 
     #endregion
@@ -177,175 +211,188 @@ public sealed class PasswordAuthenticationServiceTests
     [Fact]
     public async Task ChangePassword_UserHasNoPassword_LogsNoPasswordEvent()
     {
-        using var fixture = ChangePasswordFixture.ForUserHasNoPassword();
+        var values = this.SetupChangePassword_UserHasNoPassword();
 
         try
         {
-            await fixture.ChangePassword();
+            await this.passwordAuthenticationService.ChangePassword(
+                values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
         }
         catch (InvalidOperationException)
         {
         }
 
-        fixture.AssertAuthenticationEventLogged("password_change_failure:no_password_set", fixture.User.Id);
+        this.AssertAuthenticationEventLogged(
+            "password_change_failure:no_password_set", values.User.Id);
     }
 
     [Fact]
     public async Task ChangePassword_UserHasNoPassword_ThrowsException()
     {
-        using var fixture = ChangePasswordFixture.ForUserHasNoPassword();
+        var values = this.SetupChangePassword_UserHasNoPassword();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(fixture.ChangePassword);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => this.passwordAuthenticationService.ChangePassword(
+                values.User.Id, values.SuppliedCurrentPassword, values.NewPassword));
     }
 
     [Fact]
-    public async Task ChangePassword_CurrentPasswordDoesNotMatch_LogsIncorrectPasswordEvent()
+    public async Task ChangePassword_IncorrectCurrentPassword_LogsIncorrectPasswordEvent()
     {
-        using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
+        var values = this.SetupChangePassword_IncorrectCurrentPassword();
 
-        await fixture.ChangePassword();
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password change denied for user {fixture.User.Id} ({fixture.User.Email}); current password is incorrect");
+                entry.Message == $"Password change denied for user {values.User.Id} ({values.User.Email}); current password is incorrect");
 
-        fixture.AssertAuthenticationEventLogged(
-            "password_change_failure:incorrect_password", fixture.User.Id);
+        this.AssertAuthenticationEventLogged(
+            "password_change_failure:incorrect_password", values.User.Id);
     }
 
     [Fact]
-    public async Task ChangePassword_CurrentPasswordDoesNotMatch_ReturnsFalse()
+    public async Task ChangePassword_IncorrectCurrentPassword_ReturnsFalse()
     {
-        using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
+        var values = this.SetupChangePassword_IncorrectCurrentPassword();
 
-        Assert.False(await fixture.ChangePassword());
+        Assert.False(
+            await this.passwordAuthenticationService.ChangePassword(
+                values.User.Id, values.SuppliedCurrentPassword, values.NewPassword));
     }
 
     [Fact]
-    public async Task ChangePassword_CurrentPasswordDoesNotMatch_DoesNotChangePassword()
+    public async Task ChangePassword_IncorrectCurrentPassword_DoesNotChangePassword()
     {
-        using var fixture = ChangePasswordFixture.ForPasswordDoesNotMatch();
+        var values = this.SetupChangePassword_IncorrectCurrentPassword();
 
-        await fixture.ChangePassword();
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
-        fixture.MockPasswordHasher.Verify(
-            x => x.HashPassword(fixture.User, fixture.NewPassword), Times.Never);
+        this.passwordHasherMock.Verify(
+            x => x.HashPassword(values.User, values.NewPassword), Times.Never);
     }
 
     [Fact]
     public async Task ChangePassword_Success_UpdatesUser()
     {
-        using var fixture = ChangePasswordFixture.ForSuccess();
+        var values = this.SetupChangePassword_Success();
 
-        await fixture.ChangePassword();
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
-        fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-            fixture.DbContextFactory.FakeDbContext,
-            fixture.User.Id,
-            fixture.HashedNewPassword,
-            fixture.NewSecurityStamp));
+        this.userDataProviderMock.Verify(x => x.UpdatePassword(
+            this.dbContextFactory.FakeDbContext,
+            values.User.Id,
+            values.NewHashedPassword,
+            values.NewSecurityStamp));
     }
 
     [Fact]
     public async Task ChangePassword_Success_DeletesPasswordResetTokens()
     {
-        using var fixture = ChangePasswordFixture.ForSuccess();
+        var values = this.SetupChangePassword_Success();
 
-        await fixture.ChangePassword();
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.DbContextFactory.FakeDbContext, fixture.User.Id));
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.DeleteTokensForUser(this.dbContextFactory.FakeDbContext, values.User.Id));
     }
 
     [Fact]
     public async Task ChangePassword_Success_SendsPasswordChangeNotification()
     {
-        using var fixture = ChangePasswordFixture.ForSuccess();
+        var values = this.SetupChangePassword_Success();
 
-        await fixture.ChangePassword();
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
-        fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordChangeNotification(fixture.User.Email));
+        this.authenticationMailerMock.Verify(
+            x => x.SendPasswordChangeNotification(values.User.Email));
     }
 
     [Fact]
     public async Task ChangePassword_Success_LogsSuccessEvent()
     {
-        using var fixture = ChangePasswordFixture.ForSuccess();
+        var values = this.SetupChangePassword_Success();
 
-        await fixture.ChangePassword();
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password successfully changed for user {fixture.User.Id} ({fixture.User.Email})");
+                entry.Message == $"Password successfully changed for user {values.User.Id} ({values.User.Email})");
 
-        fixture.AssertAuthenticationEventLogged("password_change_success", fixture.User.Id);
+        this.AssertAuthenticationEventLogged("password_change_success", values.User.Id);
     }
 
     [Fact]
     public async Task ChangePassword_Success_ReturnsTrue()
     {
-        using var fixture = ChangePasswordFixture.ForSuccess();
+        var values = this.SetupChangePassword_Success();
 
-        Assert.True(await fixture.ChangePassword());
+        Assert.True(
+            await this.passwordAuthenticationService.ChangePassword(
+                values.User.Id, values.SuppliedCurrentPassword, values.NewPassword));
     }
 
-    private sealed class ChangePasswordFixture : PasswordAuthenticationServiceFixture
+    private sealed record ChangePasswordValues(
+        string NewHashedPassword,
+        string NewPassword,
+        string NewSecurityStamp,
+        string SuppliedCurrentPassword,
+        User User);
+
+    private ChangePasswordValues SetupChangePassword(string? currentHashedPassword)
     {
-        private const string CurrentPassword = "current-password";
-        private const string HashedCurrentPassword = "hashed-current-password";
+        var values = new ChangePasswordValues(
+            this.modelFactory.NextString("new-hashed-password"),
+            this.modelFactory.NextString("new-password"),
+            this.modelFactory.NextString("new-security-stamp"),
+            this.modelFactory.NextString("supplied-current-password"),
+            this.modelFactory.BuildUser() with { HashedPassword = currentHashedPassword });
 
-        private ChangePasswordFixture(string? hashedPassword)
-        {
-            this.User = new ModelFactory().BuildUser() with { HashedPassword = hashedPassword };
+        this.SetupGetUser(values.User.Id, values.User);
 
-            this.SetupGetUser(this.User.Id, this.User);
+        this.passwordHasherMock
+            .Setup(x => x.HashPassword(values.User, values.NewPassword))
+            .Returns(values.NewHashedPassword);
 
-            this.MockPasswordHasher
-                .Setup(x => x.HashPassword(this.User, this.NewPassword))
-                .Returns(this.HashedNewPassword);
+        this.randomTokenGeneratorMock
+            .Setup(x => x.Generate(2))
+            .Returns(values.NewSecurityStamp);
 
-            this.MockRandomTokenGenerator
-                .Setup(x => x.Generate(2))
-                .Returns(this.NewSecurityStamp);
-        }
-
-        public User User { get; }
-
-        public string NewPassword { get; } = "new-password";
-
-        public string HashedNewPassword { get; } = "hashed-new-password";
-
-        public string NewSecurityStamp { get; } = "new-security-stamp";
-
-        public static ChangePasswordFixture ForUserHasNoPassword() => new(null);
-
-        public static ChangePasswordFixture ForPasswordDoesNotMatch() =>
-            ForPasswordVerificationResult(PasswordVerificationResult.Failed);
-
-        public static ChangePasswordFixture ForSuccess() =>
-            ForPasswordVerificationResult(PasswordVerificationResult.Success);
-
-        public Task<bool> ChangePassword() => this.PasswordAuthenticationService.ChangePassword(
-            this.User.Id, CurrentPassword, this.NewPassword);
-
-        private static ChangePasswordFixture ForPasswordVerificationResult(
-            PasswordVerificationResult result)
-        {
-            using var fixture = new ChangePasswordFixture(HashedCurrentPassword);
-
-            fixture.MockPasswordHasher
-                .Setup(x => x.VerifyHashedPassword(
-                    fixture.User, HashedCurrentPassword, CurrentPassword))
-                .Returns(result);
-
-            return fixture;
-        }
+        return values;
     }
+
+    private ChangePasswordValues SetupChangePassword_IncorrectCurrentPassword() =>
+        this.SetupChangePassword_UserHasPassword(PasswordVerificationResult.Failed);
+
+    private ChangePasswordValues SetupChangePassword_Success() =>
+        this.SetupChangePassword_UserHasPassword(PasswordVerificationResult.Success);
+
+    private ChangePasswordValues SetupChangePassword_UserHasPassword(
+        PasswordVerificationResult passwordVerificationResult)
+    {
+        var currentHashedPassword = this.modelFactory.NextString("current-hashed-password");
+        var values = this.SetupChangePassword(currentHashedPassword);
+
+        this.passwordHasherMock
+            .Setup(x => x.VerifyHashedPassword(
+                values.User, currentHashedPassword, values.SuppliedCurrentPassword))
+            .Returns(passwordVerificationResult);
+
+        return values;
+    }
+
+    private ChangePasswordValues SetupChangePassword_UserHasNoPassword() =>
+        this.SetupChangePassword(null);
 
     #endregion
 
@@ -354,82 +401,73 @@ public sealed class PasswordAuthenticationServiceTests
     [Fact]
     public async Task PasswordResetTokenIsValid_DeletesExpiredTokens()
     {
-        using var fixture = PasswordResetTokenFixture.ForValidToken();
+        var values = this.SetupPasswordResetTokenIsValid(true);
 
-        await fixture.PasswordResetTokenIsValid();
+        await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token);
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
-            fixture.DbContextFactory.FakeDbContext, fixture.Clock.UtcNow.AddDays(-1)));
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.DeleteExpiredTokens(
+                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
     }
 
     [Fact]
     public async Task PasswordResetTokenIsValid_Valid_Logs()
     {
-        using var fixture = PasswordResetTokenFixture.ForValidToken();
+        var values = this.SetupPasswordResetTokenIsValid(true);
 
-        await fixture.PasswordResetTokenIsValid();
+        await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Debug &&
-                entry.Message == $"Password reset token '{fixture.RedactedToken}' is valid and belongs to user {fixture.UserId}");
+                entry.Message == $"Password reset token '{values.Token[..6]}…' is valid and belongs to user {values.UserId}");
     }
 
     [Fact]
     public async Task PasswordResetTokenIsValid_Valid_ReturnsTrue()
     {
-        using var fixture = PasswordResetTokenFixture.ForValidToken();
+        var values = this.SetupPasswordResetTokenIsValid(true);
 
-        Assert.True(await fixture.PasswordResetTokenIsValid());
+        Assert.True(
+            await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token));
     }
 
     [Fact]
     public async Task PasswordResetTokenIsValid_Invalid_Logs()
     {
-        using var fixture = PasswordResetTokenFixture.ForInvalidToken();
+        var values = this.SetupPasswordResetTokenIsValid(false);
 
-        await fixture.PasswordResetTokenIsValid();
+        await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Debug &&
-                entry.Message == $"Password reset token '{fixture.RedactedToken}' is no longer valid");
+                entry.Message == $"Password reset token '{values.Token[..6]}…' is no longer valid");
 
-        fixture.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
+        this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
 
     [Fact]
     public async Task PasswordResetTokenIsValid_Invalid_ReturnsFalse()
     {
-        using var fixture = PasswordResetTokenFixture.ForInvalidToken();
+        var values = this.SetupPasswordResetTokenIsValid(false);
 
-        await fixture.PasswordResetTokenIsValid();
-
-        Assert.False(await fixture.PasswordResetTokenIsValid());
+        Assert.False(
+            await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token));
     }
 
-    private sealed class PasswordResetTokenFixture : PasswordAuthenticationServiceFixture
+    private sealed record PasswordResetTokenIsValidValues(string Token, long UserId);
+
+    private PasswordResetTokenIsValidValues SetupPasswordResetTokenIsValid(bool valid)
     {
-        private const string Token = "password-reset-token";
+        var token = this.modelFactory.NextString("token");
+        var userId = this.modelFactory.NextInt();
 
-        private PasswordResetTokenFixture(long? userId)
-        {
-            this.UserId = userId;
-            this.SetupGetUserIdForToken(Token, userId);
-        }
+        this.SetupGetUserIdForToken(token, valid ? userId : null);
 
-        public string RedactedToken { get; } = "passwo…";
-
-        public long? UserId { get; }
-
-        public static PasswordResetTokenFixture ForValidToken() => new(43);
-
-        public static PasswordResetTokenFixture ForInvalidToken() => new(null);
-
-        public Task<bool> PasswordResetTokenIsValid() =>
-            this.PasswordAuthenticationService.PasswordResetTokenIsValid(Token);
+        return new(token, userId);
     }
 
     #endregion
@@ -439,152 +477,137 @@ public sealed class PasswordAuthenticationServiceTests
     [Fact]
     public async Task ResetPassword_DeletesExpiredPasswordResetTokens()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(true);
 
-        fixture.SetupSuccess();
+        await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
-        await fixture.ResetPassword();
-
-        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.DeleteExpiredTokens(
-            fixture.DbContextFactory.FakeDbContext, fixture.Clock.UtcNow.AddDays(-1)));
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.DeleteExpiredTokens(
+                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
     }
 
     [Fact]
     public async Task ResetPassword_InvalidToken_Logs()
     {
-        using var fixture = new ResetPasswordFixture();
-
-        fixture.SetupInvalidToken();
+        var values = this.SetupResetPassword(false);
 
         try
         {
-            await fixture.ResetPassword();
+            await this.passwordAuthenticationService.ResetPassword(
+                values.Token, values.NewPassword);
         }
         catch (InvalidTokenException)
         {
         }
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Unable to reset password; password reset token {fixture.RedactedToken} is invalid");
+                entry.Message == $"Unable to reset password; password reset token {values.Token[..6]}… is invalid");
 
-        fixture.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
+        this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
 
     [Fact]
     public async Task ResetPassword_InvalidToken_Throws()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(false);
 
-        fixture.SetupInvalidToken();
-
-        await Assert.ThrowsAsync<InvalidTokenException>(fixture.ResetPassword);
+        await Assert.ThrowsAsync<InvalidTokenException>(
+            () => this.passwordAuthenticationService.ResetPassword(
+                values.Token, values.NewPassword));
     }
 
     [Fact]
     public async Task ResetPassword_Success_UpdatesUser()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(true);
 
-        fixture.SetupSuccess();
+        await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
-        await fixture.ResetPassword();
-
-        fixture.MockUserDataProvider.Verify(x => x.UpdatePassword(
-            fixture.DbContextFactory.FakeDbContext,
-            fixture.User.Id,
-            fixture.NewHashedPassword,
-            fixture.NewSecurityStamp));
+        this.userDataProviderMock.Verify(
+            x => x.UpdatePassword(
+                this.dbContextFactory.FakeDbContext,
+                values.User.Id,
+                values.NewHashedPassword,
+                values.NewSecurityStamp));
     }
 
     [Fact]
     public async Task ResetPassword_Success_DeletesPasswordResetTokens()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(true);
 
-        fixture.SetupSuccess();
+        await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
-        await fixture.ResetPassword();
-
-        fixture.MockPasswordResetTokenDataProvider.Verify(
-            x => x.DeleteTokensForUser(fixture.DbContextFactory.FakeDbContext, fixture.User.Id));
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.DeleteTokensForUser(this.dbContextFactory.FakeDbContext, values.User.Id));
     }
 
     [Fact]
     public async Task ResetPassword_Success_SendsPasswordChangeNotification()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(true);
 
-        fixture.SetupSuccess();
+        await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
-        await fixture.ResetPassword();
-
-        fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordChangeNotification(fixture.User.Email));
+        this.authenticationMailerMock.Verify(
+            x => x.SendPasswordChangeNotification(values.User.Email));
     }
 
     [Fact]
     public async Task ResetPassword_Success_Logs()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(true);
 
-        fixture.SetupSuccess();
-
-        await fixture.ResetPassword();
+        await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password reset for user {fixture.User.Id} using token {fixture.RedactedToken}");
+                entry.Message == $"Password reset for user {values.User.Id} using token {values.Token[..6]}…");
 
-        fixture.AssertAuthenticationEventLogged("password_reset_success", fixture.User.Id);
+        this.AssertAuthenticationEventLogged("password_reset_success", values.User.Id);
     }
 
     [Fact]
     public async Task ResetPassword_Success_ReturnsUserWithNewSecurityStamp()
     {
-        using var fixture = new ResetPasswordFixture();
+        var values = this.SetupResetPassword(true);
 
-        fixture.SetupSuccess();
+        var returnedUser = await this.passwordAuthenticationService.ResetPassword(
+            values.Token, values.NewPassword);
 
-        var actual = await fixture.ResetPassword();
-
-        Assert.Equal(fixture.User with { SecurityStamp = fixture.NewSecurityStamp }, actual);
+        Assert.Equal(values.User with { SecurityStamp = values.NewSecurityStamp }, returnedUser);
     }
 
-    private sealed class ResetPasswordFixture : PasswordAuthenticationServiceFixture
+    private sealed record ResetPasswordValues(
+        string NewHashedPassword,
+        string NewPassword,
+        string NewSecurityStamp,
+        string Token,
+        User User);
+
+    private ResetPasswordValues SetupResetPassword(bool tokenIsValid)
     {
-        private const string NewPassword = "new-password";
-        private const string Token = "password-reset-token";
+        var newHashedPassword = this.modelFactory.NextString("new-hashed-password");
+        var newPassword = this.modelFactory.NextString("new-password");
+        var newSecurityStamp = this.modelFactory.NextString("new-security-stamp");
+        var token = this.modelFactory.NextString("token");
+        var user = this.modelFactory.BuildUser();
 
-        public string RedactedToken { get; } = "passwo…";
+        this.SetupGetUserIdForToken(token, tokenIsValid ? user.Id : null);
+        this.SetupGetUser(user.Id, user);
+        this.passwordHasherMock
+            .Setup(x => x.HashPassword(user, newPassword))
+            .Returns(newHashedPassword);
+        this.randomTokenGeneratorMock
+            .Setup(x => x.Generate(2))
+            .Returns(newSecurityStamp);
 
-        public User User { get; } = new ModelFactory().BuildUser();
-
-        public string NewHashedPassword { get; } = "new-hashed-password";
-
-        public string NewSecurityStamp { get; } = "new-security-stamp";
-
-        public void SetupInvalidToken() => this.SetupGetUserIdForToken(Token, null);
-
-        public void SetupSuccess()
-        {
-            this.SetupGetUserIdForToken(Token, this.User.Id);
-            this.SetupGetUser(this.User.Id, this.User);
-            this.MockPasswordHasher
-                .Setup(x => x.HashPassword(this.User, NewPassword))
-                .Returns(this.NewHashedPassword);
-
-            this.MockRandomTokenGenerator
-                .Setup(x => x.Generate(2))
-                .Returns(this.NewSecurityStamp);
-        }
-
-        public Task<User> ResetPassword() =>
-            this.PasswordAuthenticationService.ResetPassword(Token, NewPassword);
+        return new(newHashedPassword, newPassword, newSecurityStamp, token, user);
     }
 
     #endregion
@@ -594,170 +617,121 @@ public sealed class PasswordAuthenticationServiceTests
     [Fact]
     public async Task SendPasswordResetLink_Success_InsertsPasswordResetToken()
     {
-        using var fixture = SendPasswordResetLinkFixture.ForSuccess();
+        var values = this.SetupSendPasswordResetLink(true);
 
-        await fixture.SendPasswordResetLink();
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
-        fixture.MockPasswordResetTokenDataProvider.Verify(x => x.InsertToken(
-            fixture.DbContextFactory.FakeDbContext, fixture.User!.Id, fixture.Token));
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.InsertToken(this.dbContextFactory.FakeDbContext, values.User.Id, values.Token));
     }
 
     [Fact]
     public async Task SendPasswordResetLink_Success_SendsLinkToUser()
     {
-        using var fixture = SendPasswordResetLinkFixture.ForSuccess();
+        var values = this.SetupSendPasswordResetLink(true);
 
-        await fixture.SendPasswordResetLink();
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
-        fixture.MockAuthenticationMailer.Verify(
-            x => x.SendPasswordResetLink(fixture.User!.Email, fixture.Link));
+        this.authenticationMailerMock.Verify(
+            x => x.SendPasswordResetLink(values.User.Email, values.Link));
     }
 
     [Fact]
     public async Task SendPasswordResetLink_Success_Logs()
     {
-        using var fixture = SendPasswordResetLinkFixture.ForSuccess();
+        var values = this.SetupSendPasswordResetLink(true);
 
-        await fixture.SendPasswordResetLink();
-
-        var user = fixture.User!;
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password reset link sent to user {user.Id} ({user.Email})");
+                entry.Message == $"Password reset link sent to user {values.User.Id} ({values.User.Email})");
 
-        fixture.AssertAuthenticationEventLogged("password_reset_link_sent", user.Id, user.Email);
+        this.AssertAuthenticationEventLogged(
+            "password_reset_link_sent", values.User.Id, values.User.Email);
     }
 
     [Fact]
     public async Task SendPasswordResetLink_EmailIsUnrecognized_DoesNotSendLink()
     {
-        using var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
+        var values = this.SetupSendPasswordResetLink(false);
 
-        await fixture.SendPasswordResetLink();
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
-        fixture.MockAuthenticationMailer.Verify(
+        this.authenticationMailerMock.Verify(
             x => x.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
     public async Task SendPasswordResetLink_EmailIsUnrecognized_Logs()
     {
-        using var fixture = SendPasswordResetLinkFixture.ForUnrecognizedEmail();
+        var values = this.SetupSendPasswordResetLink(false);
 
-        await fixture.SendPasswordResetLink();
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Unable to send password reset link; No user with email {fixture.SuppliedEmail}");
+                entry.Message == $"Unable to send password reset link; No user with email {values.Email}");
 
-        fixture.AssertAuthenticationEventLogged(
-            "password_reset_failure:unrecognized_email", null, fixture.SuppliedEmail);
+        this.AssertAuthenticationEventLogged(
+            "password_reset_failure:unrecognized_email", null, values.Email);
     }
 
-    private sealed class SendPasswordResetLinkFixture : PasswordAuthenticationServiceFixture
+    private sealed record SendPasswordResetLinkValues(
+        string Email, string Link, string Token, IUrlHelper UrlHelper, User User);
+
+    private SendPasswordResetLinkValues SetupSendPasswordResetLink(bool emailIsRecognized)
     {
-        private SendPasswordResetLinkFixture(User? user)
-        {
-            this.User = user;
+        var email = this.modelFactory.NextEmail();
+        var link = this.modelFactory.NextString("https://example.com/reset-password/token");
+        var urlHelperMock = new Mock<IUrlHelper>();
+        var user = this.modelFactory.BuildUser();
+        var token = this.modelFactory.NextString("token");
 
-            this.MockUserDataProvider
-                .Setup(
-                    x => x.FindUserByEmail(this.DbContextFactory.FakeDbContext, this.SuppliedEmail))
-                .ReturnsAsync(user);
-        }
-
-        public Mock<IUrlHelper> MockUrlHelper { get; } = new();
-
-        public ActionContext ActionContext { get; } = new();
-
-        public string SuppliedEmail { get; } = "supplied-email@example.com";
-
-        public User? User { get; }
-
-        public string Token { get; } = "password-reset-token";
-
-        public string Link { get; } = "https://example.com/reset-password/token";
-
-        public static SendPasswordResetLinkFixture ForSuccess()
-        {
-            using var fixture = new SendPasswordResetLinkFixture(new ModelFactory().BuildUser());
-
-            fixture.MockRandomTokenGenerator
-                .Setup(x => x.Generate(12))
-                .Returns(fixture.Token);
-
-            fixture.MockUrlHelper
-                .Setup(x => x.Link(
+        this.userDataProviderMock
+            .Setup(x => x.FindUserByEmail(this.dbContextFactory.FakeDbContext, email))
+            .ReturnsAsync(emailIsRecognized ? user : null);
+        this.randomTokenGeneratorMock
+            .Setup(x => x.Generate(12))
+            .Returns(token);
+        urlHelperMock
+            .Setup(
+                x => x.Link(
                     "ResetPassword",
-                    It.Is<object>(o => fixture.Token.Equals(new RouteValueDictionary(o)["token"]))))
-                .Returns(fixture.Link);
+                    It.Is<object>(o => token.Equals(new RouteValueDictionary(o)["token"]))))
+            .Returns(link);
 
-            return fixture;
-        }
-
-        public static SendPasswordResetLinkFixture ForUnrecognizedEmail() => new(null);
-
-        public Task SendPasswordResetLink() =>
-            this.PasswordAuthenticationService.SendPasswordResetLink(
-                this.SuppliedEmail, this.MockUrlHelper.Object);
+        return new(email, link, token, urlHelperMock.Object, user);
     }
 
     #endregion
 
-    private class PasswordAuthenticationServiceFixture : IDisposable
-    {
-        public PasswordAuthenticationServiceFixture() =>
-            this.PasswordAuthenticationService = new(
-                this.MockAuthenticationEventDataProvider.Object,
-                this.MockAuthenticationMailer.Object,
-                this.Clock,
-                this.DbContextFactory,
-                this.Logger,
-                this.MockPasswordHasher.Object,
-                this.MockPasswordResetTokenDataProvider.Object,
-                this.MockRandomTokenGenerator.Object,
-                this.MockUserDataProvider.Object);
+    private void AssertAuthenticationEventLogged(
+        string eventName, long? userId = null, string? email = null) =>
+        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
+            this.dbContextFactory.FakeDbContext, eventName, userId, email));
 
-        public Mock<IAuthenticationEventDataProvider> MockAuthenticationEventDataProvider { get; } = new();
+    private void SetupFindUserByEmail(string email, User? user) =>
+        this.userDataProviderMock
+            .Setup(x => x.FindUserByEmail(this.dbContextFactory.FakeDbContext, email))
+            .ReturnsAsync(user);
 
-        public PasswordAuthenticationService PasswordAuthenticationService { get; }
+    private void SetupGetUser(long id, User user) =>
+        this.userDataProviderMock
+            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, id))
+            .ReturnsAsync(user);
 
-        public StoppedClock Clock { get; } = new();
-
-        public FakeDbContextFactory DbContextFactory { get; } = new();
-
-        public ListLogger<PasswordAuthenticationService> Logger { get; } = new();
-
-        public Mock<IAuthenticationMailer> MockAuthenticationMailer { get; } = new();
-
-        public Mock<IPasswordHasher<User>> MockPasswordHasher { get; } = new();
-
-        public Mock<IPasswordResetTokenDataProvider> MockPasswordResetTokenDataProvider { get; } = new();
-
-        public Mock<IRandomTokenGenerator> MockRandomTokenGenerator { get; } = new();
-
-        public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
-
-        public void SetupGetUser(long id, User user) =>
-            this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, id))
-                .ReturnsAsync(user);
-
-        public void SetupGetUserIdForToken(string token, long? userId) =>
-            this.MockPasswordResetTokenDataProvider
-                .Setup(x => x.GetUserIdForToken(this.DbContextFactory.FakeDbContext, token))
-                .ReturnsAsync(userId);
-
-        public void AssertAuthenticationEventLogged(
-            string eventName, long? userId = null, string? email = null) =>
-            this.MockAuthenticationEventDataProvider.Verify(x => x.LogEvent(
-                this.DbContextFactory.FakeDbContext, eventName, userId, email));
-
-        public void Dispose() => this.DbContextFactory.Dispose();
-    }
+    private void SetupGetUserIdForToken(string token, long? userId) =>
+        this.passwordResetTokenDataProviderMock
+            .Setup(x => x.GetUserIdForToken(this.dbContextFactory.FakeDbContext, token))
+            .ReturnsAsync(userId);
 }
