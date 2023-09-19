@@ -39,7 +39,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public async Task ValidatePrincipal_Unauthenticated_DoesNotRejectPrincipal()
     {
         var initialPrincipal = new ClaimsPrincipal();
-        var context = this.SetupValidatePrincipalContext(initialPrincipal);
+        var context = this.BuildValidatePrincipalContext(initialPrincipal);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -52,7 +52,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
         Func<User, ClaimsPrincipal> principalFactory)
     {
         var user = this.SetupGetUser();
-        var context = this.SetupValidatePrincipalContext(principalFactory(user));
+        var context = this.BuildValidatePrincipalContext(principalFactory(user));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -68,7 +68,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public async Task ValidatePrincipal_SecurityStampIsMissingOrStale_RejectsPrincipal(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.SetupValidatePrincipalContext(principalFactory(this.SetupGetUser()));
+        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupGetUser()));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -80,7 +80,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public async Task ValidatePrincipal_SecurityStampIsMissingOrStale_SignsUserOut(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.SetupValidatePrincipalContext(principalFactory(this.SetupGetUser()));
+        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupGetUser()));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -92,7 +92,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public async Task ValidatePrincipal_SecurityStampMatches_LogsDebugMessage()
     {
         var user = this.SetupGetUser();
-        var context = this.SetupValidatePrincipalContext(SetupPrincipal(user));
+        var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -109,7 +109,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
          Func<User, ClaimsPrincipal> principalFactory)
     {
         var user = this.SetupGetUser();
-        var context = this.SetupValidatePrincipalContext(principalFactory(user));
+        var context = this.BuildValidatePrincipalContext(principalFactory(user));
         var updatedPrincipal = this.SetupCreatePrincipal(user, context.Scheme);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
@@ -122,7 +122,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_RenewsCookie(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.SetupValidatePrincipalContext(principalFactory(this.SetupGetUser()));
+        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupGetUser()));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -135,7 +135,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
         Func<User, ClaimsPrincipal> principalFactory)
     {
         var user = this.SetupGetUser();
-        var context = this.SetupValidatePrincipalContext(principalFactory(user));
+        var context = this.BuildValidatePrincipalContext(principalFactory(user));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -149,20 +149,46 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     [Fact]
     public async Task ValidatePrincipal_UserRevisionMatches_RetainsPrincipal()
     {
-        var initialPrincipal = SetupPrincipal(this.SetupGetUser());
-        var context = this.SetupValidatePrincipalContext(initialPrincipal);
+        var initialPrincipal = BuildPrincipal(this.SetupGetUser());
+        var context = this.BuildValidatePrincipalContext(initialPrincipal);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
         Assert.Same(initialPrincipal, context.Principal);
     }
 
+    private static ClaimsPrincipal BuildPrincipal(
+        User user, Action<Dictionary<string, string>>? configureClaims = null)
+    {
+        var claims = new Dictionary<string, string>
+        {
+            [ClaimTypes.NameIdentifier] = user.Id.ToString(CultureInfo.InvariantCulture),
+            [CustomClaimTypes.SecurityStamp] = user.SecurityStamp,
+            [CustomClaimTypes.UserRevision] = user.Revision.ToString(CultureInfo.InvariantCulture),
+        };
+
+        configureClaims?.Invoke(claims);
+
+        return new(new ClaimsIdentity(claims.Select((kvp) => new Claim(kvp.Key, kvp.Value))));
+    }
+
+    private CookieValidatePrincipalContext BuildValidatePrincipalContext(ClaimsPrincipal principal)
+    {
+        var scheme = new AuthenticationScheme(
+            this.modelFactory.NextString("authentication-scheme"),
+            null,
+            typeof(CookieAuthenticationHandler));
+        var ticket = new AuthenticationTicket(principal, scheme.Name);
+
+        return new(new DefaultHttpContext(), scheme, new(), ticket);
+    }
+
     public static object[][] GetTheoryDataForSecurityStampIsMissingOrStale()
     {
         ClaimsPrincipal SetupPrincipalWithoutSecurityStamp(User user) =>
-            SetupPrincipal(user, claims => claims.Remove(CustomClaimTypes.SecurityStamp));
+            BuildPrincipal(user, claims => claims.Remove(CustomClaimTypes.SecurityStamp));
         ClaimsPrincipal SetupPrincipalWithStaleSecurityStamp(User user) =>
-            SetupPrincipal(user with { SecurityStamp = "stale-security-stamp" });
+            BuildPrincipal(user with { SecurityStamp = "stale-security-stamp" });
 
         return new object[][]
         {
@@ -174,9 +200,9 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public static object[][] GetTheoryDataForUserRevisionIsMissingOrStale()
     {
         ClaimsPrincipal SetupPrincipalWithoutUserRevision(User user) =>
-            SetupPrincipal(user, claims => claims.Remove(CustomClaimTypes.UserRevision));
+            BuildPrincipal(user, claims => claims.Remove(CustomClaimTypes.UserRevision));
         ClaimsPrincipal SetupPrincipalWithStaleUserRevision(User user) =>
-            SetupPrincipal(user with { Revision = user.Revision - 1 });
+            BuildPrincipal(user with { Revision = user.Revision - 1 });
 
         return new object[][]
         {
@@ -205,32 +231,6 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
             .ReturnsAsync(user);
 
         return user;
-    }
-
-    private static ClaimsPrincipal SetupPrincipal(
-        User user, Action<Dictionary<string, string>>? configureClaims = null)
-    {
-        var claims = new Dictionary<string, string>
-        {
-            [ClaimTypes.NameIdentifier] = user.Id.ToString(CultureInfo.InvariantCulture),
-            [CustomClaimTypes.SecurityStamp] = user.SecurityStamp,
-            [CustomClaimTypes.UserRevision] = user.Revision.ToString(CultureInfo.InvariantCulture),
-        };
-
-        configureClaims?.Invoke(claims);
-
-        return new(new ClaimsIdentity(claims.Select((kvp) => new Claim(kvp.Key, kvp.Value))));
-    }
-
-    private CookieValidatePrincipalContext SetupValidatePrincipalContext(ClaimsPrincipal principal)
-    {
-        var scheme = new AuthenticationScheme(
-            this.modelFactory.NextString("authentication-scheme"),
-            null,
-            typeof(CookieAuthenticationHandler));
-        var ticket = new AuthenticationTicket(principal, scheme.Name);
-
-        return new(new DefaultHttpContext(), scheme, new(), ticket);
     }
 
     #endregion
