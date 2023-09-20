@@ -92,13 +92,14 @@ public sealed class PasswordResetTokenDataProviderTests
         var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
 
+        var token = this.modelFactory.NextString("token");
+
         dbContext.PasswordResetTokens.Add(
-            new() { UserId = user.Id, Token = "sample-token", Created = DateTime.UtcNow });
+            new() { UserId = user.Id, Token = token, Created = DateTime.UtcNow });
 
         await dbContext.SaveChangesAsync();
 
-        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            dbContext, "sample-token");
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(dbContext, token);
 
         Assert.Equal(user.Id, actual);
     }
@@ -109,7 +110,7 @@ public sealed class PasswordResetTokenDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
 
         var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            dbContext, "sample-token");
+            dbContext, this.modelFactory.NextString("token"));
 
         Assert.Null(actual);
     }
@@ -128,11 +129,13 @@ public sealed class PasswordResetTokenDataProviderTests
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
-        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, "sample-token");
+        var token = this.modelFactory.NextString("token");
+
+        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, token);
 
         dbContext.ChangeTracker.Clear();
 
-        var actual = await dbContext.PasswordResetTokens.FindAsync("sample-token");
+        var actual = await dbContext.PasswordResetTokens.FindAsync(token);
 
         Assert.NotNull(actual);
         Assert.Equal(user.Id, actual.UserId);

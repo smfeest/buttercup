@@ -1,3 +1,4 @@
+using System.Globalization;
 using Buttercup.TestUtils;
 using Xunit;
 
@@ -46,7 +47,7 @@ public sealed class UserDataProviderTests
         await dbContext.SaveChangesAsync();
 
         var actual = await this.userDataProvider.FindUserByEmail(
-            dbContext, "non-existent@example.com");
+            dbContext, this.modelFactory.NextEmail());
 
         Assert.Null(actual);
     }
@@ -103,16 +104,19 @@ public sealed class UserDataProviderTests
         dbContext.Users.Add(original);
         await dbContext.SaveChangesAsync();
 
+        var newHashedPassword = this.modelFactory.NextString("hashed-password");
+        var newSecurityStamp = this.NextSecurityStamp();
+
         await this.userDataProvider.UpdatePassword(
-            dbContext, original.Id, "new-hashed-password", "newstamp");
+            dbContext, original.Id, newHashedPassword, newSecurityStamp);
 
         dbContext.ChangeTracker.Clear();
 
         var expected = original with
         {
-            HashedPassword = "new-hashed-password",
+            HashedPassword = newHashedPassword,
             PasswordCreated = this.clock.UtcNow,
-            SecurityStamp = "newstamp",
+            SecurityStamp = newSecurityStamp,
             Modified = this.clock.UtcNow,
             Revision = original.Revision + 1,
         };
@@ -135,10 +139,16 @@ public sealed class UserDataProviderTests
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
-                dbContext, id, "new-hashed-password", "newstamp"));
+                dbContext,
+                id,
+                this.modelFactory.NextString("hashed-password"),
+                this.NextSecurityStamp()));
 
         Assert.Equal($"User {id} not found", exception.Message);
     }
+
+    private string NextSecurityStamp() =>
+        this.modelFactory.NextInt().ToString("X8", CultureInfo.InvariantCulture);
 
     #endregion
 
@@ -154,13 +164,15 @@ public sealed class UserDataProviderTests
         dbContext.Users.Add(original);
         await dbContext.SaveChangesAsync();
 
-        await this.userDataProvider.UpdatePreferences(dbContext, original.Id, "new-time-zone");
+        var newTimeZone = this.modelFactory.NextString("new-time-zone");
+
+        await this.userDataProvider.UpdatePreferences(dbContext, original.Id, newTimeZone);
 
         dbContext.ChangeTracker.Clear();
 
         var expected = original with
         {
-            TimeZone = "new-time-zone",
+            TimeZone = newTimeZone,
             Modified = this.clock.UtcNow,
             Revision = original.Revision + 1,
         };
@@ -182,7 +194,8 @@ public sealed class UserDataProviderTests
         var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.UpdatePreferences(dbContext, id, "new-time-zone"));
+            () => this.userDataProvider.UpdatePreferences(
+                dbContext, id, this.modelFactory.NextString("time-zone")));
 
         Assert.Equal($"User {id} not found", exception.Message);
     }

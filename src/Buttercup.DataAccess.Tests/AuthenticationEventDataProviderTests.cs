@@ -32,16 +32,19 @@ public sealed class AuthenticationEventDataProviderTests
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
+        var eventName = this.modelFactory.NextString("event");
+        var email = this.modelFactory.NextEmail();
+
         var id = await this.authenticationEventDataProvider.LogEvent(
-            dbContext, "sample-event", user.Id, "sample@example.com");
+            dbContext, eventName, user.Id, email);
 
         var expectedEvent = new AuthenticationEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
-            Event = "sample-event",
+            Event = eventName,
             UserId = user.Id,
-            Email = "sample@example.com"
+            Email = email
         };
 
         dbContext.ChangeTracker.Clear();
@@ -57,13 +60,15 @@ public sealed class AuthenticationEventDataProviderTests
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var id = await this.authenticationEventDataProvider.LogEvent(dbContext, "sample-event");
+        var eventName = this.modelFactory.NextString("event");
+
+        var id = await this.authenticationEventDataProvider.LogEvent(dbContext, eventName);
 
         var expectedEvent = new AuthenticationEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
-            Event = "sample-event",
+            Event = eventName,
             UserId = null,
             Email = null
         };
