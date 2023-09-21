@@ -8,7 +8,7 @@ public sealed class RecipeAttributesTests
     #region Constructor(Recipe)
 
     [Fact]
-    public void ConstructorCopiesValuesFromRecipe()
+    public void Constructor_CopiesValuesFromRecipe()
     {
         var recipe = new ModelFactory().BuildRecipe();
 

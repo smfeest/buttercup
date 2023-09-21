@@ -10,18 +10,44 @@ using Xunit;
 
 namespace Buttercup.Web.Controllers;
 
-public sealed class AccountControllerTests
+public sealed class AccountControllerTests : IDisposable
 {
+    private readonly ModelFactory modelFactory = new();
+
+    private readonly FakeDbContextFactory dbContextFactory = new();
+    private readonly DefaultHttpContext httpContext = new();
+    private readonly Mock<ICookieAuthenticationService> cookieAuthenticationServiceMock = new();
+    private readonly Mock<IStringLocalizer<AccountController>> localizerMock = new();
+    private readonly Mock<IPasswordAuthenticationService> passwordAuthenticationServiceMock = new();
+    private readonly Mock<IUserDataProvider> userDataProviderMock = new();
+
+    private readonly AccountController accountController;
+
+    public AccountControllerTests() =>
+        this.accountController = new(
+            this.dbContextFactory,
+            this.userDataProviderMock.Object,
+            this.cookieAuthenticationServiceMock.Object,
+            this.passwordAuthenticationServiceMock.Object,
+            this.localizerMock.Object)
+        {
+            ControllerContext = new() { HttpContext = this.httpContext },
+        };
+
+    public void Dispose()
+    {
+        this.accountController.Dispose();
+        this.dbContextFactory.Dispose();
+    }
+
     #region Show (GET)
 
     [Fact]
-    public async void ShowReturnsViewResultWithCurrentUser()
+    public async void Show_ReturnsViewResultWithCurrentUser()
     {
-        using var fixture = new AccountControllerFixture();
+        var user = this.SetupCurrentUser();
 
-        var user = fixture.SetupCurrentUser();
-
-        var result = await fixture.AccountController.Show();
+        var result = await this.accountController.Show();
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(user, viewResult.Model);
     }
@@ -31,11 +57,9 @@ public sealed class AccountControllerTests
     #region ChangePassword (GET)
 
     [Fact]
-    public void ChangePasswordGetReturnsViewResult()
+    public void ChangePassword_Get_ReturnsViewResult()
     {
-        using var fixture = new AccountControllerFixture();
-
-        var result = fixture.AccountController.ChangePassword();
+        var result = this.accountController.ChangePassword();
         Assert.IsType<ViewResult>(result);
     }
 
@@ -44,30 +68,26 @@ public sealed class AccountControllerTests
     #region ChangePassword (POST)
 
     [Fact]
-    public async Task ChangePasswordPostReturnsViewResultWhenModelIsInvalid()
+    public async Task ChangePassword_Post_ModelIsInvalid_ReturnsViewResult()
     {
-        using var fixture = new ChangePasswordPostFixture();
+        this.accountController.ModelState.AddModelError("test", "test");
 
-        fixture.AccountController.ModelState.AddModelError("test", "test");
-
-        var result = await fixture.ChangePasswordPost();
+        var viewModel = BuildChangePasswordViewModel();
+        var result = await this.accountController.ChangePassword(viewModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Same(fixture.Model, viewResult.Model);
+        Assert.Same(viewModel, viewResult.Model);
     }
 
     [Fact]
-    public async Task ChangePasswordPostAddsErrorWhenCurrentPasswordIsIncorrect()
+    public async Task ChangePassword_Post_CurrentPasswordIsIncorrect_AddsError()
     {
-        using var fixture = new ChangePasswordPostFixture();
+        this.SetupChangePassword(false);
 
-        fixture.SetupChangePassword(false);
+        await this.accountController.ChangePassword(BuildChangePasswordViewModel());
 
-        await fixture.ChangePasswordPost();
-
-        var modelState = fixture
-            .AccountController
-            .ModelState[nameof(ChangePasswordViewModel.CurrentPassword)];
+        var modelState =
+            this.accountController.ModelState[nameof(ChangePasswordViewModel.CurrentPassword)];
         Assert.NotNull(modelState);
 
         var error = Assert.Single(modelState.Errors);
@@ -75,69 +95,54 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
-    public async Task ChangePasswordPostReturnsViewResultWhenCurrentPasswordIsIncorrect()
+    public async Task ChangePassword_Post_CurrentPasswordIsIncorrect_ReturnsViewResult()
     {
-        using var fixture = new ChangePasswordPostFixture();
+        this.SetupChangePassword(false);
 
-        fixture.SetupChangePassword(false);
-
-        var result = await fixture.ChangePasswordPost();
+        var viewModel = BuildChangePasswordViewModel();
+        var result = await this.accountController.ChangePassword(viewModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Same(fixture.Model, viewResult.Model);
+        Assert.Same(viewModel, viewResult.Model);
     }
 
     [Fact]
-    public async Task ChangePasswordRefreshesPrincipalOnSuccess()
+    public async Task ChangePassword_Post_Success_RefreshesPrincipal()
     {
-        using var fixture = new ChangePasswordPostFixture();
+        this.SetupChangePassword(true);
 
-        fixture.SetupChangePassword(true);
+        await this.accountController.ChangePassword(BuildChangePasswordViewModel());
 
-        await fixture.ChangePasswordPost();
-
-        fixture.MockCookieAuthenticationService.Verify(
-            x => x.RefreshPrincipal(fixture.HttpContext));
+        this.cookieAuthenticationServiceMock.Verify(x => x.RefreshPrincipal(this.httpContext));
     }
 
     [Fact]
-    public async Task ChangePasswordPostRedirectsToYourAccountOnSuccess()
+    public async Task ChangePassword_Post_Success_RedirectsToYourAccount()
     {
-        using var fixture = new ChangePasswordPostFixture();
+        this.SetupChangePassword(true);
 
-        fixture.SetupChangePassword(true);
-
-        var result = await fixture.ChangePasswordPost();
+        var result = await this.accountController.ChangePassword(BuildChangePasswordViewModel());
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
     }
 
-    private sealed class ChangePasswordPostFixture : AccountControllerFixture
+    private static ChangePasswordViewModel BuildChangePasswordViewModel() => new()
     {
-        public ChangePasswordPostFixture()
-        {
-            this.UserId = this.ModelFactory.NextInt();
-            this.HttpContext.User = PrincipalFactory.CreateWithUserId(this.UserId);
-            this.MockLocalizer.SetupLocalizedString(
-                "Error_WrongPassword", "translated-wrong-password-error");
-        }
+        CurrentPassword = "current-password",
+        NewPassword = "new-password",
+    };
 
-        public long UserId { get; }
+    private void SetupChangePassword(bool result)
+    {
+        var userId = this.SetupCurrentUserId();
 
-        public ChangePasswordViewModel Model { get; } = new()
-        {
-            CurrentPassword = "current-password",
-            NewPassword = "new-password",
-        };
+        this.passwordAuthenticationServiceMock
+            .Setup(x => x.ChangePassword(userId, "current-password", "new-password"))
+            .ReturnsAsync(result);
 
-        public void SetupChangePassword(bool result) =>
-            this.MockPasswordAuthenticationService
-                .Setup(x => x.ChangePassword(this.UserId, "current-password", "new-password"))
-                .ReturnsAsync(result);
-
-        public Task<IActionResult> ChangePasswordPost() =>
-            this.AccountController.ChangePassword(this.Model);
+        this.localizerMock.SetupLocalizedString(
+            "Error_WrongPassword", "translated-wrong-password-error");
     }
 
     #endregion
@@ -145,13 +150,11 @@ public sealed class AccountControllerTests
     #region Preferences (GET)
 
     [Fact]
-    public async void PreferencesGetReturnsViewResultWithViewModel()
+    public async void Preferences_Get_ReturnsViewResultWithViewModel()
     {
-        using var fixture = new AccountControllerFixture();
+        var user = this.SetupCurrentUser();
 
-        var user = fixture.SetupCurrentUser();
-
-        var result = await fixture.AccountController.Preferences();
+        var result = await this.accountController.Preferences();
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
@@ -163,92 +166,62 @@ public sealed class AccountControllerTests
     #region Preferences (POST)
 
     [Fact]
-    public async Task PreferencesPostReturnsViewResultWhenModelIsInvalid()
+    public async Task Preferences_Post_InvalidModel_ReturnsViewResult()
     {
-        using var fixture = new AccountControllerFixture();
+        this.accountController.ModelState.AddModelError("test", "test");
 
-        fixture.AccountController.ModelState.AddModelError("test", "test");
-
-        var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
-
-        var result = await fixture.AccountController.Preferences(viewModel);
+        var viewModel = BuildPreferencesViewModel();
+        var result = await this.accountController.Preferences(viewModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
     }
 
     [Fact]
-    public async Task PreferencesPostUpdatesUserAndRedirectsToShowPage()
+    public async Task Preferences_Post_Success_UpdatesUser()
     {
-        using var fixture = new AccountControllerFixture();
+        var userId = this.SetupCurrentUserId();
 
-        var user = fixture.SetupCurrentUser();
+        await this.accountController.Preferences(BuildPreferencesViewModel());
 
-        var viewModel = new PreferencesViewModel { TimeZone = "time-zone" };
+        this.userDataProviderMock
+            .Verify(x => x.UpdatePreferences(
+                this.dbContextFactory.FakeDbContext, userId, "time-zone"));
+    }
 
-        fixture.MockUserDataProvider
-            .Setup(x => x.UpdatePreferences(
-                fixture.DbContextFactory.FakeDbContext, user.Id, viewModel.TimeZone))
-            .Returns(Task.CompletedTask)
-            .Verifiable();
+    [Fact]
+    public async Task Preferences_Post_Success_RedirectsToShowPage()
+    {
+        this.SetupCurrentUserId();
 
-        var result = await fixture.AccountController.Preferences(viewModel);
-
-        fixture.MockUserDataProvider.Verify();
+        var result = await this.accountController.Preferences(BuildPreferencesViewModel());
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
     }
 
+    private static PreferencesViewModel BuildPreferencesViewModel() =>
+        new() { TimeZone = "time-zone" };
+
     #endregion
 
-    private class AccountControllerFixture : IDisposable
+    private User SetupCurrentUser()
     {
+        var user = this.modelFactory.BuildUser();
 
-        public AccountControllerFixture() =>
-            this.AccountController = new(
-                this.DbContextFactory,
-                this.MockUserDataProvider.Object,
-                this.MockCookieAuthenticationService.Object,
-                this.MockPasswordAuthenticationService.Object,
-                this.MockLocalizer.Object)
-            {
-                ControllerContext = new()
-                {
-                    HttpContext = this.HttpContext,
-                },
-            };
+        this.httpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
 
-        public AccountController AccountController { get; }
+        this.userDataProviderMock
+            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, user.Id))
+            .ReturnsAsync(user);
 
-        public FakeDbContextFactory DbContextFactory { get; } = new();
+        return user;
+    }
 
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public Mock<IUserDataProvider> MockUserDataProvider { get; } = new();
-
-        public Mock<ICookieAuthenticationService> MockCookieAuthenticationService { get; } = new();
-
-        public Mock<IPasswordAuthenticationService> MockPasswordAuthenticationService { get; } =
-            new();
-
-        public Mock<IStringLocalizer<AccountController>> MockLocalizer { get; } = new();
-
-        public ModelFactory ModelFactory { get; } = new();
-
-        public User SetupCurrentUser()
-        {
-            var user = this.ModelFactory.BuildUser();
-
-            this.HttpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
-
-            this.MockUserDataProvider
-                .Setup(x => x.GetUser(this.DbContextFactory.FakeDbContext, user.Id))
-                .ReturnsAsync(user);
-
-            return user;
-        }
-
-        public void Dispose() => this.AccountController?.Dispose();
+    private long SetupCurrentUserId()
+    {
+        var userId = this.modelFactory.NextInt();
+        this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
+        return userId;
     }
 }

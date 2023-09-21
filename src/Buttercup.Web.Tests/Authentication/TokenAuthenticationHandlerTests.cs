@@ -16,11 +16,13 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 {
     private const string SchemeName = "ExampleScheme";
 
-    private readonly TokenAuthenticationHandler tokenAuthenticationHandler;
-    private readonly DefaultHttpContext httpContext = new();
-    private readonly Mock<ITokenAuthenticationService> mockTokenAuthenticationService = new();
-    private readonly Mock<IUserPrincipalFactory> mockUserPrincipalFactory = new();
     private readonly ModelFactory modelFactory = new();
+
+    private readonly DefaultHttpContext httpContext = new();
+    private readonly Mock<ITokenAuthenticationService> tokenAuthenticationServiceMock = new();
+    private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
+
+    private readonly TokenAuthenticationHandler tokenAuthenticationHandler;
 
     public TokenAuthenticationHandlerTests()
     {
@@ -32,8 +34,8 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
             NullLoggerFactory.Instance,
             Mock.Of<UrlEncoder>(),
             Mock.Of<ISystemClock>(),
-            this.mockTokenAuthenticationService.Object,
-            this.mockUserPrincipalFactory.Object);
+            this.tokenAuthenticationServiceMock.Object,
+            this.userPrincipalFactoryMock.Object);
     }
 
     public Task InitializeAsync() => this.tokenAuthenticationHandler.InitializeAsync(
@@ -47,7 +49,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     #region HandleAuthenticateAsync
 
     [Fact]
-    public async Task HandleAuthenticateAsyncReturnsNoResultWhenRequestHasNoAuthorizationHeader()
+    public async Task HandleAuthenticateAsync_RequestHasNoAuthorizationHeader_ReturnsNoResult()
     {
         var result = await this.tokenAuthenticationHandler.AuthenticateAsync();
 
@@ -55,7 +57,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task HandleAuthenticateAsyncReturnsNoResultWhenAuthorizationTypeIsNotBearer()
+    public async Task HandleAuthenticateAsync_AuthorizationTypeIsNotBearer_ReturnsNoResult()
     {
         this.SetAuthorizationHeader("Basic VGVzdDpUZXN0");
 
@@ -65,11 +67,11 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task HandleAuthenticateAsyncReturnsFailureWhenAccessTokenIsInvalid()
+    public async Task HandleAuthenticateAsync_AccessTokenIsInvalid_ReturnsFailure()
     {
         this.SetAuthorizationHeader("Bearer invalid-token");
 
-        this.mockTokenAuthenticationService
+        this.tokenAuthenticationServiceMock
             .Setup(x => x.ValidateAccessToken("invalid-token"))
             .ReturnsAsync(default(User?));
 
@@ -83,7 +85,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     [InlineData("Bearer valid-token")]
     [InlineData("bEARER valid-token")]
     [InlineData("Bearer  valid-token ")]
-    public async Task HandleAuthenticateAsyncReturnsSuccessWhenAccessTokenIsValid(
+    public async Task HandleAuthenticateAsync_AccessTokenIsValid_ReturnsSuccess(
         string authorizationHeaderValue)
     {
         var user = this.modelFactory.BuildUser();
@@ -91,11 +93,11 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 
         this.SetAuthorizationHeader(authorizationHeaderValue);
 
-        this.mockTokenAuthenticationService
+        this.tokenAuthenticationServiceMock
             .Setup(x => x.ValidateAccessToken("valid-token"))
             .ReturnsAsync(user);
 
-        this.mockUserPrincipalFactory
+        this.userPrincipalFactoryMock
             .Setup(x => x.Create(user, SchemeName))
             .Returns(principal);
 
@@ -112,7 +114,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     #region HandleChallengeAsync
 
     [Fact]
-    public async Task HandleChallengeAsyncSetsStatusCodeAndWWWAuthenticateHeader()
+    public async Task HandleChallengeAsync_SetsStatusCodeAndWWWAuthenticateHeader()
     {
         await this.tokenAuthenticationHandler.ChallengeAsync(null);
 

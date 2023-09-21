@@ -16,7 +16,7 @@ public sealed class RecipesControllerTests
     #region Index
 
     [Fact]
-    public async Task IndexReturnsViewResultWithRecipes()
+    public async Task Index_ReturnsViewResultWithRecipes()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -37,7 +37,7 @@ public sealed class RecipesControllerTests
     #region Show
 
     [Fact]
-    public async Task ShowReturnsViewResultWithRecipe()
+    public async Task Show_ReturnsViewResultWithRecipe()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -58,7 +58,7 @@ public sealed class RecipesControllerTests
     #region New (GET)
 
     [Fact]
-    public void NewGetReturnsViewResult()
+    public void New_Get_ReturnsViewResult()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -71,7 +71,7 @@ public sealed class RecipesControllerTests
     #region New (POST)
 
     [Fact]
-    public async Task NewPostAddsRecipeAndRedirectsToShowPage()
+    public async Task New_Post_Success_AddsRecipeAndRedirectsToShowPage()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -91,7 +91,7 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task NewPostReturnsViewResultWithEditModelWhenModelIsInvalid()
+    public async Task New_Post_InvalidModel_ReturnsViewResultWithEditModel()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -110,7 +110,7 @@ public sealed class RecipesControllerTests
     #region Edit (GET)
 
     [Fact]
-    public async Task EditGetReturnsViewResultWithEditModel()
+    public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -134,7 +134,7 @@ public sealed class RecipesControllerTests
     #region Edit (POST)
 
     [Fact]
-    public async Task EditPostUpdatesRecipeAndRedirectsToShowPage()
+    public async Task Edit_Post_Success_UpdatesRecipeAndRedirectsToShowPage()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -157,7 +157,7 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task EditPostReturnsViewResultWithEditModelWhenModelIsInvalid()
+    public async Task Edit_Post_InvalidModel_ReturnsViewResultWithEditModel()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -172,7 +172,7 @@ public sealed class RecipesControllerTests
     }
 
     [Fact]
-    public async Task EditPostReturnsViewResultAndAddsErrorWhenConcurrencyExceptionIsRaised()
+    public async Task Edit_Post_ConcurrencyException_ReturnsViewResultAndAddsError()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -207,7 +207,7 @@ public sealed class RecipesControllerTests
     #region Delete (GET)
 
     [Fact]
-    public async Task DeleteGetReturnsViewResultWithRecipe()
+    public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
         using var fixture = new RecipesControllerFixture();
 
@@ -228,7 +228,7 @@ public sealed class RecipesControllerTests
     #region Delete (POST)
 
     [Fact]
-    public async Task DeletePostDeletesRecipeAndRedirectsToIndexPage()
+    public async Task Delete_Post_DeletesRecipeAndRedirectsToIndexPage()
     {
         using var fixture = new RecipesControllerFixture();
 

@@ -6,27 +6,34 @@ namespace Buttercup.Security;
 
 public sealed class RandomTokenGeneratorTests
 {
+    private readonly Mock<RandomNumberGenerator> randomNumberGeneratorMock = new();
+    private readonly RandomTokenGenerator randomTokenGenerator;
+
+    public RandomTokenGeneratorTests()
+    {
+        var randomNumberGeneratorFactory = Mock.Of<IRandomNumberGeneratorFactory>(
+            x => x.Create() == this.randomNumberGeneratorMock.Object);
+
+        this.randomTokenGenerator = new(randomNumberGeneratorFactory);
+    }
+
     #region Generate
 
     [Theory]
     [InlineData(1)]
     [InlineData(3)]
-    public void GenerateUses3nRandomBytes(int n)
+    public void Generate_Uses3nRandomBytes(int n)
     {
-        var fixture = new RandomTokenGeneratorFixture();
+        this.randomTokenGenerator.Generate(n);
 
-        fixture.RandomTokenGenerator.Generate(n);
-
-        fixture.MockRandomNumberGenerator
+        this.randomNumberGeneratorMock
             .Verify(x => x.GetBytes(It.Is<byte[]>(bytes => bytes.Length == (3 * n))));
     }
 
     [Fact]
-    public void GenerateReturnsUrlSafeBase64()
+    public void Generate_ReturnsUrlSafeBase64()
     {
-        var fixture = new RandomTokenGeneratorFixture();
-
-        fixture.MockRandomNumberGenerator
+        this.randomNumberGeneratorMock
             .Setup(x => x.GetBytes(It.IsAny<byte[]>()))
             .Callback((byte[] bytes) =>
             {
@@ -40,23 +47,8 @@ public sealed class RandomTokenGeneratorTests
                 Array.Copy(generatedBytes, bytes, 9);
             });
 
-        Assert.Equal("0aB-1cDe_2Fg", fixture.RandomTokenGenerator.Generate(3));
+        Assert.Equal("0aB-1cDe_2Fg", this.randomTokenGenerator.Generate(3));
     }
 
     #endregion
-
-    private sealed class RandomTokenGeneratorFixture
-    {
-        public RandomTokenGeneratorFixture()
-        {
-            var randomNumberGeneratorFactory = Mock.Of<IRandomNumberGeneratorFactory>(
-                x => x.Create() == this.MockRandomNumberGenerator.Object);
-
-            this.RandomTokenGenerator = new(randomNumberGeneratorFactory);
-        }
-
-        public RandomTokenGenerator RandomTokenGenerator { get; }
-
-        public Mock<RandomNumberGenerator> MockRandomNumberGenerator { get; } = new();
-    }
 }

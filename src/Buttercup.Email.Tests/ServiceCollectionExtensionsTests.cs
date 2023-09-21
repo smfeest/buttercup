@@ -13,7 +13,7 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddEmailServices
 
     [Fact]
-    public void AddEmailServicesAddsEmailSender() =>
+    public void AddEmailServices_AddsEmailSender() =>
         Assert.Contains(
             new ServiceCollection().AddEmailServices(ConfigureOptions),
             serviceDescriptor =>
@@ -22,7 +22,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddEmailServicesAddsSendGridClientAccessor() =>
+    public void AddEmailServices_AddsSendGridClientAccessor() =>
         Assert.Contains(
             new ServiceCollection().AddEmailServices(ConfigureOptions),
             serviceDescriptor =>
@@ -31,7 +31,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddEmailServicesWithConfigureActionConfiguresOptions()
+    public void AddEmailServices_WithConfigureActionConfiguresOptions()
     {
         var options = new ServiceCollection()
             .AddEmailServices(ConfigureOptions)
@@ -43,7 +43,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEmailServicesWithConfigurationBindsConfiguration()
+    public void AddEmailServices_WithConfigurationBindsConfiguration()
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>()
@@ -63,7 +63,7 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEmailServicesValidatesOptions()
+    public void AddEmailServices_ValidatesOptions()
     {
         var options = new ServiceCollection()
             .AddEmailServices(options => { })

@@ -1,7 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -10,23 +9,22 @@ namespace Buttercup.DataAccess;
 public sealed class RecipeDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
-    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
     private readonly ModelFactory modelFactory = new();
+
+    private readonly StoppedClock clock = new();
     private readonly RecipeDataProvider recipeDataProvider;
 
     public RecipeDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-
-        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
-
-        this.recipeDataProvider = new(clock);
+        this.recipeDataProvider = new(this.clock);
+        this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
     #region AddRecipe
 
     [Fact]
-    public async Task AddRecipeInsertsRecipeAndReturnsId()
+    public async Task AddRecipe_InsertsRecipeAndReturnsId()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -53,9 +51,9 @@ public sealed class RecipeDataProviderTests
             Suggestions = attributes.Suggestions,
             Remarks = attributes.Remarks,
             Source = attributes.Source,
-            Created = this.fakeTime,
+            Created = this.clock.UtcNow,
             CreatedByUserId = currentUser.Id,
-            Modified = this.fakeTime,
+            Modified = this.clock.UtcNow,
             ModifiedByUserId = currentUser.Id,
             Revision = 0,
         };
@@ -66,7 +64,7 @@ public sealed class RecipeDataProviderTests
     }
 
     [Fact]
-    public async Task AddRecipeAcceptsNullForOptionalAttributes()
+    public async Task AddRecipe_AcceptsNullForOptionalAttributes()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -97,7 +95,7 @@ public sealed class RecipeDataProviderTests
     #region DeleteRecipe
 
     [Fact]
-    public async Task DeleteRecipeReturnsRecipe()
+    public async Task DeleteRecipe_ReturnsRecipe()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -112,7 +110,7 @@ public sealed class RecipeDataProviderTests
     }
 
     [Fact]
-    public async Task DeleteRecipeThrowsIfRecordNotFound()
+    public async Task DeleteRecipe_ThrowsIfRecordNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -133,7 +131,7 @@ public sealed class RecipeDataProviderTests
     #region GetAllRecipes
 
     [Fact]
-    public async Task GetAllRecipesReturnsAllRecipesInTitleOrder()
+    public async Task GetAllRecipes_ReturnsAllRecipesInTitleOrder()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -161,7 +159,7 @@ public sealed class RecipeDataProviderTests
     #region GetRecipe
 
     [Fact]
-    public async Task GetRecipeReturnsRecipe()
+    public async Task GetRecipe_ReturnsRecipe()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -178,7 +176,7 @@ public sealed class RecipeDataProviderTests
     }
 
     [Fact]
-    public async Task GetRecipeThrowsIfRecordNotFound()
+    public async Task GetRecipe_ThrowsIfRecordNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -199,7 +197,7 @@ public sealed class RecipeDataProviderTests
     #region GetRecentlyAddedRecipes
 
     [Fact]
-    public async Task GetRecentlyAddedRecipesReturnsRecipesInReverseChronologicalOrder()
+    public async Task GetRecentlyAddedRecipes_ReturnsRecipesInReverseChronologicalOrder()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -229,7 +227,7 @@ public sealed class RecipeDataProviderTests
     #region GetRecentlyUpdatedRecipes
 
     [Fact]
-    public async Task GetRecentlyUpdatedRecipesReturnsRecipesInReverseChronologicalOrder()
+    public async Task GetRecentlyUpdatedRecipes_ReturnsRecipesInReverseChronologicalOrder()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -291,7 +289,7 @@ public sealed class RecipeDataProviderTests
     #region UpdateRecipe
 
     [Fact]
-    public async Task UpdateRecipeUpdatesAllUpdatableAttributes()
+    public async Task UpdateRecipe_UpdatesAllUpdatableAttributes()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -323,7 +321,7 @@ public sealed class RecipeDataProviderTests
             Source = newAttributes.Source,
             Created = original.Created,
             CreatedByUserId = original.CreatedByUserId,
-            Modified = this.fakeTime,
+            Modified = this.clock.UtcNow,
             ModifiedByUserId = currentUser.Id,
             Revision = original.Revision + 1,
         };
@@ -334,7 +332,7 @@ public sealed class RecipeDataProviderTests
     }
 
     [Fact]
-    public async Task UpdateRecipeAcceptsNullForOptionalAttributes()
+    public async Task UpdateRecipe_AcceptsNullForOptionalAttributes()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -364,7 +362,7 @@ public sealed class RecipeDataProviderTests
     }
 
     [Fact]
-    public async Task UpdateRecipeThrowsIfRecordNotFound()
+    public async Task UpdateRecipe_ThrowsIfRecordNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -384,7 +382,7 @@ public sealed class RecipeDataProviderTests
     }
 
     [Fact]
-    public async Task UpdateRecipeThrowsIfRevisionOutOfSync()
+    public async Task UpdateRecipe_ThrowsIfRevisionOutOfSync()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();

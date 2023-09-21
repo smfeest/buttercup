@@ -14,7 +14,7 @@ public sealed class HomeControllerTests
     #region Index
 
     [Fact]
-    public async Task IndexReturnsViewResultWithRecentlyAddedRecipes()
+    public async Task Index_ReturnsViewResultWithRecentlyAddedRecipes()
     {
         using var fixture = new HomeControllerFixture();
 

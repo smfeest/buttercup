@@ -7,7 +7,7 @@ public sealed class ClockTests
     #region UtcNow
 
     [Fact]
-    public void UtcNowReturnsCurrentUtcTime()
+    public void UtcNow_ReturnsCurrentUtcTime()
     {
         var start = DateTime.UtcNow;
         var actual = new Clock().UtcNow;

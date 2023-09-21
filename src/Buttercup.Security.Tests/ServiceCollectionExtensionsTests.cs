@@ -10,7 +10,7 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddSecurityServices
 
     [Fact]
-    public void AddSecurityServicesAddsPasswordHasher() =>
+    public void AddSecurityServices_AddsPasswordHasher() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -19,7 +19,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsAccessTokenEncoder() =>
+    public void AddSecurityServices_AddsAccessTokenEncoder() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -28,7 +28,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsAccessTokenSerializer() =>
+    public void AddSecurityServices_AddsAccessTokenSerializer() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -37,7 +37,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsAuthenticationMailer() =>
+    public void AddSecurityServices_AddsAuthenticationMailer() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -46,7 +46,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsCookieAuthenticationService() =>
+    public void AddSecurityServices_AddsCookieAuthenticationService() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -55,7 +55,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsPasswordAuthenticationService() =>
+    public void AddSecurityServices_AddsPasswordAuthenticationService() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -64,7 +64,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsRandomNumberGeneratorFactory() =>
+    public void AddSecurityServices_AddsRandomNumberGeneratorFactory() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -73,7 +73,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsRandomTokenGenerator() =>
+    public void AddSecurityServices_AddsRandomTokenGenerator() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -82,7 +82,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsTokenAuthenticationService() =>
+    public void AddSecurityServices_AddsTokenAuthenticationService() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>
@@ -91,7 +91,7 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServicesAddsUserPrincipalFactory() =>
+    public void AddSecurityServices_AddsUserPrincipalFactory() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
             serviceDescriptor =>

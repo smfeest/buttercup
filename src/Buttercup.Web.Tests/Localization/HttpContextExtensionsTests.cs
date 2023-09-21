@@ -9,7 +9,7 @@ public sealed class HttpContextExtensionsTests
     #region ToUserTime
 
     [Fact]
-    public void ToUserTimeReturnsTimeInUserTimeZone()
+    public void ToUserTime_Authenticated_ReturnsTimeInUserTimeZone()
     {
         var identity = new ClaimsIdentity(
             new Claim[] { new(CustomClaimTypes.TimeZone, "Etc/GMT+10") });
@@ -25,7 +25,7 @@ public sealed class HttpContextExtensionsTests
     }
 
     [Fact]
-    public void ToUserTimeReturnsUtcTimeWhenUnauthenticated()
+    public void ToUserTime_Unauthenticated_ReturnsUtcTime()
     {
         var httpContext = new DefaultHttpContext();
 
@@ -40,7 +40,7 @@ public sealed class HttpContextExtensionsTests
     [Theory]
     [InlineData(DateTimeKind.Local)]
     [InlineData(DateTimeKind.Unspecified)]
-    public void ToUserTimeThrowsWhenDateTimeKindIsNotUtc(DateTimeKind kind) =>
+    public void ToUserTime_DateTimeKindNotUtc_Throws(DateTimeKind kind) =>
         Assert.Throws<ArgumentException>(() => new DefaultHttpContext().ToUserTime(new(0, kind)));
 
     #endregion

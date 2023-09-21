@@ -8,7 +8,7 @@ public sealed class PreferencesViewModelTests
     #region Constructor(User)
 
     [Fact]
-    public void ConstructorCopiesValuesFromUser()
+    public void Constructor_CopiesValuesFromUser()
     {
         var user = new ModelFactory().BuildUser();
 

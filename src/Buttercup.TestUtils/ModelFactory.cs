@@ -68,7 +68,7 @@ public sealed class ModelFactory
     {
         Id = this.NextInt(),
         Name = this.NextString("name"),
-        Email = $"user-{this.NextInt()}@example.com",
+        Email = this.NextEmail(),
         HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
         PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
         SecurityStamp = this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
@@ -85,6 +85,12 @@ public sealed class ModelFactory
     public DateTime NextDateTime() =>
         new DateTime(2000, 1, 2, 3, 4, 5, DateTimeKind.Utc)
             + (new TimeSpan(1, 2, 3, 4) * this.NextInt());
+
+    /// <summary>
+    /// Generates a unique email address.
+    /// </summary>
+    /// <returns>The generated email address.</returns>
+    public string NextEmail() => $"{this.NextString("email")}@example.com";
 
     /// <summary>
     /// Generates a unique integer value.

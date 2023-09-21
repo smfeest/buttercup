@@ -8,7 +8,7 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddCoreServices
 
     [Fact]
-    public void AddCoreServicesAddsClock() =>
+    public void AddCoreServices_AddsClock() =>
         Assert.Contains(
             new ServiceCollection().AddCoreServices(),
             serviceDescriptor =>

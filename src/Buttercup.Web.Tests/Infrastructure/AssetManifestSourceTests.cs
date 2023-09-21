@@ -7,74 +7,62 @@ namespace Buttercup.Web.Infrastructure;
 
 public sealed class AssetManifestSourceTests
 {
+    private readonly IDictionary<string, string> expectedManifest =
+        new Dictionary<string, string>() { ["foo.js"] = "foo-80bef72723.js" };
+    private readonly ListLogger<AssetManifestSource> logger = new();
+    private readonly string manifestPath = Path.Combine("prod-assets", "manifest.json");
+    private readonly Mock<IAssetManifestReader> manifestReaderMock = new();
+
+    private readonly AssetManifestSource manifestSource;
+
+    public AssetManifestSourceTests()
+    {
+        var stream = Mock.Of<Stream>();
+        var fileInfo = Mock.Of<IFileInfo>(x => x.CreateReadStream() == stream);
+        var fileProvider = Mock.Of<IFileProvider>(
+            x => x.GetFileInfo(this.manifestPath) == fileInfo);
+        var hostEnvironment = Mock.Of<IWebHostEnvironment>(
+            x => x.WebRootFileProvider == fileProvider);
+        this.manifestReaderMock
+            .Setup(x => x.ReadManifest(stream))
+            .Returns(this.expectedManifest);
+
+        this.manifestSource = new AssetManifestSource(
+            hostEnvironment, this.logger, this.manifestReaderMock.Object);
+    }
+
     #region ProductionManifest
 
     [Fact]
-    public void ProductionManifestLogsManifestLocation()
+    public void ProductionManifest_LogsManifestLocation()
     {
-        var fixture = new AssetManifestSourceFixture();
-
-        _ = fixture.ManifestSource.ProductionManifest;
+        _ = this.manifestSource.ProductionManifest;
 
         Assert.Contains(
-            fixture.Logger.Entries,
+            this.logger.Entries,
             entry =>
                 entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Loading asset manifest {fixture.ManifestPath}");
+                entry.Message == $"Loading asset manifest {this.manifestPath}");
     }
 
     [Fact]
-    public void ProductionManifestReturnsManifestAsReadOnlyDictionary()
+    public void ProductionManifest_ReturnsManifestAsReadOnlyDictionary()
     {
-        var fixture = new AssetManifestSourceFixture();
-
-        var actual = fixture.ManifestSource.ProductionManifest;
+        var actual = this.manifestSource.ProductionManifest;
 
         Assert.True(actual.IsReadOnly);
-        Assert.Equal(fixture.ExpectedManifest, actual);
+        Assert.Equal(this.expectedManifest, actual);
     }
 
     [Fact]
-    public void ProductionManifestCachesResult()
+    public void ProductionManifest_CachesResult()
     {
-        var fixture = new AssetManifestSourceFixture();
-
         Assert.Same(
-            fixture.ManifestSource.ProductionManifest,
-            fixture.ManifestSource.ProductionManifest);
+            this.manifestSource.ProductionManifest,
+            this.manifestSource.ProductionManifest);
 
-        fixture.MockManifestReader.Verify(x => x.ReadManifest(It.IsAny<Stream>()), Times.Once());
+        this.manifestReaderMock.Verify(x => x.ReadManifest(It.IsAny<Stream>()), Times.Once());
     }
 
     #endregion
-
-    private sealed class AssetManifestSourceFixture
-    {
-        public AssetManifestSourceFixture()
-        {
-            var stream = Mock.Of<Stream>();
-            var fileInfo = Mock.Of<IFileInfo>(x => x.CreateReadStream() == stream);
-            var fileProvider = Mock.Of<IFileProvider>(
-                x => x.GetFileInfo(this.ManifestPath) == fileInfo);
-            var hostEnvironment = Mock.Of<IWebHostEnvironment>(
-                x => x.WebRootFileProvider == fileProvider);
-            this.MockManifestReader
-                .Setup(x => x.ReadManifest(stream))
-                .Returns(this.ExpectedManifest);
-
-            this.ManifestSource = new AssetManifestSource(
-                hostEnvironment, this.Logger, this.MockManifestReader.Object);
-        }
-
-        public IDictionary<string, string> ExpectedManifest { get; } =
-            new Dictionary<string, string>();
-
-        public AssetManifestSource ManifestSource { get; }
-
-        public ListLogger<AssetManifestSource> Logger { get; } = new();
-
-        public Mock<IAssetManifestReader> MockManifestReader { get; } = new();
-
-        public string ManifestPath { get; } = Path.Combine("prod-assets", "manifest.json");
-    }
 }

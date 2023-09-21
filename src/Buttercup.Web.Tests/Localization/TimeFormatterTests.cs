@@ -18,7 +18,7 @@ public sealed class TimeFormatterTests
     [InlineData(121, "2 hours 1 minute")]
     [InlineData(125, "2 hours 5 minutes")]
     [InlineData(1500, "25 hours")]
-    public void AsHoursAndMinutesReturnsHoursAndMinutesInWords(
+    public void AsHoursAndMinutes_ReturnsHoursAndMinutesInWords(
         int minutes, string expectedOutput)
     {
         var resources = new Dictionary<string, string>

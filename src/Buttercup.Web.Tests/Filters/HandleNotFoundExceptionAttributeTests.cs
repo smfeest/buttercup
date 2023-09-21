@@ -7,10 +7,10 @@ namespace Buttercup.Web.Filters;
 
 public sealed class HandleNotFoundExceptionAttributeTests
 {
-    #region OnActionExecuting
+    #region OnException
 
     [Fact]
-    public void OnExceptionSetsResultIfExceptionMatches()
+    public void OnException_ExceptionMatches_SetsResult()
     {
         var exceptionContext = CallOnException(new NotFoundException());
 
@@ -18,7 +18,7 @@ public sealed class HandleNotFoundExceptionAttributeTests
     }
 
     [Fact]
-    public void OnExceptionDoesNotSetResultIfExceptionDoesNotMatch()
+    public void OnException_ExceptionDoesNotMatch_DoesNotSetResult()
     {
         var exceptionContext = CallOnException(new InvalidOperationException());
 

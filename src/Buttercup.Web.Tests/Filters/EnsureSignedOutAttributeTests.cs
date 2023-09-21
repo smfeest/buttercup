@@ -14,7 +14,7 @@ public sealed class EnsureSignedOutAttributeTests
     #region OnActionExecuting
 
     [Fact]
-    public void OnActionExecutingDoesNotRedirectIfUnauthenticated()
+    public void OnActionExecuting_Unauthenticated_DoesNotRedirect()
     {
         var actionExecutingContext = CallOnActionExecuting(null);
 
@@ -22,7 +22,7 @@ public sealed class EnsureSignedOutAttributeTests
     }
 
     [Fact]
-    public void OnActionExecutingRedirectsToSignOutIfAuthenticated()
+    public void OnActionExecuting_Authenticated_RedirectsToSignOut()
     {
         var actionExecutingContext = CallOnActionExecuting("authentication-type");
 
@@ -35,7 +35,7 @@ public sealed class EnsureSignedOutAttributeTests
     }
 
     [Fact]
-    public void OnActionExecutingSetsCacheControlHeader()
+    public void OnActionExecuting_SetsCacheControlHeader()
     {
         var actionExecutingContext = CallOnActionExecuting(null);
 

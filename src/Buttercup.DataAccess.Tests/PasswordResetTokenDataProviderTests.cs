@@ -1,6 +1,5 @@
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Xunit;
 
 namespace Buttercup.DataAccess;
@@ -9,28 +8,27 @@ namespace Buttercup.DataAccess;
 public sealed class PasswordResetTokenDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
+    private readonly ModelFactory modelFactory = new();
 
-    private readonly DateTime fakeTime = new(2020, 1, 2, 3, 4, 5);
+    private readonly StoppedClock clock = new();
     private readonly PasswordResetTokenDataProvider passwordResetTokenDataProvider;
 
     public PasswordResetTokenDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-
-        var clock = Mock.Of<IClock>(x => x.UtcNow == this.fakeTime);
-
-        this.passwordResetTokenDataProvider = new(clock);
+        this.passwordResetTokenDataProvider = new(this.clock);
+        this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
     #region DeleteExpiredTokens
 
     [Fact]
-    public async Task DeleteExpiredTokensDeletesExpiredTokens()
+    public async Task DeleteExpiredTokens_DeletesExpiredTokens()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
 
         void AddToken(string token, DateTime created) => dbContext.PasswordResetTokens.Add(
@@ -56,15 +54,13 @@ public sealed class PasswordResetTokenDataProviderTests
     #region DeleteTokensForUser
 
     [Fact]
-    public async Task DeleteTokensForUserDeletesTokensBelongingToUser()
+    public async Task DeleteTokensForUser_DeletesTokensBelongingToUser()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var modelFactory = new ModelFactory();
-
-        var user = modelFactory.BuildUser();
-        var otherUser = modelFactory.BuildUser();
+        var user = this.modelFactory.BuildUser();
+        var otherUser = this.modelFactory.BuildUser();
         dbContext.Users.AddRange(user, otherUser);
 
         void AddToken(long userId, string token) => dbContext.PasswordResetTokens.Add(
@@ -88,32 +84,33 @@ public sealed class PasswordResetTokenDataProviderTests
     #region GetUserIdForToken
 
     [Fact]
-    public async Task GetUserIdForTokenReturnsUserIdWhenTokenExists()
+    public async Task GetUserIdForToken_ReturnsUserIdWhenTokenExists()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
 
+        var token = this.modelFactory.NextString("token");
+
         dbContext.PasswordResetTokens.Add(
-            new() { UserId = user.Id, Token = "sample-token", Created = DateTime.UtcNow });
+            new() { UserId = user.Id, Token = token, Created = DateTime.UtcNow });
 
         await dbContext.SaveChangesAsync();
 
-        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            dbContext, "sample-token");
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(dbContext, token);
 
         Assert.Equal(user.Id, actual);
     }
 
     [Fact]
-    public async Task GetUserIdForTokenReturnsNullIfNoMatchFound()
+    public async Task GetUserIdForToken_ReturnsNullIfNoMatchFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
 
         var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            dbContext, "sample-token");
+            dbContext, this.modelFactory.NextString("token"));
 
         Assert.Null(actual);
     }
@@ -123,24 +120,26 @@ public sealed class PasswordResetTokenDataProviderTests
     #region InsertToken
 
     [Fact]
-    public async Task InsertTokenInsertsToken()
+    public async Task InsertToken_InsertsToken()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var user = new ModelFactory().BuildUser();
+        var user = this.modelFactory.BuildUser();
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
-        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, "sample-token");
+        var token = this.modelFactory.NextString("token");
+
+        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, token);
 
         dbContext.ChangeTracker.Clear();
 
-        var actual = await dbContext.PasswordResetTokens.FindAsync("sample-token");
+        var actual = await dbContext.PasswordResetTokens.FindAsync(token);
 
         Assert.NotNull(actual);
         Assert.Equal(user.Id, actual.UserId);
-        Assert.Equal(this.fakeTime, actual.Created);
+        Assert.Equal(this.clock.UtcNow, actual.Created);
     }
 
     #endregion

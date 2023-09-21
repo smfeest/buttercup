@@ -7,7 +7,7 @@ public sealed class TimeZoneOptionCollectionExtensionsTests
     #region AsSelectListItems
 
     [Fact]
-    public void AsSelectListItemsConvertsTimeZoneOptionsToSelectListItems()
+    public void AsSelectListItems_ConvertsTimeZoneOptionsToSelectListItems()
     {
         var timeZoneOption = new TimeZoneOption(
             "Sample/Time_Zone", TimeSpan.Zero, "Sample-Offset", "Sample-City");

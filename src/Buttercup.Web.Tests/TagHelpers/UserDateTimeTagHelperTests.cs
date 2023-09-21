@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
-using System.Text.Encodings.Web;
 using Buttercup.Security;
+using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Xunit;
 
@@ -9,109 +9,103 @@ namespace Buttercup.Web.TagHelpers;
 
 public sealed class UserDateTimeTagHelperTests
 {
-    [Fact]
-    public void SuppressesOutputWhenDateTimeIsNull()
+    private readonly ModelFactory modelFactory = new();
+
+    private readonly UserDateTimeTagHelper tagHelper;
+
+    public UserDateTimeTagHelperTests()
     {
-        var fixture = new UserDateTimeTagHelperFixture();
+        var identity = new ClaimsIdentity(
+            new Claim[] { new(CustomClaimTypes.TimeZone, "Etc/GMT-5") });
 
-        fixture.TagHelper.DateTime = null;
-
-        fixture.Process();
-
-        Assert.Null(fixture.Output.TagName);
-        Assert.True(fixture.Output.Content.IsEmptyOrWhiteSpace);
+        this.tagHelper = new()
+        {
+            ViewContext = new() { HttpContext = new DefaultHttpContext { User = new(identity) } },
+        };
     }
 
     [Fact]
-    public void SetsTagNameToSpan()
+    public void DateTimeNull_SuppressesOutput()
     {
-        var fixture = new UserDateTimeTagHelperFixture();
+        this.tagHelper.DateTime = null;
 
-        fixture.Process();
+        var output = this.Process();
 
-        Assert.Equal("span", fixture.Output.TagName);
+        Assert.Null(output.TagName);
+        Assert.True(output.Content.IsEmptyOrWhiteSpace);
     }
 
     [Fact]
-    public void SetsContentToFormattedUserDateAndTime()
+    public void DateTimeNotNull_SetsTagNameToSpan()
     {
-        var fixture = new UserDateTimeTagHelperFixture();
+        this.tagHelper.DateTime = this.modelFactory.NextDateTime();
 
-        fixture.TagHelper.Format = "D";
+        var output = this.Process();
 
-        fixture.Process();
+        Assert.Equal("span", output.TagName);
+    }
+
+    [Fact]
+    public void DateTimeNotNull_SetsContentToFormattedUserDateAndTime()
+    {
+        var utcDateTime = this.modelFactory.NextDateTime();
+
+        this.tagHelper.DateTime = utcDateTime;
+        this.tagHelper.Format = "D";
+
+        var output = this.Process();
 
         Assert.Equal(
-            fixture.UserDateTime.ToString("D", CultureInfo.CurrentCulture),
-            fixture.Output.Content.GetContent());
+            ConvertToUserTimeZone(utcDateTime).ToString("D", CultureInfo.CurrentCulture),
+            output.Content.GetContent());
     }
 
     [Fact]
-    public void UsesGeneralDateLongTimeFormatByDefault()
+    public void DateTimeNotNull_UsesGeneralDateLongTimeFormatByDefault()
     {
-        var fixture = new UserDateTimeTagHelperFixture();
+        var utcDateTime = this.modelFactory.NextDateTime();
 
-        fixture.TagHelper.Format = null;
+        this.tagHelper.DateTime = utcDateTime;
+        this.tagHelper.Format = null;
 
-        fixture.Process();
+        var output = this.Process();
 
         Assert.Equal(
-            fixture.UserDateTime.ToString("G", CultureInfo.CurrentCulture),
-            fixture.Output.Content.GetContent());
+            ConvertToUserTimeZone(utcDateTime).ToString("G", CultureInfo.CurrentCulture),
+            output.Content.GetContent());
     }
 
     [Fact]
-    public void SetsTitleAttributeToUtcDateTime()
+    public void DateTimeNotNull_SetsTitleAttributeToUtcDateTime()
     {
-        var fixture = new UserDateTimeTagHelperFixture();
+        var utcDateTime = this.modelFactory.NextDateTime();
 
-        fixture.Process();
+        this.tagHelper.DateTime = utcDateTime;
 
-        Assert.Equal("2001-02-03 21:22:23Z", (string)fixture.Output.Attributes["Title"].Value);
+        var output = this.Process();
+
+        Assert.Equal(
+            utcDateTime.ToString("u", CultureInfo.CurrentCulture),
+            (string)output.Attributes["Title"].Value);
     }
 
-    private sealed class UserDateTimeTagHelperFixture
+    private static DateTimeOffset ConvertToUserTimeZone(DateTime dateTime) =>
+        new DateTimeOffset(dateTime).ToOffset(new(5, 0, 0));
+
+    private TagHelperOutput Process()
     {
-        public UserDateTimeTagHelperFixture()
-        {
-            var identity = new ClaimsIdentity(
-                new Claim[] { new(CustomClaimTypes.TimeZone, "Etc/GMT-5") });
+        var context = new TagHelperContext(
+            "user-date-time",
+            new(),
+            new Dictionary<object, object>(),
+            "test");
+        var output = new TagHelperOutput(
+            "user-date-time",
+            new(),
+            (_, _) => Task.FromResult(new DefaultTagHelperContent().SetContent("content")));
 
-            var httpContext = new DefaultHttpContext { User = new(identity) };
+        this.tagHelper.Process(context, output);
 
-            this.TagHelper = new()
-            {
-                DateTime = this.UtcDateTime,
-                ViewContext = new() { HttpContext = httpContext },
-            };
-        }
-
-        public TagHelperOutput Output { get; } = new("user-date-time", new(), GetChildContent);
-
-        public UserDateTimeTagHelper TagHelper { get; }
-
-        public DateTime UtcDateTime { get; } = new(2001, 2, 3, 21, 22, 23, DateTimeKind.Utc);
-
-        public DateTimeOffset UserDateTime =>
-            new DateTimeOffset(this.UtcDateTime).ToOffset(new(5, 0, 0));
-
-        public void Process()
-        {
-            var context = new TagHelperContext(
-                "user-date-time",
-                new(),
-                new Dictionary<object, object>(),
-                "test");
-
-            this.TagHelper.Process(context, this.Output);
-        }
-
-        private static Task<TagHelperContent> GetChildContent(
-            bool useCachedResult, HtmlEncoder encoder)
-        {
-            TagHelperContent content = new DefaultTagHelperContent();
-            content.SetContent("test-content");
-            return Task.FromResult(content);
-        }
+        return output;
     }
 }
