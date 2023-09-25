@@ -56,11 +56,10 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Incorrect security stamp for user {user.Id} ({user.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Incorrect security stamp for user {user.Id} ({user.Email})");
     }
 
     [Theory]
@@ -96,11 +95,10 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Debug &&
-                entry.Message == $"Principal successfully validated for user {user.Id} ({user.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Debug,
+            $"Principal successfully validated for user {user.Id} ({user.Email})");
     }
 
     [Theory]
@@ -139,11 +137,10 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Refreshed claims principal for user {user.Id} ({user.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Refreshed claims principal for user {user.Id} ({user.Email})");
     }
 
     [Fact]

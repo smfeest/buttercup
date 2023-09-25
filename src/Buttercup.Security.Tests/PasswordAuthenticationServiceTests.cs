@@ -52,11 +52,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"User {values.User.Id} ({values.User.Email}) successfully authenticated");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"User {values.User.Id} ({values.User.Email}) successfully authenticated");
 
         this.AssertAuthenticationEventLogged(
             "authentication_success", values.User.Id, values.SuppliedEmail);
@@ -81,11 +80,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Authentication failed; no user with email {values.SuppliedEmail}");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Authentication failed; no user with email {values.SuppliedEmail}");
 
         this.AssertAuthenticationEventLogged(
             "authentication_failure:unrecognized_email", null, values.SuppliedEmail);
@@ -109,11 +107,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Authentication failed; no password set for user {values.User.Id} ({values.User.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Authentication failed; no password set for user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged(
             "authentication_failure:no_password_set", values.User.Id, values.SuppliedEmail);
@@ -137,11 +134,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Authentication failed; incorrect password for user {values.User.Id} ({values.User.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Authentication failed; incorrect password for user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged(
             "authentication_failure:incorrect_password", values.User.Id, values.SuppliedEmail);
@@ -244,11 +240,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.ChangePassword(
             values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password change denied for user {values.User.Id} ({values.User.Email}); current password is incorrect");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Password change denied for user {values.User.Id} ({values.User.Email}); current password is incorrect");
 
         this.AssertAuthenticationEventLogged(
             "password_change_failure:incorrect_password", values.User.Id);
@@ -323,11 +318,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.ChangePassword(
             values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password successfully changed for user {values.User.Id} ({values.User.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Password successfully changed for user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged("password_change_success", values.User.Id);
     }
@@ -417,11 +411,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Debug &&
-                entry.Message == $"Password reset token '{values.Token[..6]}…' is valid and belongs to user {values.UserId}");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Debug,
+            $"Password reset token '{values.Token[..6]}…' is valid and belongs to user {values.UserId}");
     }
 
     [Fact]
@@ -440,11 +433,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Debug &&
-                entry.Message == $"Password reset token '{values.Token[..6]}…' is no longer valid");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Debug,
+            $"Password reset token '{values.Token[..6]}…' is no longer valid");
 
         this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
@@ -500,11 +492,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         {
         }
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Unable to reset password; password reset token {values.Token[..6]}… is invalid");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Unable to reset password; password reset token {values.Token[..6]}… is invalid");
 
         this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
@@ -563,11 +554,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password reset for user {values.User.Id} using token {values.Token[..6]}…");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Password reset for user {values.User.Id} using token {values.Token[..6]}…");
 
         this.AssertAuthenticationEventLogged("password_reset_success", values.User.Id);
     }
@@ -646,11 +636,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.SendPasswordResetLink(
             values.Email, values.UrlHelper);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Password reset link sent to user {values.User.Id} ({values.User.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Password reset link sent to user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged(
             "password_reset_link_sent", values.User.Id, values.User.Email);
@@ -676,11 +665,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.SendPasswordResetLink(
             values.Email, values.UrlHelper);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Unable to send password reset link; No user with email {values.Email}");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            $"Unable to send password reset link; No user with email {values.Email}");
 
         this.AssertAuthenticationEventLogged(
             "password_reset_failure:unrecognized_email", null, values.Email);

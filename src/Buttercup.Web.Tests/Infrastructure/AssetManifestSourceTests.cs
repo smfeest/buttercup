@@ -38,11 +38,8 @@ public sealed class AssetManifestSourceTests
     {
         _ = this.manifestSource.ProductionManifest;
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Loading asset manifest {this.manifestPath}");
+        LogAssert.HasEntry(
+            this.logger, LogLevel.Information, $"Loading asset manifest {this.manifestPath}");
     }
 
     [Fact]
