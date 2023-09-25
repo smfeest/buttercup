@@ -45,7 +45,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     #region Authenticate
 
     [Fact]
-    public async Task Authenticate_Success_LogsSuccessEvent()
+    public async Task Authenticate_Success_LogsSuccess()
     {
         var values = this.SetupAuthenticate_Success();
 
@@ -57,6 +57,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             202,
             $"User {values.User.Id} ({values.User.Email}) successfully authenticated");
+    }
+
+    [Fact]
+    public async Task Authenticate_Success_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupAuthenticate_Success();
+
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         this.AssertAuthenticationEventLogged(
             "authentication_success", values.User.Id, values.SuppliedEmail);
@@ -74,7 +83,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Authenticate_EmailUnrecognized_LogsUnrecognizedEmailEvent()
+    public async Task Authenticate_EmailUnrecognized_LogsUnrecognizedEmail()
     {
         var values = this.SetupAuthenticate_EmailUnrecognized();
 
@@ -86,6 +95,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             203,
             $"Authentication failed; no user with email {values.SuppliedEmail}");
+    }
+
+    [Fact]
+    public async Task Authenticate_EmailUnrecognized_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupAuthenticate_EmailUnrecognized();
+
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         this.AssertAuthenticationEventLogged(
             "authentication_failure:unrecognized_email", null, values.SuppliedEmail);
@@ -102,7 +120,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Authenticate_UserHasNoPassword_LogsNoPasswordEvent()
+    public async Task Authenticate_UserHasNoPassword_LogsNoPassword()
     {
         var values = this.SetupAuthenticate_UserHasNoPassword();
 
@@ -114,6 +132,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             201,
             $"Authentication failed; no password set for user {values.User.Id} ({values.User.Email})");
+    }
+
+    [Fact]
+    public async Task Authenticate_UserHasNoPassword_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupAuthenticate_UserHasNoPassword();
+
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         this.AssertAuthenticationEventLogged(
             "authentication_failure:no_password_set", values.User.Id, values.SuppliedEmail);
@@ -130,7 +157,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Authenticate_IncorrectPassword_LogsIncorrectPasswordEvent()
+    public async Task Authenticate_IncorrectPassword_LogsIncorrectPassword()
     {
         var values = this.SetupAuthenticate_IncorrectPassword();
 
@@ -142,6 +169,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             200,
             $"Authentication failed; incorrect password for user {values.User.Id} ({values.User.Email})");
+    }
+
+    [Fact]
+    public async Task Authenticate_IncorrectPassword_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupAuthenticate_IncorrectPassword();
+
+        await this.passwordAuthenticationService.Authenticate(
+            values.SuppliedEmail, values.SuppliedPassword);
 
         this.AssertAuthenticationEventLogged(
             "authentication_failure:incorrect_password", values.User.Id, values.SuppliedEmail);
@@ -209,7 +245,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     #region ChangePassword
 
     [Fact]
-    public async Task ChangePassword_UserHasNoPassword_LogsNoPasswordEvent()
+    public async Task ChangePassword_UserHasNoPassword_InsertsAuthenticationEvent()
     {
         var values = this.SetupChangePassword_UserHasNoPassword();
 
@@ -237,7 +273,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ChangePassword_IncorrectCurrentPassword_LogsIncorrectPasswordEvent()
+    public async Task ChangePassword_IncorrectCurrentPassword_LogsIncorrectPassword()
     {
         var values = this.SetupChangePassword_IncorrectCurrentPassword();
 
@@ -249,6 +285,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             204,
             $"Password change denied for user {values.User.Id} ({values.User.Email}); current password is incorrect");
+    }
+
+    [Fact]
+    public async Task ChangePassword_IncorrectCurrentPassword_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupChangePassword_IncorrectCurrentPassword();
+
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
         this.AssertAuthenticationEventLogged(
             "password_change_failure:incorrect_password", values.User.Id);
@@ -316,7 +361,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ChangePassword_Success_LogsSuccessEvent()
+    public async Task ChangePassword_Success_LogsPasswordChanged()
     {
         var values = this.SetupChangePassword_Success();
 
@@ -328,6 +373,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             205,
             $"Password successfully changed for user {values.User.Id} ({values.User.Email})");
+    }
+
+    [Fact]
+    public async Task ChangePassword_Success_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupChangePassword_Success();
+
+        await this.passwordAuthenticationService.ChangePassword(
+            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword);
 
         this.AssertAuthenticationEventLogged("password_change_success", values.User.Id);
     }
@@ -411,7 +465,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValid_Valid_Logs()
+    public async Task PasswordResetTokenIsValid_Valid_LogsValidToken()
     {
         var values = this.SetupPasswordResetTokenIsValid(true);
 
@@ -434,7 +488,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValid_Invalid_Logs()
+    public async Task PasswordResetTokenIsValid_Invalid_LogsInvalidToken()
     {
         var values = this.SetupPasswordResetTokenIsValid(false);
 
@@ -445,6 +499,14 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Debug,
             206,
             $"Password reset token '{values.Token[..6]}…' is no longer valid");
+    }
+
+    [Fact]
+    public async Task PasswordResetTokenIsValid_Invalid_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupPasswordResetTokenIsValid(false);
+
+        await this.passwordAuthenticationService.PasswordResetTokenIsValid(values.Token);
 
         this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
@@ -487,7 +549,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_InvalidToken_Logs()
+    public async Task ResetPassword_InvalidToken_LogsInvalidToken()
     {
         var values = this.SetupResetPassword(false);
 
@@ -505,6 +567,21 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             208,
             $"Unable to reset password; password reset token {values.Token[..6]}… is invalid");
+    }
+
+    [Fact]
+    public async Task ResetPassword_InvalidToken_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupResetPassword(false);
+
+        try
+        {
+            await this.passwordAuthenticationService.ResetPassword(
+                values.Token, values.NewPassword);
+        }
+        catch (InvalidTokenException)
+        {
+        }
 
         this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
     }
@@ -557,7 +634,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Success_Logs()
+    public async Task ResetPassword_Success_LogsPasswordReset()
     {
         var values = this.SetupResetPassword(true);
 
@@ -568,6 +645,14 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             209,
             $"Password reset for user {values.User.Id} using token {values.Token[..6]}…");
+    }
+
+    [Fact]
+    public async Task ResetPassword_Success_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupResetPassword(true);
+
+        await this.passwordAuthenticationService.ResetPassword(values.Token, values.NewPassword);
 
         this.AssertAuthenticationEventLogged("password_reset_success", values.User.Id);
     }
@@ -639,7 +724,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SendPasswordResetLink_Success_Logs()
+    public async Task SendPasswordResetLink_Success_LogsLinkSent()
     {
         var values = this.SetupSendPasswordResetLink(true);
 
@@ -651,6 +736,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             210,
             $"Password reset link sent to user {values.User.Id} ({values.User.Email})");
+    }
+
+    [Fact]
+    public async Task SendPasswordResetLink_Success_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupSendPasswordResetLink(true);
+
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
         this.AssertAuthenticationEventLogged(
             "password_reset_link_sent", values.User.Id, values.User.Email);
@@ -669,7 +763,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SendPasswordResetLink_EmailIsUnrecognized_Logs()
+    public async Task SendPasswordResetLink_EmailIsUnrecognized_LogsUnrecognizedEmail()
     {
         var values = this.SetupSendPasswordResetLink(false);
 
@@ -681,6 +775,15 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             211,
             $"Unable to send password reset link; No user with email {values.Email}");
+    }
+
+    [Fact]
+    public async Task SendPasswordResetLink_EmailIsUnrecognized_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupSendPasswordResetLink(false);
+
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            values.Email, values.UrlHelper);
 
         this.AssertAuthenticationEventLogged(
             "password_reset_failure:unrecognized_email", null, values.Email);

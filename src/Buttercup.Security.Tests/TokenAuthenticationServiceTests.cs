@@ -36,7 +36,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     #region IssueAccessToken
 
     [Fact]
-    public async Task IssueAccessToken_EmitsLogMessage()
+    public async Task IssueAccessToken_LogsTokenIssued()
     {
         var user = this.modelFactory.BuildUser();
 
@@ -52,7 +52,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task IssueAccessToken_LogsAuthenticationEvent()
+    public async Task IssueAccessToken_InsertsAuthenticationEvent()
     {
         var user = this.modelFactory.BuildUser();
 

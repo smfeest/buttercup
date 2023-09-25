@@ -134,7 +134,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SignIn_LogsEvent()
+    public async Task SignIn_LogsSignedIn()
     {
         var values = this.SetupSignIn();
 
@@ -145,6 +145,14 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             212,
             $"User {values.User.Id} ({values.User.Email}) signed in");
+    }
+
+    [Fact]
+    public async Task SignIn_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupSignIn();
+
+        await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
 
         this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
             this.dbContextFactory.FakeDbContext, "sign_in", values.User.Id, null));
@@ -183,7 +191,44 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SignOut_PreviouslySignedIn_LogsSignOutEvent()
+    public async Task SignOut_PreviouslySignedIn_LogsSignedOut()
+    {
+        var values = this.SetupSignOut_PreviouslySignedIn();
+
+        await this.cookieAuthenticationService.SignOut(values.HttpContext);
+
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            213,
+            $"User {values.UserId} ({values.Email}) signed out");
+    }
+
+    [Fact]
+    public async Task SignOut_PreviouslySignedIn_InsertsAuthenticationEvent()
+    {
+        var values = this.SetupSignOut_PreviouslySignedIn();
+
+        await this.cookieAuthenticationService.SignOut(values.HttpContext);
+
+        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
+            this.dbContextFactory.FakeDbContext, "sign_out", values.UserId, null));
+    }
+
+    [Fact]
+    public async Task SignOut_NotPreviouslySignedIn_DoesNotLog()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        await this.cookieAuthenticationService.SignOut(httpContext);
+
+        Assert.Empty(this.logger.Entries);
+    }
+
+    private sealed record SignOutPreviouslySignedInValues(
+        long UserId, string Email, HttpContext HttpContext);
+
+    private SignOutPreviouslySignedInValues SetupSignOut_PreviouslySignedIn()
     {
         var userId = this.modelFactory.NextInt();
         var email = this.modelFactory.NextString("email");
@@ -192,25 +237,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
             User = PrincipalFactory.CreateWithUserId(userId, new Claim(ClaimTypes.Email, email)),
         };
 
-        await this.cookieAuthenticationService.SignOut(httpContext);
-
-        LogAssert.HasEntry(
-            this.logger, LogLevel.Information, 213, $"User {userId} ({email}) signed out");
-
-        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_out", userId, null));
-    }
-
-    [Fact]
-    public async Task SignOut_NotPreviouslySignedIn_DoesNotLogSignOutEvent()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        await this.cookieAuthenticationService.SignOut(httpContext);
-
-        this.authenticationEventDataProviderMock.Verify(
-            x => x.LogEvent(this.dbContextFactory.FakeDbContext, "sign_out", null, null),
-            Times.Never);
+        return new(userId, email, httpContext);
     }
 
     #endregion
