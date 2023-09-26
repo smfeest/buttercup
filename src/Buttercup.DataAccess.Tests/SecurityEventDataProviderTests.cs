@@ -5,18 +5,18 @@ using Xunit;
 namespace Buttercup.DataAccess;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class AuthenticationEventDataProviderTests
+public sealed class SecurityEventDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly StoppedClock clock = new();
-    private readonly AuthenticationEventDataProvider authenticationEventDataProvider;
+    private readonly SecurityEventDataProvider securityEventDataProvider;
 
-    public AuthenticationEventDataProviderTests(DatabaseCollectionFixture databaseFixture)
+    public SecurityEventDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.authenticationEventDataProvider = new(this.clock);
+        this.securityEventDataProvider = new(this.clock);
         this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
@@ -35,10 +35,10 @@ public sealed class AuthenticationEventDataProviderTests
         var eventName = this.modelFactory.NextString("event");
         var email = this.modelFactory.NextEmail();
 
-        var id = await this.authenticationEventDataProvider.LogEvent(
+        var id = await this.securityEventDataProvider.LogEvent(
             dbContext, eventName, user.Id, email);
 
-        var expectedEvent = new AuthenticationEvent
+        var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
@@ -49,7 +49,7 @@ public sealed class AuthenticationEventDataProviderTests
 
         dbContext.ChangeTracker.Clear();
 
-        var actualEvent = await dbContext.AuthenticationEvents.FindAsync(id);
+        var actualEvent = await dbContext.SecurityEvents.FindAsync(id);
 
         Assert.Equal(expectedEvent, actualEvent);
     }
@@ -62,9 +62,9 @@ public sealed class AuthenticationEventDataProviderTests
 
         var eventName = this.modelFactory.NextString("event");
 
-        var id = await this.authenticationEventDataProvider.LogEvent(dbContext, eventName);
+        var id = await this.securityEventDataProvider.LogEvent(dbContext, eventName);
 
-        var expectedEvent = new AuthenticationEvent
+        var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
@@ -75,7 +75,7 @@ public sealed class AuthenticationEventDataProviderTests
 
         dbContext.ChangeTracker.Clear();
 
-        var actualEvent = await dbContext.AuthenticationEvents.FindAsync(id);
+        var actualEvent = await dbContext.SecurityEvents.FindAsync(id);
 
         Assert.Equal(expectedEvent, actualEvent);
     }

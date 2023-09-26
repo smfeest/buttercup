@@ -11,25 +11,25 @@ namespace Buttercup.Security;
 
 internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 {
-    private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;
     private readonly IAuthenticationService authenticationService;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<CookieAuthenticationService> logger;
+    private readonly ISecurityEventDataProvider securityEventDataProvider;
     private readonly IUserDataProvider userDataProvider;
     private readonly IUserPrincipalFactory userPrincipalFactory;
 
     public CookieAuthenticationService(
-        IAuthenticationEventDataProvider authenticationEventDataProvider,
         IAuthenticationService authenticationService,
         IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<CookieAuthenticationService> logger,
+        ISecurityEventDataProvider securityEventDataProvider,
         IUserDataProvider userDataProvider,
         IUserPrincipalFactory userPrincipalFactory)
     {
-        this.authenticationEventDataProvider = authenticationEventDataProvider;
         this.authenticationService = authenticationService;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
+        this.securityEventDataProvider = securityEventDataProvider;
         this.userDataProvider = userDataProvider;
         this.userPrincipalFactory = userPrincipalFactory;
     }
@@ -62,7 +62,7 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.authenticationEventDataProvider.LogEvent(dbContext, "sign_in", user.Id);
+        await this.securityEventDataProvider.LogEvent(dbContext, "sign_in", user.Id);
     }
 
     public async Task SignOut(HttpContext httpContext)
@@ -79,7 +79,7 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
             using var dbContext = this.dbContextFactory.CreateDbContext();
 
-            await this.authenticationEventDataProvider.LogEvent(dbContext, "sign_out", userId);
+            await this.securityEventDataProvider.LogEvent(dbContext, "sign_out", userId);
         }
     }
 

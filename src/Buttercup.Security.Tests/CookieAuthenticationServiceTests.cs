@@ -15,11 +15,10 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
 
-    private readonly Mock<IAuthenticationEventDataProvider> authenticationEventDataProviderMock =
-        new();
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
     private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly ListLogger<CookieAuthenticationService> logger = new();
+    private readonly Mock<ISecurityEventDataProvider> securityEventDataProviderMock = new();
     private readonly Mock<IUserDataProvider> userDataProviderMock = new();
     private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
@@ -27,10 +26,10 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
 
     public CookieAuthenticationServiceTests() =>
         this.cookieAuthenticationService = new(
-            this.authenticationEventDataProviderMock.Object,
             this.authenticationServiceMock.Object,
             this.dbContextFactory,
             this.logger,
+            this.securityEventDataProviderMock.Object,
             this.userDataProviderMock.Object,
             this.userPrincipalFactoryMock.Object);
 
@@ -148,13 +147,13 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SignIn_InsertsAuthenticationEvent()
+    public async Task SignIn_InsertsSecurityEvent()
     {
         var values = this.SetupSignIn();
 
         await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
 
-        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
+        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
             this.dbContextFactory.FakeDbContext, "sign_in", values.User.Id, null));
     }
 
@@ -205,13 +204,13 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SignOut_PreviouslySignedIn_InsertsAuthenticationEvent()
+    public async Task SignOut_PreviouslySignedIn_InsertsSecurityEvent()
     {
         var values = this.SetupSignOut_PreviouslySignedIn();
 
         await this.cookieAuthenticationService.SignOut(values.HttpContext);
 
-        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
+        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
             this.dbContextFactory.FakeDbContext, "sign_out", values.UserId, null));
     }
 

@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Buttercup.EntityModel;
 
 /// <summary>
-/// Represents an authentication event.
+/// Represents a logged security event.
 /// </summary>
-public sealed record AuthenticationEvent
+public sealed record SecurityEvent
 {
     /// <summary>
     /// Gets or sets the primary key of the event.

@@ -3,12 +3,12 @@ using Buttercup.EntityModel;
 namespace Buttercup.DataAccess;
 
 /// <summary>
-/// Defines the contract for the authentication event data provider.
+/// Defines the contract for the security event data provider.
 /// </summary>
-public interface IAuthenticationEventDataProvider
+public interface ISecurityEventDataProvider
 {
     /// <summary>
-    /// Logs an authentication event.
+    /// Logs a security event.
     /// </summary>
     /// <param name="dbContext">
     /// The database context.

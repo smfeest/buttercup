@@ -13,11 +13,10 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAccessTokenEncoder> accessTokenEncoderMock = new();
-    private readonly Mock<IAuthenticationEventDataProvider> authenticationEventDataProviderMock =
-        new();
     private readonly StoppedClock clock = new();
     private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly ListLogger<TokenAuthenticationService> logger = new();
+    private readonly Mock<ISecurityEventDataProvider> securityEventDataProviderMock = new();
     private readonly Mock<IUserDataProvider> userDataProviderMock = new();
 
     private readonly TokenAuthenticationService tokenAuthenticationService;
@@ -25,10 +24,10 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     public TokenAuthenticationServiceTests() =>
         this.tokenAuthenticationService = new(
             this.accessTokenEncoderMock.Object,
-            this.authenticationEventDataProviderMock.Object,
             this.clock,
             this.dbContextFactory,
             this.logger,
+            this.securityEventDataProviderMock.Object,
             this.userDataProviderMock.Object);
 
     public void Dispose() => this.dbContextFactory.Dispose();
@@ -52,7 +51,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task IssueAccessToken_InsertsAuthenticationEvent()
+    public async Task IssueAccessToken_InsertsSecurityEvent()
     {
         var user = this.modelFactory.BuildUser();
 
@@ -60,7 +59,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
 
         await this.tokenAuthenticationService.IssueAccessToken(user);
 
-        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
+        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
             this.dbContextFactory.FakeDbContext, "access_token_issued", user.Id, null));
     }
 
