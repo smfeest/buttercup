@@ -154,7 +154,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
         await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
 
         this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_in", values.User.Id, null));
+            this.dbContextFactory.FakeDbContext, "sign_in", values.User.Id));
     }
 
     private sealed record SignInValues(
@@ -211,7 +211,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
         await this.cookieAuthenticationService.SignOut(values.HttpContext);
 
         this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_out", values.UserId, null));
+            this.dbContextFactory.FakeDbContext, "sign_out", values.UserId));
     }
 
     [Fact]

@@ -8,15 +8,13 @@ internal sealed class SecurityEventDataProvider : ISecurityEventDataProvider
 
     public SecurityEventDataProvider(IClock clock) => this.clock = clock;
 
-    public async Task<long> LogEvent(
-        AppDbContext dbContext, string eventName, long? userId = null, string? email = null)
+    public async Task<long> LogEvent(AppDbContext dbContext, string eventName, long? userId = null)
     {
         var securityEvent = new SecurityEvent
         {
             Time = this.clock.UtcNow,
             Event = eventName,
             UserId = userId,
-            Email = email,
         };
 
         dbContext.SecurityEvents.Add(securityEvent);

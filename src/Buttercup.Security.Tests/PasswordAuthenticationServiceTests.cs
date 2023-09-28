@@ -66,8 +66,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        this.AssertSecurityEventLogged(
-            "authentication_success", values.User.Id, values.SuppliedEmail);
+        this.AssertSecurityEventLogged("authentication_success", values.User.Id);
     }
 
     [Fact]
@@ -104,8 +103,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        this.AssertSecurityEventLogged(
-            "authentication_failure:unrecognized_email", null, values.SuppliedEmail);
+        this.AssertSecurityEventLogged("authentication_failure:unrecognized_email");
     }
 
     [Fact]
@@ -141,8 +139,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        this.AssertSecurityEventLogged(
-            "authentication_failure:no_password_set", values.User.Id, values.SuppliedEmail);
+        this.AssertSecurityEventLogged("authentication_failure:no_password_set", values.User.Id);
     }
 
     [Fact]
@@ -178,8 +175,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.Authenticate(
             values.SuppliedEmail, values.SuppliedPassword);
 
-        this.AssertSecurityEventLogged(
-            "authentication_failure:incorrect_password", values.User.Id, values.SuppliedEmail);
+        this.AssertSecurityEventLogged("authentication_failure:incorrect_password", values.User.Id);
     }
 
     [Fact]
@@ -257,8 +253,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         {
         }
 
-        this.AssertSecurityEventLogged(
-            "password_change_failure:no_password_set", values.User.Id);
+        this.AssertSecurityEventLogged("password_change_failure:no_password_set", values.User.Id);
     }
 
     [Fact]
@@ -745,8 +740,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.SendPasswordResetLink(
             values.Email, values.UrlHelper);
 
-        this.AssertSecurityEventLogged(
-            "password_reset_link_sent", values.User.Id, values.User.Email);
+        this.AssertSecurityEventLogged("password_reset_link_sent", values.User.Id);
     }
 
     [Fact]
@@ -784,8 +778,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         await this.passwordAuthenticationService.SendPasswordResetLink(
             values.Email, values.UrlHelper);
 
-        this.AssertSecurityEventLogged(
-            "password_reset_failure:unrecognized_email", null, values.Email);
+        this.AssertSecurityEventLogged("password_reset_failure:unrecognized_email");
     }
 
     private sealed record SendPasswordResetLinkValues(
@@ -817,10 +810,9 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
     #endregion
 
-    private void AssertSecurityEventLogged(
-        string eventName, long? userId = null, string? email = null) =>
+    private void AssertSecurityEventLogged(string eventName, long? userId = null) =>
         this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, eventName, userId, email));
+            this.dbContextFactory.FakeDbContext, eventName, userId));
 
     private void SetupFindUserByEmail(string email, User? user) =>
         this.userDataProviderMock

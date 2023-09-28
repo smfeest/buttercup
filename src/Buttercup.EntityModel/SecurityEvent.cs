@@ -32,10 +32,4 @@ public sealed record SecurityEvent
     /// Gets or sets the primary key of the associated user, if applicable.
     /// </summary>
     public long? UserId { get; set; }
-
-    /// <summary>
-    /// Gets or sets the associated email address, if applicable.
-    /// </summary>
-    [StringLength(250)]
-    public string? Email { get; set; }
 }

@@ -52,7 +52,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             await this.securityEventDataProvider.LogEvent(
-                dbContext, "authentication_failure:unrecognized_email", null, email);
+                dbContext, "authentication_failure:unrecognized_email");
 
             return null;
         }
@@ -62,7 +62,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
 
             await this.securityEventDataProvider.LogEvent(
-                dbContext, "authentication_failure:no_password_set", user.Id, email);
+                dbContext, "authentication_failure:no_password_set", user.Id);
 
             return null;
         }
@@ -72,15 +72,14 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
             await this.securityEventDataProvider.LogEvent(
-                dbContext, "authentication_failure:incorrect_password", user.Id, email);
+                dbContext, "authentication_failure:incorrect_password", user.Id);
 
             return null;
         }
 
         AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
 
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "authentication_success", user.Id, email);
+        await this.securityEventDataProvider.LogEvent(dbContext, "authentication_success", user.Id);
 
         return user;
     }
@@ -187,7 +186,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             await this.securityEventDataProvider.LogEvent(
-                dbContext, "password_reset_failure:unrecognized_email", null, email);
+                dbContext, "password_reset_failure:unrecognized_email");
 
             return;
         }
@@ -205,7 +204,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
 
         await this.securityEventDataProvider.LogEvent(
-            dbContext, "password_reset_link_sent", user.Id, email);
+            dbContext, "password_reset_link_sent", user.Id);
     }
 
     private static string RedactToken(string token) => $"{token[..6]}…";

@@ -19,12 +19,8 @@ public interface ISecurityEventDataProvider
     /// <param name="userId">
     /// The user ID, if applicable.
     /// </param>
-    /// <param name="email">
-    /// The email address, if applicable.
-    /// </param>
     /// <returns>
     /// A task for the operation. The result is the event ID.
     /// </returns>
-    Task<long> LogEvent(
-        AppDbContext dbContext, string eventName, long? userId = null, string? email = null);
+    Task<long> LogEvent(AppDbContext dbContext, string eventName, long? userId = null);
 }

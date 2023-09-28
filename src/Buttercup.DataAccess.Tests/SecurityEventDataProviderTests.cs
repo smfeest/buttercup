@@ -33,18 +33,15 @@ public sealed class SecurityEventDataProviderTests
         await dbContext.SaveChangesAsync();
 
         var eventName = this.modelFactory.NextString("event");
-        var email = this.modelFactory.NextEmail();
 
-        var id = await this.securityEventDataProvider.LogEvent(
-            dbContext, eventName, user.Id, email);
+        var id = await this.securityEventDataProvider.LogEvent(dbContext, eventName, user.Id);
 
         var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
             Event = eventName,
-            UserId = user.Id,
-            Email = email
+            UserId = user.Id
         };
 
         dbContext.ChangeTracker.Clear();
@@ -55,7 +52,7 @@ public sealed class SecurityEventDataProviderTests
     }
 
     [Fact]
-    public async Task LogEvent_AcceptsNullUserIdAndEmail()
+    public async Task LogEvent_AcceptsNullUserId()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -69,8 +66,7 @@ public sealed class SecurityEventDataProviderTests
             Id = id,
             Time = this.clock.UtcNow,
             Event = eventName,
-            UserId = null,
-            Email = null
+            UserId = null
         };
 
         dbContext.ChangeTracker.Clear();

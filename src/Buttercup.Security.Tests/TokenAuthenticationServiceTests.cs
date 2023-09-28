@@ -60,7 +60,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         await this.tokenAuthenticationService.IssueAccessToken(user);
 
         this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "access_token_issued", user.Id, null));
+            this.dbContextFactory.FakeDbContext, "access_token_issued", user.Id));
     }
 
     [Fact]

@@ -40,8 +40,7 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "access_token_issued", user.Id);
+        await this.securityEventDataProvider.LogEvent(dbContext, "access_token_issued", user.Id);
 
         return token;
     }
