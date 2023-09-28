@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,11 +18,14 @@ public interface IPasswordAuthenticationService
     /// <param name="password">
     /// The password.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the user if successfully authenticated, or a null
     /// reference otherwise.
     /// </returns>
-    Task<User?> Authenticate(string email, string password);
+    Task<User?> Authenticate(string email, string password, IPAddress? ipAddress);
 
     /// <summary>
     /// Changes a user's password.
@@ -35,6 +39,9 @@ public interface IPasswordAuthenticationService
     /// <param name="newPassword">
     /// The new password.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is <b>true</b> if the password was changed
     /// successfully, or <b>false</b> if the current password was incorrect.
@@ -42,7 +49,8 @@ public interface IPasswordAuthenticationService
     /// <exception cref="InvalidOperationException">
     /// The user doesn't have a password.
     /// </exception>
-    Task<bool> ChangePassword(long userId, string currentPassword, string newPassword);
+    Task<bool> ChangePassword(
+        long userId, string currentPassword, string newPassword, IPAddress? ipAddress);
 
     /// <summary>
     /// Validates a password reset token.
@@ -50,11 +58,14 @@ public interface IPasswordAuthenticationService
     /// <param name="token">
     /// The password reset token.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is <b>true</b> if the token is valid, <b>false</b>
     /// if it isn't.
     /// </returns>
-    Task<bool> PasswordResetTokenIsValid(string token);
+    Task<bool> PasswordResetTokenIsValid(string token, IPAddress? ipAddress);
 
     /// <summary>
     /// Resets a user's password.
@@ -68,13 +79,16 @@ public interface IPasswordAuthenticationService
     /// <param name="newPassword">
     /// The new password.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the updated user.
     /// </returns>
     /// <exception cref="InvalidTokenException">
     /// The password reset token isn't valid.
     /// </exception>
-    Task<User> ResetPassword(string token, string newPassword);
+    Task<User> ResetPassword(string token, string newPassword, IPAddress? ipAddress);
 
     /// <summary>
     /// Sends a password reset link to the user with a given email address.
@@ -85,11 +99,14 @@ public interface IPasswordAuthenticationService
     /// <param name="email">
     /// The email address.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <param name="urlHelper">
     /// The URL helper.
     /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task SendPasswordResetLink(string email, IUrlHelper urlHelper);
+    Task SendPasswordResetLink(string email, IPAddress? ipAddress, IUrlHelper urlHelper);
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace Buttercup.EntityModel;
 
@@ -32,4 +33,9 @@ public sealed record SecurityEvent
     /// Gets or sets the primary key of the associated user, if applicable.
     /// </summary>
     public long? UserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the client IP address.
+    /// </summary>
+    public IPAddress? IpAddress { get; set; }
 }

@@ -33,7 +33,8 @@ public sealed class AuthenticationController : Controller
             return this.View(model);
         }
 
-        await this.passwordAuthenticationService.SendPasswordResetLink(model.Email, this.Url);
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            model.Email, this.HttpContext.Connection.RemoteIpAddress, this.Url);
 
         return this.View("RequestPasswordResetConfirmation", model);
     }
@@ -41,7 +42,8 @@ public sealed class AuthenticationController : Controller
     [HttpGet("reset-password/{token}", Name = "ResetPassword")]
     [EnsureSignedOut]
     public async Task<IActionResult> ResetPassword(string token) =>
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(token) ?
+        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
+            token, this.HttpContext.Connection.RemoteIpAddress) ?
             this.View() :
             this.View("ResetPasswordInvalidToken");
 
@@ -55,7 +57,8 @@ public sealed class AuthenticationController : Controller
 
         try
         {
-            var user = await this.passwordAuthenticationService.ResetPassword(token, model.Password);
+            var user = await this.passwordAuthenticationService.ResetPassword(
+                token, model.Password, this.HttpContext.Connection.RemoteIpAddress);
 
             await this.cookieAuthenticationService.SignIn(this.HttpContext, user);
 
@@ -79,7 +82,8 @@ public sealed class AuthenticationController : Controller
             return this.View(model);
         }
 
-        var user = await this.passwordAuthenticationService.Authenticate(model.Email, model.Password);
+        var user = await this.passwordAuthenticationService.Authenticate(
+            model.Email, model.Password, this.HttpContext.Connection.RemoteIpAddress);
 
         if (user == null)
         {

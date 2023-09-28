@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
@@ -31,7 +32,7 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
         this.userDataProvider = userDataProvider;
     }
 
-    public async Task<string> IssueAccessToken(User user)
+    public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
     {
         var token = this.accessTokenEncoder.Encode(
             new(user.Id, user.SecurityStamp, this.clock.UtcNow));
@@ -40,7 +41,8 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.securityEventDataProvider.LogEvent(dbContext, "access_token_issued", user.Id);
+        await this.securityEventDataProvider.LogEvent(
+            dbContext, "access_token_issued", ipAddress, user.Id);
 
         return token;
     }

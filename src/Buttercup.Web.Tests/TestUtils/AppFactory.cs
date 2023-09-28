@@ -42,7 +42,7 @@ public sealed class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyn
     public async Task<HttpClient> CreateClientForApiUser(User user)
     {
         var accessToken = await this.Services.GetRequiredService<ITokenAuthenticationService>()
-            .IssueAccessToken(user);
+            .IssueAccessToken(user, null);
 
         var client = this.CreateClient();
 

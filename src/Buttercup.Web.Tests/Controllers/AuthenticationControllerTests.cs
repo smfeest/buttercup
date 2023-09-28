@@ -1,7 +1,9 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Moq;
@@ -66,10 +68,12 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var email = this.modelFactory.NextEmail();
         var viewModel = new RequestPasswordResetViewModel { Email = email };
+        var ipAddress = this.SetupRemoteIpAddress();
+
         var result = await this.authenticationController.RequestPasswordReset(viewModel);
 
         this.passwordAuthenticationServiceMock.Verify(
-            x => x.SendPasswordResetLink(email, this.urlHelperMock.Object));
+            x => x.SendPasswordResetLink(email, ipAddress, this.urlHelperMock.Object));
     }
 
     [Fact]
@@ -90,11 +94,9 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Get_TokenIsValid_ReturnsDefaultViewResult()
     {
-        this.passwordAuthenticationServiceMock
-            .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
-            .ReturnsAsync(true);
+        var token = this.SetupResetPasswordGet(true);
 
-        var result = await this.authenticationController.ResetPassword("sample-token");
+        var result = await this.authenticationController.ResetPassword(token);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Null(viewResult.ViewName);
@@ -103,14 +105,24 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Get_TokenIsInvalid_ReturnsInvalidTokenViewResult()
     {
-        this.passwordAuthenticationServiceMock
-            .Setup(x => x.PasswordResetTokenIsValid("sample-token"))
-            .ReturnsAsync(false);
+        var token = this.SetupResetPasswordGet(false);
 
-        var result = await this.authenticationController.ResetPassword("sample-token");
+        var result = await this.authenticationController.ResetPassword(token);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
+    }
+
+    private string SetupResetPasswordGet(bool tokenIsValue)
+    {
+        var token = this.modelFactory.NextString("token");
+        var ipAddress = this.SetupRemoteIpAddress();
+
+        this.passwordAuthenticationServiceMock
+            .Setup(x => x.PasswordResetTokenIsValid(token, ipAddress))
+            .ReturnsAsync(tokenIsValue);
+
+        return token;
     }
 
     #endregion
@@ -132,8 +144,10 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Post_InvalidToken_ReturnsInvalidTokenViewResult()
     {
+        var ipAddress = this.SetupRemoteIpAddress();
+
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.ResetPassword("sample-token", "sample-password"))
+            .Setup(x => x.ResetPassword("sample-token", "sample-password", ipAddress))
             .ThrowsAsync(new InvalidTokenException());
 
         var result = await this.authenticationController.ResetPassword(
@@ -147,9 +161,10 @@ public sealed class AuthenticationControllerTests : IDisposable
     public async Task ResetPassword_Post_Success_SignsInUser()
     {
         var user = this.modelFactory.BuildUser();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.ResetPassword("sample-token", "sample-password"))
+            .Setup(x => x.ResetPassword("sample-token", "sample-password", ipAddress))
             .ReturnsAsync(user);
 
         await this.authenticationController.ResetPassword(
@@ -260,12 +275,13 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var email = this.modelFactory.NextEmail();
         var password = this.modelFactory.NextString("password");
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.localizerMock.SetupLocalizedString(
             "Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.Authenticate(email, password))
+            .Setup(x => x.Authenticate(email, password, ipAddress))
             .ReturnsAsync(user);
 
         return new() { Email = email, Password = password };
@@ -319,4 +335,12 @@ public sealed class AuthenticationControllerTests : IDisposable
     }
 
     #endregion
+
+    private IPAddress SetupRemoteIpAddress()
+    {
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        this.httpContext.Features.Set<IHttpConnectionFeature>(
+            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
+        return ipAddress;
+    }
 }

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
@@ -37,49 +38,58 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     [Fact]
     public async Task IssueAccessToken_LogsTokenIssued()
     {
-        var user = this.modelFactory.BuildUser();
+        var values = this.SetupIssueAccessToken();
 
-        this.SetupEncode(user, this.modelFactory.NextString("access-token"));
-
-        await this.tokenAuthenticationService.IssueAccessToken(user);
+        await this.tokenAuthenticationService.IssueAccessToken(values.User, values.IpAddress);
 
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             300,
-            $"Issued access token for user {user.Id} ({user.Email})");
+            $"Issued access token for user {values.User.Id} ({values.User.Email})");
     }
 
     [Fact]
     public async Task IssueAccessToken_InsertsSecurityEvent()
     {
-        var user = this.modelFactory.BuildUser();
+        var values = this.SetupIssueAccessToken();
 
-        this.SetupEncode(user, this.modelFactory.NextString("access-token"));
+        await this.tokenAuthenticationService.IssueAccessToken(values.User, values.IpAddress);
 
-        await this.tokenAuthenticationService.IssueAccessToken(user);
-
-        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "access_token_issued", user.Id));
+        this.securityEventDataProviderMock.Verify(
+            x => x.LogEvent(
+                this.dbContextFactory.FakeDbContext,
+                "access_token_issued",
+                values.IpAddress,
+                values.User.Id));
     }
 
     [Fact]
     public async Task IssueAccessToken_ReturnsToken()
     {
-        var user = this.modelFactory.BuildUser();
-        var expectedToken = this.modelFactory.NextString("access-token");
+        var values = this.SetupIssueAccessToken();
 
-        this.SetupEncode(user, expectedToken);
+        var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(
+            values.User, values.IpAddress);
 
-        var actualToken = await this.tokenAuthenticationService.IssueAccessToken(user);
-
-        Assert.Equal(expectedToken, actualToken);
+        Assert.Equal(values.AccessToken, returnedToken);
     }
 
-    private void SetupEncode(User user, string accessToken) =>
+    private sealed record IssueAccessTokenValues(
+        string AccessToken, IPAddress IpAddress, User User);
+
+    private IssueAccessTokenValues SetupIssueAccessToken()
+    {
+        var accessToken = this.modelFactory.NextString("access-token");
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        var user = this.modelFactory.BuildUser();
+
         this.accessTokenEncoderMock
             .Setup(x => x.Encode(new(user.Id, user.SecurityStamp, this.clock.UtcNow)))
             .Returns(accessToken);
+
+        return new(accessToken, ipAddress, user);
+    }
 
     #endregion
 

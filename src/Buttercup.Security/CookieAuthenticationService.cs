@@ -62,7 +62,8 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.securityEventDataProvider.LogEvent(dbContext, "sign_in", user.Id);
+        await this.securityEventDataProvider.LogEvent(
+            dbContext, "sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
     }
 
     public async Task SignOut(HttpContext httpContext)
@@ -79,7 +80,8 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
             using var dbContext = this.dbContextFactory.CreateDbContext();
 
-            await this.securityEventDataProvider.LogEvent(dbContext, "sign_out", userId);
+            await this.securityEventDataProvider.LogEvent(
+                dbContext, "sign_out", httpContext.Connection.RemoteIpAddress, userId);
         }
     }
 

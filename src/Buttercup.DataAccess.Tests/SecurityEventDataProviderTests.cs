@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Xunit;
@@ -33,14 +34,17 @@ public sealed class SecurityEventDataProviderTests
         await dbContext.SaveChangesAsync();
 
         var eventName = this.modelFactory.NextString("event");
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
 
-        var id = await this.securityEventDataProvider.LogEvent(dbContext, eventName, user.Id);
+        var id = await this.securityEventDataProvider.LogEvent(
+            dbContext, eventName, ipAddress, user.Id);
 
         var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
             Event = eventName,
+            IpAddress = ipAddress,
             UserId = user.Id
         };
 
@@ -52,20 +56,21 @@ public sealed class SecurityEventDataProviderTests
     }
 
     [Fact]
-    public async Task LogEvent_AcceptsNullUserId()
+    public async Task LogEvent_AcceptsNullIpAddressAndUserId()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var eventName = this.modelFactory.NextString("event");
 
-        var id = await this.securityEventDataProvider.LogEvent(dbContext, eventName);
+        var id = await this.securityEventDataProvider.LogEvent(dbContext, eventName, null);
 
         var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
             Event = eventName,
+            IpAddress = null,
             UserId = null
         };
 

@@ -48,9 +48,10 @@ public sealed class AccountController : Controller
         }
 
         var userId = this.HttpContext.User.GetUserId();
+        var ipAddress = this.HttpContext.Connection.RemoteIpAddress;
 
         var passwordChanged = await this.passwordAuthenticationService.ChangePassword(
-            userId, model.CurrentPassword, model.NewPassword);
+            userId, model.CurrentPassword, model.NewPassword, ipAddress);
 
         if (!passwordChanged)
         {
