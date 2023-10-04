@@ -40,7 +40,7 @@ public interface IUserDataProvider
     Task<User> GetUser(AppDbContext dbContext, long id);
 
     /// <summary>
-    /// Updates a user's password.
+    /// Updates the user attributes affected by a password change.
     /// </summary>
     /// <param name="dbContext">
     /// The database context.
@@ -60,7 +60,7 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task UpdatePassword(
+    Task SaveNewPassword(
         AppDbContext dbContext, long userId, string hashedPassword, string securityStamp);
 
     /// <summary>

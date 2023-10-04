@@ -218,7 +218,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         var securityStamp = this.randomTokenGenerator.Generate(2);
 
-        await this.userDataProvider.UpdatePassword(
+        await this.userDataProvider.SaveNewPassword(
             dbContext, user.Id, hashedPassword, securityStamp);
 
         await this.passwordResetTokenDataProvider.DeleteTokensForUser(dbContext, user.Id);

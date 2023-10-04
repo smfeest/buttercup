@@ -91,10 +91,10 @@ public sealed class UserDataProviderTests
 
     #endregion
 
-    #region UpdatePassword
+    #region SaveNewPassword
 
     [Fact]
-    public async Task UpdatePassword_Success()
+    public async Task SaveNewPassword_Success()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -106,7 +106,7 @@ public sealed class UserDataProviderTests
         var newHashedPassword = this.modelFactory.NextString("hashed-password");
         var newSecurityStamp = this.NextSecurityStamp();
 
-        await this.userDataProvider.UpdatePassword(
+        await this.userDataProvider.SaveNewPassword(
             dbContext, original.Id, newHashedPassword, newSecurityStamp);
 
         dbContext.ChangeTracker.Clear();
@@ -125,7 +125,7 @@ public sealed class UserDataProviderTests
     }
 
     [Fact]
-    public async Task UpdatePassword_UserDoesNotExist()
+    public async Task SaveNewPassword_UserDoesNotExist()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -137,7 +137,7 @@ public sealed class UserDataProviderTests
 
         // Throws exception
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.UpdatePassword(
+            () => this.userDataProvider.SaveNewPassword(
                 dbContext,
                 id,
                 this.modelFactory.NextString("hashed-password"),

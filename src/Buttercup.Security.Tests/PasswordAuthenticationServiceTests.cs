@@ -233,7 +233,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress);
 
         // Updates user's password hash and security stamp
-        this.userDataProviderMock.Verify(x => x.UpdatePassword(
+        this.userDataProviderMock.Verify(x => x.SaveNewPassword(
             this.dbContextFactory.FakeDbContext, user.Id, newPasswordHash, newSecurityStamp));
 
         // Deletes all previously issued password reset tokens for the user
@@ -384,7 +384,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         // Updates user's password hash and security stamp
         this.userDataProviderMock.Verify(
-            x => x.UpdatePassword(
+            x => x.SaveNewPassword(
                 this.dbContextFactory.FakeDbContext, user.Id, newPasswordHash, newSecurityStamp));
 
         // Deletes all previously issued password reset tokens for the user

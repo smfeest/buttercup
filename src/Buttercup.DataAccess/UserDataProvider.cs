@@ -17,7 +17,7 @@ internal sealed class UserDataProvider : IUserDataProvider
     public async Task<User> GetUser(AppDbContext dbContext, long id) =>
         await dbContext.Users.FindAsync(id) ?? throw UserNotFound(id);
 
-    public Task UpdatePassword(
+    public Task SaveNewPassword(
         AppDbContext dbContext, long userId, string hashedPassword, string securityStamp) =>
         UpdateUserProperties(
             dbContext,
