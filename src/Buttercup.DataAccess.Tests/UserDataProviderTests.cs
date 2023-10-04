@@ -150,6 +150,100 @@ public sealed class UserDataProviderTests
 
     #endregion
 
+    #region SaveRehashedPassword
+
+    [Fact]
+    public async Task SaveRehashedPassword_Success()
+    {
+        using var dbContext = this.databaseFixture.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        var rehashedPassword = this.modelFactory.NextString("rehashed-password");
+        var timestamp = this.modelFactory.NextDateTime();
+        var user = this.modelFactory.BuildUser() with
+        {
+            HashedPassword = hashedPassword,
+            PasswordCreated = this.modelFactory.NextDateTime(),
+        };
+
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+        dbContext.ChangeTracker.Clear();
+
+        var result = await this.userDataProvider.SaveRehashedPassword(
+            dbContext, user.Id, user.Revision, rehashedPassword, timestamp);
+        dbContext.ChangeTracker.Clear();
+
+        // Updates user
+        Assert.Equal(
+            user with
+            {
+                HashedPassword = rehashedPassword,
+                Modified = timestamp,
+                Revision = user.Revision + 1,
+            },
+            await dbContext.Users.FindAsync(user.Id));
+
+        // Returns true
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task SaveRehashedPassword_UserDoesNotExist()
+    {
+        using var dbContext = this.databaseFixture.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var otherUser = this.modelFactory.BuildUser();
+        dbContext.Users.Add(otherUser);
+        await dbContext.SaveChangesAsync();
+        dbContext.ChangeTracker.Clear();
+
+        // Returns false
+        Assert.False(
+            await this.userDataProvider.SaveRehashedPassword(
+                dbContext,
+                this.modelFactory.NextInt(),
+                otherUser.Revision,
+                this.modelFactory.NextString("rehashed-password"),
+                this.modelFactory.NextDateTime()));
+    }
+
+    [Fact]
+    public async Task SaveRehashedPassword_BaseRevisionOutOfSync()
+    {
+        using var dbContext = this.databaseFixture.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var user = this.modelFactory.BuildUser() with
+        {
+            HashedPassword = this.modelFactory.NextString("hashed-password"),
+            PasswordCreated = this.modelFactory.NextDateTime(),
+        };
+
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        dbContext.ChangeTracker.Clear();
+
+        // Returns false
+        Assert.False(
+            await this.userDataProvider.SaveRehashedPassword(
+                dbContext,
+                user.Id,
+                user.Revision - 1,
+                this.modelFactory.NextString("rehashed-password"),
+                this.modelFactory.NextDateTime()));
+
+        dbContext.ChangeTracker.Clear();
+
+        // Does not update user
+        Assert.Equal(user, await dbContext.Users.FindAsync(user.Id));
+    }
+
+    #endregion
+
     #region UpdatePreferences
 
     [Fact]

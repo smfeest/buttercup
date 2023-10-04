@@ -28,6 +28,24 @@ internal sealed class UserDataProvider : IUserDataProvider
                 .SetProperty(u => u.Modified, this.clock.UtcNow)
                 .SetProperty(u => u.Revision, u => u.Revision + 1));
 
+    public async Task<bool> SaveRehashedPassword(
+        AppDbContext dbContext,
+        long userId,
+        int baseRevision,
+        string rehashedPassword,
+        DateTime timestamp)
+    {
+        var updatedRows = await dbContext
+            .Users
+            .Where(u => u.Id == userId && u.Revision == baseRevision)
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(u => u.HashedPassword, rehashedPassword)
+                    .SetProperty(u => u.Modified, timestamp)
+                    .SetProperty(u => u.Revision, u => u.Revision + 1));
+
+        return updatedRows > 0;
+    }
+
     public Task UpdatePreferences(AppDbContext dbContext, long userId, string timeZone) =>
         UpdateUserProperties(
             dbContext,
