@@ -68,7 +68,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             return null;
         }
 
-        if (!this.VerifyPassword(user, user.HashedPassword, password))
+        var verificationResult = this.passwordHasher.VerifyHashedPassword(
+            user, user.HashedPassword, password);
+
+        if (verificationResult == PasswordVerificationResult.Failed)
         {
             AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
@@ -82,6 +85,11 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         await this.securityEventDataProvider.LogEvent(
             dbContext, "authentication_success", ipAddress, user.Id);
+
+        if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
+        {
+            await this.RehashPassword(dbContext, user, password);
+        }
 
         return user;
     }
@@ -102,7 +110,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
                 $"User {user.Id} ({user.Email}) does not have a password.");
         }
 
-        if (!this.VerifyPassword(user, user.HashedPassword, currentPassword))
+        var verificationResult = this.passwordHasher.VerifyHashedPassword(
+            user, user.HashedPassword, currentPassword);
+
+        if (verificationResult == PasswordVerificationResult.Failed)
         {
             ChangePasswordLogMessages.IncorrectPassword(
                 this.logger, user.Id, user.Email, null);
@@ -212,6 +223,27 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
     private static string RedactToken(string token) => $"{token[..6]}…";
 
+    private async Task RehashPassword(AppDbContext dbContext, User user, string password)
+    {
+        var rehashedPassword = this.passwordHasher.HashPassword(user, password);
+        var timestamp = this.clock.UtcNow;
+
+        if (await this.userDataProvider.SaveRehashedPassword(
+            dbContext, user.Id, user.Revision, rehashedPassword, timestamp))
+        {
+            AuthenticateLogMessages.PasswordHashUpgraded(this.logger, user.Id, user.Email, null);
+
+            user.Modified = timestamp;
+            user.HashedPassword = rehashedPassword;
+            user.Revision++;
+        }
+        else
+        {
+            AuthenticateLogMessages.UpgradedPasswordHashNotPersisted(
+                this.logger, user.Id, user.Email, null);
+        }
+    }
+
     private async Task<string> SetPassword(AppDbContext dbContext, User user, string newPassword)
     {
         var hashedPassword = this.passwordHasher.HashPassword(user, newPassword);
@@ -234,10 +266,6 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         return await this.passwordResetTokenDataProvider.GetUserIdForToken(dbContext, token);
     }
 
-    private bool VerifyPassword(User user, string hashedPassword, string password) =>
-        this.passwordHasher.VerifyHashedPassword(user, hashedPassword, password) !=
-            PasswordVerificationResult.Failed;
-
     private static class AuthenticateLogMessages
     {
         public static readonly Action<ILogger, long, string, Exception?> IncorrectPassword =
@@ -251,6 +279,16 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
                 LogLevel.Information,
                 201,
                 "Authentication failed; no password set for user {UserId} ({Email})");
+
+        public static readonly Action<ILogger, long, string, Exception?> PasswordHashUpgraded =
+            LoggerMessage.Define<long, string>(
+                LogLevel.Information, 217, "Password hash upgraded for user {UserId} ({Email})");
+
+        public static readonly Action<ILogger, long, string, Exception?> UpgradedPasswordHashNotPersisted =
+            LoggerMessage.Define<long, string>(
+                LogLevel.Information,
+                218,
+                "Upgraded password hash not persisted for user {UserId} ({Email}); concurrent changed detected");
 
         public static readonly Action<ILogger, long, string, Exception?> Success =
             LoggerMessage.Define<long, string>(

@@ -123,10 +123,8 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         Assert.Null(result);
     }
 
-    [Theory]
-    [InlineData(PasswordVerificationResult.Success)]
-    [InlineData(PasswordVerificationResult.SuccessRehashNeeded)]
-    public async Task Authenticate_Success(PasswordVerificationResult passwordVerificationResult)
+    [Fact]
+    public async Task Authenticate_SuccessRehashNotNeeded()
     {
         var args = this.BuildAuthenticateArgs();
         var hashedPassword = this.modelFactory.NextString("hashed-password");
@@ -134,7 +132,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         this.SetupFindUserByEmail(args.Email, user);
         this.SetupVerifyHashedPassword(
-            user, hashedPassword, args.Password, passwordVerificationResult);
+            user, hashedPassword, args.Password, PasswordVerificationResult.Success);
 
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
@@ -149,7 +147,89 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         // Inserts security event
         this.AssertSecurityEventLogged("authentication_success", args.IpAddress, user.Id);
 
+        // Does not rehash password
+        this.passwordHasherMock.Verify(x => x.HashPassword(user, args.Password), Times.Never);
+
         // Returns user
+        Assert.Equal(user, result);
+    }
+
+    [Fact]
+    public async Task Authenticate_SuccessRehashNeeded()
+    {
+        var args = this.BuildAuthenticateArgs();
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        var user = this.modelFactory.BuildUser() with { HashedPassword = hashedPassword };
+
+        this.SetupFindUserByEmail(args.Email, user with { });
+        this.SetupVerifyHashedPassword(
+            user, hashedPassword, args.Password, PasswordVerificationResult.SuccessRehashNeeded);
+        var rehashedPassword = this.SetupPasswordRehashing(user, args.Password, true);
+
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
+
+        // Logs successfully authenticated message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            202,
+            $"User {user.Id} ({user.Email}) successfully authenticated");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("authentication_success", args.IpAddress, user.Id);
+
+        // Logs password hash upgraded message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            217,
+            $"Password hash upgraded for user {user.Id} ({user.Email})");
+
+        // Returns updated user
+        Assert.Equal(
+            user with
+            {
+                HashedPassword = rehashedPassword,
+                Modified = this.clock.UtcNow,
+                Revision = user.Revision + 1
+            },
+            result);
+    }
+
+    [Fact]
+    public async Task Authenticate_SuccessRehashNotPersisted()
+    {
+        var args = this.BuildAuthenticateArgs();
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        var user = this.modelFactory.BuildUser() with { HashedPassword = hashedPassword };
+
+        this.SetupFindUserByEmail(args.Email, user with { });
+        this.SetupVerifyHashedPassword(
+            user, hashedPassword, args.Password, PasswordVerificationResult.SuccessRehashNeeded);
+        this.SetupPasswordRehashing(user, args.Password, false);
+
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
+
+        // Logs successfully authenticated message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            202,
+            $"User {user.Id} ({user.Email}) successfully authenticated");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("authentication_success", args.IpAddress, user.Id);
+
+        // Logs upgraded password hash not persisted message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            218,
+            $"Upgraded password hash not persisted for user {user.Id} ({user.Email}); concurrent changed detected");
+
+        // Returns unmodified user
         Assert.Equal(user, result);
     }
 
@@ -159,6 +239,25 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         this.modelFactory.NextEmail(),
         this.modelFactory.NextString("password"),
         new(this.modelFactory.NextInt()));
+
+    private string SetupPasswordRehashing(User user, string password, bool saveResult)
+    {
+        var rehashedPassword = this.modelFactory.NextString("rehashed-password");
+
+        this.passwordHasherMock
+            .Setup(x => x.HashPassword(user, password))
+            .Returns(rehashedPassword);
+        this.userDataProviderMock
+            .Setup(x => x.SaveRehashedPassword(
+                this.dbContextFactory.FakeDbContext,
+                user.Id,
+                user.Revision,
+                rehashedPassword,
+                this.clock.UtcNow))
+            .ReturnsAsync(saveResult);
+
+        return rehashedPassword;
+    }
 
     #endregion
 
