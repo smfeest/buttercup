@@ -47,6 +47,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            300,
             $"Issued access token for user {user.Id} ({user.Email})");
     }
 
@@ -95,7 +96,10 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         LogAssert.HasEntry(
-            this.logger, LogLevel.Warning, "Access token failed validation; not base64url encoded");
+            this.logger,
+            LogLevel.Warning,
+            301,
+            "Access token failed validation; not base64url encoded");
     }
 
     [Fact]
@@ -110,6 +114,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Warning,
+            302,
             "Access token failed validation; malformed or encrypted with wrong key");
     }
 
@@ -126,6 +131,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            303,
             $"Access token failed validation for user {user.Id}; expired");
     }
 
@@ -143,6 +149,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Warning,
+            304,
             $"Access token failed validation for user {user.Id}; user does not exist");
     }
 
@@ -160,6 +167,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            305,
             $"Access token failed validation for user {user.Id}; contains stale security stamp");
     }
 
@@ -177,6 +185,7 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            306,
             $"Access token successfully validated for user {user.Id}");
     }
 

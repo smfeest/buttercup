@@ -55,6 +55,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            202,
             $"User {values.User.Id} ({values.User.Email}) successfully authenticated");
 
         this.AssertAuthenticationEventLogged(
@@ -83,6 +84,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            203,
             $"Authentication failed; no user with email {values.SuppliedEmail}");
 
         this.AssertAuthenticationEventLogged(
@@ -110,6 +112,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            201,
             $"Authentication failed; no password set for user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged(
@@ -137,6 +140,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            200,
             $"Authentication failed; incorrect password for user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged(
@@ -243,6 +247,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            204,
             $"Password change denied for user {values.User.Id} ({values.User.Email}); current password is incorrect");
 
         this.AssertAuthenticationEventLogged(
@@ -321,6 +326,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            205,
             $"Password successfully changed for user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged("password_change_success", values.User.Id);
@@ -414,6 +420,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Debug,
+            207,
             $"Password reset token '{values.Token[..6]}…' is valid and belongs to user {values.UserId}");
     }
 
@@ -436,6 +443,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Debug,
+            206,
             $"Password reset token '{values.Token[..6]}…' is no longer valid");
 
         this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
@@ -495,6 +503,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            208,
             $"Unable to reset password; password reset token {values.Token[..6]}… is invalid");
 
         this.AssertAuthenticationEventLogged("password_reset_failure:invalid_token");
@@ -557,6 +566,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            209,
             $"Password reset for user {values.User.Id} using token {values.Token[..6]}…");
 
         this.AssertAuthenticationEventLogged("password_reset_success", values.User.Id);
@@ -639,6 +649,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            210,
             $"Password reset link sent to user {values.User.Id} ({values.User.Email})");
 
         this.AssertAuthenticationEventLogged(
@@ -668,6 +679,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            211,
             $"Unable to send password reset link; No user with email {values.Email}");
 
         this.AssertAuthenticationEventLogged(

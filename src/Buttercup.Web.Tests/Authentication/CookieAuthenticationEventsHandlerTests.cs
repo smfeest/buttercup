@@ -59,6 +59,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            214,
             $"Incorrect security stamp for user {user.Id} ({user.Email})");
     }
 
@@ -98,6 +99,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Debug,
+            215,
             $"Principal successfully validated for user {user.Id} ({user.Email})");
     }
 
@@ -140,6 +142,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            216,
             $"Refreshed claims principal for user {user.Id} ({user.Email})");
     }
 

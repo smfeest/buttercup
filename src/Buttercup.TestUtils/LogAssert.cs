@@ -15,10 +15,14 @@ public static class LogAssert
     /// <typeparam name="T">The type whose name is used for the logger category name.</typeparam>
     /// <param name="listLogger">The list logger.</param>
     /// <param name="logLevel">The expected log level.</param>
+    /// <param name="eventId">The expected event ID.</param>
     /// <param name="message">The expected message.</param>
     /// <exception cref="ContainsException">When no matching entry is found.</exception>
-    public static void HasEntry<T>(ListLogger<T> listLogger, LogLevel logLevel, string message) =>
+    public static void HasEntry<T>(
+        ListLogger<T> listLogger, LogLevel logLevel, EventId eventId, string message) =>
         Assert.Contains(
             listLogger.Entries,
-            entry => entry.LogLevel == logLevel && entry.Message == message);
+            entry => entry.LogLevel == logLevel &&
+                entry.EventId == eventId &&
+                entry.Message == message);
 }

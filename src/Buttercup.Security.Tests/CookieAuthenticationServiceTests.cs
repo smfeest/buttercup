@@ -143,6 +143,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
+            212,
             $"User {values.User.Id} ({values.User.Email}) signed in");
 
         this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
@@ -194,7 +195,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
         await this.cookieAuthenticationService.SignOut(httpContext);
 
         LogAssert.HasEntry(
-            this.logger, LogLevel.Information, $"User {userId} ({email}) signed out");
+            this.logger, LogLevel.Information, 213, $"User {userId} ({email}) signed out");
 
         this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
             this.dbContextFactory.FakeDbContext, "sign_out", userId, null));
