@@ -25,10 +25,5 @@ public static class LogAssert
         EventId eventId,
         string message,
         Exception? exception = null) =>
-        Assert.Contains(
-            listLogger.Entries,
-            entry => entry.LogLevel == logLevel &&
-                entry.EventId == eventId &&
-                entry.Message == message &&
-                entry.Exception == exception);
+        Assert.Contains(new(logLevel, eventId, message, exception), listLogger.Entries);
 }

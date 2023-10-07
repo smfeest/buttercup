@@ -30,7 +30,7 @@ public sealed class ListLogger<TCategoryName> : ILogger<TCategoryName>
         TState state,
         Exception? exception,
         Func<TState, Exception?, string> formatter) =>
-        this.entries.Add(new(logLevel, eventId, formatter(state, exception), state, exception));
+        this.entries.Add(new(logLevel, eventId, formatter(state, exception), exception));
 
     /// <summary>
     /// Represents a log entry.
@@ -38,8 +38,7 @@ public sealed class ListLogger<TCategoryName> : ILogger<TCategoryName>
     /// <param name="LogLevel">The log level.</param>
     /// <param name="EventId">The event ID.</param>
     /// <param name="Message">The formatted message.</param>
-    /// <param name="State">The data.</param>
     /// <param name="Exception">The associated exception, if any.</param>
     public record LogEntry(
-        LogLevel LogLevel, EventId EventId, string Message, object? State, Exception? Exception);
+        LogLevel LogLevel, EventId EventId, string Message, Exception? Exception);
 }
