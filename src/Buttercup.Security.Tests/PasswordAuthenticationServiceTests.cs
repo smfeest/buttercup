@@ -45,800 +45,409 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     #region Authenticate
 
     [Fact]
-    public async Task Authenticate_Success_LogsSuccess()
+    public async Task Authenticate_EmailUnrecognized()
     {
-        var values = this.SetupAuthenticate_Success();
+        var args = this.BuildAuthenticateArgs();
 
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
+        this.SetupFindUserByEmail(args.Email, null);
 
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            202,
-            $"User {values.User.Id} ({values.User.Email}) successfully authenticated");
-    }
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
 
-    [Fact]
-    public async Task Authenticate_Success_InsertsSecurityEvent()
-    {
-        var values = this.SetupAuthenticate_Success();
-
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
-        this.AssertSecurityEventLogged("authentication_success", values.IpAddress, values.User.Id);
-    }
-
-    [Fact]
-    public async Task Authenticate_Success_ReturnsUser()
-    {
-        var values = this.SetupAuthenticate_Success();
-
-        var returnedUser = await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
-        Assert.Equal(values.User, returnedUser);
-    }
-
-    [Fact]
-    public async Task Authenticate_EmailUnrecognized_LogsUnrecognizedEmail()
-    {
-        var values = this.SetupAuthenticate_EmailUnrecognized();
-
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
+        // Logs unrecognized email message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             203,
-            $"Authentication failed; no user with email {values.SuppliedEmail}");
+            $"Authentication failed; no user with email {args.Email}");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("authentication_failure:unrecognized_email", args.IpAddress);
+
+        // Returns null
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task Authenticate_EmailUnrecognized_InsertsSecurityEvent()
+    public async Task Authenticate_UserHasNoPassword()
     {
-        var values = this.SetupAuthenticate_EmailUnrecognized();
+        var args = this.BuildAuthenticateArgs();
+        var user = this.modelFactory.BuildUser() with { HashedPassword = null };
 
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
+        this.SetupFindUserByEmail(args.Email, user);
 
-        this.AssertSecurityEventLogged(
-            "authentication_failure:unrecognized_email", values.IpAddress);
-    }
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
 
-    [Fact]
-    public async Task Authenticate_EmailUnrecognized_ReturnsNull()
-    {
-        var values = this.SetupAuthenticate_EmailUnrecognized();
-
-        Assert.Null(
-            await this.passwordAuthenticationService.Authenticate(
-                values.SuppliedEmail, values.SuppliedPassword, values.IpAddress));
-    }
-
-    [Fact]
-    public async Task Authenticate_UserHasNoPassword_LogsNoPassword()
-    {
-        var values = this.SetupAuthenticate_UserHasNoPassword();
-
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
+        // Logs no password set message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             201,
-            $"Authentication failed; no password set for user {values.User.Id} ({values.User.Email})");
-    }
+            $"Authentication failed; no password set for user {user.Id} ({user.Email})");
 
-    [Fact]
-    public async Task Authenticate_UserHasNoPassword_InsertsSecurityEvent()
-    {
-        var values = this.SetupAuthenticate_UserHasNoPassword();
-
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
+        // Inserts security event
         this.AssertSecurityEventLogged(
-            "authentication_failure:no_password_set", values.IpAddress, values.User.Id);
+            "authentication_failure:no_password_set", args.IpAddress, user.Id);
+
+        // Returns null
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task Authenticate_UserHasNoPassword_ReturnsNull()
+    public async Task Authenticate_IncorrectPassword()
     {
-        var values = this.SetupAuthenticate_UserHasNoPassword();
+        var args = this.BuildAuthenticateArgs();
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        var user = this.modelFactory.BuildUser() with { HashedPassword = hashedPassword };
 
-        Assert.Null(
-            await this.passwordAuthenticationService.Authenticate(
-                values.SuppliedEmail, values.SuppliedPassword, values.IpAddress));
-    }
+        this.SetupFindUserByEmail(args.Email, user);
+        this.SetupVerifyHashedPassword(
+            user, hashedPassword, args.Password, PasswordVerificationResult.Failed);
 
-    [Fact]
-    public async Task Authenticate_IncorrectPassword_LogsIncorrectPassword()
-    {
-        var values = this.SetupAuthenticate_IncorrectPassword();
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
 
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
+        // Logs incorrect password message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             200,
-            $"Authentication failed; incorrect password for user {values.User.Id} ({values.User.Email})");
-    }
+            $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
 
-    [Fact]
-    public async Task Authenticate_IncorrectPassword_InsertsSecurityEvent()
-    {
-        var values = this.SetupAuthenticate_IncorrectPassword();
-
-        await this.passwordAuthenticationService.Authenticate(
-            values.SuppliedEmail, values.SuppliedPassword, values.IpAddress);
-
+        // Inserts security event
         this.AssertSecurityEventLogged(
-            "authentication_failure:incorrect_password", values.IpAddress, values.User.Id);
+            "authentication_failure:incorrect_password", args.IpAddress, user.Id);
+
+        // Returns null
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task Authenticate_IncorrectPassword_ReturnsNull()
+    public async Task Authenticate_Success()
     {
-        var values = this.SetupAuthenticate_IncorrectPassword();
-
-        Assert.Null(
-            await this.passwordAuthenticationService.Authenticate(
-                values.SuppliedEmail, values.SuppliedPassword, values.IpAddress));
-    }
-
-    private sealed record AuthenticateValues(
-        IPAddress IpAddress, string SuppliedEmail, string SuppliedPassword, User User);
-
-    private AuthenticateValues BuildAuthenticateValues(string? hashedPassword) =>
-        new(
-            new(this.modelFactory.NextInt()),
-            this.modelFactory.NextEmail(),
-            this.modelFactory.NextString("password"),
-            this.modelFactory.BuildUser() with { HashedPassword = hashedPassword });
-
-    private AuthenticateValues SetupAuthenticate_EmailRecognized(
-        string? hashedPassword)
-    {
-        var values = this.BuildAuthenticateValues(hashedPassword);
-        this.SetupFindUserByEmail(values.SuppliedEmail, values.User);
-        return values;
-    }
-
-    private AuthenticateValues SetupAuthenticate_EmailUnrecognized()
-    {
-        var values = this.BuildAuthenticateValues(null);
-        this.SetupFindUserByEmail(values.SuppliedEmail, null);
-        return values;
-    }
-
-    private AuthenticateValues SetupAuthenticate_IncorrectPassword() =>
-        this.SetupAuthenticate_UserHasPassword(PasswordVerificationResult.Failed);
-
-    private AuthenticateValues SetupAuthenticate_Success() =>
-        this.SetupAuthenticate_UserHasPassword(PasswordVerificationResult.Success);
-
-    private AuthenticateValues SetupAuthenticate_UserHasNoPassword() =>
-        this.SetupAuthenticate_EmailRecognized(null);
-
-    private AuthenticateValues SetupAuthenticate_UserHasPassword(
-        PasswordVerificationResult passwordVerificationResult)
-    {
+        var args = this.BuildAuthenticateArgs();
         var hashedPassword = this.modelFactory.NextString("hashed-password");
-        var values = this.SetupAuthenticate_EmailRecognized(hashedPassword);
+        var user = this.modelFactory.BuildUser() with { HashedPassword = hashedPassword };
 
-        this.passwordHasherMock
-            .Setup(
-                x => x.VerifyHashedPassword(values.User, hashedPassword, values.SuppliedPassword))
-            .Returns(passwordVerificationResult);
+        this.SetupFindUserByEmail(args.Email, user);
+        this.SetupVerifyHashedPassword(
+            user, hashedPassword, args.Password, PasswordVerificationResult.Success);
 
-        return values;
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
+
+        // Logs successfully authenticated message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            202,
+            $"User {user.Id} ({user.Email}) successfully authenticated");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("authentication_success", args.IpAddress, user.Id);
+
+        // Returns user
+        Assert.Equal(user, result);
     }
+
+    private sealed record AuthenticateArgs(string Email, string Password, IPAddress IpAddress);
+
+    private AuthenticateArgs BuildAuthenticateArgs() => new(
+        this.modelFactory.NextEmail(),
+        this.modelFactory.NextString("password"),
+        new(this.modelFactory.NextInt()));
 
     #endregion
 
     #region ChangePassword
 
     [Fact]
-    public async Task ChangePassword_UserHasNoPassword_InsertsSecurityEvent()
+    public async Task ChangePassword_UserHasNoPassword()
     {
-        var values = this.SetupChangePassword_UserHasNoPassword();
+        var args = this.BuildChangePasswordArgs();
+        var user = this.modelFactory.BuildUser() with { HashedPassword = null };
 
-        try
-        {
-            await this.passwordAuthenticationService.ChangePassword(
-                values.User.Id,
-                values.SuppliedCurrentPassword,
-                values.NewPassword,
-                values.IpAddress);
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        this.SetupGetUser(args.UserId, user);
 
-        this.AssertSecurityEventLogged(
-            "password_change_failure:no_password_set", values.IpAddress, values.User.Id);
-    }
-
-    [Fact]
-    public async Task ChangePassword_UserHasNoPassword_ThrowsException()
-    {
-        var values = this.SetupChangePassword_UserHasNoPassword();
-
+        // Throws exception
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => this.passwordAuthenticationService.ChangePassword(
-                values.User.Id,
-                values.SuppliedCurrentPassword,
-                values.NewPassword,
-                values.IpAddress));
+                args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress));
+
+        // Inserts security event
+        this.AssertSecurityEventLogged(
+            "password_change_failure:no_password_set", args.IpAddress, user.Id);
     }
 
     [Fact]
-    public async Task ChangePassword_IncorrectCurrentPassword_LogsIncorrectPassword()
+    public async Task ChangePassword_IncorrectCurrentPassword()
     {
-        var values = this.SetupChangePassword_IncorrectCurrentPassword();
+        var args = this.BuildChangePasswordArgs();
+        var currentPasswordHash = this.modelFactory.NextString("hashed-current-password");
+        var user = this.modelFactory.BuildUser() with { HashedPassword = currentPasswordHash };
 
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
+        this.SetupGetUser(args.UserId, user);
+        this.SetupVerifyHashedPassword(
+            user, currentPasswordHash, args.CurrentPassword, PasswordVerificationResult.Failed);
 
+        var result = await this.passwordAuthenticationService.ChangePassword(
+            args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress);
+
+        // Does not attempt to hash new password
+        this.passwordHasherMock.Verify(x => x.HashPassword(user, args.NewPassword), Times.Never);
+
+        // Logs password incorrect message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             204,
-            $"Password change denied for user {values.User.Id} ({values.User.Email}); current password is incorrect");
-    }
+            $"Password change denied for user {user.Id} ({user.Email}); current password is incorrect");
 
-    [Fact]
-    public async Task ChangePassword_IncorrectCurrentPassword_InsertsSecurityEvent()
-    {
-        var values = this.SetupChangePassword_IncorrectCurrentPassword();
-
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
+        // Inserts security event
         this.AssertSecurityEventLogged(
-            "password_change_failure:incorrect_password", values.IpAddress, values.User.Id);
+            "password_change_failure:incorrect_password", args.IpAddress, user.Id);
+
+        // Returns false
+        Assert.False(result);
     }
 
     [Fact]
-    public async Task ChangePassword_IncorrectCurrentPassword_ReturnsFalse()
+    public async Task ChangePassword_Success()
     {
-        var values = this.SetupChangePassword_IncorrectCurrentPassword();
+        var args = this.BuildChangePasswordArgs();
+        var currentPasswordHash = this.modelFactory.NextString("current-password-hash");
+        var user = this.modelFactory.BuildUser() with { HashedPassword = currentPasswordHash };
 
-        Assert.False(
-            await this.passwordAuthenticationService.ChangePassword(
-                values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress));
-    }
+        this.SetupGetUser(args.UserId, user);
+        this.SetupVerifyHashedPassword(
+            user, currentPasswordHash, args.CurrentPassword, PasswordVerificationResult.Success);
+        var newPasswordHash = this.SetupHashPassword(user, args.NewPassword);
+        var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
-    [Fact]
-    public async Task ChangePassword_IncorrectCurrentPassword_DoesNotChangePassword()
-    {
-        var values = this.SetupChangePassword_IncorrectCurrentPassword();
+        var result = await this.passwordAuthenticationService.ChangePassword(
+            args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress);
 
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
-        this.passwordHasherMock.Verify(
-            x => x.HashPassword(values.User, values.NewPassword), Times.Never);
-    }
-
-    [Fact]
-    public async Task ChangePassword_Success_UpdatesUser()
-    {
-        var values = this.SetupChangePassword_Success();
-
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
+        // Updates user's password hash and security stamp
         this.userDataProviderMock.Verify(x => x.UpdatePassword(
-            this.dbContextFactory.FakeDbContext,
-            values.User.Id,
-            values.NewHashedPassword,
-            values.NewSecurityStamp));
-    }
+            this.dbContextFactory.FakeDbContext, user.Id, newPasswordHash, newSecurityStamp));
 
-    [Fact]
-    public async Task ChangePassword_Success_DeletesPasswordResetTokens()
-    {
-        var values = this.SetupChangePassword_Success();
-
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
+        // Deletes all previously issued password reset tokens for the user
         this.passwordResetTokenDataProviderMock.Verify(
-            x => x.DeleteTokensForUser(this.dbContextFactory.FakeDbContext, values.User.Id));
-    }
+            x => x.DeleteTokensForUser(this.dbContextFactory.FakeDbContext, user.Id));
 
-    [Fact]
-    public async Task ChangePassword_Success_SendsPasswordChangeNotification()
-    {
-        var values = this.SetupChangePassword_Success();
+        // Sends password change notification
+        this.authenticationMailerMock.Verify(x => x.SendPasswordChangeNotification(user.Email));
 
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
-        this.authenticationMailerMock.Verify(
-            x => x.SendPasswordChangeNotification(values.User.Email));
-    }
-
-    [Fact]
-    public async Task ChangePassword_Success_LogsPasswordChanged()
-    {
-        var values = this.SetupChangePassword_Success();
-
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
+        // Logs password changed message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             205,
-            $"Password successfully changed for user {values.User.Id} ({values.User.Email})");
+            $"Password successfully changed for user {user.Id} ({user.Email})");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("password_change_success", args.IpAddress, user.Id);
+
+        // Returns true
+        Assert.True(result);
     }
 
-    [Fact]
-    public async Task ChangePassword_Success_InsertsSecurityEvent()
-    {
-        var values = this.SetupChangePassword_Success();
+    private sealed record ChangePasswordArgs(
+        long UserId, string CurrentPassword, string NewPassword, IPAddress IpAddress);
 
-        await this.passwordAuthenticationService.ChangePassword(
-            values.User.Id, values.SuppliedCurrentPassword, values.NewPassword, values.IpAddress);
-
-        this.AssertSecurityEventLogged("password_change_success", values.IpAddress, values.User.Id);
-    }
-
-    [Fact]
-    public async Task ChangePassword_Success_ReturnsTrue()
-    {
-        var values = this.SetupChangePassword_Success();
-
-        Assert.True(
-            await this.passwordAuthenticationService.ChangePassword(
-                values.User.Id,
-                values.SuppliedCurrentPassword,
-                values.NewPassword,
-                values.IpAddress));
-    }
-
-    private sealed record ChangePasswordValues(
-        IPAddress IpAddress,
-        string NewHashedPassword,
-        string NewPassword,
-        string NewSecurityStamp,
-        string SuppliedCurrentPassword,
-        User User);
-
-    private ChangePasswordValues SetupChangePassword(string? currentHashedPassword)
-    {
-        var values = new ChangePasswordValues(
-            new(this.modelFactory.NextInt()),
-            this.modelFactory.NextString("new-hashed-password"),
-            this.modelFactory.NextString("new-password"),
-            this.modelFactory.NextString("new-security-stamp"),
-            this.modelFactory.NextString("supplied-current-password"),
-            this.modelFactory.BuildUser() with { HashedPassword = currentHashedPassword });
-
-        this.SetupGetUser(values.User.Id, values.User);
-
-        this.passwordHasherMock
-            .Setup(x => x.HashPassword(values.User, values.NewPassword))
-            .Returns(values.NewHashedPassword);
-
-        this.randomTokenGeneratorMock
-            .Setup(x => x.Generate(2))
-            .Returns(values.NewSecurityStamp);
-
-        return values;
-    }
-
-    private ChangePasswordValues SetupChangePassword_IncorrectCurrentPassword() =>
-        this.SetupChangePassword_UserHasPassword(PasswordVerificationResult.Failed);
-
-    private ChangePasswordValues SetupChangePassword_Success() =>
-        this.SetupChangePassword_UserHasPassword(PasswordVerificationResult.Success);
-
-    private ChangePasswordValues SetupChangePassword_UserHasPassword(
-        PasswordVerificationResult passwordVerificationResult)
-    {
-        var currentHashedPassword = this.modelFactory.NextString("current-hashed-password");
-        var values = this.SetupChangePassword(currentHashedPassword);
-
-        this.passwordHasherMock
-            .Setup(x => x.VerifyHashedPassword(
-                values.User, currentHashedPassword, values.SuppliedCurrentPassword))
-            .Returns(passwordVerificationResult);
-
-        return values;
-    }
-
-    private ChangePasswordValues SetupChangePassword_UserHasNoPassword() =>
-        this.SetupChangePassword(null);
+    private ChangePasswordArgs BuildChangePasswordArgs() => new(
+        this.modelFactory.NextInt(),
+        this.modelFactory.NextString("current-password"),
+        this.modelFactory.NextString("new-password"),
+        new(this.modelFactory.NextInt()));
 
     #endregion
 
     #region PasswordResetTokenIsValid
 
     [Fact]
-    public async Task PasswordResetTokenIsValid_DeletesExpiredTokens()
+    public async Task PasswordResetTokenIsValid_Valid()
     {
-        var values = this.SetupPasswordResetTokenIsValid(true);
+        var args = this.BuildPasswordResetTokenIsValidArgs();
+        var userId = this.modelFactory.NextInt();
 
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            values.Token, values.IpAddress);
+        this.SetupGetUserIdForToken(args.Token, userId);
 
+        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
+            args.Token, args.IpAddress);
+
+        // Deletes expired password reset tokens
         this.passwordResetTokenDataProviderMock.Verify(
             x => x.DeleteExpiredTokens(
                 this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
-    }
 
-    [Fact]
-    public async Task PasswordResetTokenIsValid_Valid_LogsValidToken()
-    {
-        var values = this.SetupPasswordResetTokenIsValid(true);
-
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            values.Token, values.IpAddress);
-
+        // Logs valid token message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Debug,
             207,
-            $"Password reset token '{values.Token[..6]}…' is valid and belongs to user {values.UserId}");
+            $"Password reset token '{args.Token[..6]}…' is valid and belongs to user {userId}");
+
+        // Returns true
+        Assert.True(result);
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValid_Valid_ReturnsTrue()
+    public async Task PasswordResetTokenIsValid_Invalid()
     {
-        var values = this.SetupPasswordResetTokenIsValid(true);
+        var args = this.BuildPasswordResetTokenIsValidArgs();
 
-        Assert.True(
-            await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-                values.Token, values.IpAddress));
-    }
+        this.SetupGetUserIdForToken(args.Token, null);
 
-    [Fact]
-    public async Task PasswordResetTokenIsValid_Invalid_LogsInvalidToken()
-    {
-        var values = this.SetupPasswordResetTokenIsValid(false);
+        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
+            args.Token, args.IpAddress);
 
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            values.Token, values.IpAddress);
+        // Deletes expired password reset tokens
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.DeleteExpiredTokens(
+                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
 
+        // Logs invalid token message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Debug,
             206,
-            $"Password reset token '{values.Token[..6]}…' is no longer valid");
+            $"Password reset token '{args.Token[..6]}…' is no longer valid");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("password_reset_failure:invalid_token", args.IpAddress);
+
+        // Returns false
+        Assert.False(result);
     }
 
-    [Fact]
-    public async Task PasswordResetTokenIsValid_Invalid_InsertsSecurityEvent()
-    {
-        var values = this.SetupPasswordResetTokenIsValid(false);
+    private sealed record PasswordResetTokenIsValidArgs(string Token, IPAddress IpAddress);
 
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            values.Token, values.IpAddress);
-
-        this.AssertSecurityEventLogged("password_reset_failure:invalid_token", values.IpAddress);
-    }
-
-    [Fact]
-    public async Task PasswordResetTokenIsValid_Invalid_ReturnsFalse()
-    {
-        var values = this.SetupPasswordResetTokenIsValid(false);
-
-        Assert.False(
-            await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-                values.Token, values.IpAddress));
-    }
-
-    private sealed record PasswordResetTokenIsValidValues(
-        IPAddress IpAddress, string Token, long UserId);
-
-    private PasswordResetTokenIsValidValues SetupPasswordResetTokenIsValid(bool valid)
-    {
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var token = this.modelFactory.NextString("token");
-        var userId = this.modelFactory.NextInt();
-
-        this.SetupGetUserIdForToken(token, valid ? userId : null);
-
-        return new(ipAddress, token, userId);
-    }
+    private PasswordResetTokenIsValidArgs BuildPasswordResetTokenIsValidArgs() => new(
+        this.modelFactory.NextString("token"), new(this.modelFactory.NextInt()));
 
     #endregion
 
     #region ResetPassword
 
     [Fact]
-    public async Task ResetPassword_DeletesExpiredPasswordResetTokens()
+    public async Task ResetPassword_InvalidToken()
     {
-        var values = this.SetupResetPassword(true);
+        var args = this.BuildResetPasswordArgs();
 
-        await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
+        this.SetupGetUserIdForToken(args.Token, null);
 
+        // Throws exception
+        await Assert.ThrowsAsync<InvalidTokenException>(
+            () => this.passwordAuthenticationService.ResetPassword(
+                args.Token, args.NewPassword, args.IpAddress));
+
+        // Deletes expired password reset tokens
         this.passwordResetTokenDataProviderMock.Verify(
             x => x.DeleteExpiredTokens(
                 this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
-    }
 
-    [Fact]
-    public async Task ResetPassword_InvalidToken_LogsInvalidToken()
-    {
-        var values = this.SetupResetPassword(false);
-
-        try
-        {
-            await this.passwordAuthenticationService.ResetPassword(
-                values.Token, values.NewPassword, values.IpAddress);
-        }
-        catch (InvalidTokenException)
-        {
-        }
-
+        // Logs invalid token message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             208,
-            $"Unable to reset password; password reset token {values.Token[..6]}… is invalid");
+            $"Unable to reset password; password reset token {args.Token[..6]}… is invalid");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("password_reset_failure:invalid_token", args.IpAddress);
     }
 
     [Fact]
-    public async Task ResetPassword_InvalidToken_InsertsSecurityEvent()
+    public async Task ResetPassword_Success()
     {
-        var values = this.SetupResetPassword(false);
+        var args = this.BuildResetPasswordArgs();
+        var user = this.modelFactory.BuildUser();
 
-        try
-        {
-            await this.passwordAuthenticationService.ResetPassword(
-                values.Token, values.NewPassword, values.IpAddress);
-        }
-        catch (InvalidTokenException)
-        {
-        }
+        this.SetupGetUserIdForToken(args.Token, user.Id);
+        this.SetupGetUser(user.Id, user);
+        var newPasswordHash = this.SetupHashPassword(user, args.NewPassword);
+        var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
-        this.AssertSecurityEventLogged("password_reset_failure:invalid_token", values.IpAddress);
-    }
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            args.Token, args.NewPassword, args.IpAddress);
 
-    [Fact]
-    public async Task ResetPassword_InvalidToken_Throws()
-    {
-        var values = this.SetupResetPassword(false);
+        // Deletes expired password reset tokens
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.DeleteExpiredTokens(
+                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
 
-        await Assert.ThrowsAsync<InvalidTokenException>(
-            () => this.passwordAuthenticationService.ResetPassword(
-                values.Token, values.NewPassword, values.IpAddress));
-    }
-
-    [Fact]
-    public async Task ResetPassword_Success_UpdatesUser()
-    {
-        var values = this.SetupResetPassword(true);
-
-        await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
-
+        // Updates user's password hash and security stamp
         this.userDataProviderMock.Verify(
             x => x.UpdatePassword(
-                this.dbContextFactory.FakeDbContext,
-                values.User.Id,
-                values.NewHashedPassword,
-                values.NewSecurityStamp));
-    }
+                this.dbContextFactory.FakeDbContext, user.Id, newPasswordHash, newSecurityStamp));
 
-    [Fact]
-    public async Task ResetPassword_Success_DeletesPasswordResetTokens()
-    {
-        var values = this.SetupResetPassword(true);
-
-        await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
-
+        // Deletes all previously issued password reset tokens for the user
         this.passwordResetTokenDataProviderMock.Verify(
-            x => x.DeleteTokensForUser(this.dbContextFactory.FakeDbContext, values.User.Id));
-    }
+            x => x.DeleteTokensForUser(this.dbContextFactory.FakeDbContext, user.Id));
 
-    [Fact]
-    public async Task ResetPassword_Success_SendsPasswordChangeNotification()
-    {
-        var values = this.SetupResetPassword(true);
-
-        await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
-
-        this.authenticationMailerMock.Verify(
-            x => x.SendPasswordChangeNotification(values.User.Email));
-    }
-
-    [Fact]
-    public async Task ResetPassword_Success_LogsPasswordReset()
-    {
-        var values = this.SetupResetPassword(true);
-
-        await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
-
+        // Logs password reset message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             209,
-            $"Password reset for user {values.User.Id} using token {values.Token[..6]}…");
+            $"Password reset for user {user.Id} using token {args.Token[..6]}…");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("password_reset_success", args.IpAddress, user.Id);
+
+        // Sends password change notification
+        this.authenticationMailerMock.Verify(x => x.SendPasswordChangeNotification(user.Email));
+
+        // Returns user with updated security stamp
+        Assert.Equal(user with { SecurityStamp = newSecurityStamp }, result);
     }
 
-    [Fact]
-    public async Task ResetPassword_Success_InsertsSecurityEvent()
-    {
-        var values = this.SetupResetPassword(true);
+    private sealed record ResetPasswordArgs(string Token, string NewPassword, IPAddress IpAddress);
 
-        await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
-
-        this.AssertSecurityEventLogged("password_reset_success", values.IpAddress, values.User.Id);
-    }
-
-    [Fact]
-    public async Task ResetPassword_Success_ReturnsUserWithNewSecurityStamp()
-    {
-        var values = this.SetupResetPassword(true);
-
-        var returnedUser = await this.passwordAuthenticationService.ResetPassword(
-            values.Token, values.NewPassword, values.IpAddress);
-
-        Assert.Equal(values.User with { SecurityStamp = values.NewSecurityStamp }, returnedUser);
-    }
-
-    private sealed record ResetPasswordValues(
-        IPAddress IpAddress,
-        string NewHashedPassword,
-        string NewPassword,
-        string NewSecurityStamp,
-        string Token,
-        User User);
-
-    private ResetPasswordValues SetupResetPassword(bool tokenIsValid)
-    {
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var newHashedPassword = this.modelFactory.NextString("new-hashed-password");
-        var newPassword = this.modelFactory.NextString("new-password");
-        var newSecurityStamp = this.modelFactory.NextString("new-security-stamp");
-        var token = this.modelFactory.NextString("token");
-        var user = this.modelFactory.BuildUser();
-
-        this.SetupGetUserIdForToken(token, tokenIsValid ? user.Id : null);
-        this.SetupGetUser(user.Id, user);
-        this.passwordHasherMock
-            .Setup(x => x.HashPassword(user, newPassword))
-            .Returns(newHashedPassword);
-        this.randomTokenGeneratorMock
-            .Setup(x => x.Generate(2))
-            .Returns(newSecurityStamp);
-
-        return new(ipAddress, newHashedPassword, newPassword, newSecurityStamp, token, user);
-    }
+    private ResetPasswordArgs BuildResetPasswordArgs() => new(
+        this.modelFactory.NextString("token"),
+        this.modelFactory.NextString("new-password"),
+        new(this.modelFactory.NextInt()));
 
     #endregion
 
     #region SendPasswordResetLink
 
     [Fact]
-    public async Task SendPasswordResetLink_Success_InsertsPasswordResetToken()
+    public async Task SendPasswordResetLink_EmailUnrecognized()
     {
-        var values = this.SetupSendPasswordResetLink(true);
+        var args = this.BuildSendPasswordResetLinkArgs();
+
+        this.SetupFindUserByEmail(args.Email, null);
 
         await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
+            args.Email, args.IpAddress, Mock.Of<IUrlHelper>());
 
-        this.passwordResetTokenDataProviderMock.Verify(
-            x => x.InsertToken(this.dbContextFactory.FakeDbContext, values.User.Id, values.Token));
-    }
-
-    [Fact]
-    public async Task SendPasswordResetLink_Success_SendsLinkToUser()
-    {
-        var values = this.SetupSendPasswordResetLink(true);
-
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
-
-        this.authenticationMailerMock.Verify(
-            x => x.SendPasswordResetLink(values.User.Email, values.Link));
-    }
-
-    [Fact]
-    public async Task SendPasswordResetLink_Success_LogsLinkSent()
-    {
-        var values = this.SetupSendPasswordResetLink(true);
-
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
-
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            210,
-            $"Password reset link sent to user {values.User.Id} ({values.User.Email})");
-    }
-
-    [Fact]
-    public async Task SendPasswordResetLink_Success_InsertsSecurityEvent()
-    {
-        var values = this.SetupSendPasswordResetLink(true);
-
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
-
-        this.AssertSecurityEventLogged(
-            "password_reset_link_sent", values.IpAddress, values.User.Id);
-    }
-
-    [Fact]
-    public async Task SendPasswordResetLink_EmailIsUnrecognized_DoesNotSendLink()
-    {
-        var values = this.SetupSendPasswordResetLink(false);
-
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
-
-        this.authenticationMailerMock.Verify(
-            x => x.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task SendPasswordResetLink_EmailIsUnrecognized_LogsUnrecognizedEmail()
-    {
-        var values = this.SetupSendPasswordResetLink(false);
-
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
-
+        // Logs unrecognised email message
         LogAssert.HasEntry(
             this.logger,
             LogLevel.Information,
             211,
-            $"Unable to send password reset link; No user with email {values.Email}");
+            $"Unable to send password reset link; No user with email {args.Email}");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("password_reset_failure:unrecognized_email", args.IpAddress);
     }
 
     [Fact]
-    public async Task SendPasswordResetLink_EmailIsUnrecognized_InsertsSecurityEvent()
+    public async Task SendPasswordResetLink_Success()
     {
-        var values = this.SetupSendPasswordResetLink(false);
-
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            values.Email, values.IpAddress, values.UrlHelper);
-
-        this.AssertSecurityEventLogged(
-            "password_reset_failure:unrecognized_email", values.IpAddress);
-    }
-
-    private sealed record SendPasswordResetLinkValues(
-        string Email,
-        IPAddress IpAddress,
-        string Link,
-        string Token,
-        IUrlHelper UrlHelper,
-        User User);
-
-    private SendPasswordResetLinkValues SetupSendPasswordResetLink(bool emailIsRecognized)
-    {
-        var email = this.modelFactory.NextEmail();
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var link = this.modelFactory.NextString("https://example.com/reset-password/token");
-        var urlHelperMock = new Mock<IUrlHelper>();
+        var args = this.BuildSendPasswordResetLinkArgs();
         var user = this.modelFactory.BuildUser();
         var token = this.modelFactory.NextString("token");
+        var link = this.modelFactory.NextString("https://example.com/reset-password/token");
 
-        this.userDataProviderMock
-            .Setup(x => x.FindUserByEmail(this.dbContextFactory.FakeDbContext, email))
-            .ReturnsAsync(emailIsRecognized ? user : null);
-        this.randomTokenGeneratorMock
-            .Setup(x => x.Generate(12))
-            .Returns(token);
+        this.SetupFindUserByEmail(args.Email, user);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(12)).Returns(token);
+
+        var urlHelperMock = new Mock<IUrlHelper>();
         urlHelperMock
             .Setup(
                 x => x.Link(
@@ -846,8 +455,31 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
                     It.Is<object>(o => token.Equals(new RouteValueDictionary(o)["token"]))))
             .Returns(link);
 
-        return new(email, ipAddress, link, token, urlHelperMock.Object, user);
+        await this.passwordAuthenticationService.SendPasswordResetLink(
+            args.Email, args.IpAddress, urlHelperMock.Object);
+
+        // Insert password reset token
+        this.passwordResetTokenDataProviderMock.Verify(
+            x => x.InsertToken(this.dbContextFactory.FakeDbContext, user.Id, token));
+
+        // Sends link to user
+        this.authenticationMailerMock.Verify(x => x.SendPasswordResetLink(user.Email, link));
+
+        // Logs password reset link sent message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            210,
+            $"Password reset link sent to user {user.Id} ({user.Email})");
+
+        // Inserts security event
+        this.AssertSecurityEventLogged("password_reset_link_sent", args.IpAddress, user.Id);
     }
+
+    private sealed record SendPasswordResetLinkArgs(string Email, IPAddress IpAddress);
+
+    private SendPasswordResetLinkArgs BuildSendPasswordResetLinkArgs() =>
+        new(this.modelFactory.NextEmail(), new(this.modelFactory.NextInt()));
 
     #endregion
 
@@ -861,6 +493,13 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             .Setup(x => x.FindUserByEmail(this.dbContextFactory.FakeDbContext, email))
             .ReturnsAsync(user);
 
+    private string SetupGenerateSecurityStamp()
+    {
+        var securityStamp = this.modelFactory.NextString("security-stamp");
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(securityStamp);
+        return securityStamp;
+    }
+
     private void SetupGetUser(long id, User user) =>
         this.userDataProviderMock
             .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, id))
@@ -870,4 +509,20 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         this.passwordResetTokenDataProviderMock
             .Setup(x => x.GetUserIdForToken(this.dbContextFactory.FakeDbContext, token))
             .ReturnsAsync(userId);
+
+    private string SetupHashPassword(User user, string newPassword)
+    {
+        var passwordHash = this.modelFactory.NextString("password-hash");
+        this.passwordHasherMock.Setup(x => x.HashPassword(user, newPassword)).Returns(passwordHash);
+        return passwordHash;
+    }
+
+    private void SetupVerifyHashedPassword(
+        User user,
+        string hashedPassword,
+        string suppliedPassword,
+        PasswordVerificationResult result) =>
+        this.passwordHasherMock
+            .Setup(x => x.VerifyHashedPassword(user, hashedPassword, suppliedPassword))
+            .Returns(result);
 }
