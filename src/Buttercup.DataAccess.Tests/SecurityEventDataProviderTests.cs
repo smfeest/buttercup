@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Xunit;
@@ -5,18 +6,18 @@ using Xunit;
 namespace Buttercup.DataAccess;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class AuthenticationEventDataProviderTests
+public sealed class SecurityEventDataProviderTests
 {
     private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly StoppedClock clock = new();
-    private readonly AuthenticationEventDataProvider authenticationEventDataProvider;
+    private readonly SecurityEventDataProvider securityEventDataProvider;
 
-    public AuthenticationEventDataProviderTests(DatabaseCollectionFixture databaseFixture)
+    public SecurityEventDataProviderTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.authenticationEventDataProvider = new(this.clock);
+        this.securityEventDataProvider = new(this.clock);
         this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
@@ -33,49 +34,49 @@ public sealed class AuthenticationEventDataProviderTests
         await dbContext.SaveChangesAsync();
 
         var eventName = this.modelFactory.NextString("event");
-        var email = this.modelFactory.NextEmail();
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
 
-        var id = await this.authenticationEventDataProvider.LogEvent(
-            dbContext, eventName, user.Id, email);
+        var id = await this.securityEventDataProvider.LogEvent(
+            dbContext, eventName, ipAddress, user.Id);
 
-        var expectedEvent = new AuthenticationEvent
+        var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
             Event = eventName,
-            UserId = user.Id,
-            Email = email
+            IpAddress = ipAddress,
+            UserId = user.Id
         };
 
         dbContext.ChangeTracker.Clear();
 
-        var actualEvent = await dbContext.AuthenticationEvents.FindAsync(id);
+        var actualEvent = await dbContext.SecurityEvents.FindAsync(id);
 
         Assert.Equal(expectedEvent, actualEvent);
     }
 
     [Fact]
-    public async Task LogEvent_AcceptsNullUserIdAndEmail()
+    public async Task LogEvent_AcceptsNullIpAddressAndUserId()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var eventName = this.modelFactory.NextString("event");
 
-        var id = await this.authenticationEventDataProvider.LogEvent(dbContext, eventName);
+        var id = await this.securityEventDataProvider.LogEvent(dbContext, eventName, null);
 
-        var expectedEvent = new AuthenticationEvent
+        var expectedEvent = new SecurityEvent
         {
             Id = id,
             Time = this.clock.UtcNow,
             Event = eventName,
-            UserId = null,
-            Email = null
+            IpAddress = null,
+            UserId = null
         };
 
         dbContext.ChangeTracker.Clear();
 
-        var actualEvent = await dbContext.AuthenticationEvents.FindAsync(id);
+        var actualEvent = await dbContext.SecurityEvents.FindAsync(id);
 
         Assert.Equal(expectedEvent, actualEvent);
     }

@@ -1,8 +1,10 @@
+using System.Net;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Moq;
@@ -136,9 +138,10 @@ public sealed class AccountControllerTests : IDisposable
     private void SetupChangePassword(bool result)
     {
         var userId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.ChangePassword(userId, "current-password", "new-password"))
+            .Setup(x => x.ChangePassword(userId, "current-password", "new-password", ipAddress))
             .ReturnsAsync(result);
 
         this.localizerMock.SetupLocalizedString(
@@ -223,5 +226,13 @@ public sealed class AccountControllerTests : IDisposable
         var userId = this.modelFactory.NextInt();
         this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
         return userId;
+    }
+
+    private IPAddress SetupRemoteIpAddress()
+    {
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        this.httpContext.Features.Set<IHttpConnectionFeature>(
+            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
+        return ipAddress;
     }
 }

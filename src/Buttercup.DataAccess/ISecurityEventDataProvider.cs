@@ -1,14 +1,15 @@
+using System.Net;
 using Buttercup.EntityModel;
 
 namespace Buttercup.DataAccess;
 
 /// <summary>
-/// Defines the contract for the authentication event data provider.
+/// Defines the contract for the security event data provider.
 /// </summary>
-public interface IAuthenticationEventDataProvider
+public interface ISecurityEventDataProvider
 {
     /// <summary>
-    /// Logs an authentication event.
+    /// Logs a security event.
     /// </summary>
     /// <param name="dbContext">
     /// The database context.
@@ -16,15 +17,15 @@ public interface IAuthenticationEventDataProvider
     /// <param name="eventName">
     /// The event name.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <param name="userId">
     /// The user ID, if applicable.
-    /// </param>
-    /// <param name="email">
-    /// The email address, if applicable.
     /// </param>
     /// <returns>
     /// A task for the operation. The result is the event ID.
     /// </returns>
     Task<long> LogEvent(
-        AppDbContext dbContext, string eventName, long? userId = null, string? email = null);
+        AppDbContext dbContext, string eventName, IPAddress? ipAddress, long? userId = null);
 }

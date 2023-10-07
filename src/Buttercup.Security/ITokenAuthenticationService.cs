@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 
 namespace Buttercup.Security;
@@ -13,10 +14,13 @@ public interface ITokenAuthenticationService
     /// <param name="user">
     /// The user.
     /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the access token.
     /// </returns>
-    Task<string> IssueAccessToken(User user);
+    Task<string> IssueAccessToken(User user, IPAddress? ipAddress);
 
     /// <summary>
     /// Validates an access token.

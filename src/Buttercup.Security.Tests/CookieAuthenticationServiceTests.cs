@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
@@ -5,6 +6,7 @@ using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -15,11 +17,10 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
 
-    private readonly Mock<IAuthenticationEventDataProvider> authenticationEventDataProviderMock =
-        new();
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
     private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly ListLogger<CookieAuthenticationService> logger = new();
+    private readonly Mock<ISecurityEventDataProvider> securityEventDataProviderMock = new();
     private readonly Mock<IUserDataProvider> userDataProviderMock = new();
     private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
@@ -27,10 +28,10 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
 
     public CookieAuthenticationServiceTests() =>
         this.cookieAuthenticationService = new(
-            this.authenticationEventDataProviderMock.Object,
             this.authenticationServiceMock.Object,
             this.dbContextFactory,
             this.logger,
+            this.securityEventDataProviderMock.Object,
             this.userDataProviderMock.Object,
             this.userPrincipalFactoryMock.Object);
 
@@ -134,7 +135,7 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SignIn_LogsEvent()
+    public async Task SignIn_LogsSignedIn()
     {
         var values = this.SetupSignIn();
 
@@ -145,25 +146,37 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
             LogLevel.Information,
             212,
             $"User {values.User.Id} ({values.User.Email}) signed in");
+    }
 
-        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_in", values.User.Id, null));
+    [Fact]
+    public async Task SignIn_InsertsSecurityEvent()
+    {
+        var values = this.SetupSignIn();
+
+        await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
+
+        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
+            this.dbContextFactory.FakeDbContext, "sign_in", values.IpAddress, values.User.Id));
     }
 
     private sealed record SignInValues(
-        HttpContext HttpContext, User User, ClaimsPrincipal Principal);
+        HttpContext HttpContext, IPAddress IpAddress, ClaimsPrincipal Principal, User User);
 
     private SignInValues SetupSignIn()
     {
         var httpContext = new DefaultHttpContext();
-        var user = this.modelFactory.BuildUser();
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
         var principal = new ClaimsPrincipal();
+        var user = this.modelFactory.BuildUser();
+
+        httpContext.Features.Set<IHttpConnectionFeature>(
+            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
 
         this.userPrincipalFactoryMock
             .Setup(x => x.Create(user, CookieAuthenticationDefaults.AuthenticationScheme))
             .Returns(principal);
 
-        return new(httpContext, user, principal);
+        return new(httpContext, ipAddress, principal, user);
     }
 
     #endregion
@@ -183,34 +196,58 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SignOut_PreviouslySignedIn_LogsSignOutEvent()
+    public async Task SignOut_PreviouslySignedIn_LogsSignedOut()
     {
-        var userId = this.modelFactory.NextInt();
-        var email = this.modelFactory.NextString("email");
-        var httpContext = new DefaultHttpContext()
-        {
-            User = PrincipalFactory.CreateWithUserId(userId, new Claim(ClaimTypes.Email, email)),
-        };
+        var values = this.SetupSignOut_PreviouslySignedIn();
 
-        await this.cookieAuthenticationService.SignOut(httpContext);
+        await this.cookieAuthenticationService.SignOut(values.HttpContext);
 
         LogAssert.HasEntry(
-            this.logger, LogLevel.Information, 213, $"User {userId} ({email}) signed out");
-
-        this.authenticationEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_out", userId, null));
+            this.logger,
+            LogLevel.Information,
+            213,
+            $"User {values.UserId} ({values.Email}) signed out");
     }
 
     [Fact]
-    public async Task SignOut_NotPreviouslySignedIn_DoesNotLogSignOutEvent()
+    public async Task SignOut_PreviouslySignedIn_InsertsSecurityEvent()
+    {
+        var values = this.SetupSignOut_PreviouslySignedIn();
+
+        await this.cookieAuthenticationService.SignOut(values.HttpContext);
+
+        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
+            this.dbContextFactory.FakeDbContext, "sign_out", values.IpAddress, values.UserId));
+    }
+
+    [Fact]
+    public async Task SignOut_NotPreviouslySignedIn_DoesNotLog()
     {
         var httpContext = new DefaultHttpContext();
 
         await this.cookieAuthenticationService.SignOut(httpContext);
 
-        this.authenticationEventDataProviderMock.Verify(
-            x => x.LogEvent(this.dbContextFactory.FakeDbContext, "sign_out", null, null),
-            Times.Never);
+        Assert.Empty(this.logger.Entries);
+    }
+
+    private sealed record SignOutPreviouslySignedInValues(
+        string Email, HttpContext HttpContext, IPAddress IpAddress, long UserId);
+
+    private SignOutPreviouslySignedInValues SetupSignOut_PreviouslySignedIn()
+    {
+        var email = this.modelFactory.NextString("email");
+        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        var userId = this.modelFactory.NextInt();
+
+        var httpContext = new DefaultHttpContext()
+        {
+            User = PrincipalFactory.CreateWithUserId(userId, new Claim(ClaimTypes.Email, email)),
+        };
+
+        httpContext.Features.Set<IHttpConnectionFeature>(
+            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
+
+        return new(email, httpContext, ipAddress, userId);
     }
 
     #endregion

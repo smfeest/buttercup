@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 using Buttercup.DataAccess;
 using Buttercup.EntityModel;
@@ -9,29 +10,29 @@ namespace Buttercup.Security;
 internal sealed class TokenAuthenticationService : ITokenAuthenticationService
 {
     private readonly IAccessTokenEncoder accessTokenEncoder;
-    private readonly IAuthenticationEventDataProvider authenticationEventDataProvider;
     private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<TokenAuthenticationService> logger;
+    private readonly ISecurityEventDataProvider securityEventDataProvider;
     private readonly IUserDataProvider userDataProvider;
 
     public TokenAuthenticationService(
         IAccessTokenEncoder accessTokenEncoder,
-        IAuthenticationEventDataProvider authenticationEventDataProvider,
         IClock clock,
         IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<TokenAuthenticationService> logger,
+        ISecurityEventDataProvider securityEventDataProvider,
         IUserDataProvider userDataProvider)
     {
         this.accessTokenEncoder = accessTokenEncoder;
-        this.authenticationEventDataProvider = authenticationEventDataProvider;
         this.clock = clock;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
+        this.securityEventDataProvider = securityEventDataProvider;
         this.userDataProvider = userDataProvider;
     }
 
-    public async Task<string> IssueAccessToken(User user)
+    public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
     {
         var token = this.accessTokenEncoder.Encode(
             new(user.Id, user.SecurityStamp, this.clock.UtcNow));
@@ -40,8 +41,8 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.authenticationEventDataProvider.LogEvent(
-            dbContext, "access_token_issued", user.Id);
+        await this.securityEventDataProvider.LogEvent(
+            dbContext, "access_token_issued", ipAddress, user.Id);
 
         return token;
     }

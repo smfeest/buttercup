@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Buttercup.EntityModel;
 
@@ -22,9 +23,9 @@ public sealed class AppDbContext : DbContext
     { }
 
     /// <summary>
-    /// Gets the set of all authentication events.
+    /// Gets the set of all security events.
     /// </summary>
-    public DbSet<AuthenticationEvent> AuthenticationEvents => this.Set<AuthenticationEvent>();
+    public DbSet<SecurityEvent> SecurityEvents => this.Set<SecurityEvent>();
 
     /// <summary>
     /// Gets the set of all password reset tokens.
@@ -42,8 +43,14 @@ public sealed class AppDbContext : DbContext
     public DbSet<User> Users => this.Set<User>();
 
     /// <inheritdoc/>
-    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
         modelBuilder
             .Entity<User>()
             .HasAlternateKey(u => u.Email);
+        modelBuilder
+            .Entity<SecurityEvent>()
+            .Property(u => u.IpAddress)
+            .HasConversion<IPAddressToBytesConverter>();
+    }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Buttercup.EntityModel.Migrations.Migrations;
+namespace Buttercup.EntityModel.Migrations;
 
 public partial class InitialSchema : Migration
 {

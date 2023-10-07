@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace Buttercup.EntityModel;
 
 /// <summary>
-/// Represents an authentication event.
+/// Represents a logged security event.
 /// </summary>
-public sealed record AuthenticationEvent
+public sealed record SecurityEvent
 {
     /// <summary>
     /// Gets or sets the primary key of the event.
@@ -34,8 +35,7 @@ public sealed record AuthenticationEvent
     public long? UserId { get; set; }
 
     /// <summary>
-    /// Gets or sets the associated email address, if applicable.
+    /// Gets or sets the client IP address.
     /// </summary>
-    [StringLength(250)]
-    public string? Email { get; set; }
+    public IPAddress? IpAddress { get; set; }
 }

@@ -3,56 +3,24 @@ using System;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Buttercup.EntityModel.Migrations.Migrations
+namespace Buttercup.EntityModel.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230928203933_RemoveEmailFromSecurityEvent")]
+    partial class RemoveEmailFromSecurityEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("Buttercup.EntityModel.AuthenticationEvent", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(250)
-                        .HasColumnType("varchar(250)")
-                        .HasColumnName("email");
-
-                    b.Property<string>("Event")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("event");
-
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("time");
-
-                    b.Property<long?>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_authentication_events");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_authentication_events_user_id");
-
-                    b.ToTable("authentication_events", (string)null);
-                });
 
             modelBuilder.Entity("Buttercup.EntityModel.PasswordResetToken", b =>
                 {
@@ -158,6 +126,36 @@ namespace Buttercup.EntityModel.Migrations.Migrations
                     b.ToTable("recipes", (string)null);
                 });
 
+            modelBuilder.Entity("Buttercup.EntityModel.SecurityEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Event")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("event");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("time");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_security_events");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_security_events_user_id");
+
+                    b.ToTable("security_events", (string)null);
+                });
+
             modelBuilder.Entity("Buttercup.EntityModel.User", b =>
                 {
                     b.Property<long>("Id")
@@ -219,16 +217,6 @@ namespace Buttercup.EntityModel.Migrations.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Buttercup.EntityModel.AuthenticationEvent", b =>
-                {
-                    b.HasOne("Buttercup.EntityModel.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("fk_authentication_events_users_user_id");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Buttercup.EntityModel.PasswordResetToken", b =>
                 {
                     b.HasOne("Buttercup.EntityModel.User", "User")
@@ -256,6 +244,16 @@ namespace Buttercup.EntityModel.Migrations.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("ModifiedByUser");
+                });
+
+            modelBuilder.Entity("Buttercup.EntityModel.SecurityEvent", b =>
+                {
+                    b.HasOne("Buttercup.EntityModel.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .HasConstraintName("fk_security_events_users_user_id");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
