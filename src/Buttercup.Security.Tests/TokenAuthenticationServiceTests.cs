@@ -44,11 +44,11 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
 
         await this.tokenAuthenticationService.IssueAccessToken(user);
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Issued access token for user {user.Id} ({user.Email})");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            300,
+            $"Issued access token for user {user.Id} ({user.Email})");
     }
 
     [Fact]
@@ -90,32 +90,36 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     public async Task ValidateAccessToken_TokenIsNotBase64UrlEncoded_LogsAndReturnsNull()
     {
         var accessToken = this.modelFactory.NextString("access-token");
+        var exception = new FormatException();
 
-        this.SetupDecodeFailure(accessToken, new FormatException());
+        this.SetupDecodeFailure(accessToken, exception);
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Warning &&
-                entry.Message == "Access token failed validation; not base64url encoded");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Warning,
+            301,
+            "Access token failed validation; not base64url encoded",
+            exception);
     }
 
     [Fact]
     public async Task ValidateAccessToken_TokenIsMalformed_LogsAndReturnsNull()
     {
         var accessToken = this.modelFactory.NextString("access-token");
+        var exception = new CryptographicException();
 
-        this.SetupDecodeFailure(accessToken, new CryptographicException());
+        this.SetupDecodeFailure(accessToken, exception);
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Warning &&
-                entry.Message == "Access token failed validation; malformed or encrypted with wrong key");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Warning,
+            302,
+            "Access token failed validation; malformed or encrypted with wrong key",
+            exception);
     }
 
     [Fact]
@@ -128,11 +132,11 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Access token failed validation for user {user.Id}; expired");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            303,
+            $"Access token failed validation for user {user.Id}; expired");
     }
 
     [Fact]
@@ -146,11 +150,11 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Warning &&
-                entry.Message == $"Access token failed validation for user {user.Id}; user does not exist");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Warning,
+            304,
+            $"Access token failed validation for user {user.Id}; user does not exist");
     }
 
     [Fact]
@@ -164,11 +168,11 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Access token failed validation for user {user.Id}; contains stale security stamp");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            305,
+            $"Access token failed validation for user {user.Id}; contains stale security stamp");
     }
 
     [Fact]
@@ -182,11 +186,11 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
 
         Assert.Equal(user, await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
-        Assert.Contains(
-            this.logger.Entries,
-            entry =>
-                entry.LogLevel == LogLevel.Information &&
-                entry.Message == $"Access token successfully validated for user {user.Id}");
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            306,
+            $"Access token successfully validated for user {user.Id}");
     }
 
     private void SetupDecodeFailure(string accessToken, Exception exception) =>
