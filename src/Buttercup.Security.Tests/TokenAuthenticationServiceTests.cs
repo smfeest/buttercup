@@ -90,8 +90,9 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
     public async Task ValidateAccessToken_TokenIsNotBase64UrlEncoded_LogsAndReturnsNull()
     {
         var accessToken = this.modelFactory.NextString("access-token");
+        var exception = new FormatException();
 
-        this.SetupDecodeFailure(accessToken, new FormatException());
+        this.SetupDecodeFailure(accessToken, exception);
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
@@ -99,15 +100,17 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
             this.logger,
             LogLevel.Warning,
             301,
-            "Access token failed validation; not base64url encoded");
+            "Access token failed validation; not base64url encoded",
+            exception);
     }
 
     [Fact]
     public async Task ValidateAccessToken_TokenIsMalformed_LogsAndReturnsNull()
     {
         var accessToken = this.modelFactory.NextString("access-token");
+        var exception = new CryptographicException();
 
-        this.SetupDecodeFailure(accessToken, new CryptographicException());
+        this.SetupDecodeFailure(accessToken, exception);
 
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
@@ -115,7 +118,8 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
             this.logger,
             LogLevel.Warning,
             302,
-            "Access token failed validation; malformed or encrypted with wrong key");
+            "Access token failed validation; malformed or encrypted with wrong key",
+            exception);
     }
 
     [Fact]

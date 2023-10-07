@@ -17,12 +17,18 @@ public static class LogAssert
     /// <param name="logLevel">The expected log level.</param>
     /// <param name="eventId">The expected event ID.</param>
     /// <param name="message">The expected message.</param>
+    /// <param name="exception">The expected exception.</param>
     /// <exception cref="ContainsException">When no matching entry is found.</exception>
     public static void HasEntry<T>(
-        ListLogger<T> listLogger, LogLevel logLevel, EventId eventId, string message) =>
+        ListLogger<T> listLogger,
+        LogLevel logLevel,
+        EventId eventId,
+        string message,
+        Exception? exception = null) =>
         Assert.Contains(
             listLogger.Entries,
             entry => entry.LogLevel == logLevel &&
                 entry.EventId == eventId &&
-                entry.Message == message);
+                entry.Message == message &&
+                entry.Exception == exception);
 }
