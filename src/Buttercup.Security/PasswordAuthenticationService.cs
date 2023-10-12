@@ -235,8 +235,8 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
     }
 
     private bool VerifyPassword(User user, string hashedPassword, string password) =>
-        this.passwordHasher.VerifyHashedPassword(user, hashedPassword, password) ==
-            PasswordVerificationResult.Success;
+        this.passwordHasher.VerifyHashedPassword(user, hashedPassword, password) !=
+            PasswordVerificationResult.Failed;
 
     private static class AuthenticateLogMessages
     {

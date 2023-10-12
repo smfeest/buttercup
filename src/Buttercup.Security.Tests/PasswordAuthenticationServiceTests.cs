@@ -123,8 +123,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         Assert.Null(result);
     }
 
-    [Fact]
-    public async Task Authenticate_Success()
+    [Theory]
+    [InlineData(PasswordVerificationResult.Success)]
+    [InlineData(PasswordVerificationResult.SuccessRehashNeeded)]
+    public async Task Authenticate_Success(PasswordVerificationResult passwordVerificationResult)
     {
         var args = this.BuildAuthenticateArgs();
         var hashedPassword = this.modelFactory.NextString("hashed-password");
@@ -132,7 +134,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         this.SetupFindUserByEmail(args.Email, user);
         this.SetupVerifyHashedPassword(
-            user, hashedPassword, args.Password, PasswordVerificationResult.Success);
+            user, hashedPassword, args.Password, passwordVerificationResult);
 
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
@@ -212,8 +214,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         Assert.False(result);
     }
 
-    [Fact]
-    public async Task ChangePassword_Success()
+    [Theory]
+    [InlineData(PasswordVerificationResult.Success)]
+    [InlineData(PasswordVerificationResult.SuccessRehashNeeded)]
+    public async Task ChangePassword_Success(PasswordVerificationResult passwordVerificationResult)
     {
         var args = this.BuildChangePasswordArgs();
         var currentPasswordHash = this.modelFactory.NextString("current-password-hash");
@@ -221,7 +225,7 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
 
         this.SetupGetUser(args.UserId, user);
         this.SetupVerifyHashedPassword(
-            user, currentPasswordHash, args.CurrentPassword, PasswordVerificationResult.Success);
+            user, currentPasswordHash, args.CurrentPassword, passwordVerificationResult);
         var newPasswordHash = this.SetupHashPassword(user, args.NewPassword);
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
