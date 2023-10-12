@@ -23,7 +23,7 @@ public sealed class UserDataProviderTests
     #region FindUserByEmail
 
     [Fact]
-    public async Task FindUserByEmail_ReturnsUser()
+    public async Task FindUserByEmail_MatchFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -32,13 +32,13 @@ public sealed class UserDataProviderTests
         dbContext.Users.Add(expected);
         await dbContext.SaveChangesAsync();
 
+        // Returns user
         var actual = await this.userDataProvider.FindUserByEmail(dbContext, expected.Email);
-
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task FindUserByEmail_ReturnsNullIfNoMatchFound()
+    public async Task FindUserByEmail_NoMatchFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -46,10 +46,9 @@ public sealed class UserDataProviderTests
         dbContext.Users.Add(this.modelFactory.BuildUser());
         await dbContext.SaveChangesAsync();
 
-        var actual = await this.userDataProvider.FindUserByEmail(
-            dbContext, this.modelFactory.NextEmail());
-
-        Assert.Null(actual);
+        // Returns null
+        Assert.Null(
+            await this.userDataProvider.FindUserByEmail(dbContext, this.modelFactory.NextEmail()));
     }
 
     #endregion
@@ -68,13 +67,13 @@ public sealed class UserDataProviderTests
 
         dbContext.ChangeTracker.Clear();
 
+        // Returns user
         var actual = await this.userDataProvider.GetUser(dbContext, expected.Id);
-
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task GetUser_ThrowsIfRecordNotFound()
+    public async Task GetUser_UserDoesNotExist()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -84,9 +83,9 @@ public sealed class UserDataProviderTests
 
         var id = this.modelFactory.NextInt();
 
+        // Throws exception
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.GetUser(dbContext, id));
-
         Assert.Equal($"User {id} not found", exception.Message);
     }
 
@@ -95,7 +94,7 @@ public sealed class UserDataProviderTests
     #region UpdatePassword
 
     [Fact]
-    public async Task UpdatePassword_UpdatesHashedPassword()
+    public async Task UpdatePassword_Success()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -112,6 +111,7 @@ public sealed class UserDataProviderTests
 
         dbContext.ChangeTracker.Clear();
 
+        // Updates user
         var expected = original with
         {
             HashedPassword = newHashedPassword,
@@ -120,14 +120,12 @@ public sealed class UserDataProviderTests
             Modified = this.clock.UtcNow,
             Revision = original.Revision + 1,
         };
-
         var actual = await dbContext.Users.FindAsync(original.Id);
-
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task UpdatePassword_ThrowsIfRecordNotFound()
+    public async Task UpdatePassword_UserDoesNotExist()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -137,13 +135,13 @@ public sealed class UserDataProviderTests
 
         var id = this.modelFactory.NextInt();
 
+        // Throws exception
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePassword(
                 dbContext,
                 id,
                 this.modelFactory.NextString("hashed-password"),
                 this.NextSecurityStamp()));
-
         Assert.Equal($"User {id} not found", exception.Message);
     }
 
@@ -155,7 +153,7 @@ public sealed class UserDataProviderTests
     #region UpdatePreferences
 
     [Fact]
-    public async Task UpdatePreferences_UpdatesPreferences()
+    public async Task UpdatePreferences_Success()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -170,20 +168,19 @@ public sealed class UserDataProviderTests
 
         dbContext.ChangeTracker.Clear();
 
+        // Updates user
         var expected = original with
         {
             TimeZone = newTimeZone,
             Modified = this.clock.UtcNow,
             Revision = original.Revision + 1,
         };
-
         var actual = await dbContext.Users.FindAsync(original.Id);
-
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task UpdatePreferences_ThrowsIfRecordNotFound()
+    public async Task UpdatePreferences_UserDoesNotExist()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -193,10 +190,10 @@ public sealed class UserDataProviderTests
 
         var id = this.modelFactory.NextInt();
 
+        // Throws exception
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.userDataProvider.UpdatePreferences(
                 dbContext, id, this.modelFactory.NextString("time-zone")));
-
         Assert.Equal($"User {id} not found", exception.Message);
     }
 
