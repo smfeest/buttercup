@@ -20,37 +20,6 @@ public sealed class PasswordResetTokenDataProviderTests
         this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
-    #region DeleteExpiredTokens
-
-    [Fact]
-    public async Task DeleteExpiredTokens_DeletesExpiredTokens()
-    {
-        using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
-
-        var user = this.modelFactory.BuildUser();
-        dbContext.Users.Add(user);
-
-        void AddToken(string token, DateTime created) => dbContext.PasswordResetTokens.Add(
-            new() { Token = token, UserId = user.Id, Created = created });
-
-        AddToken("token-a", new(2000, 1, 2, 11, 59, 59));
-        AddToken("token-b", new(2000, 1, 2, 12, 00, 00));
-        AddToken("token-c", new(2000, 1, 2, 12, 00, 01));
-
-        await dbContext.SaveChangesAsync();
-
-        await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
-            dbContext, new(2000, 1, 2, 12, 00, 00));
-
-        var survivingTokens =
-            await dbContext.PasswordResetTokens.Select(x => x.Token).ToListAsync();
-
-        Assert.Equal(new[] { "token-b", "token-c" }, survivingTokens);
-    }
-
-    #endregion
-
     #region DeleteTokensForUser
 
     [Fact]
@@ -81,10 +50,10 @@ public sealed class PasswordResetTokenDataProviderTests
 
     #endregion
 
-    #region GetUserIdForToken
+    #region GetUserIdForUnexpiredToken
 
     [Fact]
-    public async Task GetUserIdForToken_ReturnsUserIdWhenTokenExists()
+    public async Task GetUserIdForUnexpiredToken_ReturnsUserIdIfMatchingUnexpiredTokenExists()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -93,24 +62,42 @@ public sealed class PasswordResetTokenDataProviderTests
         dbContext.Users.Add(user);
 
         var token = this.modelFactory.NextString("token");
-
         dbContext.PasswordResetTokens.Add(
-            new() { UserId = user.Id, Token = token, Created = DateTime.UtcNow });
+            new() { UserId = user.Id, Token = token, Created = DateTime.UtcNow.AddSeconds(-99) });
 
         await dbContext.SaveChangesAsync();
 
-        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(dbContext, token);
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForUnexpiredToken(
+            dbContext, token, TimeSpan.FromSeconds(100));
 
         Assert.Equal(user.Id, actual);
     }
 
     [Fact]
-    public async Task GetUserIdForToken_ReturnsNullIfNoMatchFound()
+    public async Task GetUserIdForUnexpiredToken_ReturnsNullIfTokenExpired()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
 
-        var actual = await this.passwordResetTokenDataProvider.GetUserIdForToken(
-            dbContext, this.modelFactory.NextString("token"));
+        var user = this.modelFactory.BuildUser();
+        dbContext.Users.Add(user);
+
+        var token = this.modelFactory.NextString("token");
+        dbContext.PasswordResetTokens.Add(
+            new() { UserId = user.Id, Token = token, Created = DateTime.UtcNow.AddSeconds(-101) });
+
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForUnexpiredToken(
+            dbContext, token, TimeSpan.FromSeconds(100));
+
+        Assert.Null(actual);
+    }
+
+    [Fact]
+    public async Task GetUserIdForUnexpiredToken_ReturnsNullIfTokenNotFound()
+    {
+        using var dbContext = this.databaseFixture.CreateDbContext();
+
+        var actual = await this.passwordResetTokenDataProvider.GetUserIdForUnexpiredToken(
+            dbContext, this.modelFactory.NextString("token"), new(2000, 1, 2, 12, 00, 00));
 
         Assert.Null(actual);
     }

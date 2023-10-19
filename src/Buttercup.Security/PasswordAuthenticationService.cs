@@ -258,13 +258,9 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         return securityStamp;
     }
 
-    private async Task<long?> ValidatePasswordResetToken(AppDbContext dbContext, string token)
-    {
-        await this.passwordResetTokenDataProvider.DeleteExpiredTokens(
-            dbContext, this.clock.UtcNow.AddDays(-1));
-
-        return await this.passwordResetTokenDataProvider.GetUserIdForToken(dbContext, token);
-    }
+    private Task<long?> ValidatePasswordResetToken(AppDbContext dbContext, string token) =>
+        this.passwordResetTokenDataProvider.GetUserIdForUnexpiredToken(
+            dbContext, token, TimeSpan.FromDays(1));
 
     private static class AuthenticateLogMessages
     {

@@ -9,15 +9,13 @@ internal sealed class PasswordResetTokenDataProvider : IPasswordResetTokenDataPr
 
     public PasswordResetTokenDataProvider(IClock clock) => this.clock = clock;
 
-    public Task DeleteExpiredTokens(AppDbContext dbContext, DateTime cutOff) =>
-        dbContext.PasswordResetTokens.Where(t => t.Created < cutOff).ExecuteDeleteAsync();
-
     public Task DeleteTokensForUser(AppDbContext dbContext, long userId) =>
         dbContext.PasswordResetTokens.Where(t => t.UserId == userId).ExecuteDeleteAsync();
 
-    public Task<long?> GetUserIdForToken(AppDbContext dbContext, string token) =>
-        dbContext
-            .PasswordResetTokens.Where(t => t.Token == token)
+    public Task<long?> GetUserIdForUnexpiredToken(
+        AppDbContext dbContext, string token, TimeSpan maxAge) =>
+        dbContext.PasswordResetTokens
+            .Where(t => t.Token == token && t.Created >= this.clock.UtcNow.Subtract(maxAge))
             .Select<PasswordResetToken, long?>(t => t.UserId)
             .SingleOrDefaultAsync();
 

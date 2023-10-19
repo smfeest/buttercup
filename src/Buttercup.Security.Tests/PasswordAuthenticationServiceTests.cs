@@ -375,15 +375,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         var args = this.BuildPasswordResetTokenIsValidArgs();
         var userId = this.modelFactory.NextInt();
 
-        this.SetupGetUserIdForToken(args.Token, userId);
+        this.SetupGetUserIdForUnexpiredToken(args.Token, userId);
 
         var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
             args.Token, args.IpAddress);
-
-        // Deletes expired password reset tokens
-        this.passwordResetTokenDataProviderMock.Verify(
-            x => x.DeleteExpiredTokens(
-                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
 
         // Logs valid token message
         LogAssert.HasEntry(
@@ -401,15 +396,10 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     {
         var args = this.BuildPasswordResetTokenIsValidArgs();
 
-        this.SetupGetUserIdForToken(args.Token, null);
+        this.SetupGetUserIdForUnexpiredToken(args.Token, null);
 
         var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
             args.Token, args.IpAddress);
-
-        // Deletes expired password reset tokens
-        this.passwordResetTokenDataProviderMock.Verify(
-            x => x.DeleteExpiredTokens(
-                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
 
         // Logs invalid token message
         LogAssert.HasEntry(
@@ -439,17 +429,12 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
     {
         var args = this.BuildResetPasswordArgs();
 
-        this.SetupGetUserIdForToken(args.Token, null);
+        this.SetupGetUserIdForUnexpiredToken(args.Token, null);
 
         // Throws exception
         await Assert.ThrowsAsync<InvalidTokenException>(
             () => this.passwordAuthenticationService.ResetPassword(
                 args.Token, args.NewPassword, args.IpAddress));
-
-        // Deletes expired password reset tokens
-        this.passwordResetTokenDataProviderMock.Verify(
-            x => x.DeleteExpiredTokens(
-                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
 
         // Logs invalid token message
         LogAssert.HasEntry(
@@ -468,18 +453,13 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
         var args = this.BuildResetPasswordArgs();
         var user = this.modelFactory.BuildUser();
 
-        this.SetupGetUserIdForToken(args.Token, user.Id);
+        this.SetupGetUserIdForUnexpiredToken(args.Token, user.Id);
         this.SetupGetUser(user.Id, user);
         var newPasswordHash = this.SetupHashPassword(user, args.NewPassword);
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
             args.Token, args.NewPassword, args.IpAddress);
-
-        // Deletes expired password reset tokens
-        this.passwordResetTokenDataProviderMock.Verify(
-            x => x.DeleteExpiredTokens(
-                this.dbContextFactory.FakeDbContext, this.clock.UtcNow.AddDays(-1)));
 
         // Updates user's password hash and security stamp
         this.userDataProviderMock.Verify(
@@ -608,9 +588,11 @@ public sealed class PasswordAuthenticationServiceTests : IDisposable
             .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, id))
             .ReturnsAsync(user);
 
-    private void SetupGetUserIdForToken(string token, long? userId) =>
+    private void SetupGetUserIdForUnexpiredToken(string token, long? userId) =>
         this.passwordResetTokenDataProviderMock
-            .Setup(x => x.GetUserIdForToken(this.dbContextFactory.FakeDbContext, token))
+            .Setup(
+                x => x.GetUserIdForUnexpiredToken(
+                    this.dbContextFactory.FakeDbContext, token, TimeSpan.FromDays(1)))
             .ReturnsAsync(userId);
 
     private string SetupHashPassword(User user, string newPassword)
