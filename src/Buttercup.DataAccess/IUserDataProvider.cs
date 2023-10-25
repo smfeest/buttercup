@@ -40,7 +40,7 @@ public interface IUserDataProvider
     Task<User> GetUser(AppDbContext dbContext, long id);
 
     /// <summary>
-    /// Updates a user's password.
+    /// Updates the user attributes affected by a password change.
     /// </summary>
     /// <param name="dbContext">
     /// The database context.
@@ -60,8 +60,38 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task UpdatePassword(
+    Task SaveNewPassword(
         AppDbContext dbContext, long userId, string hashedPassword, string securityStamp);
+
+    /// <summary>
+    /// Updates the user attributes affected by the rehashing of an existing password.
+    /// </summary>
+    /// <param name="dbContext">
+    /// The database context.
+    /// </param>
+    /// <param name="userId">
+    /// The user ID.
+    /// </param>
+    /// <param name="baseRevision">
+    /// The base revision. Used for concurrency checking.
+    /// </param>
+    /// <param name="rehashedPassword">
+    /// The rehashed password.
+    /// </param>
+    /// <param name="timestamp">
+    /// The timestamp for the operation.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result is <b>true</b> if the user was updated, <b>false</b> if
+    /// the user does not exist or <paramref name="baseRevision"/> does not match the revision
+    /// currently in the database.
+    /// </returns>
+    Task<bool> SaveRehashedPassword(
+        AppDbContext dbContext,
+        long userId,
+        int baseRevision,
+        string rehashedPassword,
+        DateTime timestamp);
 
     /// <summary>
     /// Updates a user's preferences.
