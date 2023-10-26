@@ -58,12 +58,12 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
     {
         await this.SignInUser(httpContext, user);
 
-        SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
-
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         await this.securityEventDataProvider.LogEvent(
             dbContext, "sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
+
+        SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
     }
 
     public async Task SignOut(HttpContext httpContext)
@@ -74,14 +74,14 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
         if (userId.HasValue)
         {
-            var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
-
-            SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
-
             using var dbContext = this.dbContextFactory.CreateDbContext();
 
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "sign_out", httpContext.Connection.RemoteIpAddress, userId);
+
+            var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
+
+            SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
         }
     }
 

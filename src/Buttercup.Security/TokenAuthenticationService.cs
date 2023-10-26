@@ -37,12 +37,12 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
         var token = this.accessTokenEncoder.Encode(
             new(user.Id, user.SecurityStamp, this.clock.UtcNow));
 
-        LogMessages.TokenIssued(this.logger, user.Id, user.Email, null);
-
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         await this.securityEventDataProvider.LogEvent(
             dbContext, "access_token_issued", ipAddress, user.Id);
+
+        LogMessages.TokenIssued(this.logger, user.Id, user.Email, null);
 
         return token;
     }

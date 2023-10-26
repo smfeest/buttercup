@@ -50,20 +50,20 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (user == null)
         {
-            AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "authentication_failure:unrecognized_email", ipAddress);
+
+            AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             return null;
         }
 
         if (user.HashedPassword == null)
         {
-            AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "authentication_failure:no_password_set", ipAddress, user.Id);
+
+            AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
 
             return null;
         }
@@ -73,18 +73,18 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "authentication_failure:incorrect_password", ipAddress, user.Id);
+
+            AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
             return null;
         }
 
-        AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
-
         await this.securityEventDataProvider.LogEvent(
             dbContext, "authentication_success", ipAddress, user.Id);
+
+        AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
         {
@@ -115,21 +115,20 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            ChangePasswordLogMessages.IncorrectPassword(
-                this.logger, user.Id, user.Email, null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id);
+
+            ChangePasswordLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
 
             return false;
         }
 
         var newSecurityStamp = await this.SetPassword(dbContext, user, newPassword);
 
-        ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
-
         await this.securityEventDataProvider.LogEvent(
             dbContext, "password_change_success", ipAddress, user.Id);
+
+        ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -149,10 +148,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         }
         else
         {
-            PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
+
+            PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
         }
 
         return userId.HasValue;
@@ -166,10 +165,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (!userId.HasValue)
         {
-            ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
+
+            ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
 
             throw new InvalidTokenException("Password reset token is invalid");
         }
@@ -178,10 +177,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         var newSecurityStamp = await this.SetPassword(dbContext, user, newPassword);
 
-        ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
-
         await this.securityEventDataProvider.LogEvent(
             dbContext, "password_reset_success", ipAddress, userId.Value);
+
+        ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -197,10 +196,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (user == null)
         {
-            SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
-
             await this.securityEventDataProvider.LogEvent(
                 dbContext, "password_reset_failure:unrecognized_email", ipAddress);
+
+            SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
 
             return;
         }
@@ -215,10 +214,10 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         await this.authenticationMailer.SendPasswordResetLink(email, link);
 
-        SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
-
         await this.securityEventDataProvider.LogEvent(
             dbContext, "password_reset_link_sent", ipAddress, user.Id);
+
+        SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
     }
 
     private static string RedactToken(string token) => $"{token[..6]}…";
