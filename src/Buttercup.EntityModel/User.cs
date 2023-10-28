@@ -6,7 +6,7 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a user.
 /// </summary>
-public sealed record User
+public sealed record User : IEntityId
 {
     /// <summary>
     /// Gets or sets the primary key of the user.

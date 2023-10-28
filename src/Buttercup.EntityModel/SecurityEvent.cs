@@ -6,7 +6,7 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a logged security event.
 /// </summary>
-public sealed record SecurityEvent
+public sealed record SecurityEvent : IEntityId
 {
     /// <summary>
     /// Gets or sets the primary key of the event.
