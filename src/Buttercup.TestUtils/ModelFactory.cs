@@ -11,6 +11,18 @@ public sealed class ModelFactory
     private int nextInt = 1;
 
     /// <summary>
+    /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
+    /// </summary>
+    /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
+    public PasswordResetToken BuildPasswordResetToken() =>
+        new()
+        {
+            Token = this.NextString("token"),
+            UserId = this.NextInt(),
+            Created = this.NextDateTime(),
+        };
+
+    /// <summary>
     /// Instantiates a new <see cref="Recipe" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">
