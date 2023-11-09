@@ -1,5 +1,5 @@
+using System.Net;
 using System.Security.Claims;
-using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -12,25 +12,22 @@ namespace Buttercup.Security;
 internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 {
     private readonly IAuthenticationService authenticationService;
+    private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<CookieAuthenticationService> logger;
-    private readonly ISecurityEventDataProvider securityEventDataProvider;
-    private readonly IUserDataProvider userDataProvider;
     private readonly IUserPrincipalFactory userPrincipalFactory;
 
     public CookieAuthenticationService(
         IAuthenticationService authenticationService,
+        IClock clock,
         IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<CookieAuthenticationService> logger,
-        ISecurityEventDataProvider securityEventDataProvider,
-        IUserDataProvider userDataProvider,
         IUserPrincipalFactory userPrincipalFactory)
     {
         this.authenticationService = authenticationService;
+        this.clock = clock;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
-        this.securityEventDataProvider = securityEventDataProvider;
-        this.userDataProvider = userDataProvider;
         this.userPrincipalFactory = userPrincipalFactory;
     }
 
@@ -46,8 +43,7 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.userDataProvider.GetUser(
-            dbContext, authenticateResult.Principal.GetUserId());
+        var user = await dbContext.Users.GetAsync(authenticateResult.Principal.GetUserId());
 
         await this.SignInUser(httpContext, user, authenticateResult.Properties);
 
@@ -58,10 +54,7 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
     {
         await this.SignInUser(httpContext, user);
 
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
+        await this.InsertSecurityEvent("sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
 
         SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
     }
@@ -74,15 +67,28 @@ internal sealed class CookieAuthenticationService : ICookieAuthenticationService
 
         if (userId.HasValue)
         {
-            using var dbContext = this.dbContextFactory.CreateDbContext();
-
-            await this.securityEventDataProvider.LogEvent(
-                dbContext, "sign_out", httpContext.Connection.RemoteIpAddress, userId);
+            await this.InsertSecurityEvent(
+                "sign_out", httpContext.Connection.RemoteIpAddress, userId.Value);
 
             var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
             SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
         }
+    }
+
+    private async Task InsertSecurityEvent(string eventName, IPAddress? ipAddress, long userId)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        dbContext.SecurityEvents.Add(new()
+        {
+            Time = this.clock.UtcNow,
+            Event = eventName,
+            IpAddress = ipAddress,
+            UserId = userId,
+        });
+
+        await dbContext.SaveChangesAsync();
     }
 
     private async Task SignInUser(
