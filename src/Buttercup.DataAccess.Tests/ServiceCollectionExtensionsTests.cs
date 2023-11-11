@@ -17,15 +17,6 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddDataAccessServices_AddsSecurityEventDataProvider() =>
-        Assert.Contains(
-            new ServiceCollection().AddDataAccessServices(),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(ISecurityEventDataProvider) &&
-                serviceDescriptor.ImplementationType == typeof(SecurityEventDataProvider) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-    [Fact]
     public void AddDataAccessServices_AddsUserDataProvider() =>
         Assert.Contains(
             new ServiceCollection().AddDataAccessServices(),
