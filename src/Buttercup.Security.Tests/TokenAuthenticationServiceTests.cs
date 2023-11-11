@@ -1,37 +1,38 @@
 using System.Net;
 using System.Security.Cryptography;
-using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace Buttercup.Security;
 
-public sealed class TokenAuthenticationServiceTests : IDisposable
+[Collection(nameof(DatabaseCollection))]
+public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
 {
+    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAccessTokenEncoder> accessTokenEncoderMock = new();
-    private readonly StoppedClock clock = new();
-    private readonly FakeDbContextFactory dbContextFactory = new();
+    private readonly StoppedClock clock;
     private readonly ListLogger<TokenAuthenticationService> logger = new();
-    private readonly Mock<ISecurityEventDataProvider> securityEventDataProviderMock = new();
-    private readonly Mock<IUserDataProvider> userDataProviderMock = new();
 
     private readonly TokenAuthenticationService tokenAuthenticationService;
 
-    public TokenAuthenticationServiceTests() =>
-        this.tokenAuthenticationService = new(
-            this.accessTokenEncoderMock.Object,
-            this.clock,
-            this.dbContextFactory,
-            this.logger,
-            this.securityEventDataProviderMock.Object,
-            this.userDataProviderMock.Object);
+    public TokenAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
+    {
+        this.databaseFixture = databaseFixture;
+        this.clock = new() { UtcNow = this.modelFactory.NextDateTime() };
 
-    public void Dispose() => this.dbContextFactory.Dispose();
+        this.tokenAuthenticationService = new(
+            this.accessTokenEncoderMock.Object, this.clock, this.databaseFixture, this.logger);
+    }
+
+    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     #region IssueAccessToken
 
@@ -42,26 +43,39 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
         var user = this.modelFactory.BuildUser();
 
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+        }
+
         this.accessTokenEncoderMock
             .Setup(x => x.Encode(new(user.Id, user.SecurityStamp, this.clock.UtcNow)))
             .Returns(accessToken);
 
         var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(user, ipAddress);
 
-        // Inserts security event
-        this.securityEventDataProviderMock.Verify(
-            x => x.LogEvent(
-                this.dbContextFactory.FakeDbContext, "access_token_issued", ipAddress, user.Id));
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            // Inserts security event
+            Assert.True(
+                await dbContext.SecurityEvents.AnyAsync(
+                    securityEvent =>
+                        securityEvent.Time == this.clock.UtcNow &&
+                        securityEvent.Event == "access_token_issued" &&
+                        securityEvent.IpAddress == ipAddress &&
+                        securityEvent.UserId == user.Id));
 
-        // Logs token issued message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            300,
-            $"Issued access token for user {user.Id} ({user.Email})");
+            // Logs token issued message
+            LogAssert.HasEntry(
+                this.logger,
+                LogLevel.Information,
+                300,
+                $"Issued access token for user {user.Id} ({user.Email})");
 
-        // Returns token
-        Assert.Equal(accessToken, returnedToken);
+            // Returns token
+            Assert.Equal(accessToken, returnedToken);
+        }
     }
 
     #endregion
@@ -134,9 +148,6 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         var user = this.modelFactory.BuildUser();
 
         this.SetupDecodeSuccess(accessToken, user);
-        this.userDataProviderMock
-            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, user.Id))
-            .ThrowsAsync(new NotFoundException(string.Empty));
 
         // Returns null
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
@@ -155,8 +166,13 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         var accessToken = this.modelFactory.NextString("access-token");
         var user = this.modelFactory.BuildUser();
 
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+        }
+
         this.SetupDecodeSuccess(accessToken, user, securityStamp: "stale-security-stamp");
-        this.SetupGetUserSuccess(user);
 
         // Returns null
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
@@ -175,8 +191,13 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
         var accessToken = this.modelFactory.NextString("access-token");
         var user = this.modelFactory.BuildUser();
 
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+        }
+
         this.SetupDecodeSuccess(accessToken, user);
-        this.SetupGetUserSuccess(user);
 
         // Returns user
         Assert.Equal(user, await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
@@ -206,11 +227,6 @@ public sealed class TokenAuthenticationServiceTests : IDisposable
             .Setup(x => x.Decode(accessToken))
             .Returns(accessTokenPayload);
     }
-
-    private void SetupGetUserSuccess(User user) =>
-        this.userDataProviderMock
-            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, user.Id))
-            .ReturnsAsync(user);
 
     #endregion
 }
