@@ -8,15 +8,6 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddDataAccessServices
 
     [Fact]
-    public void AddDataAccessServices_AddsPasswordResetTokenDataProvider() =>
-        Assert.Contains(
-            new ServiceCollection().AddDataAccessServices(),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IPasswordResetTokenDataProvider) &&
-                serviceDescriptor.ImplementationType == typeof(PasswordResetTokenDataProvider) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-    [Fact]
     public void AddDataAccessServices_AddsRecipeDataProvider() =>
         Assert.Contains(
             new ServiceCollection().AddDataAccessServices(),

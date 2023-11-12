@@ -18,7 +18,6 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddDataAccessServices(this IServiceCollection services) =>
         services
-            .AddTransient<IPasswordResetTokenDataProvider, PasswordResetTokenDataProvider>()
             .AddTransient<IRecipeDataProvider, RecipeDataProvider>()
             .AddTransient<ISecurityEventDataProvider, SecurityEventDataProvider>()
             .AddTransient<IUserDataProvider, UserDataProvider>();
