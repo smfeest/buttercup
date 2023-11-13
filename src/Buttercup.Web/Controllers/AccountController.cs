@@ -1,10 +1,9 @@
-using Buttercup.DataAccess;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
@@ -14,20 +13,17 @@ namespace Buttercup.Web.Controllers;
 public sealed class AccountController : Controller
 {
     private readonly ICookieAuthenticationService cookieAuthenticationService;
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly IPasswordAuthenticationService passwordAuthenticationService;
     private readonly IStringLocalizer<AccountController> localizer;
-    private readonly IUserDataProvider userDataProvider;
+    private readonly IUserManager userManager;
 
     public AccountController(
-        IDbContextFactory<AppDbContext> dbContextFactory,
-        IUserDataProvider userDataProvider,
+        IUserManager userManager,
         ICookieAuthenticationService cookieAuthenticationService,
         IPasswordAuthenticationService passwordAuthenticationService,
         IStringLocalizer<AccountController> localizer)
     {
-        this.dbContextFactory = dbContextFactory;
-        this.userDataProvider = userDataProvider;
+        this.userManager = userManager;
         this.cookieAuthenticationService = cookieAuthenticationService;
         this.passwordAuthenticationService = passwordAuthenticationService;
         this.localizer = localizer;
@@ -79,18 +75,11 @@ public sealed class AccountController : Controller
             return this.View(model);
         }
 
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        await this.userDataProvider.SetTimeZone(
-            dbContext, this.User.GetUserId(), model.TimeZone);
+        await this.userManager.SetTimeZone(this.User.GetUserId(), model.TimeZone);
 
         return this.RedirectToAction(nameof(this.Show));
     }
 
-    private async Task<User> GetCurrentUser()
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await this.userDataProvider.GetUser(dbContext, this.HttpContext.User.GetUserId());
-    }
+    private Task<User> GetCurrentUser() =>
+        this.userManager.GetUser(this.HttpContext.User.GetUserId());
 }

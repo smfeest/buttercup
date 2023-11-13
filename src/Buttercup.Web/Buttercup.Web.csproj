@@ -19,6 +19,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Buttercup.Application\Buttercup.Application.csproj" />
     <ProjectReference Include="..\Buttercup.DataAccess\Buttercup.DataAccess.csproj" />
     <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
     <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />

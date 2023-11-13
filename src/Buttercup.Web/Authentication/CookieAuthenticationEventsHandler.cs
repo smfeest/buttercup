@@ -1,33 +1,28 @@
 using System.Globalization;
 using System.Security.Claims;
-using Buttercup.DataAccess;
-using Buttercup.EntityModel;
+using Buttercup.Application;
 using Buttercup.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Authentication;
 
 public sealed class CookieAuthenticationEventsHandler : CookieAuthenticationEvents
 {
     private readonly IAuthenticationService authenticationService;
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<CookieAuthenticationEventsHandler> logger;
-    private readonly IUserDataProvider userDataProvider;
+    private readonly IUserManager userManager;
     private readonly IUserPrincipalFactory userPrincipalFactory;
 
     public CookieAuthenticationEventsHandler(
         IAuthenticationService authenticationService,
-        IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<CookieAuthenticationEventsHandler> logger,
-        IUserDataProvider userDataProvider,
+        IUserManager userManager,
         IUserPrincipalFactory userPrincipalFactory)
     {
         this.authenticationService = authenticationService;
-        this.dbContextFactory = dbContextFactory;
         this.logger = logger;
-        this.userDataProvider = userDataProvider;
+        this.userManager = userManager;
         this.userPrincipalFactory = userPrincipalFactory;
     }
 
@@ -47,12 +42,7 @@ public sealed class CookieAuthenticationEventsHandler : CookieAuthenticationEven
             return;
         }
 
-        User user;
-
-        using (var dbContext = this.dbContextFactory.CreateDbContext())
-        {
-            user = await this.userDataProvider.GetUser(dbContext, userId.Value);
-        }
+        var user = await this.userManager.GetUser(userId.Value);
 
         var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
 

@@ -16,14 +16,5 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.ImplementationType == typeof(RecipeDataProvider) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
-    [Fact]
-    public void AddDataAccessServices_AddsUserDataProvider() =>
-        Assert.Contains(
-            new ServiceCollection().AddDataAccessServices(),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IUserDataProvider) &&
-                serviceDescriptor.ImplementationType == typeof(UserDataProvider) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
     #endregion
 }

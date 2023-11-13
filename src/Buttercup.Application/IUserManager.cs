@@ -1,18 +1,15 @@
 using Buttercup.EntityModel;
 
-namespace Buttercup.DataAccess;
+namespace Buttercup.Application;
 
 /// <summary>
-/// Defines the contract for the user data provider.
+/// Defines the contract for the user manager.
 /// </summary>
-public interface IUserDataProvider
+public interface IUserManager
 {
     /// <summary>
     /// Gets a user.
     /// </summary>
-    /// <param name="dbContext">
-    /// The database context.
-    /// </param>
     /// <param name="id">
     /// The user ID.
     /// </param>
@@ -22,14 +19,11 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task<User> GetUser(AppDbContext dbContext, long id);
+    Task<User> GetUser(long id);
 
     /// <summary>
     /// Sets a user's time zone.
     /// </summary>
-    /// <param name="dbContext">
-    /// The database context.
-    /// </param>
     /// <param name="userId">
     /// The user ID.
     /// </param>
@@ -42,5 +36,5 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task SetTimeZone(AppDbContext dbContext, long userId, string timeZone);
+    Task SetTimeZone(long userId, string timeZone);
 }

@@ -1,5 +1,5 @@
 using System.Net;
-using Buttercup.DataAccess;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
@@ -16,19 +16,17 @@ public sealed class AccountControllerTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
 
-    private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly DefaultHttpContext httpContext = new();
     private readonly Mock<ICookieAuthenticationService> cookieAuthenticationServiceMock = new();
     private readonly Mock<IStringLocalizer<AccountController>> localizerMock = new();
     private readonly Mock<IPasswordAuthenticationService> passwordAuthenticationServiceMock = new();
-    private readonly Mock<IUserDataProvider> userDataProviderMock = new();
+    private readonly Mock<IUserManager> userManagerMock = new();
 
     private readonly AccountController accountController;
 
     public AccountControllerTests() =>
         this.accountController = new(
-            this.dbContextFactory,
-            this.userDataProviderMock.Object,
+            this.userManagerMock.Object,
             this.cookieAuthenticationServiceMock.Object,
             this.passwordAuthenticationServiceMock.Object,
             this.localizerMock.Object)
@@ -36,11 +34,7 @@ public sealed class AccountControllerTests : IDisposable
             ControllerContext = new() { HttpContext = this.httpContext },
         };
 
-    public void Dispose()
-    {
-        this.accountController.Dispose();
-        this.dbContextFactory.Dispose();
-    }
+    public void Dispose() => this.accountController.Dispose();
 
     #region Show (GET)
 
@@ -187,9 +181,7 @@ public sealed class AccountControllerTests : IDisposable
 
         await this.accountController.Preferences(BuildPreferencesViewModel());
 
-        this.userDataProviderMock
-            .Verify(x => x.SetTimeZone(
-                this.dbContextFactory.FakeDbContext, userId, "time-zone"));
+        this.userManagerMock.Verify(x => x.SetTimeZone(userId, "time-zone"));
     }
 
     [Fact]
@@ -211,13 +203,8 @@ public sealed class AccountControllerTests : IDisposable
     private User SetupCurrentUser()
     {
         var user = this.modelFactory.BuildUser();
-
         this.httpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
-
-        this.userDataProviderMock
-            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, user.Id))
-            .ReturnsAsync(user);
-
+        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ReturnsAsync(user);
         return user;
     }
 

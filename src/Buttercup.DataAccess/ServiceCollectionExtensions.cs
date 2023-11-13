@@ -18,6 +18,5 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddDataAccessServices(this IServiceCollection services) =>
         services
-            .AddTransient<IRecipeDataProvider, RecipeDataProvider>()
-            .AddTransient<IUserDataProvider, UserDataProvider>();
+            .AddTransient<IRecipeDataProvider, RecipeDataProvider>();
 }
