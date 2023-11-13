@@ -94,7 +94,7 @@ public interface IUserDataProvider
         DateTime timestamp);
 
     /// <summary>
-    /// Updates a user's preferences.
+    /// Sets a user's time zone.
     /// </summary>
     /// <param name="dbContext">
     /// The database context.
@@ -111,5 +111,5 @@ public interface IUserDataProvider
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task UpdatePreferences(AppDbContext dbContext, long userId, string timeZone);
+    Task SetTimeZone(AppDbContext dbContext, long userId, string timeZone);
 }

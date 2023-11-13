@@ -188,7 +188,7 @@ public sealed class AccountControllerTests : IDisposable
         await this.accountController.Preferences(BuildPreferencesViewModel());
 
         this.userDataProviderMock
-            .Verify(x => x.UpdatePreferences(
+            .Verify(x => x.SetTimeZone(
                 this.dbContextFactory.FakeDbContext, userId, "time-zone"));
     }
 

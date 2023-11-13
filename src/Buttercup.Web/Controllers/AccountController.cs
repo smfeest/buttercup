@@ -81,7 +81,7 @@ public sealed class AccountController : Controller
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await this.userDataProvider.UpdatePreferences(
+        await this.userDataProvider.SetTimeZone(
             dbContext, this.User.GetUserId(), model.TimeZone);
 
         return this.RedirectToAction(nameof(this.Show));

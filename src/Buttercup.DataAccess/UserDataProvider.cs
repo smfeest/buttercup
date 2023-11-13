@@ -46,7 +46,7 @@ internal sealed class UserDataProvider : IUserDataProvider
         return updatedRows > 0;
     }
 
-    public Task UpdatePreferences(AppDbContext dbContext, long userId, string timeZone) =>
+    public Task SetTimeZone(AppDbContext dbContext, long userId, string timeZone) =>
         UpdateUserProperties(
             dbContext,
             userId,

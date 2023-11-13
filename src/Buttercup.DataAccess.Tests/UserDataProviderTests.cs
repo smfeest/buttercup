@@ -244,10 +244,10 @@ public sealed class UserDataProviderTests
 
     #endregion
 
-    #region UpdatePreferences
+    #region SetTimeZone
 
     [Fact]
-    public async Task UpdatePreferences_Success()
+    public async Task SetTimeZone_Success()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -258,7 +258,7 @@ public sealed class UserDataProviderTests
 
         var newTimeZone = this.modelFactory.NextString("new-time-zone");
 
-        await this.userDataProvider.UpdatePreferences(dbContext, original.Id, newTimeZone);
+        await this.userDataProvider.SetTimeZone(dbContext, original.Id, newTimeZone);
 
         dbContext.ChangeTracker.Clear();
 
@@ -274,7 +274,7 @@ public sealed class UserDataProviderTests
     }
 
     [Fact]
-    public async Task UpdatePreferences_UserDoesNotExist()
+    public async Task SetTimeZone_UserDoesNotExist()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -286,7 +286,7 @@ public sealed class UserDataProviderTests
 
         // Throws exception
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userDataProvider.UpdatePreferences(
+            () => this.userDataProvider.SetTimeZone(
                 dbContext, id, this.modelFactory.NextString("time-zone")));
         Assert.Equal($"User {id} not found", exception.Message);
     }
