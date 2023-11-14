@@ -1,19 +1,22 @@
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 
-namespace Buttercup.DataAccess;
+namespace Buttercup.Application;
 
-internal sealed class RecipeDataProvider : IRecipeDataProvider
+internal sealed class RecipeManager : IRecipeManager
 {
     private readonly IClock clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
 
-    public RecipeDataProvider(IClock clock) => this.clock = clock;
+    public RecipeManager(IClock clock, IDbContextFactory<AppDbContext> dbContextFactory)
+    {
+        this.clock = clock;
+        this.dbContextFactory = dbContextFactory;
+    }
 
-    public async Task<long> AddRecipe(
-        AppDbContext dbContext, RecipeAttributes attributes, long currentUserId)
+    public async Task<long> AddRecipe(RecipeAttributes attributes, long currentUserId)
     {
         var timestamp = this.clock.UtcNow;
-
         var recipe = new Recipe()
         {
             Title = attributes.Title,
@@ -31,46 +34,62 @@ internal sealed class RecipeDataProvider : IRecipeDataProvider
             ModifiedByUserId = currentUserId
         };
 
+        using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Recipes.Add(recipe);
-
         await dbContext.SaveChangesAsync();
 
         return recipe.Id;
     }
 
-    public async Task DeleteRecipe(AppDbContext dbContext, long id)
+    public async Task DeleteRecipe(long id)
     {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
         if (await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() == 0)
         {
             throw RecipeNotFound(id);
         }
     }
 
-    public async Task<IList<Recipe>> GetAllRecipes(AppDbContext dbContext) =>
-        await dbContext.Recipes.OrderBy(r => r.Title).ToArrayAsync();
+    public async Task<IList<Recipe>> GetAllRecipes()
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-    public async Task<Recipe> GetRecipe(AppDbContext dbContext, long id) =>
-        await dbContext.Recipes.FindAsync(id) ?? throw RecipeNotFound(id);
+        return await dbContext.Recipes.OrderBy(r => r.Title).ToArrayAsync();
+    }
 
-    public async Task<IList<Recipe>> GetRecentlyAddedRecipes(AppDbContext dbContext) =>
-        await dbContext.Recipes.OrderByDescending(r => r.Created).Take(10).ToArrayAsync();
+    public async Task<Recipe> GetRecipe(long id)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await dbContext.Recipes.FindAsync(id) ?? throw RecipeNotFound(id);
+    }
+
+    public async Task<IList<Recipe>> GetRecentlyAddedRecipes()
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await dbContext.Recipes.OrderByDescending(r => r.Created).Take(10).ToArrayAsync();
+    }
 
     public async Task<IList<Recipe>> GetRecentlyUpdatedRecipes(
-        AppDbContext dbContext, IReadOnlyCollection<long> excludeRecipeIds) =>
-        await dbContext
+        IReadOnlyCollection<long> excludeRecipeIds)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await dbContext
             .Recipes
             .Where(r => r.Created != r.Modified && !excludeRecipeIds.Contains(r.Id))
             .OrderByDescending(r => r.Modified)
             .Take(10)
             .ToArrayAsync();
+    }
 
     public async Task UpdateRecipe(
-        AppDbContext dbContext,
-        long id,
-        RecipeAttributes newAttributes,
-        int baseRevision,
-        long currentUserId)
+        long id, RecipeAttributes newAttributes, int baseRevision, long currentUserId)
     {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
         var updatedRows = await dbContext
             .Recipes
             .Where(r => r.Id == id && r.Revision == baseRevision)

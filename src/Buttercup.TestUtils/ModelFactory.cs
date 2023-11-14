@@ -11,6 +11,18 @@ public sealed class ModelFactory
     private int nextInt = 1;
 
     /// <summary>
+    /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
+    /// </summary>
+    /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
+    public PasswordResetToken BuildPasswordResetToken() =>
+        new()
+        {
+            Token = this.NextString("token"),
+            UserId = this.NextInt(),
+            Created = this.NextDateTime(),
+        };
+
+    /// <summary>
     /// Instantiates a new <see cref="Recipe" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">
@@ -44,17 +56,6 @@ public sealed class ModelFactory
             Revision = this.NextInt(),
         };
     }
-
-    /// <summary>
-    /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.
-    /// </summary>
-    /// <param name="setOptionalAttributes">
-    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
-    /// null.
-    /// </param>
-    /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
-    public RecipeAttributes BuildRecipeAttributes(bool setOptionalAttributes = false) =>
-        new(this.BuildRecipe(setOptionalAttributes));
 
     /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.

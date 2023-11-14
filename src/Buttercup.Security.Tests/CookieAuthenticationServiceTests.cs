@@ -1,89 +1,77 @@
 using System.Net;
 using System.Security.Claims;
-using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace Buttercup.Security;
 
-public sealed class CookieAuthenticationServiceTests : IDisposable
+[Collection(nameof(DatabaseCollection))]
+public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
 {
+    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
-    private readonly FakeDbContextFactory dbContextFactory = new();
+    private readonly StoppedClock clock;
     private readonly ListLogger<CookieAuthenticationService> logger = new();
-    private readonly Mock<ISecurityEventDataProvider> securityEventDataProviderMock = new();
-    private readonly Mock<IUserDataProvider> userDataProviderMock = new();
     private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
     private readonly CookieAuthenticationService cookieAuthenticationService;
 
-    public CookieAuthenticationServiceTests() =>
+    public CookieAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
+    {
+        this.databaseFixture = databaseFixture;
+        this.clock = new() { UtcNow = this.modelFactory.NextDateTime() };
+
         this.cookieAuthenticationService = new(
             this.authenticationServiceMock.Object,
-            this.dbContextFactory,
+            this.clock,
+            this.databaseFixture,
             this.logger,
-            this.securityEventDataProviderMock.Object,
-            this.userDataProviderMock.Object,
             this.userPrincipalFactoryMock.Object);
+    }
 
-    public void Dispose() => this.dbContextFactory.Dispose();
+    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     #region RefreshPrincipal
 
     [Fact]
-    public async Task RefreshPrincipal_Unauthenticated_ReturnsFalse()
+    public async Task RefreshPrincipal_Unauthenticated()
     {
         var httpContext = new DefaultHttpContext();
 
-        this.SetupAuthenticateAsync(httpContext, AuthenticateResult.NoResult());
+        this.authenticationServiceMock
+            .Setup(
+                x => x.AuthenticateAsync(
+                    httpContext, CookieAuthenticationDefaults.AuthenticationScheme))
+            .ReturnsAsync(AuthenticateResult.NoResult());
 
+        // Returns false
         Assert.False(await this.cookieAuthenticationService.RefreshPrincipal(httpContext));
     }
 
     [Fact]
-    public async Task RefreshPrincipal_Authenticated_SignsInUpdatedPrincipal()
-    {
-        var values = this.SetupRefreshPrincipal_Authenticated();
-
-        await this.cookieAuthenticationService.RefreshPrincipal(
-            values.HttpContext);
-
-        this.authenticationServiceMock.Verify(
-            x => x.SignInAsync(
-                values.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                values.UpdatedPrincipal,
-                values.AuthenticationProperties));
-    }
-
-    [Fact]
-    public async Task RefreshPrincipal_Authenticated_ReturnsTrue()
-    {
-        var values = this.SetupRefreshPrincipal_Authenticated();
-
-        Assert.True(await this.cookieAuthenticationService.RefreshPrincipal(values.HttpContext));
-    }
-
-    private sealed record RefreshPrincipalValues(
-        HttpContext HttpContext,
-        AuthenticationProperties AuthenticationProperties,
-        User User,
-        ClaimsPrincipal UpdatedPrincipal);
-
-    private RefreshPrincipalValues SetupRefreshPrincipal_Authenticated()
+    public async Task RefreshPrincipal_Authenticated()
     {
         var httpContext = new DefaultHttpContext();
         var authenticationProperties = new AuthenticationProperties();
         var user = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+        }
 
         var originalPrincipal = PrincipalFactory.CreateWithUserId(
             user.Id, new Claim(ClaimTypes.Name, "original-principal"));
@@ -95,79 +83,47 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
             authenticationProperties,
             CookieAuthenticationDefaults.AuthenticationScheme);
 
-        this.SetupAuthenticateAsync(httpContext, AuthenticateResult.Success(ticket));
-
-        this.userDataProviderMock
-            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, user.Id))
-            .ReturnsAsync(user);
+        this.authenticationServiceMock
+            .Setup(
+                x => x.AuthenticateAsync(
+                    httpContext, CookieAuthenticationDefaults.AuthenticationScheme))
+            .ReturnsAsync(AuthenticateResult.Success(ticket));
 
         this.userPrincipalFactoryMock
             .Setup(x => x.Create(user, CookieAuthenticationDefaults.AuthenticationScheme))
                 .Returns(updatedPrincipal);
 
-        return new(httpContext, authenticationProperties, user, updatedPrincipal);
-    }
+        var result = await this.cookieAuthenticationService.RefreshPrincipal(httpContext);
 
-    private void SetupAuthenticateAsync(
-        HttpContext httpContext, AuthenticateResult authenticateResult) =>
-        this.authenticationServiceMock
-            .Setup(x => x.AuthenticateAsync(
-                httpContext, CookieAuthenticationDefaults.AuthenticationScheme))
-            .ReturnsAsync(authenticateResult);
+        // Signs in updated principal
+        this.authenticationServiceMock.Verify(
+            x => x.SignInAsync(
+                httpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                updatedPrincipal,
+                authenticationProperties));
+
+        // Returns true
+        Assert.True(result);
+    }
 
     #endregion
 
     #region SignIn
 
     [Fact]
-    public async Task SignIn_SignsInPrincipal()
-    {
-        var values = this.SetupSignIn();
-
-        await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
-
-        this.authenticationServiceMock.Verify(
-            x => x.SignInAsync(
-                values.HttpContext,
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                values.Principal,
-                null));
-    }
-
-    [Fact]
-    public async Task SignIn_LogsSignedIn()
-    {
-        var values = this.SetupSignIn();
-
-        await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
-
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            212,
-            $"User {values.User.Id} ({values.User.Email}) signed in");
-    }
-
-    [Fact]
-    public async Task SignIn_InsertsSecurityEvent()
-    {
-        var values = this.SetupSignIn();
-
-        await this.cookieAuthenticationService.SignIn(values.HttpContext, values.User);
-
-        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_in", values.IpAddress, values.User.Id));
-    }
-
-    private sealed record SignInValues(
-        HttpContext HttpContext, IPAddress IpAddress, ClaimsPrincipal Principal, User User);
-
-    private SignInValues SetupSignIn()
+    public async Task SignIn()
     {
         var httpContext = new DefaultHttpContext();
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
         var principal = new ClaimsPrincipal();
         var user = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+        }
 
         httpContext.Features.Set<IHttpConnectionFeature>(
             new HttpConnectionFeature { RemoteIpAddress = ipAddress });
@@ -176,7 +132,25 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
             .Setup(x => x.Create(user, CookieAuthenticationDefaults.AuthenticationScheme))
             .Returns(principal);
 
-        return new(httpContext, ipAddress, principal, user);
+        await this.cookieAuthenticationService.SignIn(httpContext, user);
+
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            // Signs in principal
+            this.authenticationServiceMock.Verify(
+                x => x.SignInAsync(
+                    httpContext,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal,
+                    null));
+
+            // Inserts security event
+            Assert.True(await this.SecurityEventExists(dbContext, "sign_in", ipAddress, user.Id));
+
+            // Logs signed in message
+            LogAssert.HasEntry(
+                this.logger, LogLevel.Information, 212, $"User {user.Id} ({user.Email}) signed in");
+        }
     }
 
     #endregion
@@ -184,71 +158,68 @@ public sealed class CookieAuthenticationServiceTests : IDisposable
     #region SignOut
 
     [Fact]
-    public async Task SignOut_SignsOutUser()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        await this.cookieAuthenticationService.SignOut(httpContext);
-
-        this.authenticationServiceMock.Verify(
-            x => x.SignOutAsync(
-                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
-    }
-
-    [Fact]
-    public async Task SignOut_PreviouslySignedIn_LogsSignedOut()
-    {
-        var values = this.SetupSignOut_PreviouslySignedIn();
-
-        await this.cookieAuthenticationService.SignOut(values.HttpContext);
-
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            213,
-            $"User {values.UserId} ({values.Email}) signed out");
-    }
-
-    [Fact]
-    public async Task SignOut_PreviouslySignedIn_InsertsSecurityEvent()
-    {
-        var values = this.SetupSignOut_PreviouslySignedIn();
-
-        await this.cookieAuthenticationService.SignOut(values.HttpContext);
-
-        this.securityEventDataProviderMock.Verify(x => x.LogEvent(
-            this.dbContextFactory.FakeDbContext, "sign_out", values.IpAddress, values.UserId));
-    }
-
-    [Fact]
-    public async Task SignOut_NotPreviouslySignedIn_DoesNotLog()
-    {
-        var httpContext = new DefaultHttpContext();
-
-        await this.cookieAuthenticationService.SignOut(httpContext);
-
-        Assert.Empty(this.logger.Entries);
-    }
-
-    private sealed record SignOutPreviouslySignedInValues(
-        string Email, HttpContext HttpContext, IPAddress IpAddress, long UserId);
-
-    private SignOutPreviouslySignedInValues SetupSignOut_PreviouslySignedIn()
+    public async Task SignOut_PreviouslySignedIn()
     {
         var email = this.modelFactory.NextString("email");
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var userId = this.modelFactory.NextInt();
+        var user = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync();
+        }
 
         var httpContext = new DefaultHttpContext()
         {
-            User = PrincipalFactory.CreateWithUserId(userId, new Claim(ClaimTypes.Email, email)),
+            User = PrincipalFactory.CreateWithUserId(user.Id, new Claim(ClaimTypes.Email, email)),
         };
 
         httpContext.Features.Set<IHttpConnectionFeature>(
             new HttpConnectionFeature { RemoteIpAddress = ipAddress });
 
-        return new(email, httpContext, ipAddress, userId);
+        await this.cookieAuthenticationService.SignOut(httpContext);
+
+        using (var dbContext = this.databaseFixture.CreateDbContext())
+        {
+            // Signs out user
+            this.authenticationServiceMock.Verify(
+                x => x.SignOutAsync(
+                    httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
+
+            // Inserts security event
+            Assert.True(await this.SecurityEventExists(dbContext, "sign_out", ipAddress, user.Id));
+
+            // Logs signed out message
+            LogAssert.HasEntry(
+                this.logger, LogLevel.Information, 213, $"User {user.Id} ({email}) signed out");
+        }
+    }
+
+    [Fact]
+    public async Task SignOut_NotPreviouslySignedIn()
+    {
+        var httpContext = new DefaultHttpContext();
+
+        await this.cookieAuthenticationService.SignOut(httpContext);
+
+        // Signs out user
+        this.authenticationServiceMock.Verify(
+            x => x.SignOutAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
+
+        // Does not log
+        Assert.Empty(this.logger.Entries);
     }
 
     #endregion
+
+    private async Task<bool> SecurityEventExists(
+        AppDbContext dbContext, string eventName, IPAddress ipAddress, long? userId = null) =>
+        await dbContext.SecurityEvents.AnyAsync(
+            securityEvent =>
+                securityEvent.Time == this.clock.UtcNow &&
+                securityEvent.Event == eventName &&
+                securityEvent.IpAddress == ipAddress &&
+                securityEvent.UserId == userId);
 }

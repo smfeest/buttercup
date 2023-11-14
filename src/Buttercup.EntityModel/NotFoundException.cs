@@ -1,7 +1,7 @@
-namespace Buttercup.DataAccess;
+namespace Buttercup.EntityModel;
 
 /// <summary>
-/// Represents the exception that is thrown when a record does not exist.
+/// Represents the exception that is thrown when a record is not found.
 /// </summary>
 public sealed class NotFoundException : Exception
 {

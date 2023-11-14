@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
-using Buttercup.DataAccess;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
@@ -11,14 +11,13 @@ using Xunit;
 
 namespace Buttercup.Web.Authentication;
 
-public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
+public sealed class CookieAuthenticationEventsHandlerTests
 {
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
-    private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly ListLogger<CookieAuthenticationEventsHandler> logger = new();
-    private readonly Mock<IUserDataProvider> userDataProviderMock = new();
+    private readonly Mock<IUserManager> userManagerMock = new();
     private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
     private readonly CookieAuthenticationEventsHandler cookieAuthenticationEventsHandler;
@@ -26,12 +25,9 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     public CookieAuthenticationEventsHandlerTests() =>
         this.cookieAuthenticationEventsHandler = new(
             this.authenticationServiceMock.Object,
-            this.dbContextFactory,
             this.logger,
-            this.userDataProviderMock.Object,
+            this.userManagerMock.Object,
             this.userPrincipalFactoryMock.Object);
-
-    public void Dispose() => this.dbContextFactory.Dispose();
 
     #region ValidatePrincipal
 
@@ -225,11 +221,7 @@ public sealed class CookieAuthenticationEventsHandlerTests : IDisposable
     private User SetupGetUser()
     {
         var user = this.modelFactory.BuildUser();
-
-        this.userDataProviderMock
-            .Setup(x => x.GetUser(this.dbContextFactory.FakeDbContext, user.Id))
-            .ReturnsAsync(user);
-
+        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ReturnsAsync(user);
         return user;
     }
 

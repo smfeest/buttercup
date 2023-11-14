@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
-namespace Buttercup.DataAccess;
+namespace Buttercup.Application;
 
 [CollectionDefinition(nameof(DatabaseCollection))]
 [SuppressMessage(

@@ -18,7 +18,7 @@ namespace Buttercup.TestUtils;
 /// <typeparam name="TCollection">
 /// The collection or test class.
 /// </typeparam>
-public class DatabaseFixture<TCollection> : IAsyncLifetime
+public class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFactory<AppDbContext>
 {
     private const string Server = "localhost";
     private const string User = "buttercup_dev";

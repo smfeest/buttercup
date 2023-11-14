@@ -1,5 +1,4 @@
 using System.Net;
-using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,15 +9,14 @@ namespace Buttercup.Security;
 
 internal sealed class PasswordAuthenticationService : IPasswordAuthenticationService
 {
+    private static readonly TimeSpan PasswordResetTokenExpiry = TimeSpan.FromDays(1);
+
     private readonly IAuthenticationMailer authenticationMailer;
     private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<PasswordAuthenticationService> logger;
     private readonly IPasswordHasher<User> passwordHasher;
-    private readonly IPasswordResetTokenDataProvider passwordResetTokenDataProvider;
     private readonly IRandomTokenGenerator randomTokenGenerator;
-    private readonly ISecurityEventDataProvider securityEventDataProvider;
-    private readonly IUserDataProvider userDataProvider;
 
     public PasswordAuthenticationService(
         IAuthenticationMailer authenticationMailer,
@@ -26,31 +24,25 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         IDbContextFactory<AppDbContext> dbContextFactory,
         ILogger<PasswordAuthenticationService> logger,
         IPasswordHasher<User> passwordHasher,
-        IPasswordResetTokenDataProvider passwordResetTokenDataProvider,
-        IRandomTokenGenerator randomTokenGenerator,
-        ISecurityEventDataProvider securityEventDataProvider,
-        IUserDataProvider userDataProvider)
+        IRandomTokenGenerator randomTokenGenerator)
     {
         this.authenticationMailer = authenticationMailer;
         this.clock = clock;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
         this.passwordHasher = passwordHasher;
-        this.passwordResetTokenDataProvider = passwordResetTokenDataProvider;
         this.randomTokenGenerator = randomTokenGenerator;
-        this.securityEventDataProvider = securityEventDataProvider;
-        this.userDataProvider = userDataProvider;
     }
 
     public async Task<User?> Authenticate(string email, string password, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.userDataProvider.FindUserByEmail(dbContext, email);
+        var user = await FindByEmailAsync(dbContext.Users.AsTracking(), email);
 
         if (user == null)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "authentication_failure:unrecognized_email", ipAddress);
 
             AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
@@ -60,7 +52,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (user.HashedPassword == null)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "authentication_failure:no_password_set", ipAddress, user.Id);
 
             AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
@@ -73,7 +65,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "authentication_failure:incorrect_password", ipAddress, user.Id);
 
             AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
@@ -81,14 +73,31 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             return null;
         }
 
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "authentication_success", ipAddress, user.Id);
+        await this.InsertSecurityEvent(dbContext, "authentication_success", ipAddress, user.Id);
 
         AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
 
         if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
         {
-            await this.RehashPassword(dbContext, user, password);
+            var unmodifiedUser = user with { };
+
+            user.HashedPassword = this.passwordHasher.HashPassword(user, password);
+            user.Modified = this.clock.UtcNow;
+            user.Revision++;
+
+            try
+            {
+                await dbContext.SaveChangesAsync();
+
+                AuthenticateLogMessages.PasswordHashUpgraded(this.logger, user.Id, user.Email, null);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                AuthenticateLogMessages.UpgradedPasswordHashNotPersisted(
+                    this.logger, user.Id, user.Email, null);
+
+                user = unmodifiedUser;
+            }
         }
 
         return user;
@@ -99,11 +108,11 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.userDataProvider.GetUser(dbContext, userId);
+        var user = await dbContext.Users.AsTracking().GetAsync(userId);
 
         if (user.HashedPassword == null)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "password_change_failure:no_password_set", ipAddress, user.Id);
 
             throw new InvalidOperationException(
@@ -115,7 +124,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id);
 
             ChangePasswordLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
@@ -123,10 +132,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             return false;
         }
 
-        var newSecurityStamp = await this.SetPassword(dbContext, user, newPassword);
-
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "password_change_success", ipAddress, user.Id);
+        await this.SetPassword(dbContext, user, newPassword, "password_change_success", ipAddress);
 
         ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
 
@@ -139,7 +145,9 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var userId = await this.ValidatePasswordResetToken(dbContext, token);
+        var userId = await this.ValidPasswordResetToken(dbContext, token)
+            .Select<PasswordResetToken, long?>(t => t.UserId)
+            .FirstOrDefaultAsync();
 
         if (userId.HasValue)
         {
@@ -148,7 +156,7 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
         }
         else
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
 
             PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
@@ -161,11 +169,14 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var userId = await this.ValidatePasswordResetToken(dbContext, token);
+        var user = await this.ValidPasswordResetToken(dbContext, token)
+            .AsTracking()
+            .Select(t => t.User)
+            .FirstOrDefaultAsync();
 
-        if (!userId.HasValue)
+        if (user is null)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
 
             ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
@@ -173,18 +184,13 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
             throw new InvalidTokenException("Password reset token is invalid");
         }
 
-        var user = await this.userDataProvider.GetUser(dbContext, userId.Value);
+        await this.SetPassword(dbContext, user, newPassword, "password_reset_success", ipAddress);
 
-        var newSecurityStamp = await this.SetPassword(dbContext, user, newPassword);
-
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "password_reset_success", ipAddress, userId.Value);
-
-        ResetPasswordLogMessages.Success(this.logger, userId.Value, RedactToken(token), null);
+        ResetPasswordLogMessages.Success(this.logger, user.Id, RedactToken(token), null);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
-        return user with { SecurityStamp = newSecurityStamp };
+        return user;
     }
 
     public async Task SendPasswordResetLink(
@@ -192,11 +198,11 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.userDataProvider.FindUserByEmail(dbContext, email);
+        var user = await FindByEmailAsync(dbContext.Users, email);
 
         if (user == null)
         {
-            await this.securityEventDataProvider.LogEvent(
+            await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:unrecognized_email", ipAddress);
 
             SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
@@ -208,58 +214,77 @@ internal sealed class PasswordAuthenticationService : IPasswordAuthenticationSer
 
         var token = this.randomTokenGenerator.Generate(12);
 
-        await this.passwordResetTokenDataProvider.InsertToken(dbContext, user.Id, token);
+        dbContext.PasswordResetTokens.Add(new()
+        {
+            Token = token,
+            UserId = user.Id,
+            Created = this.clock.UtcNow,
+        });
+
+        await dbContext.SaveChangesAsync();
 
         var link = urlHelper.Link("ResetPassword", new { token })!;
 
         await this.authenticationMailer.SendPasswordResetLink(email, link);
 
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "password_reset_link_sent", ipAddress, user.Id);
+        await this.InsertSecurityEvent(dbContext, "password_reset_link_sent", ipAddress, user.Id);
 
         SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
     }
 
+    private static Task<User?> FindByEmailAsync(IQueryable<User> queryable, string email) =>
+        queryable.Where(u => u.Email == email).FirstOrDefaultAsync();
+
+    private async Task InsertSecurityEvent(
+        AppDbContext dbContext, string eventName, IPAddress? ipAddress, long? userId = null)
+    {
+        dbContext.SecurityEvents.Add(new()
+        {
+            Time = this.clock.UtcNow,
+            Event = eventName,
+            IpAddress = ipAddress,
+            UserId = userId,
+        });
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    private IQueryable<PasswordResetToken> ValidPasswordResetToken(
+        AppDbContext dbContext, string token) =>
+        dbContext.PasswordResetTokens.Where(t =>
+            t.Created >= this.clock.UtcNow.Subtract(PasswordResetTokenExpiry) &&
+            t.Token == token);
+
     private static string RedactToken(string token) => $"{token[..6]}…";
 
-    private async Task RehashPassword(AppDbContext dbContext, User user, string password)
+    private async Task SetPassword(
+        AppDbContext dbContext,
+        User user,
+        string newPassword,
+        string securityEventName,
+        IPAddress? ipAddress)
     {
-        var rehashedPassword = this.passwordHasher.HashPassword(user, password);
         var timestamp = this.clock.UtcNow;
 
-        if (await this.userDataProvider.SaveRehashedPassword(
-            dbContext, user.Id, user.Revision, rehashedPassword, timestamp))
-        {
-            AuthenticateLogMessages.PasswordHashUpgraded(this.logger, user.Id, user.Email, null);
+        user.HashedPassword = this.passwordHasher.HashPassword(user, newPassword);
+        user.SecurityStamp = this.randomTokenGenerator.Generate(2);
+        user.PasswordCreated = timestamp;
+        user.Modified = timestamp;
+        user.Revision++;
 
-            user.Modified = timestamp;
-            user.HashedPassword = rehashedPassword;
-            user.Revision++;
-        }
-        else
-        {
-            AuthenticateLogMessages.UpgradedPasswordHashNotPersisted(
-                this.logger, user.Id, user.Email, null);
-        }
+        dbContext.SecurityEvents.Add(
+            new()
+            {
+                Time = timestamp,
+                Event = securityEventName,
+                IpAddress = ipAddress,
+                UserId = user.Id
+            });
+
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.PasswordResetTokens.Where(t => t.User == user).ExecuteDeleteAsync();
     }
-
-    private async Task<string> SetPassword(AppDbContext dbContext, User user, string newPassword)
-    {
-        var hashedPassword = this.passwordHasher.HashPassword(user, newPassword);
-
-        var securityStamp = this.randomTokenGenerator.Generate(2);
-
-        await this.userDataProvider.SaveNewPassword(
-            dbContext, user.Id, hashedPassword, securityStamp);
-
-        await this.passwordResetTokenDataProvider.DeleteTokensForUser(dbContext, user.Id);
-
-        return securityStamp;
-    }
-
-    private Task<long?> ValidatePasswordResetToken(AppDbContext dbContext, string token) =>
-        this.passwordResetTokenDataProvider.GetUserIdForUnexpiredToken(
-            dbContext, token, TimeSpan.FromDays(1));
 
     private static class AuthenticateLogMessages
     {

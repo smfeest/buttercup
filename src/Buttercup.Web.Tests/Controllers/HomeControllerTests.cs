@@ -1,4 +1,4 @@
-using Buttercup.DataAccess;
+using Buttercup.Application;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,12 +22,11 @@ public sealed class HomeControllerTests
         var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
         var recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
 
-        fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecentlyAddedRecipes(fixture.DbContextFactory.FakeDbContext))
+        fixture.MockRecipeManager
+            .Setup(x => x.GetRecentlyAddedRecipes())
             .ReturnsAsync(recentlyAddedRecipes);
-        fixture.MockRecipeDataProvider
-            .Setup(x => x.GetRecentlyUpdatedRecipes(
-                fixture.DbContextFactory.FakeDbContext, recentlyAddedIds))
+        fixture.MockRecipeManager
+            .Setup(x => x.GetRecentlyUpdatedRecipes(recentlyAddedIds))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
         var result = await fixture.HomeController.Index();
@@ -44,18 +43,12 @@ public sealed class HomeControllerTests
     private sealed class HomeControllerFixture : IDisposable
     {
         public HomeControllerFixture() =>
-            this.HomeController = new(this.DbContextFactory, this.MockRecipeDataProvider.Object);
-
-        public FakeDbContextFactory DbContextFactory { get; } = new();
+            this.HomeController = new(this.MockRecipeManager.Object);
 
         public HomeController HomeController { get; }
 
-        public Mock<IRecipeDataProvider> MockRecipeDataProvider { get; } = new();
+        public Mock<IRecipeManager> MockRecipeManager { get; } = new();
 
-        public void Dispose()
-        {
-            this.DbContextFactory.Dispose();
-            this.HomeController.Dispose();
-        }
+        public void Dispose() => this.HomeController.Dispose();
     }
 }

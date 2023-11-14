@@ -6,7 +6,7 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a recipe.
 /// </summary>
-public sealed record Recipe
+public sealed record Recipe : IEntityId
 {
     /// <summary>
     /// Gets or sets the primary key of the recipe.

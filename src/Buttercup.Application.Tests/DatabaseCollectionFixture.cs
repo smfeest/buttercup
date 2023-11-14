@@ -1,6 +1,6 @@
 using Buttercup.TestUtils;
 
-namespace Buttercup.DataAccess;
+namespace Buttercup.Application;
 
 /// <summary>
 /// A fixture that recreates the test database before tests in <see cref="DatabaseCollection" /> are

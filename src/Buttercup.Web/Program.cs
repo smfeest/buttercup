@@ -1,7 +1,7 @@
 using System.Globalization;
 using Bugsnag.AspNet.Core;
 using Buttercup;
-using Buttercup.DataAccess;
+using Buttercup.Application;
 using Buttercup.Email;
 using Buttercup.EntityModel;
 using Buttercup.Security;
@@ -52,9 +52,9 @@ services.Configure<ForwardedHeadersOptions>(
         ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 
 services
+    .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
-    .AddDataAccessServices()
     .AddEmailServices(configuration.GetSection("Email"))
     .AddSecurityServices();
 

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Security.Cryptography;
-using Buttercup.DataAccess;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,23 +12,17 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
     private readonly IClock clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory;
     private readonly ILogger<TokenAuthenticationService> logger;
-    private readonly ISecurityEventDataProvider securityEventDataProvider;
-    private readonly IUserDataProvider userDataProvider;
 
     public TokenAuthenticationService(
         IAccessTokenEncoder accessTokenEncoder,
         IClock clock,
         IDbContextFactory<AppDbContext> dbContextFactory,
-        ILogger<TokenAuthenticationService> logger,
-        ISecurityEventDataProvider securityEventDataProvider,
-        IUserDataProvider userDataProvider)
+        ILogger<TokenAuthenticationService> logger)
     {
         this.accessTokenEncoder = accessTokenEncoder;
         this.clock = clock;
         this.dbContextFactory = dbContextFactory;
         this.logger = logger;
-        this.securityEventDataProvider = securityEventDataProvider;
-        this.userDataProvider = userDataProvider;
     }
 
     public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
@@ -37,10 +30,18 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
         var token = this.accessTokenEncoder.Encode(
             new(user.Id, user.SecurityStamp, this.clock.UtcNow));
 
-        using var dbContext = this.dbContextFactory.CreateDbContext();
+        using (var dbContext = this.dbContextFactory.CreateDbContext())
+        {
+            dbContext.SecurityEvents.Add(new()
+            {
+                Time = this.clock.UtcNow,
+                Event = "access_token_issued",
+                IpAddress = ipAddress,
+                UserId = user.Id,
+            });
 
-        await this.securityEventDataProvider.LogEvent(
-            dbContext, "access_token_issued", ipAddress, user.Id);
+            await dbContext.SaveChangesAsync();
+        }
 
         LogMessages.TokenIssued(this.logger, user.Id, user.Email, null);
 
@@ -75,15 +76,11 @@ internal sealed class TokenAuthenticationService : ITokenAuthenticationService
             return null;
         }
 
-        User user;
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        try
-        {
-            using var dbContext = this.dbContextFactory.CreateDbContext();
+        var user = await dbContext.Users.FindAsync(payload.UserId);
 
-            user = await this.userDataProvider.GetUser(dbContext, payload.UserId);
-        }
-        catch (NotFoundException)
+        if (user is null)
         {
             LogMessages.ValidationFailedUserDoesNotExist(this.logger, payload.UserId, null);
 

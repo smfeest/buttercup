@@ -1,7 +1,7 @@
 using Buttercup.TestUtils;
 using Xunit;
 
-namespace Buttercup.EntityModel;
+namespace Buttercup.Application;
 
 public sealed class RecipeAttributesTests
 {

@@ -1,4 +1,4 @@
-using Buttercup.DataAccess;
+using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Xunit;
