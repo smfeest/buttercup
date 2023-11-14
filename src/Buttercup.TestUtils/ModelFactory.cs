@@ -58,17 +58,6 @@ public sealed class ModelFactory
     }
 
     /// <summary>
-    /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.
-    /// </summary>
-    /// <param name="setOptionalAttributes">
-    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
-    /// null.
-    /// </param>
-    /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
-    public RecipeAttributes BuildRecipeAttributes(bool setOptionalAttributes = false) =>
-        new(this.BuildRecipe(setOptionalAttributes));
-
-    /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">

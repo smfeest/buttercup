@@ -1,5 +1,4 @@
 using Buttercup.Application;
-using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Filters;
 using Buttercup.Web.Models;

@@ -71,7 +71,7 @@ public sealed class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var attributes = this.modelFactory.BuildRecipeAttributes();
+        var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
 
         fixture.MockRecipeManager
             .Setup(x => x.AddRecipe(attributes, fixture.CurrentUserId))
@@ -90,7 +90,7 @@ public sealed class RecipesControllerTests
     {
         using var fixture = new RecipesControllerFixture();
 
-        var attributes = this.modelFactory.BuildRecipeAttributes();
+        var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
 
         fixture.RecipesController.ModelState.AddModelError("test", "test");
 
