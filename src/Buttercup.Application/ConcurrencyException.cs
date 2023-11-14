@@ -1,4 +1,4 @@
-namespace Buttercup.DataAccess;
+namespace Buttercup.Application;
 
 /// <summary>
 /// Represents the exception that is thrown when a concurrency error occurs.

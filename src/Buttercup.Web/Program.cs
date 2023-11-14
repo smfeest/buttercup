@@ -2,7 +2,6 @@ using System.Globalization;
 using Bugsnag.AspNet.Core;
 using Buttercup;
 using Buttercup.Application;
-using Buttercup.DataAccess;
 using Buttercup.Email;
 using Buttercup.EntityModel;
 using Buttercup.Security;
@@ -56,7 +55,6 @@ services
     .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
-    .AddDataAccessServices()
     .AddEmailServices(configuration.GetSection("Email"))
     .AddSecurityServices();
 

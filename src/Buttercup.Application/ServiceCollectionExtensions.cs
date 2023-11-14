@@ -18,5 +18,6 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services) =>
         services
+            .AddTransient<IRecipeManager, RecipeManager>()
             .AddTransient<IUserManager, UserManager>();
 }
