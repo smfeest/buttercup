@@ -51,6 +51,11 @@ public sealed record User : IEntityId
     public required string TimeZone { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the user is an administrator.
+    /// </summary>
+    public bool IsAdmin { get; set; }
+
+    /// <summary>
     /// Gets or sets the date and time at which the user was created.
     /// </summary>
     public required DateTime Created { get; set; }

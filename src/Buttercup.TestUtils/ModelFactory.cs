@@ -74,10 +74,17 @@ public sealed class ModelFactory
         PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
         SecurityStamp = this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
         TimeZone = this.NextString("time-zone"),
+        IsAdmin = this.NextBoolean(),
         Created = this.NextDateTime(),
         Modified = this.NextDateTime(),
         Revision = this.NextInt(),
     };
+
+    /// <summary>
+    /// Generates a boolean value.
+    /// </summary>
+    /// <returns>The boolean value.</returns>
+    public bool NextBoolean() => this.NextInt() % 2 == 0;
 
     /// <summary>
     /// Generates a unique UTC date and time.
