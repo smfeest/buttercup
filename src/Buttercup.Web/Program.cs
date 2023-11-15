@@ -23,7 +23,9 @@ var isDevelopment = builder.Environment.IsDevelopment();
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddControllersWithViews()
+services
+    .AddRouting(options => options.LowercaseUrls = true)
+    .AddControllersWithViews()
     .AddMvcOptions(options =>
     {
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
