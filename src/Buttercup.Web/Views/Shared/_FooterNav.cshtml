@@ -1,3 +1,4 @@
+  @inject IAuthorizationService AuthorizationService
   @inject IViewLocalizer Localizer
   @if (User.Identity?.IsAuthenticated == true)
   {
@@ -5,6 +6,10 @@
     <footer class="footer-nav">
       <ul class="footer-nav__items">
         <li class="footer-nav__item"><a asp-controller="Account" asp-action="Show">@Localizer["Label_YourAccount"]</a></li>
+        @if ((await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicyNames.AdminOnly)).Succeeded)
+        {
+        <li class="footer-nav__item"><a asp-area="Admin" asp-controller="Users" asp-action="Index">@Localizer["Label_Users"]</a></li>
+        }
         <li class="footer-nav__item"><a asp-controller="Authentication" asp-action="SignOut">@Localizer["Label_SignOut"]</a></li>
       </ul>
     </footer>

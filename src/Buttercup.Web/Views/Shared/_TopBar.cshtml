@@ -1,4 +1,5 @@
 
+@inject IAuthorizationService AuthorizationService
 @inject IViewLocalizer Localizer
 <nav class="top-bar">
   <div class="top-bar__content">
@@ -20,6 +21,10 @@
         </div>
       </li>
       <li><a class="popover-menu__item" asp-controller="Account" asp-action="Show">@Localizer["Label_YourAccount"]</a></li>
+      @if ((await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicyNames.AdminOnly)).Succeeded)
+      {
+      <li><a class="popover-menu__item" asp-area="Admin" asp-controller="Users" asp-action="Index">@Localizer["Label_Users"]</a></li>
+      }
       <li><a class="popover-menu__item" asp-controller="Authentication" asp-action="SignOut">@Localizer["Label_SignOut"]</a></li>
     </ul>
 }
