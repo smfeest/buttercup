@@ -1,5 +1,5 @@
 
-namespace Buttercup.Web.Authentication;
+namespace Buttercup.Web.Security;
 
 /// <summary>
 /// Provides default values relating to token authentication.

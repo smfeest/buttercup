@@ -5,7 +5,7 @@ using Buttercup.Email;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web;
-using Buttercup.Web.Authentication;
+using Buttercup.Web.Security;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;

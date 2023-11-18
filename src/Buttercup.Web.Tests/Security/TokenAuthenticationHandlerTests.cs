@@ -10,7 +10,7 @@ using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
-namespace Buttercup.Web.Authentication;
+namespace Buttercup.Web.Security;
 
 public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 {
