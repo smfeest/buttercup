@@ -70,6 +70,10 @@ services
     .AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(
         TokenAuthenticationDefaults.AuthenticationScheme, null);
 
+services.AddAuthorization(
+    options => options.AddPolicy(
+        AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin)));
+
 services
     .Configure<Bugsnag.Configuration>(configuration.GetSection("Bugsnag"))
     .AddBugsnag();
