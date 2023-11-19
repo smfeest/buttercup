@@ -10,7 +10,7 @@ public sealed class ListFromLinesTagHelper : TagHelper
 {
     private const string InputAttributeName = "lines-in";
 
-    private static readonly char[] LineSeparators = new[] { '\n', '\r' };
+    private static readonly char[] LineSeparators = ['\n', '\r'];
 
     /// <summary>
     /// Gets or sets the input string.

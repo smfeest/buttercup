@@ -186,11 +186,11 @@ public sealed class CookieAuthenticationEventsHandlerTests
         ClaimsPrincipal SetupPrincipalWithStaleSecurityStamp(User user) =>
             BuildPrincipal(user with { SecurityStamp = "stale-security-stamp" });
 
-        return new object[][]
-        {
+        return
+        [
             new[] { SetupPrincipalWithoutSecurityStamp },
             new[] { SetupPrincipalWithStaleSecurityStamp }
-        };
+        ];
     }
 
     public static object[][] GetTheoryDataForUserRevisionIsMissingOrStale()
@@ -200,11 +200,11 @@ public sealed class CookieAuthenticationEventsHandlerTests
         ClaimsPrincipal SetupPrincipalWithStaleUserRevision(User user) =>
             BuildPrincipal(user with { Revision = user.Revision - 1 });
 
-        return new object[][]
-        {
+        return
+        [
             new[] { SetupPrincipalWithoutUserRevision },
             new[] { SetupPrincipalWithStaleUserRevision }
-        };
+        ];
     }
 
     private ClaimsPrincipal SetupCreatePrincipal(User user, AuthenticationScheme scheme)

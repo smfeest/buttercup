@@ -7,8 +7,8 @@ namespace Buttercup.Security;
 public sealed class AccessTokenEncoderTests
 {
     private readonly AccessTokenPayload payload = new(1, "security-stamp", DateTime.UtcNow);
-    private readonly byte[] payloadBytes = { 1, 2, 3 };
-    private readonly byte[] encryptedBytes = { 4, 5, 6 };
+    private readonly byte[] payloadBytes = [1, 2, 3];
+    private readonly byte[] encryptedBytes = [4, 5, 6];
     private readonly string encryptedBase64 = "BAUG";
 
     private readonly Mock<IAccessTokenSerializer> accessTokenSerializerMock = new();

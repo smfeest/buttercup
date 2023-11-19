@@ -90,7 +90,7 @@ public sealed class TimeZoneOptionsHelperTests
             new(1, 0, 0),
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 3, 1),
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 5, 1));
-        this.StubGetTimeZone(new(-3, 0, 0), new[] { adjustmentRule });
+        this.StubGetTimeZone(new(-3, 0, 0), [adjustmentRule]);
         this.clock.UtcNow = new(2000, month, 15, 0, 0, 0, DateTimeKind.Utc);
 
         var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
@@ -107,7 +107,7 @@ public sealed class TimeZoneOptionsHelperTests
         var offset = new TimeSpan(offsetHours, 0, 0);
         this.StubGetTimeZone(offset);
         this.localizerMock
-            .SetupLocalizedString(expectedFormat, new object[] { offset }, "localized-offset");
+            .SetupLocalizedString(expectedFormat, [offset], "localized-offset");
 
         var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
@@ -129,8 +129,7 @@ public sealed class TimeZoneOptionsHelperTests
 
     private void StubGetTimeZone() => this.StubGetTimeZone(TimeSpan.Zero);
 
-    private void StubGetTimeZone(TimeSpan baseUtcOffset) => this.StubGetTimeZone(
-        baseUtcOffset, Array.Empty<TimeZoneInfo.AdjustmentRule>());
+    private void StubGetTimeZone(TimeSpan baseUtcOffset) => this.StubGetTimeZone(baseUtcOffset, []);
 
     private void StubGetTimeZone(
         TimeSpan baseUtcOffset, TimeZoneInfo.AdjustmentRule[] adjustmentRules)
