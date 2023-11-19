@@ -28,6 +28,10 @@ dotnet_style_qualification_for_event = true
 dotnet_analyzer_diagnostic.category-Style.severity = warning
 dotnet_diagnostic.IDE0058.severity = none # Remove unnecessary expression value
 
+# New code style rules requiring C# 12
+csharp_style_prefer_primary_constructors = false
+dotnet_style_prefer_collection_expression = false
+
 [src/*.Tests/**.cs]
 
 # Compiler warnings
