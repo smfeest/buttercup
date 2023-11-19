@@ -8,7 +8,7 @@ public sealed class ListFromLinesTagHelperTests
     [Theory]
     [InlineData(null)]
     [InlineData(" \n \t\n")]
-    public void SuppressesOutputWhenListIsEmpty(string input)
+    public void SuppressesOutputWhenListIsEmpty(string? input)
     {
         var output = Process(input);
 
@@ -27,7 +27,7 @@ public sealed class ListFromLinesTagHelperTests
             output.Content.GetContent());
     }
 
-    private static TagHelperOutput Process(string input)
+    private static TagHelperOutput Process(string? input)
     {
         var output = new TagHelperOutput(
             "ul",
