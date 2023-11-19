@@ -16,10 +16,9 @@ public sealed class TokenAuthenticationHandler : AuthenticationHandler<Authentic
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        ISystemClock clock,
         ITokenAuthenticationService tokenAuthenticationService,
         IUserPrincipalFactory userPrincipalFactory)
-        : base(options, logger, encoder, clock)
+        : base(options, logger, encoder)
     {
         this.tokenAuthenticationService = tokenAuthenticationService;
         this.userPrincipalFactory = userPrincipalFactory;
