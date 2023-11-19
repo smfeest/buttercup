@@ -10,6 +10,8 @@ public sealed class ListFromLinesTagHelper : TagHelper
 {
     private const string InputAttributeName = "lines-in";
 
+    private static readonly char[] LineSeparators = ['\n', '\r'];
+
     /// <summary>
     /// Gets or sets the input string.
     /// </summary>
@@ -27,7 +29,7 @@ public sealed class ListFromLinesTagHelper : TagHelper
             return;
         }
 
-        foreach (var line in this.Input.Split(new[] { '\n', '\r' }))
+        foreach (var line in this.Input.Split(LineSeparators))
         {
             if (!string.IsNullOrWhiteSpace(line))
             {

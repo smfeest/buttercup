@@ -38,15 +38,15 @@ public sealed class AuthenticationMailerTests
     [Fact]
     public async Task SendPasswordResetLink_SendsEmail()
     {
+        const string PasswordResetUrl = "https://example.com/reset/password";
+
         this.localizerMock
             .SetupLocalizedString("Subject_PasswordResetLink", "translated-subject")
             .SetupLocalizedString(
-                "Body_PasswordResetLink",
-                new[] { "https://example.com/reset/password" },
-                "translated-body");
+                "Body_PasswordResetLink", new[] { PasswordResetUrl }, "translated-body");
 
         await this.authenticationMailer.SendPasswordResetLink(
-            "user@example.com", "https://example.com/reset/password");
+            "user@example.com", PasswordResetUrl);
 
         this.emailSenderMock.Verify(
             x => x.Send("user@example.com", "translated-subject", "translated-body"));

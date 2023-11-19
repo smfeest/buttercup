@@ -1,11 +1,11 @@
 namespace Buttercup.Security;
 
-internal sealed class RandomTokenGenerator : IRandomTokenGenerator
+internal sealed class RandomTokenGenerator(
+    IRandomNumberGeneratorFactory randomNumberGeneratorFactory)
+    : IRandomTokenGenerator
 {
-    public RandomTokenGenerator(IRandomNumberGeneratorFactory randomNumberGeneratorFactory) =>
-        this.RandomNumberGeneratorFactory = randomNumberGeneratorFactory;
-
-    public IRandomNumberGeneratorFactory RandomNumberGeneratorFactory { get; }
+    public IRandomNumberGeneratorFactory RandomNumberGeneratorFactory { get; } =
+        randomNumberGeneratorFactory;
 
     public string Generate(int n)
     {

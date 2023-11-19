@@ -6,24 +6,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class TokenAuthenticationService : ITokenAuthenticationService
+internal sealed class TokenAuthenticationService(
+    IAccessTokenEncoder accessTokenEncoder,
+    IClock clock,
+    IDbContextFactory<AppDbContext> dbContextFactory,
+    ILogger<TokenAuthenticationService> logger)
+    : ITokenAuthenticationService
 {
-    private readonly IAccessTokenEncoder accessTokenEncoder;
-    private readonly IClock clock;
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-    private readonly ILogger<TokenAuthenticationService> logger;
-
-    public TokenAuthenticationService(
-        IAccessTokenEncoder accessTokenEncoder,
-        IClock clock,
-        IDbContextFactory<AppDbContext> dbContextFactory,
-        ILogger<TokenAuthenticationService> logger)
-    {
-        this.accessTokenEncoder = accessTokenEncoder;
-        this.clock = clock;
-        this.dbContextFactory = dbContextFactory;
-        this.logger = logger;
-    }
+    private readonly IAccessTokenEncoder accessTokenEncoder = accessTokenEncoder;
+    private readonly IClock clock = clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly ILogger<TokenAuthenticationService> logger = logger;
 
     public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
     {

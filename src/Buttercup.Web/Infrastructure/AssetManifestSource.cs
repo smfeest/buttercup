@@ -3,23 +3,17 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Buttercup.Web.Infrastructure;
 
-public sealed class AssetManifestSource : IAssetManifestSource
+public sealed class AssetManifestSource(
+    IWebHostEnvironment hostEnvironment,
+    ILogger<AssetManifestSource> logger,
+    IAssetManifestReader manifestReader)
+    : IAssetManifestSource
 {
-    private readonly IFileProvider fileProvider;
-    private readonly IAssetManifestReader manifestReader;
+    private readonly IFileProvider fileProvider = hostEnvironment.WebRootFileProvider;
+    private readonly IAssetManifestReader manifestReader = manifestReader;
     private readonly object loadLock = new();
-    private readonly ILogger logger;
+    private readonly ILogger logger = logger;
     private IDictionary<string, string>? productionManifest;
-
-    public AssetManifestSource(
-        IWebHostEnvironment hostEnvironment,
-        ILogger<AssetManifestSource> logger,
-        IAssetManifestReader manifestReader)
-    {
-        this.fileProvider = hostEnvironment.WebRootFileProvider;
-        this.logger = logger;
-        this.manifestReader = manifestReader;
-    }
 
     public IDictionary<string, string> ProductionManifest
     {

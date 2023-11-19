@@ -10,7 +10,7 @@ namespace Buttercup.TestUtils;
 /// </typeparam>
 public sealed class ListLogger<TCategoryName> : ILogger<TCategoryName>
 {
-    private readonly List<LogEntry> entries = new();
+    private readonly List<LogEntry> entries = [];
 
     /// <summary>
     /// Gets the list of log entries.

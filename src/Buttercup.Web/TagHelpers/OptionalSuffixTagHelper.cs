@@ -13,14 +13,12 @@ namespace Buttercup.Web.TagHelpers;
 /// The tag helper is intended to be used in conjunction with <see cref="LabelTagHelper" />.
 /// </remarks>
 [HtmlTargetElement("label", Attributes = ForAttributeName)]
-public sealed class OptionalSuffixTagHelper : TagHelper
+public sealed class OptionalSuffixTagHelper(IStringLocalizer<OptionalSuffixTagHelper> localizer)
+    : TagHelper
 {
     private const string ForAttributeName = "asp-for";
 
-    private readonly IStringLocalizer<OptionalSuffixTagHelper> localizer;
-
-    public OptionalSuffixTagHelper(IStringLocalizer<OptionalSuffixTagHelper> localizer) =>
-        this.localizer = localizer;
+    private readonly IStringLocalizer<OptionalSuffixTagHelper> localizer = localizer;
 
     /// <summary>
     /// Gets or sets the model expression.

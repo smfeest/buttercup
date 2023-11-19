@@ -2,12 +2,9 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Localization;
 
-public sealed class TimeFormatter : ITimeFormatter
+public sealed class TimeFormatter(IStringLocalizer<TimeFormatter> localizer) : ITimeFormatter
 {
-    private readonly IStringLocalizer<TimeFormatter> localizer;
-
-    public TimeFormatter(IStringLocalizer<TimeFormatter> localizer) =>
-        this.localizer = localizer;
+    private readonly IStringLocalizer<TimeFormatter> localizer = localizer;
 
     public string AsHoursAndMinutes(int totalMinutes)
     {

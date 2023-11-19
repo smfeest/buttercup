@@ -3,17 +3,12 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Security;
 
-internal sealed class AuthenticationMailer : IAuthenticationMailer
+internal sealed class AuthenticationMailer(
+    IEmailSender emailSender, IStringLocalizer<AuthenticationMailer> localizer)
+    : IAuthenticationMailer
 {
-    private readonly IEmailSender emailSender;
-    private readonly IStringLocalizer<AuthenticationMailer> localizer;
-
-    public AuthenticationMailer(
-        IEmailSender emailSender, IStringLocalizer<AuthenticationMailer> localizer)
-    {
-        this.emailSender = emailSender;
-        this.localizer = localizer;
-    }
+    private readonly IEmailSender emailSender = emailSender;
+    private readonly IStringLocalizer<AuthenticationMailer> localizer = localizer;
 
     public async Task SendPasswordChangeNotification(string email) =>
         await this.emailSender.Send(

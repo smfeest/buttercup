@@ -4,18 +4,12 @@ using SendGrid.Helpers.Mail;
 
 namespace Buttercup.Email;
 
-internal sealed class EmailSender : IEmailSender
+internal sealed class EmailSender(
+    ISendGridClientAccessor sendGridClientAccessor, IOptions<EmailOptions> optionsAccessor)
+    : IEmailSender
 {
-    private readonly string fromAddress;
-
-    private readonly ISendGridClient sendGridClient;
-
-    public EmailSender(
-        ISendGridClientAccessor sendGridClientAccessor, IOptions<EmailOptions> optionsAccessor)
-    {
-        this.sendGridClient = sendGridClientAccessor.SendGridClient;
-        this.fromAddress = optionsAccessor.Value.FromAddress;
-    }
+    private readonly string fromAddress = optionsAccessor.Value.FromAddress;
+    private readonly ISendGridClient sendGridClient = sendGridClientAccessor.SendGridClient;
 
     public Task Send(string toAddress, string subject, string body)
     {

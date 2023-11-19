@@ -31,10 +31,10 @@ public sealed class ListFromLinesTagHelperTests
     {
         var output = new TagHelperOutput(
             "ul",
-            new(),
+            [],
             (_, _) => Task.FromResult(new DefaultTagHelperContent().SetContent("content")));
 
-        var context = new TagHelperContext("ul", new(), new Dictionary<object, object>(), "test");
+        var context = new TagHelperContext("ul", [], new Dictionary<object, object>(), "test");
 
         var tagHelper = new ListFromLinesTagHelper { Input = input };
 

@@ -30,11 +30,11 @@ public sealed class OptionalSuffixTagHelperTests
         };
 
         var context = new TagHelperContext(
-            "label", new(), new Dictionary<object, object>(), "test");
+            "label", [], new Dictionary<object, object>(), "test");
 
         var output = new TagHelperOutput(
             "label",
-            new(),
+            [],
             (_, _) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
 
         output.Content.Append("initial-content");

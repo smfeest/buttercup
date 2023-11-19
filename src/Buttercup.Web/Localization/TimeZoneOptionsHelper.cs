@@ -2,21 +2,15 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Localization;
 
-public sealed class TimeZoneOptionsHelper : ITimeZoneOptionsHelper
+public sealed class TimeZoneOptionsHelper(
+    IClock clock,
+    IStringLocalizer<TimeZoneOptionsHelper> localizer,
+    ITimeZoneRegistry timeZoneRegistry)
+    : ITimeZoneOptionsHelper
 {
-    private readonly IClock clock;
-    private readonly IStringLocalizer<TimeZoneOptionsHelper> localizer;
-    private readonly ITimeZoneRegistry timeZoneRegistry;
-
-    public TimeZoneOptionsHelper(
-        IClock clock,
-        IStringLocalizer<TimeZoneOptionsHelper> localizer,
-        ITimeZoneRegistry timeZoneRegistry)
-    {
-        this.clock = clock;
-        this.localizer = localizer;
-        this.timeZoneRegistry = timeZoneRegistry;
-    }
+    private readonly IClock clock = clock;
+    private readonly IStringLocalizer<TimeZoneOptionsHelper> localizer = localizer;
+    private readonly ITimeZoneRegistry timeZoneRegistry = timeZoneRegistry;
 
     public IList<TimeZoneOption> AllOptions()
     {

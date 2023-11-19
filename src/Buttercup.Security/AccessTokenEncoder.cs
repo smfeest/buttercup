@@ -3,18 +3,13 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace Buttercup.Security;
 
-internal sealed class AccessTokenEncoder : IAccessTokenEncoder
+internal sealed class AccessTokenEncoder(
+    IAccessTokenSerializer accessTokenSerializer, IDataProtectionProvider dataProtectionProvider)
+    : IAccessTokenEncoder
 {
-    private readonly IAccessTokenSerializer accessTokenSerializer;
-    private readonly IDataProtector dataProtector;
-
-    public AccessTokenEncoder(
-        IAccessTokenSerializer accessTokenSerializer,
-        IDataProtectionProvider dataProtectionProvider)
-    {
-        this.accessTokenSerializer = accessTokenSerializer;
-        this.dataProtector = dataProtectionProvider.CreateProtector(nameof(AccessTokenEncoder));
-    }
+    private readonly IAccessTokenSerializer accessTokenSerializer = accessTokenSerializer;
+    private readonly IDataProtector dataProtector =
+        dataProtectionProvider.CreateProtector(nameof(AccessTokenEncoder));
 
     public string Encode(AccessTokenPayload payload)
     {

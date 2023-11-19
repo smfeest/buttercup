@@ -7,24 +7,17 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Buttercup.Web.Authentication;
 
-public sealed class CookieAuthenticationEventsHandler : CookieAuthenticationEvents
+public sealed class CookieAuthenticationEventsHandler(
+    IAuthenticationService authenticationService,
+    ILogger<CookieAuthenticationEventsHandler> logger,
+    IUserManager userManager,
+    IUserPrincipalFactory userPrincipalFactory)
+    : CookieAuthenticationEvents
 {
-    private readonly IAuthenticationService authenticationService;
-    private readonly ILogger<CookieAuthenticationEventsHandler> logger;
-    private readonly IUserManager userManager;
-    private readonly IUserPrincipalFactory userPrincipalFactory;
-
-    public CookieAuthenticationEventsHandler(
-        IAuthenticationService authenticationService,
-        ILogger<CookieAuthenticationEventsHandler> logger,
-        IUserManager userManager,
-        IUserPrincipalFactory userPrincipalFactory)
-    {
-        this.authenticationService = authenticationService;
-        this.logger = logger;
-        this.userManager = userManager;
-        this.userPrincipalFactory = userPrincipalFactory;
-    }
+    private readonly IAuthenticationService authenticationService = authenticationService;
+    private readonly ILogger<CookieAuthenticationEventsHandler> logger = logger;
+    private readonly IUserManager userManager = userManager;
+    private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {

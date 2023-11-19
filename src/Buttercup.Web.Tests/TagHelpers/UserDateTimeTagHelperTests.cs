@@ -95,13 +95,10 @@ public sealed class UserDateTimeTagHelperTests
     private TagHelperOutput Process()
     {
         var context = new TagHelperContext(
-            "user-date-time",
-            new(),
-            new Dictionary<object, object>(),
-            "test");
+            "user-date-time", [], new Dictionary<object, object>(), "test");
         var output = new TagHelperOutput(
             "user-date-time",
-            new(),
+            [],
             (_, _) => Task.FromResult(new DefaultTagHelperContent().SetContent("content")));
 
         this.tagHelper.Process(context, output);

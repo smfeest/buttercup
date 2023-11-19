@@ -33,7 +33,6 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
             optionsMonitor,
             NullLoggerFactory.Instance,
             Mock.Of<UrlEncoder>(),
-            Mock.Of<ISystemClock>(),
             this.tokenAuthenticationServiceMock.Object,
             this.userPrincipalFactoryMock.Object);
     }

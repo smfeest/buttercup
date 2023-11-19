@@ -3,14 +3,12 @@ using Xunit;
 
 namespace Buttercup.EntityModel;
 
-public sealed class QueryableExtensionsTests
+public sealed class QueryableExtensionsTests(
+    DatabaseFixture<QueryableExtensionsTests> databaseFixture)
     : IClassFixture<DatabaseFixture<QueryableExtensionsTests>>
 {
-    private readonly DatabaseFixture<QueryableExtensionsTests> databaseFixture;
+    private readonly DatabaseFixture<QueryableExtensionsTests> databaseFixture = databaseFixture;
     private readonly ModelFactory modelFactory = new();
-
-    public QueryableExtensionsTests(DatabaseFixture<QueryableExtensionsTests> databaseFixture) =>
-        this.databaseFixture = databaseFixture;
 
     #region FindAsync
 
