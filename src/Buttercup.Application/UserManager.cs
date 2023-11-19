@@ -5,16 +5,11 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace Buttercup.Application;
 
-internal sealed class UserManager : IUserManager
+internal sealed class UserManager(IClock clock, IDbContextFactory<AppDbContext> dbContextFactory)
+    : IUserManager
 {
-    private readonly IClock clock;
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-
-    public UserManager(IClock clock, IDbContextFactory<AppDbContext> dbContextFactory)
-    {
-        this.clock = clock;
-        this.dbContextFactory = dbContextFactory;
-    }
+    private readonly IClock clock = clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
     public async Task<User> GetUser(long id)
     {

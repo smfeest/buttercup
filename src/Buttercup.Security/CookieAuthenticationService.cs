@@ -9,27 +9,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class CookieAuthenticationService : ICookieAuthenticationService
+internal sealed class CookieAuthenticationService(
+    IAuthenticationService authenticationService,
+    IClock clock,
+    IDbContextFactory<AppDbContext> dbContextFactory,
+    ILogger<CookieAuthenticationService> logger,
+    IUserPrincipalFactory userPrincipalFactory)
+    : ICookieAuthenticationService
 {
-    private readonly IAuthenticationService authenticationService;
-    private readonly IClock clock;
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-    private readonly ILogger<CookieAuthenticationService> logger;
-    private readonly IUserPrincipalFactory userPrincipalFactory;
-
-    public CookieAuthenticationService(
-        IAuthenticationService authenticationService,
-        IClock clock,
-        IDbContextFactory<AppDbContext> dbContextFactory,
-        ILogger<CookieAuthenticationService> logger,
-        IUserPrincipalFactory userPrincipalFactory)
-    {
-        this.authenticationService = authenticationService;
-        this.clock = clock;
-        this.dbContextFactory = dbContextFactory;
-        this.logger = logger;
-        this.userPrincipalFactory = userPrincipalFactory;
-    }
+    private readonly IAuthenticationService authenticationService = authenticationService;
+    private readonly IClock clock = clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly ILogger<CookieAuthenticationService> logger = logger;
+    private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     public async Task<bool> RefreshPrincipal(HttpContext httpContext)
     {

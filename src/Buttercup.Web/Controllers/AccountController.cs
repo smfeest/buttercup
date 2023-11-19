@@ -10,24 +10,19 @@ namespace Buttercup.Web.Controllers;
 
 [Authorize]
 [Route("account")]
-public sealed class AccountController : Controller
+public sealed class AccountController(
+    IUserManager userManager,
+    ICookieAuthenticationService cookieAuthenticationService,
+    IPasswordAuthenticationService passwordAuthenticationService,
+    IStringLocalizer<AccountController> localizer)
+    : Controller
 {
-    private readonly ICookieAuthenticationService cookieAuthenticationService;
-    private readonly IPasswordAuthenticationService passwordAuthenticationService;
-    private readonly IStringLocalizer<AccountController> localizer;
-    private readonly IUserManager userManager;
-
-    public AccountController(
-        IUserManager userManager,
-        ICookieAuthenticationService cookieAuthenticationService,
-        IPasswordAuthenticationService passwordAuthenticationService,
-        IStringLocalizer<AccountController> localizer)
-    {
-        this.userManager = userManager;
-        this.cookieAuthenticationService = cookieAuthenticationService;
-        this.passwordAuthenticationService = passwordAuthenticationService;
-        this.localizer = localizer;
-    }
+    private readonly ICookieAuthenticationService cookieAuthenticationService =
+        cookieAuthenticationService;
+    private readonly IPasswordAuthenticationService passwordAuthenticationService =
+        passwordAuthenticationService;
+    private readonly IStringLocalizer<AccountController> localizer = localizer;
+    private readonly IUserManager userManager = userManager;
 
     [HttpGet]
     public async Task<IActionResult> Show() => this.View(await this.GetCurrentUser());

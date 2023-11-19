@@ -7,32 +7,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class PasswordAuthenticationService : IPasswordAuthenticationService
+internal sealed class PasswordAuthenticationService(
+    IAuthenticationMailer authenticationMailer,
+    IClock clock,
+    IDbContextFactory<AppDbContext> dbContextFactory,
+    ILogger<PasswordAuthenticationService> logger,
+    IPasswordHasher<User> passwordHasher,
+    IRandomTokenGenerator randomTokenGenerator)
+    : IPasswordAuthenticationService
 {
     private static readonly TimeSpan PasswordResetTokenExpiry = TimeSpan.FromDays(1);
 
-    private readonly IAuthenticationMailer authenticationMailer;
-    private readonly IClock clock;
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory;
-    private readonly ILogger<PasswordAuthenticationService> logger;
-    private readonly IPasswordHasher<User> passwordHasher;
-    private readonly IRandomTokenGenerator randomTokenGenerator;
-
-    public PasswordAuthenticationService(
-        IAuthenticationMailer authenticationMailer,
-        IClock clock,
-        IDbContextFactory<AppDbContext> dbContextFactory,
-        ILogger<PasswordAuthenticationService> logger,
-        IPasswordHasher<User> passwordHasher,
-        IRandomTokenGenerator randomTokenGenerator)
-    {
-        this.authenticationMailer = authenticationMailer;
-        this.clock = clock;
-        this.dbContextFactory = dbContextFactory;
-        this.logger = logger;
-        this.passwordHasher = passwordHasher;
-        this.randomTokenGenerator = randomTokenGenerator;
-    }
+    private readonly IAuthenticationMailer authenticationMailer = authenticationMailer;
+    private readonly IClock clock = clock;
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly ILogger<PasswordAuthenticationService> logger = logger;
+    private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
+    private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
 
     public async Task<User?> Authenticate(string email, string password, IPAddress? ipAddress)
     {

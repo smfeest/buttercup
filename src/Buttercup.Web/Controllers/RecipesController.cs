@@ -11,18 +11,12 @@ namespace Buttercup.Web.Controllers;
 [Authorize]
 [HandleNotFoundException]
 [Route("recipes")]
-public sealed class RecipesController : Controller
+public sealed class RecipesController(
+    IStringLocalizer<RecipesController> localizer, IRecipeManager RecipeManager)
+    : Controller
 {
-    private readonly IStringLocalizer<RecipesController> localizer;
-    private readonly IRecipeManager RecipeManager;
-
-    public RecipesController(
-        IStringLocalizer<RecipesController> localizer,
-        IRecipeManager RecipeManager)
-    {
-        this.localizer = localizer;
-        this.RecipeManager = RecipeManager;
-    }
+    private readonly IStringLocalizer<RecipesController> localizer = localizer;
+    private readonly IRecipeManager RecipeManager = RecipeManager;
 
     [HttpGet]
     public async Task<IActionResult> Index() => this.View(await this.RecipeManager.GetAllRecipes());

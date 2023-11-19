@@ -3,7 +3,8 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class CurrentUserTests : EndToEndTests<CurrentUserTests>
+public sealed class CurrentUserTests(AppFactory<CurrentUserTests> appFactory)
+    : EndToEndTests<CurrentUserTests>(appFactory)
 {
     private const string CurrentUserQuery =
         @"query {
@@ -17,10 +18,6 @@ public sealed class CurrentUserTests : EndToEndTests<CurrentUserTests>
                 modified
             }
         }";
-
-    public CurrentUserTests(AppFactory<CurrentUserTests> appFactory) : base(appFactory)
-    {
-    }
 
     [Theory]
     [InlineData(true)]

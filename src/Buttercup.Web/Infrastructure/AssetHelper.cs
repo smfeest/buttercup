@@ -3,21 +3,15 @@ using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Buttercup.Web.Infrastructure;
 
-public sealed class AssetHelper : IAssetHelper
+public sealed class AssetHelper(
+    IAssetManifestSource assetManifestSource,
+    IWebHostEnvironment hostEnvironment,
+    IUrlHelperFactory urlHelperFactory)
+    : IAssetHelper
 {
-    private readonly IAssetManifestSource assetManifestSource;
-    private readonly IWebHostEnvironment hostEnvironment;
-    private readonly IUrlHelperFactory urlHelperFactory;
-
-    public AssetHelper(
-        IAssetManifestSource assetManifestSource,
-        IWebHostEnvironment hostEnvironment,
-        IUrlHelperFactory urlHelperFactory)
-    {
-        this.assetManifestSource = assetManifestSource;
-        this.hostEnvironment = hostEnvironment;
-        this.urlHelperFactory = urlHelperFactory;
-    }
+    private readonly IAssetManifestSource assetManifestSource = assetManifestSource;
+    private readonly IWebHostEnvironment hostEnvironment = hostEnvironment;
+    private readonly IUrlHelperFactory urlHelperFactory = urlHelperFactory;
 
     public string Url(ActionContext context, string path)
     {

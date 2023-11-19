@@ -20,20 +20,16 @@ namespace Buttercup.Web.TestUtils;
 /// <typeparam name="T">
 /// The test class.
 /// </typeparam>
-public abstract class EndToEndTests<T> : IAsyncLifetime, IClassFixture<AppFactory<T>>
+/// <param name="appFactory">
+/// The application factory.
+/// </param>
+public abstract class EndToEndTests<T>(AppFactory<T> appFactory)
+    : IAsyncLifetime, IClassFixture<AppFactory<T>>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AppFactory{T}" /> class.
-    /// </summary>
-    /// <param name="appFactory">
-    /// The application factory.
-    /// </param>
-    public EndToEndTests(AppFactory<T> appFactory) => this.AppFactory = appFactory;
-
     /// <summary>
     /// Gets the application factory.
     /// </summary>
-    protected AppFactory<T> AppFactory { get; }
+    protected AppFactory<T> AppFactory { get; } = appFactory;
 
     /// <summary>
     /// Gets the database fixture.

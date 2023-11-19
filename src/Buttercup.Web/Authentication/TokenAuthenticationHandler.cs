@@ -7,22 +7,17 @@ using Microsoft.Net.Http.Headers;
 
 namespace Buttercup.Web.Authentication;
 
-public sealed class TokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public sealed class TokenAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    ITokenAuthenticationService tokenAuthenticationService,
+    IUserPrincipalFactory userPrincipalFactory)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    private readonly ITokenAuthenticationService tokenAuthenticationService;
-    private readonly IUserPrincipalFactory userPrincipalFactory;
-
-    public TokenAuthenticationHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder,
-        ITokenAuthenticationService tokenAuthenticationService,
-        IUserPrincipalFactory userPrincipalFactory)
-        : base(options, logger, encoder)
-    {
-        this.tokenAuthenticationService = tokenAuthenticationService;
-        this.userPrincipalFactory = userPrincipalFactory;
-    }
+    private readonly ITokenAuthenticationService tokenAuthenticationService =
+        tokenAuthenticationService;
+    private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {

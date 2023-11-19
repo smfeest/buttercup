@@ -5,11 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
-public sealed class HomeController : Controller
+public sealed class HomeController(IRecipeManager RecipeManager) : Controller
 {
-    private readonly IRecipeManager RecipeManager;
-
-    public HomeController(IRecipeManager RecipeManager) => this.RecipeManager = RecipeManager;
+    private readonly IRecipeManager RecipeManager = RecipeManager;
 
     [HttpGet("/")]
     public async Task<IActionResult> Index()

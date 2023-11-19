@@ -6,21 +6,17 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
 
-public sealed class AuthenticationController : Controller
+public sealed class AuthenticationController(
+    ICookieAuthenticationService cookieAuthenticationService,
+    IPasswordAuthenticationService passwordAuthenticationService,
+    IStringLocalizer<AuthenticationController> localizer)
+    : Controller
 {
-    private readonly ICookieAuthenticationService cookieAuthenticationService;
-    private readonly IPasswordAuthenticationService passwordAuthenticationService;
-    private readonly IStringLocalizer<AuthenticationController> localizer;
-
-    public AuthenticationController(
-        ICookieAuthenticationService cookieAuthenticationService,
-        IPasswordAuthenticationService passwordAuthenticationService,
-        IStringLocalizer<AuthenticationController> localizer)
-    {
-        this.cookieAuthenticationService = cookieAuthenticationService;
-        this.passwordAuthenticationService = passwordAuthenticationService;
-        this.localizer = localizer;
-    }
+    private readonly ICookieAuthenticationService cookieAuthenticationService =
+        cookieAuthenticationService;
+    private readonly IPasswordAuthenticationService passwordAuthenticationService =
+        passwordAuthenticationService;
+    private readonly IStringLocalizer<AuthenticationController> localizer = localizer;
 
     [HttpGet("reset-password")]
     public IActionResult RequestPasswordReset() => this.View();
