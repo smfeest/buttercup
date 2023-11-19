@@ -10,6 +10,11 @@ namespace Buttercup.Web.TestUtils;
 /// </summary>
 public static class JsonAssert
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     /// <summary>
     /// Verifies that the deserialized value of a <see cref="JsonElement" /> is equal to a specified
     /// value.
@@ -34,11 +39,7 @@ public static class JsonAssert
     /// </exception>
     public static void ValueEquals<TValue>(TValue expected, JsonElement element)
     {
-        var actual = element.Deserialize<TValue>(new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        });
-
+        var actual = element.Deserialize<TValue>(JsonSerializerOptions);
         Assert.Equal(expected, actual);
     }
 
