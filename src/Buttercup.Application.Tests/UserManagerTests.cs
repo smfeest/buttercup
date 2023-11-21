@@ -1,5 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Microsoft.Extensions.Time.Testing;
 using Xunit;
 
 namespace Buttercup.Application;
@@ -10,14 +11,14 @@ public sealed class UserManagerTests : IAsyncLifetime
     private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
-    private readonly StoppedClock clock = new();
+    private readonly FakeTimeProvider timeProvider;
     private readonly UserManager userManager;
 
     public UserManagerTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.userManager = new(this.clock, this.databaseFixture);
-        this.clock.UtcNow = this.modelFactory.NextDateTime();
+        this.timeProvider = new(this.modelFactory.NextDateTime());
+        this.userManager = new(this.databaseFixture, this.timeProvider);
     }
 
     public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
@@ -83,7 +84,7 @@ public sealed class UserManagerTests : IAsyncLifetime
             var expected = original with
             {
                 TimeZone = newTimeZone,
-                Modified = this.clock.UtcNow,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
                 Revision = original.Revision + 1,
             };
             var actual = await dbContext.Users.FindAsync(original.Id);
