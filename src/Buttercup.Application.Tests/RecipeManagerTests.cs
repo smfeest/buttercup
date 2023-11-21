@@ -1,6 +1,7 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using Xunit;
 
 namespace Buttercup.Application;
@@ -11,14 +12,14 @@ public sealed class RecipeManagerTests : IAsyncLifetime
     private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
-    private readonly StoppedClock clock = new();
+    private readonly FakeTimeProvider timeProvider;
     private readonly RecipeManager recipeManager;
 
     public RecipeManagerTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.recipeManager = new(this.clock, databaseFixture);
-        this.clock.UtcNow = this.modelFactory.NextDateTime();
+        this.timeProvider = new(this.modelFactory.NextDateTime());
+        this.recipeManager = new(databaseFixture, this.timeProvider);
     }
 
     public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
@@ -56,9 +57,9 @@ public sealed class RecipeManagerTests : IAsyncLifetime
                 Suggestions = attributes.Suggestions,
                 Remarks = attributes.Remarks,
                 Source = attributes.Source,
-                Created = this.clock.UtcNow,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
                 CreatedByUserId = currentUser.Id,
-                Modified = this.clock.UtcNow,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
                 ModifiedByUserId = currentUser.Id,
                 Revision = 0,
             };
@@ -332,7 +333,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
                 Source = newAttributes.Source,
                 Created = original.Created,
                 CreatedByUserId = original.CreatedByUserId,
-                Modified = this.clock.UtcNow,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
                 ModifiedByUserId = currentUser.Id,
                 Revision = original.Revision + 1,
             };
