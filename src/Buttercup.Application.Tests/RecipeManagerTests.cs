@@ -12,12 +12,12 @@ public sealed class RecipeManagerTests : IAsyncLifetime
     private readonly ModelFactory modelFactory = new();
 
     private readonly StoppedClock clock = new();
-    private readonly RecipeManager RecipeManager;
+    private readonly RecipeManager recipeManager;
 
     public RecipeManagerTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.RecipeManager = new(this.clock, databaseFixture);
+        this.recipeManager = new(this.clock, databaseFixture);
         this.clock.UtcNow = this.modelFactory.NextDateTime();
     }
 
@@ -40,7 +40,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             await dbContext.SaveChangesAsync();
         }
 
-        var id = await this.RecipeManager.AddRecipe(attributes, currentUser.Id);
+        var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
 
         using (var dbContext = this.databaseFixture.CreateDbContext())
         {
@@ -81,7 +81,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             await dbContext.SaveChangesAsync();
         }
 
-        var id = await this.RecipeManager.AddRecipe(attributes, currentUser.Id);
+        var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
 
         using (var dbContext = this.databaseFixture.CreateDbContext())
         {
@@ -112,7 +112,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             await dbContext.SaveChangesAsync();
         }
 
-        await this.RecipeManager.DeleteRecipe(recipe.Id);
+        await this.recipeManager.DeleteRecipe(recipe.Id);
 
         using (var dbContext = this.databaseFixture.CreateDbContext())
         {
@@ -132,7 +132,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.RecipeManager.DeleteRecipe(id));
+            () => this.recipeManager.DeleteRecipe(id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -160,7 +160,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             recipeC,
         };
 
-        var actual = await this.RecipeManager.GetAllRecipes();
+        var actual = await this.recipeManager.GetAllRecipes();
 
         Assert.Equal(expected, actual);
     }
@@ -180,7 +180,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.RecipeManager.GetRecipe(expected.Id);
+        var actual = await this.recipeManager.GetRecipe(expected.Id);
 
         Assert.Equal(expected, actual);
     }
@@ -197,7 +197,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.RecipeManager.GetRecipe(id));
+            () => this.recipeManager.GetRecipe(id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
     }
@@ -227,7 +227,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
 
         var expected = allRecipes.AsEnumerable().Reverse().Take(10);
 
-        var actual = await this.RecipeManager.GetRecentlyAddedRecipes();
+        var actual = await this.recipeManager.GetRecentlyAddedRecipes();
 
         Assert.Equal(expected, actual);
     }
@@ -288,7 +288,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             allRecipes[7],
         };
 
-        var actual = await this.RecipeManager.GetRecentlyUpdatedRecipes(
+        var actual = await this.recipeManager.GetRecentlyUpdatedRecipes(
             new[] { allRecipes[3].Id, allRecipes[8].Id });
 
         Assert.Equal(expected, actual);
@@ -313,7 +313,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var newAttributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: true));
 
-        await this.RecipeManager.UpdateRecipe(
+        await this.recipeManager.UpdateRecipe(
             original.Id, newAttributes, original.Revision, currentUser.Id);
 
         using (var dbContext = this.databaseFixture.CreateDbContext())
@@ -358,7 +358,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var newAttributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: false));
 
-        await this.RecipeManager.UpdateRecipe(
+        await this.recipeManager.UpdateRecipe(
             original.Id, newAttributes, original.Revision, currentUser.Id);
 
         using (var dbContext = this.databaseFixture.CreateDbContext())
@@ -390,7 +390,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.RecipeManager.UpdateRecipe(
+            () => this.recipeManager.UpdateRecipe(
                 id, new(this.modelFactory.BuildRecipe()), 0, currentUser.Id));
 
         Assert.Equal($"Recipe {id} not found", exception.Message);
@@ -411,7 +411,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var staleRevision = recipe.Revision - 1;
 
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
-            () => this.RecipeManager.UpdateRecipe(
+            () => this.recipeManager.UpdateRecipe(
                 recipe.Id, new(this.modelFactory.BuildRecipe()), staleRevision, currentUser.Id));
 
         Assert.Equal(
