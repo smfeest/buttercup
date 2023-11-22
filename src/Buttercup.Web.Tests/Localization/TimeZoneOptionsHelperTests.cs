@@ -1,5 +1,6 @@
 using Buttercup.TestUtils;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -7,16 +8,16 @@ namespace Buttercup.Web.Localization;
 
 public sealed class TimeZoneOptionsHelperTests
 {
-    private readonly StoppedClock clock = new();
     private readonly Mock<IStringLocalizer<TimeZoneOptionsHelper>> localizerMock = new();
+    private readonly FakeTimeProvider timeProvider = new();
     private readonly Mock<ITimeZoneRegistry> timeZoneRegistryMock = new();
 
     private readonly TimeZoneOptionsHelper timeZoneOptionsHelper;
 
     public TimeZoneOptionsHelperTests() =>
         this.timeZoneOptionsHelper = new(
-            this.clock,
             this.localizerMock.Object,
+            this.timeProvider,
             this.timeZoneRegistryMock.Object);
 
     #region AllOptions
@@ -91,7 +92,7 @@ public sealed class TimeZoneOptionsHelperTests
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 3, 1),
             TimeZoneInfo.TransitionTime.CreateFixedDateRule(new(0), 5, 1));
         this.StubGetTimeZone(new(-3, 0, 0), [adjustmentRule]);
-        this.clock.UtcNow = new(2000, month, 15, 0, 0, 0, DateTimeKind.Utc);
+        this.timeProvider.SetUtcNow(new DateTime(2000, month, 15, 0, 0, 0));
 
         var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 

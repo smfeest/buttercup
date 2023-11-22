@@ -3,15 +3,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Application;
 
-internal sealed class RecipeManager(IClock clock, IDbContextFactory<AppDbContext> dbContextFactory)
+internal sealed class RecipeManager(
+    IDbContextFactory<AppDbContext> dbContextFactory, TimeProvider timeProvider)
     : IRecipeManager
 {
-    private readonly IClock clock = clock;
+    private readonly TimeProvider timeProvider = timeProvider;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
     public async Task<long> AddRecipe(RecipeAttributes attributes, long currentUserId)
     {
-        var timestamp = this.clock.UtcNow;
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var recipe = new Recipe()
         {
             Title = attributes.Title,
@@ -98,7 +99,7 @@ internal sealed class RecipeManager(IClock clock, IDbContextFactory<AppDbContext
                 .SetProperty(r => r.Suggestions, newAttributes.Suggestions)
                 .SetProperty(r => r.Remarks, newAttributes.Remarks)
                 .SetProperty(r => r.Source, newAttributes.Source)
-                .SetProperty(r => r.Modified, this.clock.UtcNow)
+                .SetProperty(r => r.Modified, this.timeProvider.GetUtcDateTimeNow())
                 .SetProperty(r => r.ModifiedByUserId, currentUserId)
                 .SetProperty(r => r.Revision, baseRevision + 1));
 

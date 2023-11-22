@@ -9,21 +9,21 @@ namespace Buttercup.Security;
 
 internal sealed class PasswordAuthenticationService(
     IAuthenticationMailer authenticationMailer,
-    IClock clock,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<PasswordAuthenticationService> logger,
     IPasswordHasher<User> passwordHasher,
-    IRandomTokenGenerator randomTokenGenerator)
+    IRandomTokenGenerator randomTokenGenerator,
+    TimeProvider timeProvider)
     : IPasswordAuthenticationService
 {
     private static readonly TimeSpan PasswordResetTokenExpiry = TimeSpan.FromDays(1);
 
     private readonly IAuthenticationMailer authenticationMailer = authenticationMailer;
-    private readonly IClock clock = clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<PasswordAuthenticationService> logger = logger;
     private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
+    private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<User?> Authenticate(string email, string password, IPAddress? ipAddress)
     {
@@ -73,7 +73,7 @@ internal sealed class PasswordAuthenticationService(
             var unmodifiedUser = user with { };
 
             user.HashedPassword = this.passwordHasher.HashPassword(user, password);
-            user.Modified = this.clock.UtcNow;
+            user.Modified = this.timeProvider.GetUtcDateTimeNow();
             user.Revision++;
 
             try
@@ -209,7 +209,7 @@ internal sealed class PasswordAuthenticationService(
         {
             Token = token,
             UserId = user.Id,
-            Created = this.clock.UtcNow,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
         });
 
         await dbContext.SaveChangesAsync();
@@ -231,7 +231,7 @@ internal sealed class PasswordAuthenticationService(
     {
         dbContext.SecurityEvents.Add(new()
         {
-            Time = this.clock.UtcNow,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
             Event = eventName,
             IpAddress = ipAddress,
             UserId = userId,
@@ -243,7 +243,7 @@ internal sealed class PasswordAuthenticationService(
     private IQueryable<PasswordResetToken> ValidPasswordResetToken(
         AppDbContext dbContext, string token) =>
         dbContext.PasswordResetTokens.Where(t =>
-            t.Created >= this.clock.UtcNow.Subtract(PasswordResetTokenExpiry) &&
+            t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(PasswordResetTokenExpiry) &&
             t.Token == token);
 
     private static string RedactToken(string token) => $"{token[..6]}…";
@@ -255,7 +255,7 @@ internal sealed class PasswordAuthenticationService(
         string securityEventName,
         IPAddress? ipAddress)
     {
-        var timestamp = this.clock.UtcNow;
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
         user.HashedPassword = this.passwordHasher.HashPassword(user, newPassword);
         user.SecurityStamp = this.randomTokenGenerator.Generate(2);

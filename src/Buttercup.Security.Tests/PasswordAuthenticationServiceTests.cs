@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -19,25 +20,25 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationMailer> authenticationMailerMock = new();
-    private readonly StoppedClock clock;
     private readonly ListLogger<PasswordAuthenticationService> logger = new();
     private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
     private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
+    private readonly FakeTimeProvider timeProvider;
 
     private readonly PasswordAuthenticationService passwordAuthenticationService;
 
     public PasswordAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.clock = new() { UtcNow = this.modelFactory.NextDateTime() };
+        this.timeProvider = new(this.modelFactory.NextDateTime());
 
         this.passwordAuthenticationService = new(
             this.authenticationMailerMock.Object,
-            this.clock,
             this.databaseFixture,
             this.logger,
             this.passwordHasherMock.Object,
-            this.randomTokenGeneratorMock.Object);
+            this.randomTokenGeneratorMock.Object,
+            this.timeProvider);
     }
 
     public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
@@ -245,7 +246,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             var expectedUserAfter = userBefore with
             {
                 HashedPassword = rehashedPassword,
-                Modified = this.clock.UtcNow,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
                 Revision = userBefore.Revision + 1,
             };
 
@@ -457,9 +458,9 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             var expectedUserAfter = userBefore with
             {
                 HashedPassword = newPasswordHash,
-                PasswordCreated = this.clock.UtcNow,
+                PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
                 SecurityStamp = newSecurityStamp,
-                Modified = this.clock.UtcNow,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
                 Revision = userBefore.Revision + 1,
             };
 
@@ -519,7 +520,8 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                 {
                     UserId = user.Id,
                     Token = args.Token,
-                    Created = this.clock.UtcNow.Subtract(new TimeSpan(23, 59, 59))
+                    Created = this.timeProvider.GetUtcDateTimeNow().Subtract(
+                        new TimeSpan(23, 59, 59))
                 });
             await dbContext.SaveChangesAsync();
         }
@@ -552,7 +554,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                 {
                     UserId = user.Id,
                     Token = args.Token,
-                    Created = this.clock.UtcNow.Subtract(new TimeSpan(24, 0, 1))
+                    Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(24, 0, 1))
                 });
             await dbContext.SaveChangesAsync();
         }
@@ -593,7 +595,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                 {
                     UserId = user.Id,
                     Token = this.modelFactory.NextString("token"),
-                    Created = this.clock.UtcNow,
+                    Created = this.timeProvider.GetUtcDateTimeNow(),
                 });
             await dbContext.SaveChangesAsync();
         }
@@ -643,7 +645,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                 {
                     UserId = user.Id,
                     Token = args.Token,
-                    Created = this.clock.UtcNow.Subtract(new TimeSpan(24, 0, 1))
+                    Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(24, 0, 1))
                 });
             await dbContext.SaveChangesAsync();
         }
@@ -683,7 +685,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                 {
                     UserId = user.Id,
                     Token = this.modelFactory.NextString("token"),
-                    Created = this.clock.UtcNow,
+                    Created = this.timeProvider.GetUtcDateTimeNow(),
                 });
             await dbContext.SaveChangesAsync();
         }
@@ -719,7 +721,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         {
             Token = args.Token,
             UserId = userBefore.Id,
-            Created = this.clock.UtcNow.Subtract(new TimeSpan(23, 59, 59))
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(23, 59, 59))
         };
         var passwordResetTokenForOtherUser =
             this.modelFactory.BuildPasswordResetToken() with { UserId = otherUser.Id };
@@ -742,9 +744,9 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             var expectedUserAfter = userBefore with
             {
                 HashedPassword = newPasswordHash,
-                PasswordCreated = this.clock.UtcNow,
+                PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
                 SecurityStamp = newSecurityStamp,
-                Modified = this.clock.UtcNow,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
                 Revision = userBefore.Revision + 1,
             };
 
@@ -852,7 +854,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                 {
                     Token = token,
                     UserId = user.Id,
-                    Created = this.clock.UtcNow,
+                    Created = this.timeProvider.GetUtcDateTimeNow(),
                 },
                 dbContext.PasswordResetTokens.Single());
 
@@ -884,7 +886,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         AppDbContext dbContext, string eventName, IPAddress ipAddress, long? userId = null) =>
         await dbContext.SecurityEvents.AnyAsync(
             securityEvent =>
-                securityEvent.Time == this.clock.UtcNow &&
+                securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
                 securityEvent.Event == eventName &&
                 securityEvent.IpAddress == ipAddress &&
                 securityEvent.UserId == userId);

@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace Buttercup.Application;
 
-internal sealed class UserManager(IClock clock, IDbContextFactory<AppDbContext> dbContextFactory)
+internal sealed class UserManager(
+    IDbContextFactory<AppDbContext> dbContextFactory, TimeProvider timeProvider)
     : IUserManager
 {
-    private readonly IClock clock = clock;
+    private readonly TimeProvider timeProvider = timeProvider;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
     public async Task<User> GetUser(long id)
@@ -26,7 +27,7 @@ internal sealed class UserManager(IClock clock, IDbContextFactory<AppDbContext> 
             dbContext,
             userId,
             s => s.SetProperty(u => u.TimeZone, timeZone)
-                .SetProperty(u => u.Modified, this.clock.UtcNow)
+                .SetProperty(u => u.Modified, this.timeProvider.GetUtcDateTimeNow())
                 .SetProperty(u => u.Revision, u => u.Revision + 1));
     }
 
