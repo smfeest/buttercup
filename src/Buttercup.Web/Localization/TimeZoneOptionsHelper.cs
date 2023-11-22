@@ -3,13 +3,13 @@ using Microsoft.Extensions.Localization;
 namespace Buttercup.Web.Localization;
 
 public sealed class TimeZoneOptionsHelper(
-    IClock clock,
     IStringLocalizer<TimeZoneOptionsHelper> localizer,
+    TimeProvider timeProvider,
     ITimeZoneRegistry timeZoneRegistry)
     : ITimeZoneOptionsHelper
 {
-    private readonly IClock clock = clock;
     private readonly IStringLocalizer<TimeZoneOptionsHelper> localizer = localizer;
+    private readonly TimeProvider clock = timeProvider;
     private readonly ITimeZoneRegistry timeZoneRegistry = timeZoneRegistry;
 
     public IList<TimeZoneOption> AllOptions()
@@ -35,7 +35,7 @@ public sealed class TimeZoneOptionsHelper(
 
     private TimeZoneOption OptionForTimeZone(TimeZoneInfo timeZone)
     {
-        var offset = timeZone.GetUtcOffset(this.clock.UtcNow);
+        var offset = timeZone.GetUtcOffset(this.clock.GetUtcDateTimeNow());
         var offsetFormat = offset < TimeSpan.Zero ?
             "Format_NegativeOffset" : "Format_PositiveOffset";
         var formattedOffset = this.localizer[offsetFormat, offset];
