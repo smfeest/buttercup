@@ -11,16 +11,16 @@ namespace Buttercup.Security;
 
 internal sealed class CookieAuthenticationService(
     IAuthenticationService authenticationService,
-    IClock clock,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<CookieAuthenticationService> logger,
+    TimeProvider timeProvider,
     IUserPrincipalFactory userPrincipalFactory)
     : ICookieAuthenticationService
 {
     private readonly IAuthenticationService authenticationService = authenticationService;
-    private readonly IClock clock = clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<CookieAuthenticationService> logger = logger;
+    private readonly TimeProvider timeProvider = timeProvider;
     private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     public async Task<bool> RefreshPrincipal(HttpContext httpContext)
@@ -74,7 +74,7 @@ internal sealed class CookieAuthenticationService(
 
         dbContext.SecurityEvents.Add(new()
         {
-            Time = this.clock.UtcNow,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
             Event = eventName,
             IpAddress = ipAddress,
             UserId = userId,

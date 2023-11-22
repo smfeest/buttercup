@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -20,8 +21,8 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
-    private readonly StoppedClock clock;
     private readonly ListLogger<CookieAuthenticationService> logger = new();
+    private readonly FakeTimeProvider timeProvider;
     private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
     private readonly CookieAuthenticationService cookieAuthenticationService;
@@ -29,13 +30,13 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
     public CookieAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.clock = new() { UtcNow = this.modelFactory.NextDateTime() };
+        this.timeProvider = new(this.modelFactory.NextDateTime());
 
         this.cookieAuthenticationService = new(
             this.authenticationServiceMock.Object,
-            this.clock,
             this.databaseFixture,
             this.logger,
+            this.timeProvider,
             this.userPrincipalFactoryMock.Object);
     }
 
@@ -218,7 +219,7 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
         AppDbContext dbContext, string eventName, IPAddress ipAddress, long? userId = null) =>
         await dbContext.SecurityEvents.AnyAsync(
             securityEvent =>
-                securityEvent.Time == this.clock.UtcNow &&
+                securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
                 securityEvent.Event == eventName &&
                 securityEvent.IpAddress == ipAddress &&
                 securityEvent.UserId == userId);
