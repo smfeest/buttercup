@@ -4,6 +4,7 @@ using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -16,18 +17,21 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAccessTokenEncoder> accessTokenEncoderMock = new();
-    private readonly StoppedClock clock;
     private readonly ListLogger<TokenAuthenticationService> logger = new();
+    private readonly FakeTimeProvider timeProvider;
 
     private readonly TokenAuthenticationService tokenAuthenticationService;
 
     public TokenAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
     {
         this.databaseFixture = databaseFixture;
-        this.clock = new() { UtcNow = this.modelFactory.NextDateTime() };
+        this.timeProvider = new(this.modelFactory.NextDateTime());
 
         this.tokenAuthenticationService = new(
-            this.accessTokenEncoderMock.Object, this.clock, this.databaseFixture, this.logger);
+            this.accessTokenEncoderMock.Object,
+            this.databaseFixture,
+            this.logger,
+            this.timeProvider);
     }
 
     public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
@@ -50,7 +54,8 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
         }
 
         this.accessTokenEncoderMock
-            .Setup(x => x.Encode(new(user.Id, user.SecurityStamp, this.clock.UtcNow)))
+            .Setup(x => x.Encode(
+                new(user.Id, user.SecurityStamp, this.timeProvider.GetUtcDateTimeNow())))
             .Returns(accessToken);
 
         var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(user, ipAddress);
@@ -61,7 +66,7 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
             Assert.True(
                 await dbContext.SecurityEvents.AnyAsync(
                     securityEvent =>
-                        securityEvent.Time == this.clock.UtcNow &&
+                        securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
                         securityEvent.Event == "access_token_issued" &&
                         securityEvent.IpAddress == ipAddress &&
                         securityEvent.UserId == user.Id));
@@ -221,7 +226,7 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
         var accessTokenPayload = new AccessTokenPayload(
             user.Id,
             securityStamp ?? user.SecurityStamp,
-            this.clock.UtcNow.Subtract(tokenAge ?? new(24, 0, 0)));
+            this.timeProvider.GetUtcDateTimeNow().Subtract(tokenAge ?? new(24, 0, 0)));
 
         this.accessTokenEncoderMock
             .Setup(x => x.Decode(accessToken))

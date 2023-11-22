@@ -8,26 +8,26 @@ namespace Buttercup.Security;
 
 internal sealed class TokenAuthenticationService(
     IAccessTokenEncoder accessTokenEncoder,
-    IClock clock,
     IDbContextFactory<AppDbContext> dbContextFactory,
-    ILogger<TokenAuthenticationService> logger)
+    ILogger<TokenAuthenticationService> logger,
+    TimeProvider timeProvider)
     : ITokenAuthenticationService
 {
     private readonly IAccessTokenEncoder accessTokenEncoder = accessTokenEncoder;
-    private readonly IClock clock = clock;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<TokenAuthenticationService> logger = logger;
+    private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
     {
-        var token = this.accessTokenEncoder.Encode(
-            new(user.Id, user.SecurityStamp, this.clock.UtcNow));
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+        var token = this.accessTokenEncoder.Encode(new(user.Id, user.SecurityStamp, timestamp));
 
         using (var dbContext = this.dbContextFactory.CreateDbContext())
         {
             dbContext.SecurityEvents.Add(new()
             {
-                Time = this.clock.UtcNow,
+                Time = timestamp,
                 Event = "access_token_issued",
                 IpAddress = ipAddress,
                 UserId = user.Id,
@@ -62,7 +62,7 @@ internal sealed class TokenAuthenticationService(
             return null;
         }
 
-        if (this.clock.UtcNow.Subtract(payload.Issued) > new TimeSpan(24, 0, 0))
+        if (this.timeProvider.GetUtcDateTimeNow().Subtract(payload.Issued) > new TimeSpan(24, 0, 0))
         {
             LogMessages.ValidationFailedExpired(this.logger, payload.UserId, null);
 
