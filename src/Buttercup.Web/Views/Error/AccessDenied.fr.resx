@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_AccessDenied">
+    <value>Accès refusé</value>
+  </data>
+  <data name="Message_AccessDenied">
+    <value>Vous n'êtes pas autorisé à accéder à cette page.</value>
+  </data>
+</root>

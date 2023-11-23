@@ -60,6 +60,7 @@ services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
+        options.AccessDeniedPath = "/access-denied";
         options.Cookie = new()
         {
             Name = "buttercup.auth",
