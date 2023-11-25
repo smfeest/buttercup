@@ -1,4 +1,6 @@
   @inject IViewLocalizer Localizer
+  @if (User.Identity?.IsAuthenticated == true)
+  {
   <noscript>
     <footer class="footer-nav">
       <ul class="footer-nav__items">
@@ -7,3 +9,4 @@
       </ul>
     </footer>
   </noscript>
+  }
