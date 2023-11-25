@@ -13,7 +13,7 @@ public sealed class EnsureSignedOutAttribute : ActionFilterAttribute
         context.HttpContext.Response.GetTypedHeaders().CacheControl =
             new() { NoCache = true, NoStore = true };
 
-        if (context.HttpContext.User.Identity!.IsAuthenticated)
+        if (context.HttpContext.User.Identity?.IsAuthenticated == true)
         {
             context.Result = new RedirectToActionResult(
                 nameof(AuthenticationController.SignOut),
