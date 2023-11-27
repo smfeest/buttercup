@@ -3,8 +3,8 @@
 @form-vertical-padding-small: 0.5em;
 
 @form-input-border-width: 1px;
-@form-input-height: 40px;
-@form-input-input-padding: 12px;
+@form-input-height: 2.5em;
+@form-input-input-padding: 0.75em;
 
 .form-field {
   display: flex;
@@ -43,7 +43,9 @@
   }
 
   textarea& {
-    @vertical-midpoint: (@form-input-height / 2) - @form-input-border-width;
+    @vertical-midpoint: calc(
+      (@form-input-height / 2) - @form-input-border-width
+    );
 
     height: auto;
     padding: calc(@vertical-midpoint - 0.5em) @form-input-input-padding;
