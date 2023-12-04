@@ -10,13 +10,13 @@
 <table id="recipes-index__table" class="data-table">
   <colgroup>
     <col>
-    <col class="recipes-index--collapsible recipes-index--date" span="2">
+    <col class="data-table--collapsed-below-medium recipes-index--date" span="2">
   </colgroup>
-  <thead class="recipes-index--collapsible">
+  <thead class="data-table--collapsed-below-medium">
     <tr>
       <th>@Localizer["Label_Title"]</th>
-      <th class="data-table--right-aligned recipes-index--collapsible">@Localizer["Label_Added"]</th>
-      <th class="data-table--right-aligned recipes-index--collapsible">@Localizer["Label_Updated"]</th>
+      <th class="data-table--right-aligned data-table--collapsed-below-medium">@Localizer["Label_Added"]</th>
+      <th class="data-table--right-aligned data-table--collapsed-below-medium">@Localizer["Label_Updated"]</th>
     </tr>
   </thead>
   <tbody>
@@ -24,8 +24,8 @@
     {
       <tr>
         <td><a asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></td>
-        <td class="data-table--right-aligned recipes-index--collapsible"><user-date-time date-time="@recipe.Created" format="d"></user-date-time></td>
-        <td class="data-table--right-aligned recipes-index--collapsible"><user-date-time date-time="@recipe.Modified" format="d"></user-date-time></td>
+        <td class="data-table--right-aligned data-table--collapsed-below-medium"><user-date-time date-time="@recipe.Created" format="d"></user-date-time></td>
+        <td class="data-table--right-aligned data-table--collapsed-below-medium"><user-date-time date-time="@recipe.Modified" format="d"></user-date-time></td>
       </tr>
     }
   </tbody>
