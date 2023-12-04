@@ -1,4 +1,4 @@
-@top-bar-height: 48px;
+@top-bar-height: 3rem;
 @top-bar-border-color-1: darken(@color-blue, 5%);
 @top-bar-border-color-2: @color-grey;
 @top-bar-border-width: 1px;
@@ -21,15 +21,15 @@
   display: flex;
   grid-area: 1 / 2;
   justify-self: center;
-  min-height: @top-bar-height - (2 * @top-bar-focus-border-width);
-  padding: 0 (@padding - @top-bar-focus-border-width);
+  min-height: calc(@top-bar-height - (2 * @top-bar-focus-border-width));
+  padding: 0 calc(@padding - @top-bar-focus-border-width);
 }
 
 .top-bar__logotype {
   fill: @color-white;
-  height: 30px;
-  margin-top: 3px;
-  width: 114px;
+  height: 1.875em;
+  margin-top: 0.1875em;
+  width: 7.125em;
 }
 
 .top-bar__tabs {
@@ -41,7 +41,7 @@
   grid-template-columns: 50% 50%;
   list-style: none;
   margin: 0;
-  min-height: @top-bar-height - @top-bar-border-width;
+  min-height: calc(@top-bar-height - @top-bar-border-width);
   padding: 0;
 }
 
@@ -71,7 +71,7 @@
 #top-bar__menu-button {
   color: @color-white;
   display: none;
-  font-size: 18px;
+  font-size: 1.125em;
   font-weight: bold;
   grid-area: 1 / 3;
   width: @top-bar-height;
@@ -116,7 +116,7 @@
   }
 }
 
-@media (min-width: 520px) {
+@media (min-width: @small-breakpoint) {
   .top-bar__content {
     grid-template-columns: auto auto @top-bar-height;
   }
