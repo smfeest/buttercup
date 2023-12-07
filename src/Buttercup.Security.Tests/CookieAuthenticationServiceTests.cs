@@ -15,9 +15,8 @@ using Xunit;
 namespace Buttercup.Security;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
+public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCollection>
 {
-    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
@@ -27,22 +26,18 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
 
     private readonly CookieAuthenticationService cookieAuthenticationService;
 
-    public CookieAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
+    public CookieAuthenticationServiceTests(DatabaseFixture<DatabaseCollection> databaseFixture)
+        : base(databaseFixture)
     {
-        this.databaseFixture = databaseFixture;
         this.timeProvider = new(this.modelFactory.NextDateTime());
 
         this.cookieAuthenticationService = new(
             this.authenticationServiceMock.Object,
-            this.databaseFixture,
+            this.DatabaseFixture,
             this.logger,
             this.timeProvider,
             this.userPrincipalFactoryMock.Object);
     }
-
-    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     #region RefreshPrincipal
 
@@ -68,7 +63,7 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
         var authenticationProperties = new AuthenticationProperties();
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -120,7 +115,7 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
         var principal = new ClaimsPrincipal();
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -135,7 +130,7 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
 
         await this.cookieAuthenticationService.SignIn(httpContext, user);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Signs in principal
             this.authenticationServiceMock.Verify(
@@ -165,7 +160,7 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -181,7 +176,7 @@ public sealed class CookieAuthenticationServiceTests : IAsyncLifetime
 
         await this.cookieAuthenticationService.SignOut(httpContext);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Signs out user
             this.authenticationServiceMock.Verify(

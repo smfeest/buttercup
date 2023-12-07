@@ -14,9 +14,8 @@ using Xunit;
 namespace Buttercup.Security;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
+public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseCollection>
 {
-    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationMailer> authenticationMailerMock = new();
@@ -27,23 +26,19 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
 
     private readonly PasswordAuthenticationService passwordAuthenticationService;
 
-    public PasswordAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
+    public PasswordAuthenticationServiceTests(DatabaseFixture<DatabaseCollection> databaseFixture)
+        : base(databaseFixture)
     {
-        this.databaseFixture = databaseFixture;
         this.timeProvider = new(this.modelFactory.NextDateTime());
 
         this.passwordAuthenticationService = new(
             this.authenticationMailerMock.Object,
-            this.databaseFixture,
+            this.DatabaseFixture,
             this.logger,
             this.passwordHasherMock.Object,
             this.randomTokenGeneratorMock.Object,
             this.timeProvider);
     }
-
-    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     #region Authenticate
 
@@ -52,7 +47,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     {
         var args = this.BuildAuthenticateArgs();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(this.modelFactory.BuildUser());
             await dbContext.SaveChangesAsync();
@@ -61,7 +56,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -86,7 +81,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var args = this.BuildAuthenticateArgs();
         var user = this.modelFactory.BuildUser() with { Email = args.Email, HashedPassword = null };
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -95,7 +90,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -128,7 +123,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         this.SetupVerifyHashedPassword(
             user, hashedPassword, args.Password, PasswordVerificationResult.Failed);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -137,7 +132,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -170,7 +165,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         this.SetupVerifyHashedPassword(
             user, hashedPassword, args.Password, PasswordVerificationResult.Success);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -179,7 +174,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -220,7 +215,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             PasswordVerificationResult.SuccessRehashNeeded);
         var rehashedPassword = this.SetupHashPassword(userBefore, args.Password);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(userBefore);
             await dbContext.SaveChangesAsync();
@@ -229,7 +224,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -287,14 +282,14 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             .Setup(x => x.HashPassword(userBefore, args.Password))
             .Callback(() =>
             {
-                using var dbContext = this.databaseFixture.CreateDbContext();
+                using var dbContext = this.DatabaseFixture.CreateDbContext();
                 dbContext.Users.Attach(userAfterConcurrentModification);
                 userAfterConcurrentModification.Name = this.modelFactory.NextString("name");
                 userAfterConcurrentModification.Revision++;
                 dbContext.SaveChanges();
             });
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(userBefore);
             await dbContext.SaveChangesAsync();
@@ -303,7 +298,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -350,7 +345,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var args = this.BuildChangePasswordArgs();
         var user = this.modelFactory.BuildUser() with { Id = args.UserId, HashedPassword = null };
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -361,7 +356,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             () => this.passwordAuthenticationService.ChangePassword(
                 args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress));
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -384,7 +379,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         this.SetupVerifyHashedPassword(
             user, currentPasswordHash, args.CurrentPassword, PasswordVerificationResult.Failed);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -393,7 +388,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.ChangePassword(
             args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Does not attempt to hash new password
             this.passwordHasherMock.Verify(
@@ -442,7 +437,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var newPasswordHash = this.SetupHashPassword(userBefore, args.NewPassword);
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.AddRange(userBefore, otherUser);
             dbContext.PasswordResetTokens.AddRange(
@@ -453,7 +448,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.ChangePassword(
             args.UserId, args.CurrentPassword, args.NewPassword, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var expectedUserAfter = userBefore with
             {
@@ -512,7 +507,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var args = this.BuildPasswordResetTokenIsValidArgs();
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             dbContext.PasswordResetTokens.Add(
@@ -545,7 +540,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     {
         var args = this.BuildPasswordResetTokenIsValidArgs();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var user = this.modelFactory.BuildUser();
             dbContext.Users.Add(user);
@@ -562,7 +557,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
             args.Token, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -586,7 +581,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     {
         var args = this.BuildPasswordResetTokenIsValidArgs();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var user = this.modelFactory.BuildUser();
             dbContext.Users.Add(user);
@@ -603,7 +598,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
             args.Token, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -636,7 +631,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     {
         var args = this.BuildResetPasswordArgs();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var user = this.modelFactory.BuildUser();
             dbContext.Users.Add(user);
@@ -655,7 +650,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             () => this.passwordAuthenticationService.ResetPassword(
                 args.Token, args.NewPassword, args.IpAddress));
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -676,7 +671,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     {
         var args = this.BuildResetPasswordArgs();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var user = this.modelFactory.BuildUser();
             dbContext.Users.Add(user);
@@ -695,7 +690,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
             () => this.passwordAuthenticationService.ResetPassword(
                 args.Token, args.NewPassword, args.IpAddress));
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -728,7 +723,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var newPasswordHash = this.SetupHashPassword(userBefore, args.NewPassword);
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.AddRange(userBefore, otherUser);
             dbContext.PasswordResetTokens.AddRange(
@@ -739,7 +734,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         var result = await this.passwordAuthenticationService.ResetPassword(
             args.Token, args.NewPassword, args.IpAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var expectedUserAfter = userBefore with
             {
@@ -795,7 +790,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
     {
         var args = this.BuildSendPasswordResetLinkArgs();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(this.modelFactory.BuildUser());
             await dbContext.SaveChangesAsync();
@@ -804,7 +799,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         await this.passwordAuthenticationService.SendPasswordResetLink(
             args.Email, args.IpAddress, Mock.Of<IUrlHelper>());
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -837,7 +832,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
                     It.Is<object>(o => token.Equals(new RouteValueDictionary(o)["token"]))))
             .Returns(link);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -846,7 +841,7 @@ public sealed class PasswordAuthenticationServiceTests : IAsyncLifetime
         await this.passwordAuthenticationService.SendPasswordResetLink(
             args.Email, args.IpAddress, urlHelperMock.Object);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts password reset token
             Assert.Equal(

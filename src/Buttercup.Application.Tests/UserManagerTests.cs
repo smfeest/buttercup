@@ -6,24 +6,19 @@ using Xunit;
 namespace Buttercup.Application;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class UserManagerTests : IAsyncLifetime
+public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 {
-    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly FakeTimeProvider timeProvider;
     private readonly UserManager userManager;
 
-    public UserManagerTests(DatabaseCollectionFixture databaseFixture)
+    public UserManagerTests(DatabaseFixture<DatabaseCollection> databaseFixture)
+        : base(databaseFixture)
     {
-        this.databaseFixture = databaseFixture;
         this.timeProvider = new(this.modelFactory.NextDateTime());
-        this.userManager = new(this.databaseFixture, this.timeProvider);
+        this.userManager = new(this.DatabaseFixture, this.timeProvider);
     }
-
-    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     #region GetUser
 
@@ -32,7 +27,7 @@ public sealed class UserManagerTests : IAsyncLifetime
     {
         var expected = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(expected);
             await dbContext.SaveChangesAsync();
@@ -45,7 +40,7 @@ public sealed class UserManagerTests : IAsyncLifetime
     [Fact]
     public async Task GetUser_UserDoesNotExist()
     {
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(this.modelFactory.BuildUser());
             await dbContext.SaveChangesAsync();
@@ -68,7 +63,7 @@ public sealed class UserManagerTests : IAsyncLifetime
     {
         var original = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(original);
             await dbContext.SaveChangesAsync();
@@ -78,7 +73,7 @@ public sealed class UserManagerTests : IAsyncLifetime
 
         await this.userManager.SetTimeZone(original.Id, newTimeZone);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Updates user
             var expected = original with
@@ -95,7 +90,7 @@ public sealed class UserManagerTests : IAsyncLifetime
     [Fact]
     public async Task SetTimeZone_UserDoesNotExist()
     {
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(this.modelFactory.BuildUser());
             await dbContext.SaveChangesAsync();

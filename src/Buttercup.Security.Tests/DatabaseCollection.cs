@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Buttercup.TestUtils;
 using Xunit;
 
 namespace Buttercup.Security;
@@ -8,6 +9,6 @@ namespace Buttercup.Security;
     "Naming",
     "CA1711:IdentifiersShouldNotHaveIncorrectSuffix",
     Justification = "Represents an xUnit test collection")]
-public sealed class DatabaseCollection : ICollectionFixture<DatabaseCollectionFixture>
+public sealed class DatabaseCollection : ICollectionFixture<DatabaseFixture<DatabaseCollection>>
 {
 }

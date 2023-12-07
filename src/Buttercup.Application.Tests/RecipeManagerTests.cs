@@ -7,24 +7,19 @@ using Xunit;
 namespace Buttercup.Application;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class RecipeManagerTests : IAsyncLifetime
+public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 {
-    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly FakeTimeProvider timeProvider;
     private readonly RecipeManager recipeManager;
 
-    public RecipeManagerTests(DatabaseCollectionFixture databaseFixture)
+    public RecipeManagerTests(DatabaseFixture<DatabaseCollection> databaseFixture)
+        : base(databaseFixture)
     {
-        this.databaseFixture = databaseFixture;
         this.timeProvider = new(this.modelFactory.NextDateTime());
         this.recipeManager = new(databaseFixture, this.timeProvider);
     }
-
-    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     #region AddRecipe
 
@@ -35,7 +30,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var attributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: true));
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(currentUser);
             await dbContext.SaveChangesAsync();
@@ -43,7 +38,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
 
         var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var expected = new Recipe
             {
@@ -76,7 +71,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var attributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: false));
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(currentUser);
             await dbContext.SaveChangesAsync();
@@ -84,7 +79,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
 
         var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var actual = await dbContext.Recipes.FindAsync(id);
 
@@ -107,7 +102,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
     {
         var recipe = this.modelFactory.BuildRecipe();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.Add(recipe);
             await dbContext.SaveChangesAsync();
@@ -115,7 +110,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
 
         await this.recipeManager.DeleteRecipe(recipe.Id);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             Assert.False(await dbContext.Recipes.AnyAsync());
         }
@@ -124,7 +119,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
     [Fact]
     public async Task DeleteRecipe_ThrowsIfRecordNotFound()
     {
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
             await dbContext.SaveChangesAsync();
@@ -149,7 +144,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
         var recipeA = this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" };
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.AddRange(recipeB, recipeC, recipeA);
             await dbContext.SaveChangesAsync();
@@ -175,7 +170,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
     {
         var expected = this.modelFactory.BuildRecipe();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.Add(expected);
             await dbContext.SaveChangesAsync();
@@ -189,7 +184,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
     [Fact]
     public async Task GetRecipe_ThrowsIfRecordNotFound()
     {
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
             await dbContext.SaveChangesAsync();
@@ -220,7 +215,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             });
         }
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.AddRange(allRecipes);
             await dbContext.SaveChangesAsync();
@@ -269,7 +264,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
             BuildRecipe(1, 15),
         };
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Recipes.AddRange(allRecipes);
             await dbContext.SaveChangesAsync();
@@ -305,7 +300,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.AddRange(original, currentUser);
             await dbContext.SaveChangesAsync();
@@ -317,7 +312,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         await this.recipeManager.UpdateRecipe(
             original.Id, newAttributes, original.Revision, currentUser.Id);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var expected = new Recipe
             {
@@ -350,7 +345,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.AddRange(original, currentUser);
             await dbContext.SaveChangesAsync();
@@ -362,7 +357,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         await this.recipeManager.UpdateRecipe(
             original.Id, newAttributes, original.Revision, currentUser.Id);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var actual = await dbContext.Recipes.FindAsync(original.Id);
 
@@ -382,7 +377,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var otherRecipe = this.modelFactory.BuildRecipe();
         var currentUser = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.AddRange(otherRecipe, currentUser);
             await dbContext.SaveChangesAsync();
@@ -403,7 +398,7 @@ public sealed class RecipeManagerTests : IAsyncLifetime
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.AddRange(recipe, currentUser);
             await dbContext.SaveChangesAsync();

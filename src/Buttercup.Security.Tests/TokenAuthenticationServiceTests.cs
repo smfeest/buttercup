@@ -11,9 +11,8 @@ using Xunit;
 namespace Buttercup.Security;
 
 [Collection(nameof(DatabaseCollection))]
-public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
+public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseCollection>
 {
-    private readonly DatabaseCollectionFixture databaseFixture;
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAccessTokenEncoder> accessTokenEncoderMock = new();
@@ -22,21 +21,17 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
 
     private readonly TokenAuthenticationService tokenAuthenticationService;
 
-    public TokenAuthenticationServiceTests(DatabaseCollectionFixture databaseFixture)
+    public TokenAuthenticationServiceTests(DatabaseFixture<DatabaseCollection> databaseFixture)
+        : base(databaseFixture)
     {
-        this.databaseFixture = databaseFixture;
         this.timeProvider = new(this.modelFactory.NextDateTime());
 
         this.tokenAuthenticationService = new(
             this.accessTokenEncoderMock.Object,
-            this.databaseFixture,
+            this.DatabaseFixture,
             this.logger,
             this.timeProvider);
     }
-
-    public Task InitializeAsync() => this.databaseFixture.ClearDatabase();
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     #region IssueAccessToken
 
@@ -47,7 +42,7 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -60,7 +55,7 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
 
         var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(user, ipAddress);
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             // Inserts security event
             Assert.True(
@@ -171,7 +166,7 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
         var accessToken = this.modelFactory.NextString("access-token");
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
@@ -196,7 +191,7 @@ public sealed class TokenAuthenticationServiceTests : IAsyncLifetime
         var accessToken = this.modelFactory.NextString("access-token");
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.databaseFixture.CreateDbContext())
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
