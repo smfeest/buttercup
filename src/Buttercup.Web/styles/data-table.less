@@ -17,3 +17,24 @@
     }
   }
 }
+
+.data-table--collapsed-below-medium {
+  display: none;
+}
+
+@media (min-width: @medium-breakpoint) {
+  .data-table--collapsed-below-medium {
+    col& {
+      display: table-column;
+    }
+
+    thead& {
+      display: table-header-group;
+    }
+
+    td&,
+    th& {
+      display: table-cell;
+    }
+  }
+}

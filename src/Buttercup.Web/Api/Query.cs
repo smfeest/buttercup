@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Buttercup.EntityModel;
 using Buttercup.Security;
+using Buttercup.Web.Security;
 using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
@@ -26,4 +27,14 @@ public sealed class Query
     [Authorize]
     [UseProjection]
     public IQueryable<Recipe> Recipes(AppDbContext dbContext) => dbContext.Recipes;
+
+    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<User> User(AppDbContext dbContext, long id) =>
+        dbContext.Users.Where(u => u.Id == id);
+
+    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [UseProjection]
+    public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;
 }

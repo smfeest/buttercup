@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_Users">
+    <value>Utilisateurs</value>
+  </data>
+  <data name="Label_Name">
+    <value>Nom</value>
+  </data>
+  <data name="Label_EmailAddress">
+    <value>Adresse e-mail</value>
+  </data>
+  <data name="Label_Role">
+    <value>Rôle</value>
+  </data>
+  <data name="Label_Administrator">
+    <value>Administrateur</value>
+  </data>
+</root>

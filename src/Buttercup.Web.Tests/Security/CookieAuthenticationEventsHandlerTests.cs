@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Moq;
 using Xunit;
 
-namespace Buttercup.Web.Authentication;
+namespace Buttercup.Web.Security;
 
 public sealed class CookieAuthenticationEventsHandlerTests
 {

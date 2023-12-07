@@ -5,7 +5,7 @@ using Buttercup.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace Buttercup.Web.Authentication;
+namespace Buttercup.Web.Security;
 
 public sealed class CookieAuthenticationEventsHandler(
     IAuthenticationService authenticationService,

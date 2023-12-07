@@ -5,7 +5,7 @@ using Buttercup.Email;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web;
-using Buttercup.Web.Authentication;
+using Buttercup.Web.Security;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
@@ -23,7 +23,9 @@ var isDevelopment = builder.Environment.IsDevelopment();
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddControllersWithViews()
+services
+    .AddRouting(options => options.LowercaseUrls = true)
+    .AddControllersWithViews()
     .AddMvcOptions(options =>
     {
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
@@ -58,6 +60,7 @@ services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
+        options.AccessDeniedPath = "/access-denied";
         options.Cookie = new()
         {
             Name = "buttercup.auth",
@@ -69,6 +72,10 @@ services
     })
     .AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(
         TokenAuthenticationDefaults.AuthenticationScheme, null);
+
+services.AddAuthorization(
+    options => options.AddPolicy(
+        AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin)));
 
 services
     .Configure<Bugsnag.Configuration>(configuration.GetSection("Bugsnag"))

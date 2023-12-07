@@ -1,0 +1,8 @@
+﻿@inject IViewLocalizer Localizer
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Localizer["Title_AccessDenied"];
+}
+
+<h1>@Localizer["Title_AccessDenied"]</h1>
+<p>@Localizer["Message_AccessDenied"]</p>

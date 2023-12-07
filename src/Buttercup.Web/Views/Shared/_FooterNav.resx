@@ -3,6 +3,9 @@
   <data name="Label_YourAccount">
     <value>Your account</value>
   </data>
+  <data name="Label_Users">
+    <value>Users</value>
+  </data>
   <data name="Label_SignOut">
     <value>Sign out</value>
   </data>

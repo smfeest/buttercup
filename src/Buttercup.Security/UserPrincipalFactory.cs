@@ -8,7 +8,7 @@ internal sealed class UserPrincipalFactory : IUserPrincipalFactory
 {
     public ClaimsPrincipal Create(User user, string authenticationType)
     {
-        var claims = new Claim[]
+        var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
             new(ClaimTypes.Name, user.Name),
@@ -18,6 +18,11 @@ internal sealed class UserPrincipalFactory : IUserPrincipalFactory
             new(CustomClaimTypes.UserRevision,
                 user.Revision.ToString(CultureInfo.InvariantCulture)),
         };
+
+        if (user.IsAdmin)
+        {
+            claims.Add(new(ClaimTypes.Role, RoleNames.Admin));
+        }
 
         return new(new ClaimsIdentity(claims, authenticationType));
     }

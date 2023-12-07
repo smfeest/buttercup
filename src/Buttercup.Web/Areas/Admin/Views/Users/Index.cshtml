@@ -1,0 +1,34 @@
+﻿@inject IViewLocalizer Localizer
+@model User[]
+@{
+  ViewData["Title"] = Localizer["Title_Users"];
+}
+<h1>@Localizer["Title_Users"]</h1>
+<table class="data-table">
+  <colgroup>
+    <col span="2">
+    <col class="data-table--collapsed-below-medium">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>@Localizer["Label_Name"]</th>
+      <th>@Localizer["Label_EmailAddress"]</th>
+      <th class="data-table--collapsed-below-medium">@Localizer["Label_Role"]</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var user in Model!)
+    {
+      <tr>
+        <td>@user.Name</td>
+        <td>@user.Email</td>
+        <td class="data-table--collapsed-below-medium">
+          @if(user.IsAdmin)
+          {
+            <text>@Localizer["Label_Administrator"]</text>
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
