@@ -129,7 +129,9 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFactory<Ap
         return Convert.ToHexString(hash)[..10];
     }
 
-    Task IAsyncLifetime.InitializeAsync() => this.RecreateDatabase();
+    /// <inheritdoc/>
+    public Task InitializeAsync() => this.RecreateDatabase();
 
-    Task IAsyncLifetime.DisposeAsync() => this.DeleteDatabase();
+    /// <inheritdoc/>
+    public Task DisposeAsync() => this.DeleteDatabase();
 }

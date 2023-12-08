@@ -51,9 +51,7 @@ public sealed class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyn
         return client;
     }
 
-    Task IAsyncLifetime.InitializeAsync() =>
-        ((IAsyncLifetime)this.DatabaseFixture).InitializeAsync();
+    Task IAsyncLifetime.InitializeAsync() => this.DatabaseFixture.InitializeAsync();
 
-    Task IAsyncLifetime.DisposeAsync() =>
-        ((IAsyncLifetime)this.DatabaseFixture).DisposeAsync();
+    Task IAsyncLifetime.DisposeAsync() => this.DatabaseFixture.DisposeAsync();
 }
