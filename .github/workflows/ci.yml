@@ -39,13 +39,8 @@ jobs:
       - name: Report .NET test coverage
         if: ${{ hashFiles('**/coverage.cobertura.xml') }}
         run: |
-          dotnet reportgenerator \
-            -assemblyfilters:-Buttercup.EntityModel.Migrations \
-            -filefilters:-*.cshtml\;-*.g.cs \
-            -reports:**/coverage.cobertura.xml \
-            -targetdir:CoverageReports \
-            -reporttypes:TextSummary
-          cat CoverageReports/Summary.txt
+          ./scripts/build-dotnet-coverage-report.sh -reporttypes:TextSummary
+          cat coverage/Summary.txt
       - name: Run Jest tests
         run: npx jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
