@@ -41,7 +41,7 @@ jobs:
         run: |
           dotnet reportgenerator \
             -assemblyfilters:-Buttercup.EntityModel.Migrations \
-            -filefilters:-*.g.cs \
+            -filefilters:-*.cshtml\;-*.g.cs \
             -reports:**/coverage.cobertura.xml \
             -targetdir:CoverageReports \
             -reporttypes:TextSummary
