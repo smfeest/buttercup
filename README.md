@@ -82,6 +82,20 @@
       cd src/Buttercup.Web
       npx jest
 
+## Checking test coverage
+
+- To generate and open the .NET coverage report:
+
+      dotnet test --collect "XPlat Code Coverage"
+      ./scripts/build-dotnet-coverage-report.sh
+      open coverage/index.html
+
+- To generate and open the TypeScript coverage report:
+
+      cd src/Buttercup.Web
+      npx jest --coverage
+      open coverage/lcov-report/index.html
+
 ## Linting
 
 - To lint scripts:
