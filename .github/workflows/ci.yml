@@ -2,12 +2,12 @@ name: Web API / CI
 on:
   push:
   workflow_dispatch:
+env:
+  WEB_PROJECT_PATH: src/Buttercup.Web
 jobs:
   build:
     name: Build and test
     runs-on: ubuntu-22.04
-    env:
-      WEB_PROJECT_PATH: src/Buttercup.Web
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -65,3 +65,48 @@ jobs:
           name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           path: ${{env.WEB_PROJECT_PATH}}/publish-output
           retention-days: 3
+  e2e:
+    name: Test (e2e)
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: ${{env.WEB_PROJECT_PATH}}/package-lock.json
+      - name: Restore .NET tools
+        run: dotnet tool restore
+      - name: Restore Node.js dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Build .NET application
+        run: dotnet build --configuration Release
+      - name: Build assets
+        run: npx gulp build
+      - name: Start MySQL Server
+        run: sudo systemctl start mysql.service
+      - name: Create MySQL user
+        run: mysql -uroot -proot < ../../db/dev-user.sql
+      - name: Create application database
+        run: dotnet ef database update
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          Email__ApiKey: fake-key
+      - uses: actions/upload-artifact@v3
+        if: ${{ hashFiles('playwright-report/**') }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

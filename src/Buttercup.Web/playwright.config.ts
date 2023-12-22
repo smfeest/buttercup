@@ -28,7 +28,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'dotnet run',
+    command: `dotnet run --configuration ${
+      process.env.CI ? 'Release' : 'Debug'
+    }`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
