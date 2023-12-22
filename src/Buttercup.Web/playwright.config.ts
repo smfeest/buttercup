@@ -28,5 +28,9 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
+    {
+      name: 'mobile',
+      use: { ...devices['Pixel 5'] },
+    },
   ],
 });
