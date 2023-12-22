@@ -4,8 +4,10 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
+    "@playwright/test": "^1.40.1",
     "@tsconfig/recommended": "^1.0.2",
     "@types/jest": "^29.4.0",
+    "@types/node": "^20.10.5",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "del": "^7.0.0",
