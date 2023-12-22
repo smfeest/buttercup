@@ -4,6 +4,7 @@
     "ms-dotnettools.csharp",
     "dbaeumer.vscode-eslint",
     "stylelint.vscode-stylelint",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "ms-playwright.playwright"
   ]
 }
