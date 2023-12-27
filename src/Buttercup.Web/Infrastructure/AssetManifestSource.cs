@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using Microsoft.Extensions.FileProviders;
 
 namespace Buttercup.Web.Infrastructure;
 
@@ -9,39 +8,20 @@ public sealed class AssetManifestSource(
     IAssetManifestReader manifestReader)
     : IAssetManifestSource
 {
-    private readonly IFileProvider fileProvider = hostEnvironment.WebRootFileProvider;
-    private readonly IAssetManifestReader manifestReader = manifestReader;
-    private readonly object loadLock = new();
-    private readonly ILogger logger = logger;
-    private IDictionary<string, string>? productionManifest;
-
-    public IDictionary<string, string> ProductionManifest
+    private readonly Lazy<IDictionary<string, string>> productionManifest = new(() =>
     {
-        get
-        {
-            if (this.productionManifest == null)
-            {
-                lock (this.loadLock)
-                {
-                    if (this.productionManifest == null)
-                    {
-                        var path = System.IO.Path.Combine("prod-assets", "manifest.json");
+        var path = System.IO.Path.Combine("prod-assets", "manifest.json");
 
-                        LoggerMessages.LoadingManifest(this.logger, path, null);
+        LoggerMessages.LoadingManifest(logger, path, null);
 
-                        var fileInfo = this.fileProvider.GetFileInfo(path);
+        var fileInfo = hostEnvironment.WebRootFileProvider.GetFileInfo(path);
 
-                        using var stream = fileInfo.CreateReadStream();
+        using var stream = fileInfo.CreateReadStream();
 
-                        this.productionManifest = new ReadOnlyDictionary<string, string>(
-                            this.manifestReader.ReadManifest(stream));
-                    }
-                }
-            }
+        return new ReadOnlyDictionary<string, string>(manifestReader.ReadManifest(stream));
+    });
 
-            return this.productionManifest;
-        }
-    }
+    public IDictionary<string, string> ProductionManifest => this.productionManifest.Value;
 
     private static class LoggerMessages
     {
