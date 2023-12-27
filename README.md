@@ -77,10 +77,15 @@
 
       dotnet test
 
-- To run all TypeScript tests:
+- To run all Jest tests:
 
       cd src/Buttercup.Web
       npx jest
+
+- To run all Playwright end-to-end tests:
+
+      cd src/Buttercup.Web
+      npx playwright test
 
 ## Checking test coverage
 
