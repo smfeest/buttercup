@@ -88,7 +88,9 @@ services
     .AddSingleton<IAssetManifestSource, AssetManifestSource>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
-    .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
+    .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>()
+    .Configure<AssetHelperOptions>(options => options.UseProductionAssets = !isDevelopment)
+    .Configure<AssetHelperOptions>(configuration.GetSection("AssetHelper"));
 
 var app = builder.Build();
 
