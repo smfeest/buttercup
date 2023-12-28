@@ -32,7 +32,7 @@ jobs:
         run: dotnet build --configuration Release /WarnAsError
       - name: Start MySQL Server
         run: sudo systemctl start mysql.service
-      - name: Create MySQL users
+      - name: Create MySQL user
         run: mysql -uroot -proot < db/dev-user.sql
       - name: Run .NET tests
         run: dotnet test --no-build --configuration Release --collect "XPlat Code Coverage"
