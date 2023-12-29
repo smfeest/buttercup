@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-
 namespace Buttercup.Web.Infrastructure;
 
 public sealed class AssetManifestSource(
@@ -8,7 +6,7 @@ public sealed class AssetManifestSource(
     IAssetManifestReader manifestReader)
     : IAssetManifestSource
 {
-    private readonly Lazy<IDictionary<string, string>> productionManifest = new(() =>
+    private readonly Lazy<IReadOnlyDictionary<string, string>> productionManifest = new(() =>
     {
         var path = System.IO.Path.Combine("prod-assets", "manifest.json");
 
@@ -18,10 +16,10 @@ public sealed class AssetManifestSource(
 
         using var stream = fileInfo.CreateReadStream();
 
-        return new ReadOnlyDictionary<string, string>(manifestReader.ReadManifest(stream));
+        return manifestReader.ReadManifest(stream).AsReadOnly();
     });
 
-    public IDictionary<string, string> ProductionManifest => this.productionManifest.Value;
+    public IReadOnlyDictionary<string, string> ProductionManifest => this.productionManifest.Value;
 
     private static class LoggerMessages
     {

@@ -7,8 +7,8 @@ namespace Buttercup.Web.Infrastructure;
 
 public sealed class AssetManifestSourceTests
 {
-    private readonly IDictionary<string, string> expectedManifest =
-        new Dictionary<string, string>() { ["foo.js"] = "foo-80bef72723.js" };
+    private readonly Dictionary<string, string> expectedManifest =
+        new() { ["foo.js"] = "foo-80bef72723.js" };
     private readonly ListLogger<AssetManifestSource> logger = new();
     private readonly string manifestPath = Path.Combine("prod-assets", "manifest.json");
     private readonly Mock<IAssetManifestReader> manifestReaderMock = new();
@@ -43,13 +43,8 @@ public sealed class AssetManifestSourceTests
     }
 
     [Fact]
-    public void ProductionManifest_ReturnsManifestAsReadOnlyDictionary()
-    {
-        var actual = this.manifestSource.ProductionManifest;
-
-        Assert.True(actual.IsReadOnly);
-        Assert.Equal(this.expectedManifest, actual);
-    }
+    public void ProductionManifest_ReturnsManifest() =>
+        Assert.Equal(this.expectedManifest, this.manifestSource.ProductionManifest);
 
     [Fact]
     public void ProductionManifest_CachesResult()

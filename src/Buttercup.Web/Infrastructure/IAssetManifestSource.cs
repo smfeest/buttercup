@@ -11,5 +11,5 @@ public interface IAssetManifestSource
     /// <value>
     /// The production asset manifest as a dictionary of physical paths keyed by logical path.
     /// </value>
-    IDictionary<string, string> ProductionManifest { get; }
+    IReadOnlyDictionary<string, string> ProductionManifest { get; }
 }
