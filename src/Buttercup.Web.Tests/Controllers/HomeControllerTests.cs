@@ -9,27 +9,29 @@ namespace Buttercup.Web.Controllers;
 
 public sealed class HomeControllerTests
 {
-    private readonly ModelFactory modelFactory = new();
-
     #region Index
 
     [Fact]
     public async Task Index_ReturnsViewResultWithRecentlyAddedAndUpdatedRecipes()
     {
-        using var fixture = new HomeControllerFixture();
+        var modelFactory = new ModelFactory();
 
-        var recentlyAddedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        var recentlyAddedRecipes = new[] { modelFactory.BuildRecipe() };
         var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
-        var recentlyUpdatedRecipes = new[] { this.modelFactory.BuildRecipe() };
+        var recentlyUpdatedRecipes = new[] { modelFactory.BuildRecipe() };
 
-        fixture.MockRecipeManager
+        var recipeManagerMock = new Mock<IRecipeManager>();
+
+        recipeManagerMock
             .Setup(x => x.GetRecentlyAddedRecipes())
             .ReturnsAsync(recentlyAddedRecipes);
-        fixture.MockRecipeManager
+        recipeManagerMock
             .Setup(x => x.GetRecentlyUpdatedRecipes(recentlyAddedIds))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
-        var result = await fixture.HomeController.Index();
+        using var homeController = new HomeController(recipeManagerMock.Object);
+
+        var result = await homeController.Index();
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
@@ -39,16 +41,4 @@ public sealed class HomeControllerTests
     }
 
     #endregion
-
-    private sealed class HomeControllerFixture : IDisposable
-    {
-        public HomeControllerFixture() =>
-            this.HomeController = new(this.MockRecipeManager.Object);
-
-        public HomeController HomeController { get; }
-
-        public Mock<IRecipeManager> MockRecipeManager { get; } = new();
-
-        public void Dispose() => this.HomeController.Dispose();
-    }
 }
