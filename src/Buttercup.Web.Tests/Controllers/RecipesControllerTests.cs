@@ -9,22 +9,33 @@ using Xunit;
 
 namespace Buttercup.Web.Controllers;
 
-public sealed class RecipesControllerTests
+public sealed class RecipesControllerTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
+
+    private readonly DefaultHttpContext httpContext = new();
+    private readonly Mock<IStringLocalizer<RecipesController>> localizerMock = new();
+    private readonly Mock<IRecipeManager> recipeManagerMock = new();
+
+    private readonly RecipesController recipesController;
+
+    public RecipesControllerTests() =>
+        this.recipesController = new(this.localizerMock.Object, this.recipeManagerMock.Object)
+        {
+            ControllerContext = new() { HttpContext = this.httpContext },
+        };
+
+    public void Dispose() => this.recipesController.Dispose();
 
     #region Index
 
     [Fact]
     public async Task Index_ReturnsViewResultWithRecipes()
     {
-        using var fixture = new RecipesControllerFixture();
-
         IList<Recipe> recipes = Array.Empty<Recipe>();
+        this.recipeManagerMock.Setup(x => x.GetAllRecipes()).ReturnsAsync(recipes);
 
-        fixture.MockRecipeManager.Setup(x => x.GetAllRecipes()).ReturnsAsync(recipes);
-
-        var result = await fixture.RecipesController.Index();
+        var result = await this.recipesController.Index();
         var viewResult = Assert.IsType<ViewResult>(result);
 
         Assert.Same(recipes, viewResult.Model);
@@ -37,13 +48,10 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task Show_ReturnsViewResultWithRecipe()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var recipe = this.modelFactory.BuildRecipe();
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id)).ReturnsAsync(recipe);
 
-        fixture.MockRecipeManager.Setup(x => x.GetRecipe(3)).ReturnsAsync(recipe);
-
-        var result = await fixture.RecipesController.Show(3);
+        var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         Assert.Same(recipe, viewResult.Model);
@@ -56,10 +64,8 @@ public sealed class RecipesControllerTests
     [Fact]
     public void New_Get_ReturnsViewResult()
     {
-        using var fixture = new RecipesControllerFixture();
-
-        var result = fixture.RecipesController.New();
-        var viewResult = Assert.IsType<ViewResult>(result);
+        var result = this.recipesController.New();
+        Assert.IsType<ViewResult>(result);
     }
 
     #endregion
@@ -69,32 +75,29 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task New_Post_Success_AddsRecipeAndRedirectsToShowPage()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
+        var currentUserId = this.SetupCurrentUserId();
+        long recipeId = this.modelFactory.NextInt();
 
-        fixture.MockRecipeManager
-            .Setup(x => x.AddRecipe(attributes, fixture.CurrentUserId))
-            .ReturnsAsync(5);
+        this.recipeManagerMock
+            .Setup(x => x.AddRecipe(attributes, currentUserId))
+            .ReturnsAsync(recipeId);
 
-        var result = await fixture.RecipesController.New(attributes);
+        var result = await this.recipesController.New(attributes);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
         Assert.NotNull(redirectResult.RouteValues);
-        Assert.Equal(5L, redirectResult.RouteValues["id"]);
+        Assert.Equal(recipeId, redirectResult.RouteValues["id"]);
     }
 
     [Fact]
     public async Task New_Post_InvalidModel_ReturnsViewResultWithEditModel()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
+        this.recipesController.ModelState.AddModelError("test", "test");
 
-        fixture.RecipesController.ModelState.AddModelError("test", "test");
-
-        var result = await fixture.RecipesController.New(attributes);
+        var result = await this.recipesController.New(attributes);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(attributes, viewResult.Model);
@@ -107,13 +110,10 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var recipe = this.modelFactory.BuildRecipe();
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id)).ReturnsAsync(recipe);
 
-        fixture.MockRecipeManager.Setup(x => x.GetRecipe(5)).ReturnsAsync(recipe);
-
-        var result = await fixture.RecipesController.Edit(5);
+        var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         var expectedModel = EditRecipeViewModel.ForRecipe(recipe);
@@ -129,32 +129,28 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task Edit_Post_Success_UpdatesRecipeAndRedirectsToShowPage()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
+        var currentUserId = this.SetupCurrentUserId();
 
-        var result = await fixture.RecipesController.Edit(3, editModel);
+        var result = await this.recipesController.Edit(editModel.Id, editModel);
 
-        fixture.MockRecipeManager.Verify(
+        this.recipeManagerMock.Verify(
             x => x.UpdateRecipe(
-                3, editModel.Attributes, editModel.BaseRevision, fixture.CurrentUserId));
+                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
         Assert.NotNull(redirectResult.RouteValues);
-        Assert.Equal(3L, redirectResult.RouteValues["id"]);
+        Assert.Equal(editModel.Id, redirectResult.RouteValues["id"]);
     }
 
     [Fact]
     public async Task Edit_Post_InvalidModel_ReturnsViewResultWithEditModel()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
+        this.recipesController.ModelState.AddModelError("test", "test");
 
-        fixture.RecipesController.ModelState.AddModelError("test", "test");
-
-        var result = await fixture.RecipesController.Edit(3, editModel);
+        var result = await this.recipesController.Edit(editModel.Id, editModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(editModel, viewResult.Model);
@@ -163,24 +159,23 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task Edit_Post_ConcurrencyException_ReturnsViewResultAndAddsError()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
+        var currentUserId = this.SetupCurrentUserId();
 
-        fixture.MockLocalizer.SetupLocalizedString(
+        this.localizerMock.SetupLocalizedString(
             "Error_StaleEdit", "translated-stale-edit-error");
 
-        fixture.MockRecipeManager
+        this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
-                3, editModel.Attributes, editModel.BaseRevision, fixture.CurrentUserId))
+                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId))
             .ThrowsAsync(new ConcurrencyException());
 
-        var result = await fixture.RecipesController.Edit(3, editModel);
+        var result = await this.recipesController.Edit(editModel.Id, editModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(editModel, viewResult.Model);
 
-        var formState = fixture.RecipesController.ModelState[nameof(EditRecipeViewModel.Attributes)];
+        var formState = this.recipesController.ModelState[nameof(EditRecipeViewModel.Attributes)];
         Assert.NotNull(formState);
 
         var error = Assert.Single(formState.Errors);
@@ -194,13 +189,10 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
-        using var fixture = new RecipesControllerFixture();
-
         var recipe = this.modelFactory.BuildRecipe();
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id)).ReturnsAsync(recipe);
 
-        fixture.MockRecipeManager.Setup(x => x.GetRecipe(8)).ReturnsAsync(recipe);
-
-        var result = await fixture.RecipesController.Delete(8);
+        var result = await this.recipesController.Delete(recipe.Id);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(recipe, viewResult.Model);
@@ -213,16 +205,11 @@ public sealed class RecipesControllerTests
     [Fact]
     public async Task Delete_Post_DeletesRecipeAndRedirectsToIndexPage()
     {
-        using var fixture = new RecipesControllerFixture();
+        var recipeId = this.modelFactory.NextInt();
 
-        fixture.MockRecipeManager
-            .Setup(x => x.DeleteRecipe(6))
-            .Returns(Task.CompletedTask)
-            .Verifiable();
+        var result = await this.recipesController.DeletePost(recipeId);
 
-        var result = await fixture.RecipesController.DeletePost(6);
-
-        fixture.MockRecipeManager.Verify();
+        this.recipeManagerMock.Verify(x => x.DeleteRecipe(recipeId));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
@@ -230,30 +217,10 @@ public sealed class RecipesControllerTests
 
     #endregion
 
-    private sealed class RecipesControllerFixture : IDisposable
+    private long SetupCurrentUserId()
     {
-        public RecipesControllerFixture()
-        {
-            this.HttpContext.User = PrincipalFactory.CreateWithUserId(this.CurrentUserId);
-
-            this.RecipesController = new(
-                this.MockLocalizer.Object,
-                this.MockRecipeManager.Object)
-            {
-                ControllerContext = new() { HttpContext = this.HttpContext },
-            };
-        }
-
-        public DefaultHttpContext HttpContext { get; } = new();
-
-        public RecipesController RecipesController { get; }
-
-        public long CurrentUserId { get; } = new ModelFactory().NextInt();
-
-        public Mock<IStringLocalizer<RecipesController>> MockLocalizer { get; } = new();
-
-        public Mock<IRecipeManager> MockRecipeManager { get; } = new();
-
-        public void Dispose() => this.RecipesController.Dispose();
+        var userId = this.modelFactory.NextInt();
+        this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
+        return userId;
     }
 }
