@@ -17,7 +17,7 @@
 2.  Create the _buttercup_dev_ user that will be used to connect to the
     application and test databases:
 
-        mysql -u root -p < db/dev-user.sql
+        mysql -u root -p < scripts/create-dev-user.sql
 
 3.  Create the application database:
 
