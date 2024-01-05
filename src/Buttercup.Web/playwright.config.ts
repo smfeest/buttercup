@@ -27,7 +27,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `dotnet run --environment E2E --urls ${baseURL}`,
+    command: `dotnet run --environment E2E --urls ${baseURL} ${
+      process.env.CI ? '--configuration Release --no-build' : ''
+    }`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
   },

@@ -28,8 +28,11 @@ jobs:
       - name: Restore Node.js dependencies
         run: npm ci
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Build
+      - name: Build .NET solution
         run: dotnet build --configuration Release /WarnAsError
+      - name: Build assets
+        run: npx gulp build
+        working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Start MySQL Server
         run: sudo systemctl start mysql.service
       - name: Create MySQL user
@@ -44,6 +47,12 @@ jobs:
       - name: Run Jest tests
         run: npx jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Check formatting
         run: npx prettier -c .
         working-directory: ${{env.WEB_PROJECT_PATH}}
@@ -52,9 +61,6 @@ jobs:
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint styles
         run: npx stylelint --max-warnings 0 styles/
-        working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Build assets
-        run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Publish
         run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
