@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const baseURL = 'http://localhost:5005';
+
 export default defineConfig({
   outputDir: './.playwright/results',
   testDir: './e2e',
@@ -29,4 +31,9 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
   ],
+  webServer: {
+    command: `dotnet run --environment E2E --urls ${baseURL}`,
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+  },
 });
