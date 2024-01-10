@@ -9,6 +9,9 @@
   <data name="Label_NewRecipe">
     <value>New recipe</value>
   </data>
+  <data name="Label_ToggleMenu">
+    <value>Toggle menu</value>
+  </data>
   <data name="Label_SignedInAs">
     <value>Signed in as</value>
   </data>

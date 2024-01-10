@@ -9,6 +9,9 @@
   <data name="Label_NewRecipe">
     <value>Nouvelle recette</value>
   </data>
+  <data name="Label_ToggleMenu">
+    <value>Ouvrir ou fermer le menu</value>
+  </data>
   <data name="Label_SignedInAs">
     <value>Connecté en tant que</value>
   </data>

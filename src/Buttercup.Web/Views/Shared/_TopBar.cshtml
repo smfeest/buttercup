@@ -12,7 +12,7 @@
       <li class="top-bar__tab-item"><a class="top-bar__tab" asp-controller="Recipes" asp-action="Index">@Localizer["Label_AllRecipes"]</a></li>
       <li class="top-bar__tab-item"><a class="top-bar__tab" asp-controller="Recipes" asp-action="New">@Localizer["Label_NewRecipe"]</a></li>
     </ul>
-    <button id="top-bar__menu-button" type="button">⋮</button>
+    <button id="top-bar__menu-button" type="button" aria-label="@Localizer["Label_ToggleMenu"]">⋮</button>
     <ul id="top-bar__menu-popover" class="popover-menu">
       <li>
         <div class="popover-menu__item top-bar__user">
