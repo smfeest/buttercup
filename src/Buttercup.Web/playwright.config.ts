@@ -11,6 +11,8 @@ export default defineConfig({
     timeout: 1000,
   },
   use: {
+    locale: 'en-GB',
+    timezoneId: 'Europe/London',
     trace: 'on-first-retry',
   },
   projects: [
