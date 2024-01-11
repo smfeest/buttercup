@@ -21,15 +21,22 @@ export default defineConfig({
   },
   projects: [
     {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
       name: 'chromium',
+      dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox',
+      dependencies: ['setup'],
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
+      dependencies: ['setup'],
       use: { ...devices['Desktop Safari'] },
     },
   ],
