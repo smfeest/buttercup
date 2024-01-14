@@ -11,5 +11,6 @@ export class Navigation {
   public yourAccountLink = this.page.getByRole('link', {
     name: 'Your account',
   });
+  public usersLink = this.page.getByRole('link', { name: 'Users' });
   public signOutLink = this.page.getByRole('link', { name: 'Sign out' });
 }
