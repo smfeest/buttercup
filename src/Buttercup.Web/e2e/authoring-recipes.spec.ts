@@ -34,3 +34,26 @@ test('can add a recipe', async ({ page, api: { deleteRecipe } }) => {
     await deleteRecipe(recipeId);
   }
 });
+
+test('can edit a recipe', async ({
+  page,
+  api: { createRecipe, deleteRecipe },
+}) => {
+  const { id } = await createRecipe({ title: 'Glorious cheese sandwich' });
+
+  try {
+    await page.goto(`recipes/${id}`);
+    await page.getByRole('link', { name: 'Edit' }).click();
+
+    const recipeForm = new RecipeForm(page);
+
+    await expect(recipeForm.titleInput).toHaveValue('Glorious cheese sandwich');
+
+    await recipeForm.titleInput.fill('Spectacular cheese sandwich');
+    await recipeForm.saveButton.click();
+
+    await expect(page.locator('h1')).toHaveText('Spectacular cheese sandwich');
+  } finally {
+    await deleteRecipe(id);
+  }
+});
