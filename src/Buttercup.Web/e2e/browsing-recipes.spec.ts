@@ -38,3 +38,40 @@ test('can view a recipe', async ({
     await deleteRecipe(id);
   }
 });
+
+test('can find recipes by title', async ({
+  page,
+  api: { createRecipe, deleteRecipe },
+}) => {
+  const prefix = randomString();
+  const prefixedTitle = (title: string) => `${prefix} ${title}`;
+
+  const recipes = await Promise.all(
+    ['Chocolate cookie', 'Chocolate cake', 'Triple chocolate cookie'].map(
+      (title) => createRecipe({ title: prefixedTitle(title) })
+    )
+  );
+
+  try {
+    await page.goto('/');
+
+    const navigation = new Navigation(page);
+    await navigation.allRecipesButton.click();
+
+    await page.getByLabel('Find a recipe').fill(`${prefix} kie choc`);
+
+    await expect(
+      page.getByText(prefixedTitle('Chocolate cookie'))
+    ).toBeVisible();
+    await expect(
+      page.getByText(prefixedTitle('Chocolate cake'))
+    ).not.toBeVisible();
+    await expect(
+      page.getByText(prefixedTitle('Triple chocolate cookie'))
+    ).toBeVisible();
+  } finally {
+    for (const { id } of recipes) {
+      await deleteRecipe(id);
+    }
+  }
+});
