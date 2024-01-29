@@ -40,6 +40,7 @@ services
 services.AddGraphQLServer()
     .AddApiTypes()
     .AddAuthorization()
+    .AddMutationConventions()
     .AddProjections()
     .AllowIntrospection(isDevelopment)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
