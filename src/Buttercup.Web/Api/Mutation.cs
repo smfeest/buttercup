@@ -9,12 +9,12 @@ public sealed class Mutation
         [Service] IHttpContextAccessor httpContextAccessor,
         [Service] IPasswordAuthenticationService passwordAuthenticationService,
         [Service] ITokenAuthenticationService tokenAuthenticationService,
-        AuthenticateInput input)
+        string email,
+        string password)
     {
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
 
-        var user = await passwordAuthenticationService.Authenticate(
-            input.Email, input.Password, ipAddress);
+        var user = await passwordAuthenticationService.Authenticate(email, password, ipAddress);
 
         if (user == null)
         {
