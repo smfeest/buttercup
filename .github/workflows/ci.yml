@@ -10,13 +10,13 @@ jobs:
       WEB_PROJECT_PATH: src/Buttercup.Web
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
@@ -60,7 +60,7 @@ jobs:
         run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           path: ${{env.WEB_PROJECT_PATH}}/publish-output
