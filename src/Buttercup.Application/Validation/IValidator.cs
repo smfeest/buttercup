@@ -9,6 +9,28 @@ namespace Buttercup.Application.Validation;
 public interface IValidator<T> where T : notnull
 {
     /// <summary>
+    /// Validates an instance of <typeparamref name="T"/>, throwing an exception on failure.
+    /// </summary>
+    /// <param name="instance">
+    /// The object to validate.
+    /// </param>
+    /// <exception cref="ValidationException">
+    /// The object has validation errors.
+    /// </exception>
+    public void EnsureValid(T instance)
+    {
+        var validationErrors = new List<ValidationError>();
+
+        this.Validate(instance, validationErrors);
+
+        if (validationErrors.Count > 0)
+        {
+            throw new ValidationException(
+                $"{instance} has validation errors", new(validationErrors));
+        }
+    }
+
+    /// <summary>
     /// Validates an instance of <typeparamref name="T"/>.
     /// </summary>
     /// <param name="instance">
