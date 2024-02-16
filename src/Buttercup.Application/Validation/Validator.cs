@@ -3,8 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Buttercup.Application.Validation;
 
-internal sealed class Validator<T> : IValidator<T> where T : notnull
+internal sealed class Validator<T>(IValidationErrorLocalizer<T> errorLocalizer)
+    : IValidator<T> where T : notnull
 {
+    private readonly IValidationErrorLocalizer<T> errorLocalizer = errorLocalizer;
+
     private readonly List<ValidationAttribute> objectAttributes = GetObjectAttributes();
     private readonly List<ValidatedProperty> validatedProperties = GetValidatedProperties();
 
@@ -16,7 +19,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
 
         foreach (var attribute in this.objectAttributes)
         {
-            if (!TryValidate(validationContext, attribute, instance, validationErrors))
+            if (!this.TryValidate(validationContext, attribute, instance, validationErrors))
             {
                 valid = false;
             }
@@ -24,7 +27,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
 
         foreach (var property in this.validatedProperties)
         {
-            if (!TryValidateProperty(instance, validationContext, property, validationErrors))
+            if (!this.TryValidateProperty(instance, validationContext, property, validationErrors))
             {
                 valid = false;
             }
@@ -74,7 +77,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
         return validatedProperties;
     }
 
-    private static bool TryValidate(
+    private bool TryValidate(
         ValidationContext validationContext,
         ValidationAttribute attribute,
         object? value,
@@ -88,7 +91,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
         }
 
         validationErrors.Add(new(
-            validationResult.ErrorMessage!,
+            this.errorLocalizer.FormatMessage(validationContext, attribute),
             validationContext.ObjectInstance,
             validationContext.MemberName,
             value,
@@ -97,7 +100,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
         return false;
     }
 
-    private static bool TryValidateProperty(
+    private bool TryValidateProperty(
         T instance,
         ValidationContext validationContext,
         ValidatedProperty property,
@@ -112,7 +115,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
         var value = property.GetValue(instance);
 
         if (property.RequiredAttribute is not null &&
-            !TryValidate(propertyValidationContext, property.RequiredAttribute, value, errors))
+            !this.TryValidate(propertyValidationContext, property.RequiredAttribute, value, errors))
         {
             return false;
         }
@@ -121,7 +124,7 @@ internal sealed class Validator<T> : IValidator<T> where T : notnull
 
         foreach (var attribute in property.OtherAttributes)
         {
-            if (!TryValidate(propertyValidationContext, attribute, value, errors))
+            if (!this.TryValidate(propertyValidationContext, attribute, value, errors))
             {
                 valid = false;
             }

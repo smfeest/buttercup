@@ -27,6 +27,15 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
+    public void AddApplicationServices_AddsValidationErrorLocalizer() =>
+        Assert.Contains(
+            new ServiceCollection().AddApplicationServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IValidationErrorLocalizer<>) &&
+                serviceDescriptor.ImplementationType == typeof(ValidationErrorLocalizer<>) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddApplicationServices_AddsValidator() =>
         Assert.Contains(
             new ServiceCollection().AddApplicationServices(),
