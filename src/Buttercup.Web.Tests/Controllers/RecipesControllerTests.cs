@@ -1,5 +1,4 @@
 using Buttercup.Application;
-using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +31,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Index_ReturnsViewResultWithRecipes()
     {
-        IList<Recipe> recipes = [];
+        var recipes = new[] { this.modelFactory.BuildRecipe() };
         this.recipeManagerMock.Setup(x => x.GetAllRecipes()).ReturnsAsync(recipes);
 
         var result = await this.recipesController.Index();
