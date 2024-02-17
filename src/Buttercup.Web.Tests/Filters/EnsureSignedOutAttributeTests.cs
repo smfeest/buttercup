@@ -51,7 +51,7 @@ public sealed class EnsureSignedOutAttributeTests
 
     private static ActionExecutingContext CallOnActionExecuting(string? authenticationType)
     {
-        var user = new ClaimsPrincipal(new ClaimsIdentity([], authenticationType));
+        var user = new ClaimsPrincipal(new ClaimsIdentity(authenticationType));
 
         var httpContext = new DefaultHttpContext { User = user };
 
