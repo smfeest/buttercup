@@ -1,4 +1,3 @@
-using System.Globalization;
 using Bugsnag.AspNet.Core;
 using Buttercup.Application;
 using Buttercup.Email;
@@ -101,18 +100,8 @@ app.UseForwardedHeaders();
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
     DefaultRequestCulture = new("en-GB"),
-    SupportedCultures = new CultureInfo[]
-    {
-        new("en-GB"),
-        new("en"),
-        new("fr-FR"),
-        new("fr"),
-    },
-    SupportedUICultures = new CultureInfo[]
-    {
-        new("en-GB"),
-        new("fr"),
-    },
+    SupportedCultures = [new("en-GB"), new("en"), new("fr-FR"), new("fr")],
+    SupportedUICultures = [new("en-GB"), new("fr")],
 });
 
 app.UseStaticFiles();

@@ -285,7 +285,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         };
 
         var actual = await this.recipeManager.GetRecentlyUpdatedRecipes(
-            new[] { allRecipes[3].Id, allRecipes[8].Id });
+            [allRecipes[3].Id, allRecipes[8].Id]);
 
         Assert.Equal(expected, actual);
     }

@@ -29,8 +29,7 @@ public sealed class HandleNotFoundExceptionAttributeTests
 
     private static ExceptionContext CallOnException(Exception exception)
     {
-        var exceptionContext = new ExceptionContext(
-            new(new DefaultHttpContext(), new(), new()), Array.Empty<IFilterMetadata>())
+        var exceptionContext = new ExceptionContext(new(new DefaultHttpContext(), new(), new()), [])
         {
             Exception = exception,
         };

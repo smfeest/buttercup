@@ -97,9 +97,7 @@ public class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFactory<Ap
 
         static IEnumerable<object> Flatten(IEnumerable<object> input) =>
             input.SelectMany(
-                item => item is IEnumerable<object> enumerable ?
-                    Flatten(enumerable) :
-                    new[] { item });
+                item => item is IEnumerable<object> enumerable ? Flatten(enumerable) : [item]);
 
         dbContext.AddRange(Flatten(entities));
 

@@ -32,7 +32,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Index_ReturnsViewResultWithRecipes()
     {
-        IList<Recipe> recipes = Array.Empty<Recipe>();
+        IList<Recipe> recipes = [];
         this.recipeManagerMock.Setup(x => x.GetAllRecipes()).ReturnsAsync(recipes);
 
         var result = await this.recipesController.Index();

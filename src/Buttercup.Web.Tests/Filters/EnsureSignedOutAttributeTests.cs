@@ -51,8 +51,7 @@ public sealed class EnsureSignedOutAttributeTests
 
     private static ActionExecutingContext CallOnActionExecuting(string? authenticationType)
     {
-        var user = new ClaimsPrincipal(
-            new ClaimsIdentity(Array.Empty<Claim>(), authenticationType));
+        var user = new ClaimsPrincipal(new ClaimsIdentity([], authenticationType));
 
         var httpContext = new DefaultHttpContext { User = user };
 
@@ -60,10 +59,7 @@ public sealed class EnsureSignedOutAttributeTests
             new HttpRequestFeature { Path = RequestPath });
 
         var actionExecutingContext = new ActionExecutingContext(
-            new(httpContext, new(), new()),
-            Array.Empty<IFilterMetadata>(),
-            new Dictionary<string, object?>(),
-            new());
+            new(httpContext, new(), new()), [], new Dictionary<string, object?>(), new());
 
         new EnsureSignedOutAttribute().OnActionExecuting(actionExecutingContext);
 
