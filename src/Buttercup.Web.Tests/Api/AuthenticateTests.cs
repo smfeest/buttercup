@@ -18,7 +18,7 @@ public sealed class AuthenticateTests(AppFactory<AuthenticateTests> appFactory)
         await this.InsertUser();
 
         using var client = this.AppFactory.CreateClient();
-        using var response = await PostAuthenticateMutation(client, new(UserEmail, UserPassword));
+        using var response = await PostAuthenticateMutation(client, UserEmail, UserPassword);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -50,7 +50,7 @@ public sealed class AuthenticateTests(AppFactory<AuthenticateTests> appFactory)
 
         using var client = this.AppFactory.CreateClient();
         using var response = await PostAuthenticateMutation(
-            client, new(UserEmail, "incorrect-password"));
+            client, UserEmail, "incorrect-password");
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -70,7 +70,7 @@ public sealed class AuthenticateTests(AppFactory<AuthenticateTests> appFactory)
     }
 
     private static Task<HttpResponseMessage> PostAuthenticateMutation(
-        HttpClient client, AuthenticateInput input) =>
+        HttpClient client, string email, string password) =>
         client.PostQuery(
             @"mutation($input: AuthenticateInput!) {
                 authenticate(input: $input) {
@@ -81,5 +81,5 @@ public sealed class AuthenticateTests(AppFactory<AuthenticateTests> appFactory)
                     }
                 }
             }",
-            new { input });
+            new { input = new { email, password } });
 }
