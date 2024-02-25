@@ -2,7 +2,6 @@ using Buttercup.Application;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
@@ -13,13 +12,13 @@ public sealed class RecipesControllerTests : IDisposable
     private readonly ModelFactory modelFactory = new();
 
     private readonly DefaultHttpContext httpContext = new();
-    private readonly Mock<IStringLocalizer<RecipesController>> localizerMock = new();
+    private readonly DictionaryLocalizer<RecipesController> localizer = new();
     private readonly Mock<IRecipeManager> recipeManagerMock = new();
 
     private readonly RecipesController recipesController;
 
     public RecipesControllerTests() =>
-        this.recipesController = new(this.localizerMock.Object, this.recipeManagerMock.Object)
+        this.recipesController = new(this.localizer, this.recipeManagerMock.Object)
         {
             ControllerContext = new() { HttpContext = this.httpContext },
         };
@@ -161,8 +160,7 @@ public sealed class RecipesControllerTests : IDisposable
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
 
-        this.localizerMock.SetupLocalizedString(
-            "Error_StaleEdit", "translated-stale-edit-error");
+        this.localizer.Add("Error_StaleEdit", "translated-stale-edit-error");
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(

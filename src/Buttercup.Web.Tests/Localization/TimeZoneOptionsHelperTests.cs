@@ -1,5 +1,4 @@
 using Buttercup.TestUtils;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -8,7 +7,7 @@ namespace Buttercup.Web.Localization;
 
 public sealed class TimeZoneOptionsHelperTests
 {
-    private readonly Mock<IStringLocalizer<TimeZoneOptionsHelper>> localizerMock = new();
+    private readonly DictionaryLocalizer<TimeZoneOptionsHelper> localizer = new();
     private readonly FakeTimeProvider timeProvider = new();
     private readonly Mock<ITimeZoneRegistry> timeZoneRegistryMock = new();
 
@@ -16,9 +15,7 @@ public sealed class TimeZoneOptionsHelperTests
 
     public TimeZoneOptionsHelperTests() =>
         this.timeZoneOptionsHelper = new(
-            this.localizerMock.Object,
-            this.timeProvider,
-            this.timeZoneRegistryMock.Object);
+            this.localizer, this.timeProvider, this.timeZoneRegistryMock.Object);
 
     #region AllOptions
 
@@ -33,7 +30,7 @@ public sealed class TimeZoneOptionsHelperTests
                 TimeZoneInfo.CreateCustomTimeZone(
                     timeZoneId, new(offsetHours, 0, 0), string.Empty, string.Empty));
 
-            this.localizerMock.SetupLocalizedString($"City_{timeZoneId}", city);
+            this.localizer.Add($"City_{timeZoneId}", city);
         }
 
         AddFakeTimeZone("tz1/+3B", 3, "city-b");
@@ -107,19 +104,18 @@ public sealed class TimeZoneOptionsHelperTests
     {
         var offset = new TimeSpan(offsetHours, 0, 0);
         this.StubGetTimeZone(offset);
-        this.localizerMock
-            .SetupLocalizedString(expectedFormat, [offset], "localized-offset");
+        this.localizer.Add(expectedFormat, "localized-offset / {0:c}");
 
         var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
-        Assert.Equal("localized-offset", option.FormattedOffset);
+        Assert.Equal($"localized-offset / {offset:c}", option.FormattedOffset);
     }
 
     [Fact]
     public void OptionForTimeZone_ProvidesCity()
     {
         this.StubGetTimeZone();
-        this.localizerMock.SetupLocalizedString($"City_{FakeTimeZoneId}", "localized-city-name");
+        this.localizer.Add($"City_{FakeTimeZoneId}", "localized-city-name");
 
         var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 

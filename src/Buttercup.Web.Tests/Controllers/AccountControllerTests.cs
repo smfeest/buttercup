@@ -6,7 +6,6 @@ using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
@@ -18,7 +17,7 @@ public sealed class AccountControllerTests : IDisposable
 
     private readonly DefaultHttpContext httpContext = new();
     private readonly Mock<ICookieAuthenticationService> cookieAuthenticationServiceMock = new();
-    private readonly Mock<IStringLocalizer<AccountController>> localizerMock = new();
+    private readonly DictionaryLocalizer<AccountController> localizer = new();
     private readonly Mock<IPasswordAuthenticationService> passwordAuthenticationServiceMock = new();
     private readonly Mock<IUserManager> userManagerMock = new();
 
@@ -29,7 +28,7 @@ public sealed class AccountControllerTests : IDisposable
             this.userManagerMock.Object,
             this.cookieAuthenticationServiceMock.Object,
             this.passwordAuthenticationServiceMock.Object,
-            this.localizerMock.Object)
+            this.localizer)
         {
             ControllerContext = new() { HttpContext = this.httpContext },
         };
@@ -138,8 +137,7 @@ public sealed class AccountControllerTests : IDisposable
             .Setup(x => x.ChangePassword(userId, "current-password", "new-password", ipAddress))
             .ReturnsAsync(result);
 
-        this.localizerMock.SetupLocalizedString(
-            "Error_WrongPassword", "translated-wrong-password-error");
+        this.localizer.Add("Error_WrongPassword", "translated-wrong-password-error");
     }
 
     #endregion
