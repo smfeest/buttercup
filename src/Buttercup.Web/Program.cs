@@ -4,6 +4,7 @@ using Buttercup.Email;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web;
+using Buttercup.Web.Api;
 using Buttercup.Web.Security;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Infrastructure;
@@ -81,6 +82,7 @@ services
     .AddBugsnag();
 
 services
+    .AddTransient<IInputObjectValidatorFactory, InputObjectValidatorFactory>()
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
