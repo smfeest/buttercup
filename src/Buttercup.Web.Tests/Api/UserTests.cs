@@ -32,7 +32,7 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
             user.Revision,
         };
 
-        JsonAssert.ValueEquals(expected, dataElement.GetProperty("user"));
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("user"));
     }
 
     [Fact]

@@ -16,8 +16,8 @@ public static class JsonAssert
     };
 
     /// <summary>
-    /// Verifies that the deserialized value of a <see cref="JsonElement" /> is equal to a specified
-    /// value.
+    /// Verifies that the deserialized value of a <see cref="JsonElement" /> is equivalent to a
+    /// specified value.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -37,10 +37,10 @@ public static class JsonAssert
     /// When the deserialized value of <paramref name="element" /> is not equivalent to <paramref
     /// name="expected" />
     /// </exception>
-    public static void ValueEquals<TValue>(TValue expected, JsonElement element)
+    public static void Equivalent<TValue>(TValue expected, JsonElement element)
     {
         var actual = element.Deserialize<TValue>(JsonSerializerOptions);
-        Assert.Equal(expected, actual);
+        Assert.Equivalent(expected, actual, true);
     }
 
     /// <summary>
