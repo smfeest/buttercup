@@ -61,7 +61,7 @@ public sealed class UsersTests(AppFactory<UsersTests> appFactory)
         using var response = await client.PostQuery(UsersQuery);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        Assert.False(document.RootElement.TryGetProperty("data", out _));
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
         ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
     }
 }

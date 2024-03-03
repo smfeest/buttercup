@@ -56,7 +56,7 @@ public sealed class CreateRecipeTests(AppFactory<CreateRecipeTests> appFactory)
         using var response = await PostCreateRecipeMutation(client, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        Assert.False(document.RootElement.TryGetProperty("data", out _));
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
         ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
     }
 
