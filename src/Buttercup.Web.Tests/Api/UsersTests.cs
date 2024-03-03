@@ -47,7 +47,7 @@ public sealed class UsersTests(AppFactory<UsersTests> appFactory)
             user.Revision,
         });
 
-        JsonAssert.ValueEquals(expected, dataElement.GetProperty("users"));
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("users"));
     }
 
     [Fact]

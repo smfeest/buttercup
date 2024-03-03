@@ -1,3 +1,4 @@
+using Buttercup.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Buttercup.Application;
@@ -19,5 +20,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services) =>
         services
             .AddTransient<IRecipeManager, RecipeManager>()
-            .AddTransient<IUserManager, UserManager>();
+            .AddTransient<IUserManager, UserManager>()
+            .AddTransient(typeof(IValidationErrorLocalizer<>), typeof(ValidationErrorLocalizer<>))
+            .AddSingleton(typeof(IValidator<>), typeof(Validator<>));
 }

@@ -45,7 +45,7 @@ public sealed class CurrentUserTests(AppFactory<CurrentUserTests> appFactory)
             user.Modified,
         };
 
-        JsonAssert.ValueEquals(expected, dataElement.GetProperty("currentUser"));
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("currentUser"));
     }
 
     [Fact]

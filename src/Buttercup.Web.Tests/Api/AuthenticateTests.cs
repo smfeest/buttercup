@@ -55,7 +55,7 @@ public sealed class AuthenticateTests(AppFactory<AuthenticateTests> appFactory)
 
         var dataElement = ApiAssert.SuccessResponse(document);
 
-        JsonAssert.ValueEquals(new AuthenticatePayload(false), dataElement.GetProperty("authenticate"));
+        JsonAssert.Equivalent(new AuthenticatePayload(false), dataElement.GetProperty("authenticate"));
     }
 
     private async Task InsertUser()

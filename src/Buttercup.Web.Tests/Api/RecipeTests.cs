@@ -45,7 +45,7 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
             recipe.Revision
         };
 
-        JsonAssert.ValueEquals(expected, dataElement.GetProperty("recipe"));
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
     }
 
     [Fact]

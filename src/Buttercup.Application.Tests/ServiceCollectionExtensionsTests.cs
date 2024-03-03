@@ -1,3 +1,4 @@
+using Buttercup.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -24,6 +25,24 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.ServiceType == typeof(IUserManager) &&
                 serviceDescriptor.ImplementationType == typeof(UserManager) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
+    public void AddApplicationServices_AddsValidationErrorLocalizer() =>
+        Assert.Contains(
+            new ServiceCollection().AddApplicationServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IValidationErrorLocalizer<>) &&
+                serviceDescriptor.ImplementationType == typeof(ValidationErrorLocalizer<>) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
+    public void AddApplicationServices_AddsValidator() =>
+        Assert.Contains(
+            new ServiceCollection().AddApplicationServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IValidator<>) &&
+                serviceDescriptor.ImplementationType == typeof(Validator<>) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Singleton);
 
     #endregion
 }
