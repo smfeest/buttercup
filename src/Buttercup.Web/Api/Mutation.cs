@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.Security;
 using HotChocolate.Authorization;
 
@@ -65,5 +66,54 @@ public sealed class Mutation
 
         var id = await recipeManager.AddRecipe(attributes, claimsPrincipal.GetUserId());
         return new CreateRecipePayload(id);
+    }
+
+    /// <summary>
+    /// Updates a recipe.
+    /// </summary>
+    /// <param name="validatorFactory">
+    /// The input object validator factory.
+    /// </param>
+    /// <param name="recipeManager">
+    /// The recipe manager.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    /// <param name="attributes">
+    /// The recipe attributes.
+    /// </param>
+    /// <param name="baseRevision">
+    /// The base revision. Used for concurrency control.
+    /// </param>
+    [Authorize]
+    [Error<ConcurrencyException>]
+    [Error<NotFoundException>]
+    [Error<InputObjectValidationError>]
+    public async Task<MutationResult<UpdateRecipePayload>> UpdateRecipe(
+        [Service] IInputObjectValidatorFactory validatorFactory,
+        [Service] IRecipeManager recipeManager,
+        ClaimsPrincipal claimsPrincipal,
+        ISchema schema,
+        long id,
+        RecipeAttributes attributes,
+        int baseRevision)
+    {
+        var validator = validatorFactory.CreateValidator<RecipeAttributes>(schema);
+        var validationErrors = new List<InputObjectValidationError>();
+
+        if (!validator.Validate(attributes, ["input", "attributes"], validationErrors))
+        {
+            return new(validationErrors);
+        }
+
+        await recipeManager.UpdateRecipe(id, attributes, baseRevision, claimsPrincipal.GetUserId());
+        return new UpdateRecipePayload(id);
     }
 }
