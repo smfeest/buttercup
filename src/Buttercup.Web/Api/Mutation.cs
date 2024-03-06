@@ -69,6 +69,29 @@ public sealed class Mutation
     }
 
     /// <summary>
+    /// Deletes a recipe.
+    /// </summary>
+    /// <param name="recipeManager">
+    /// The recipe manager.
+    /// </param>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    [Authorize]
+    public async Task<DeleteRecipePayload> DeleteRecipe([Service] IRecipeManager recipeManager, long id)
+    {
+        try
+        {
+            await recipeManager.DeleteRecipe(id);
+            return new(true);
+        }
+        catch (NotFoundException)
+        {
+            return new(false);
+        }
+    }
+
+    /// <summary>
     /// Updates a recipe.
     /// </summary>
     /// <param name="validatorFactory">
