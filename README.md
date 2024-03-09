@@ -51,7 +51,7 @@
 
 ## Running the app
 
-1.  Change to the web project directory
+1.  Change to the web project directory:
 
         cd src/Buttercup.Web
 
@@ -67,7 +67,7 @@
 
         npx gulp watch
 
-4.  Run the app
+4.  Run the app:
 
         dotnet run
 
