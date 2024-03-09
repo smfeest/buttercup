@@ -19,6 +19,14 @@ const CREATE_RECIPE_QUERY = gql`
   }
 `;
 
+const DELETE_RECIPE_QUERY = gql`
+  mutation DeleteRecipe($id: Long!) {
+    deleteRecipe(input: { id: $id }) {
+      deleted
+    }
+  }
+`;
+
 const DEFAULT_RECIPE_ATTRIBUTES: RecipeAttributes = {
   title: 'Cheese sandwich',
   ingredients: ['2 slices of bread', 'Butter', 'Cheese'].join('\n'),
@@ -91,6 +99,9 @@ export const api = (baseUrl: string) => {
 
       const id = result.data.createRecipe.recipe.id;
       return { id, ...attributes };
+    },
+    async deleteRecipe(id: number) {
+      await client.mutation(DELETE_RECIPE_QUERY, { id });
     },
   };
 };
