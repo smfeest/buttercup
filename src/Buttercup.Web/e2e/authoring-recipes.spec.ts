@@ -57,3 +57,20 @@ test('can edit a recipe', async ({
     await deleteRecipe(id);
   }
 });
+
+test('can delete a recipe', async ({
+  page,
+  api: { createRecipe, deleteRecipe },
+}) => {
+  const { id } = await createRecipe();
+
+  try {
+    await page.goto(`recipes/${id}`);
+    await page.getByRole('link', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete forever' }).click();
+
+    await expect(page).toHaveTitle(/All recipes/);
+  } finally {
+    await deleteRecipe(id);
+  }
+});
