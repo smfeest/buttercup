@@ -73,14 +73,29 @@
 
 ## Running tests
 
+### .NET tests
+
 - To run all .NET tests:
 
       dotnet test
 
-- To run all TypeScript tests:
+### Jest tests
 
-      cd src/Buttercup.Web
-      npx jest
+1.  Change to the web project directory:
+
+        cd src/Buttercup.Web
+
+2.  Install node dependencies:
+
+        npm install
+
+3.  Run all tests once:
+
+        npx jest
+
+    Or run tests for changed files in watch mode:
+
+        npx jest --watch
 
 ## Checking test coverage
 
