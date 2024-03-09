@@ -126,4 +126,10 @@ app.MapGraphQL()
     })
     .AllowAnonymous();
 
+if (builder.Environment.IsEnvironment("E2E"))
+{
+    var dbInitializer = ActivatorUtilities.CreateInstance<E2eDatabaseInitializer>(app.Services);
+    await dbInitializer.EnsureInitialized();
+}
+
 app.Run();

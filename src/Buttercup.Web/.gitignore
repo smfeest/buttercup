@@ -1,0 +1,4 @@
+/.playwright/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
