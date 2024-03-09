@@ -39,19 +39,19 @@
 
         cd src/Buttercup.Web
 
-1.  Create a [SendGrid API key](https://app.sendgrid.com/settings/api_keys) with
+2.  Create a [SendGrid API key](https://app.sendgrid.com/settings/api_keys) with
     full access to _Mail Send_ > _Mail Send_ only, and add it as a user secret:
 
         dotnet user-secrets set "Email:ApiKey" "<replace-with-api-key>"
 
-1.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
+3.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
     add the corresponding notifier API key as a user secret:
 
         dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>"
 
 ## Running the app
 
-1.  Change to the web project directory
+1.  Change to the web project directory:
 
         cd src/Buttercup.Web
 
@@ -67,20 +67,35 @@
 
         npx gulp watch
 
-4.  Run the app
+4.  Run the app:
 
         dotnet run
 
 ## Running tests
 
+### .NET tests
+
 - To run all .NET tests:
 
       dotnet test
 
-- To run all TypeScript tests:
+### Jest tests
 
-      cd src/Buttercup.Web
-      npx jest
+1.  Change to the web project directory:
+
+        cd src/Buttercup.Web
+
+2.  Install node dependencies:
+
+        npm install
+
+3.  Run all tests once:
+
+        npx jest
+
+    Or run tests for changed files in watch mode:
+
+        npx jest --watch
 
 ## Checking test coverage
 
