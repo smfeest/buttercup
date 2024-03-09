@@ -9,6 +9,25 @@ const AUTHENTICATE_QUERY = gql`
   }
 `;
 
+const CREATE_RECIPE_QUERY = gql`
+  mutation CreateRecipe($attributes: RecipeAttributesInput!) {
+    createRecipe(input: { attributes: $attributes }) {
+      recipe {
+        id
+      }
+    }
+  }
+`;
+
+const DEFAULT_RECIPE_ATTRIBUTES: RecipeAttributes = {
+  title: 'Cheese sandwich',
+  ingredients: ['2 slices of bread', 'Butter', 'Cheese'].join('\n'),
+  method: [
+    'Spread butter on one side of each slice of bread',
+    'Place cheese between the slices',
+  ].join('\n'),
+};
+
 export const api = (baseUrl: string) => {
   const client = new Client({
     url: `${baseUrl}/graphql`,
@@ -54,5 +73,40 @@ export const api = (baseUrl: string) => {
 
   return {
     client,
+    async createRecipe(
+      explicitAttributes: Partial<RecipeAttributes> = {}
+    ): Promise<Recipe> {
+      const attributes = {
+        ...DEFAULT_RECIPE_ATTRIBUTES,
+        ...explicitAttributes,
+      };
+
+      const result = await client.mutation<{
+        createRecipe: { recipe: { id: number } };
+      }>(CREATE_RECIPE_QUERY, { attributes });
+
+      if (!result.data) {
+        throw new Error('Failed to insert recipe');
+      }
+
+      const id = result.data.createRecipe.recipe.id;
+      return { id, ...attributes };
+    },
   };
 };
+
+export interface RecipeAttributes {
+  title: string;
+  preparationMinutes?: number;
+  cookingMinutes?: number;
+  servings?: number;
+  ingredients: string;
+  method: string;
+  suggestions?: string;
+  remarks?: string;
+  source?: string;
+}
+
+export interface Recipe extends RecipeAttributes {
+  id: number;
+}
