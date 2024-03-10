@@ -13,7 +13,7 @@ export default class PopoverMenu {
     public document: Document,
     public button: HTMLElement,
     public popover: HTMLElement,
-    public popoverOptions?: Options
+    public popoverOptions?: Options,
   ) {
     if (!button.id) {
       let i = 0;
@@ -66,7 +66,7 @@ export default class PopoverMenu {
       this.popper = createPopper(
         this.button,
         this.popover,
-        this.popoverOptions
+        this.popoverOptions,
       );
 
       this.popover.classList.add('popover-menu--open');

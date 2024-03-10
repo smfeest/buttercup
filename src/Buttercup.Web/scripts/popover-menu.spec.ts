@@ -97,7 +97,7 @@ describe('PopoverMenu', () => {
       initializePopoverMenu();
 
       expect(popover.getAttribute('aria-labelledby')).toEqual(
-        'sample-button-id'
+        'sample-button-id',
       );
     });
 
@@ -195,7 +195,7 @@ describe('PopoverMenu', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(popover.getAttribute('data-popper-placement')).toEqual(
-        'left-start'
+        'left-start',
       );
     });
 

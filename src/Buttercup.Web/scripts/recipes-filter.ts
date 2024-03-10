@@ -6,8 +6,8 @@ export default (filterInput: HTMLInputElement, table: HTMLTableElement) => {
     rows.forEach(({ element, text }) =>
       element.classList.toggle(
         'recipes-index--hidden',
-        !tokens.every((token) => text.includes(token))
-      )
+        !tokens.every((token) => text.includes(token)),
+      ),
     );
   };
 
@@ -15,7 +15,7 @@ export default (filterInput: HTMLInputElement, table: HTMLTableElement) => {
     rows.push({
       element,
       text: element.firstElementChild!.textContent!.toLocaleLowerCase(),
-    })
+    }),
   );
 
   filterInput.addEventListener('input', apply);

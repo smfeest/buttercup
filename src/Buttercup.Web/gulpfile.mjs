@@ -51,14 +51,14 @@ function revisionAssetsInStream(stream) {
       rev.manifest(paths.prodAssetManifest, {
         base: paths.assets,
         merge: true,
-      })
+      }),
     )
     .pipe(dest(paths.prodAssets));
 }
 
 function revisionStaticAssets() {
   return revisionAssetsInStream(
-    src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets })
+    src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets }),
   );
 }
 
@@ -66,7 +66,7 @@ function revisionStyles() {
   return revisionAssetsInStream(
     src(`${paths.styleAssets}/*.css`, { base: paths.assets })
       .pipe(revReplace({ manifest: src(paths.prodAssetManifest) }))
-      .pipe(cleanCss())
+      .pipe(cleanCss()),
   );
 }
 
@@ -110,8 +110,8 @@ function webpackScripts(config) {
         output: { filename: 'scripts/[name].js' },
         ...config,
       },
-      webpack
-    )
+      webpack,
+    ),
   );
 }
 
@@ -120,8 +120,8 @@ const build = parallel(
   series(
     parallel(bundleStyles, revisionStaticAssets),
     bundleAndRevisionProductionScripts,
-    revisionStyles
-  )
+    revisionStyles,
+  ),
 );
 
 const rebuild = series(clean, build);
