@@ -14,9 +14,9 @@ const storeAuthenticatedState = async (page: Page, username: string) => {
 };
 
 setup('store authenticated admin state', ({ page }) =>
-  storeAuthenticatedState(page, 'e2e-admin')
+  storeAuthenticatedState(page, 'e2e-admin'),
 );
 
 setup('store authenticated user state', ({ page }) =>
-  storeAuthenticatedState(page, 'e2e-user')
+  storeAuthenticatedState(page, 'e2e-user'),
 );

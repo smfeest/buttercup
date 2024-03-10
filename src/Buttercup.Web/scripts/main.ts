@@ -11,18 +11,18 @@ import recipesFilter from './recipes-filter';
       document,
       topBarMenuButton,
       document.getElementById('top-bar__menu-popover')!,
-      { placement: 'bottom-end' }
+      { placement: 'bottom-end' },
     );
   }
 
   const recipeFilterInput = document.getElementById(
-    'recipe-index__filter'
+    'recipe-index__filter',
   ) as HTMLInputElement;
 
   if (recipeFilterInput) {
     recipesFilter(
       recipeFilterInput,
-      document.getElementById('recipes-index__table') as HTMLTableElement
+      document.getElementById('recipes-index__table') as HTMLTableElement,
     );
   }
 })();

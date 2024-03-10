@@ -55,7 +55,7 @@ export const api = (baseUrl: string) => {
           },
           didAuthError(error) {
             return error.graphQLErrors.some(
-              (e) => e.extensions?.code === 'AUTH_NOT_AUTHORIZED'
+              (e) => e.extensions?.code === 'AUTH_NOT_AUTHORIZED',
             );
           },
           async refreshAuth() {
@@ -82,7 +82,7 @@ export const api = (baseUrl: string) => {
   return {
     client,
     async createRecipe(
-      explicitAttributes: Partial<RecipeAttributes> = {}
+      explicitAttributes: Partial<RecipeAttributes> = {},
     ): Promise<Recipe> {
       const attributes = {
         ...DEFAULT_RECIPE_ATTRIBUTES,

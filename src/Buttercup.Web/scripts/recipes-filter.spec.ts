@@ -53,10 +53,10 @@ describe('recipesFilter', () => {
     initializeFilter('apple');
 
     expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
-      false
+      false,
     );
     expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(
-      true
+      true,
     );
     expect(rows.pizza.classList.contains('recipes-index--hidden')).toBe(false);
   });
@@ -67,10 +67,10 @@ describe('recipesFilter', () => {
     triggerFilterInput('pie');
 
     expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
-      false
+      false,
     );
     expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(
-      false
+      false,
     );
     expect(rows.pizza.classList.contains('recipes-index--hidden')).toBe(true);
 
@@ -83,7 +83,7 @@ describe('recipesFilter', () => {
     initializeFilter('pizza   appl ha');
 
     expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
-      true
+      true,
     );
     expect(rows.pizza.classList.contains('recipes-index--hidden')).toBe(false);
   });
@@ -92,10 +92,10 @@ describe('recipesFilter', () => {
     initializeFilter('cHiCkEn');
 
     expect(rows.applePie.classList.contains('recipes-index--hidden')).toBe(
-      true
+      true,
     );
     expect(rows.chickenPie.classList.contains('recipes-index--hidden')).toBe(
-      false
+      false,
     );
   });
 });

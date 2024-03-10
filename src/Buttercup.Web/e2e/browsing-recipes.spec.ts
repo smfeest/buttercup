@@ -48,8 +48,8 @@ test('can find recipes by title', async ({
 
   const recipes = await Promise.all(
     ['Chocolate cookie', 'Chocolate cake', 'Triple chocolate cookie'].map(
-      (title) => createRecipe({ title: prefixedTitle(title) })
-    )
+      (title) => createRecipe({ title: prefixedTitle(title) }),
+    ),
   );
 
   try {
@@ -61,13 +61,13 @@ test('can find recipes by title', async ({
     await page.getByLabel('Find a recipe').fill(`${prefix} kie choc`);
 
     await expect(
-      page.getByText(prefixedTitle('Chocolate cookie'))
+      page.getByText(prefixedTitle('Chocolate cookie')),
     ).toBeVisible();
     await expect(
-      page.getByText(prefixedTitle('Chocolate cake'))
+      page.getByText(prefixedTitle('Chocolate cake')),
     ).not.toBeVisible();
     await expect(
-      page.getByText(prefixedTitle('Triple chocolate cookie'))
+      page.getByText(prefixedTitle('Triple chocolate cookie')),
     ).toBeVisible();
   } finally {
     for (const { id } of recipes) {
