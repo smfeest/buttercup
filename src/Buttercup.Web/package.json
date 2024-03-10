@@ -12,7 +12,7 @@
     "@typescript-eslint/parser": "^7.1.1",
     "@urql/core": "^4.3.0",
     "@urql/exchange-auth": "^2.1.6",
-    "del": "^7.0.0",
+    "del": "^7.1.0",
     "eslint": "^8.35.0",
     "gulp": "^4.0.2",
     "gulp-clean-css": "^4.3.0",
