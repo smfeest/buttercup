@@ -18,6 +18,9 @@
   <data name="Label_Updated">
     <value>Updated</value>
   </data>
+  <data name="Label_TimeAndUser">
+    <value>{0} by {1}</value>
+  </data>
   <data name="Label_Ingredients">
     <value>Ingredients</value>
   </data>
