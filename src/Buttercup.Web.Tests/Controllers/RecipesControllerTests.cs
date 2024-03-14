@@ -47,7 +47,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, true)).ReturnsAsync(recipe);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);

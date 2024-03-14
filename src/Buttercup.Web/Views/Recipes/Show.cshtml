@@ -37,13 +37,31 @@
   }
   <tr>
     <th>@Localizer["Label_Added"]</th>
-    <td>@Html.UserDateTime(Model.Created)</td>
+    <td>
+      @if (Model.CreatedByUser == null)
+      {
+        @Html.UserDateTime(Model.Created)
+      }
+      else
+      {
+        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Created), Model.CreatedByUser.Name]
+      }
+    </td>
   </tr>
   @if (Model.Modified > Model.Created)
   {
     <tr>
       <th>@Localizer["Label_Updated"]</th>
-      <td>@Html.UserDateTime(Model.Modified)</td>
+      <td>
+      @if (Model.ModifiedByUser == null)
+      {
+        @Html.UserDateTime(Model.Modified)
+      }
+      else
+      {
+        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Modified), Model.ModifiedByUser.Name]
+      }
+      </td>
     </tr>
   }
 </table>

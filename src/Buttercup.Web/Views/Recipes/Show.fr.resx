@@ -18,6 +18,9 @@
   <data name="Label_Updated">
     <value>Modifié</value>
   </data>
+  <data name="Label_TimeAndUser">
+    <value>{0} par {1}</value>
+  </data>
   <data name="Label_Ingredients">
     <value>Ingrédients</value>
   </data>
