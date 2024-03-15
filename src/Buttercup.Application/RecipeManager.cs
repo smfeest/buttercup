@@ -54,11 +54,18 @@ internal sealed class RecipeManager(
         return await dbContext.Recipes.OrderBy(r => r.Title).ToArrayAsync();
     }
 
-    public async Task<Recipe> GetRecipe(long id)
+    public async Task<Recipe> GetRecipe(long id, bool includeCreatedAndModifiedByUser = false)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Recipes.FindAsync(id) ?? throw RecipeNotFound(id);
+        IQueryable<Recipe> queryable = dbContext.Recipes;
+
+        if (includeCreatedAndModifiedByUser)
+        {
+            queryable = queryable.Include(r => r.CreatedByUser).Include(r => r.ModifiedByUser);
+        }
+
+        return await queryable.GetAsync(id);
     }
 
     public async Task<IList<Recipe>> GetRecentlyAddedRecipes()
