@@ -44,7 +44,8 @@ public interface IRecipeManager
     Task<IList<Recipe>> GetAllRecipes();
 
     /// <summary>
-    /// Gets a recipe.
+    /// Gets a recipe without populating <see cref="Recipe.CreatedByUser"/> and <see
+    /// cref="Recipe.ModifiedByUser"/>.
     /// </summary>
     /// <param name="id">
     /// The recipe ID.
@@ -56,6 +57,27 @@ public interface IRecipeManager
     /// No matching recipe was found.
     /// </exception>
     Task<Recipe> GetRecipe(long id);
+
+    /// <summary>
+    /// Gets a recipe.
+    /// </summary>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    /// <param name="includeCreatedByUser">
+    /// <b>true</b> to populate <see cref="Recipe.CreatedByUser"/>, <b>false</b> otherwise.
+    /// </param>
+    /// <param name="includeModifiedByUser">
+    /// <b>true</b> to populate <see cref="Recipe.ModifiedByUser"/>, <b>false</b> otherwise.
+    /// </param>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    /// <exception cref="NotFoundException">
+    /// No matching recipe was found.
+    /// </exception>
+    Task<Recipe> GetRecipe(
+        long id, bool includeCreatedByUser = false, bool includeModifiedByUser = false);
 
     /// <summary>
     /// Gets the ten most recently added recipes.
