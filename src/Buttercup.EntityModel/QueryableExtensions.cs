@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
@@ -7,6 +8,33 @@ namespace Buttercup.EntityModel;
 /// </summary>
 public static class QueryableExtensions
 {
+    /// <summary>
+    /// Conditionally includes related data in a query.
+    /// </summary>
+    /// <typeparam name="TEntity">
+    /// The type of entity being queried.
+    /// </typeparam>
+    /// <typeparam name="TProperty">
+    /// The type of the related entity to be included.
+    /// </typeparam>
+    /// <param name="source">
+    /// The source query.
+    /// </param>
+    /// <param name="navigationPropertyPath"></param>
+    /// <param name="include">
+    /// <b>true</b> if the related data identified by <paramref name="navigationPropertyPath"/> is
+    /// to be included, <b>false</b> otherwise.
+    /// </param>
+    /// <returns>
+    /// <paramref name="source"/> if <paramref name="include"/> is false, otherwise a new query with
+    /// the related data included.
+    /// </returns>
+    public static IQueryable<TEntity> IncludeIf<TEntity, TProperty>(
+        this IQueryable<TEntity> source,
+        Expression<Func<TEntity, TProperty>> navigationPropertyPath,
+        bool include) where TEntity : class =>
+        include ? source.Include(navigationPropertyPath) : source;
+
     /// <summary>
     /// Finds an entity by ID.
     /// </summary>
