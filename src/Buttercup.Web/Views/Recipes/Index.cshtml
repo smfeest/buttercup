@@ -24,8 +24,8 @@
     {
       <tr>
         <td><a asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></td>
-        <td class="data-table--right-aligned data-table--collapsed-below-medium"><user-date-time date-time="@recipe.Created" format="d"></user-date-time></td>
-        <td class="data-table--right-aligned data-table--collapsed-below-medium"><user-date-time date-time="@recipe.Modified" format="d"></user-date-time></td>
+        <td class="data-table--right-aligned data-table--collapsed-below-medium">@Html.UserDateTime(recipe.Created, "d")</td>
+        <td class="data-table--right-aligned data-table--collapsed-below-medium">@Html.UserDateTime(recipe.Modified, "d")</td>
       </tr>
     }
   </tbody>

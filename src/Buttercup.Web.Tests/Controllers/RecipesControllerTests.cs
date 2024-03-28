@@ -47,7 +47,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id)).ReturnsAsync(recipe);
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, true)).ReturnsAsync(recipe);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -109,7 +109,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id)).ReturnsAsync(recipe);
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
 
         var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -187,7 +187,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id)).ReturnsAsync(recipe);
+        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
 
         var result = await this.recipesController.Delete(recipe.Id);
 

@@ -23,7 +23,7 @@ public sealed class RecipesController(
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id) =>
-        this.View(await this.RecipeManager.GetRecipe(id));
+        this.View(await this.RecipeManager.GetRecipe(id, includeCreatedAndModifiedByUser: true));
 
     [HttpGet("new")]
     public IActionResult New() => this.View();
