@@ -8,7 +8,7 @@ namespace Buttercup.EntityModel;
 /// Represents a recipe.
 /// </summary>
 [Index(nameof(Deleted))]
-public sealed record Recipe : IEntityId
+public sealed record Recipe : IEntityId, ISoftDeletable
 {
     /// <summary>
     /// Gets or sets the primary key of the recipe.
