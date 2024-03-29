@@ -3,8 +3,8 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class DeleteRecipeTests(AppFactory<DeleteRecipeTests> appFactory)
-    : EndToEndTests<DeleteRecipeTests>(appFactory)
+public sealed class HardDeleteRecipeTests(AppFactory<HardDeleteRecipeTests> appFactory)
+    : EndToEndTests<HardDeleteRecipeTests>(appFactory)
 {
     [Fact]
     public async Task DeletingRecipe()
@@ -19,7 +19,7 @@ public sealed class DeleteRecipeTests(AppFactory<DeleteRecipeTests> appFactory)
 
         var deleted = ApiAssert
             .SuccessResponse(document)
-            .GetProperty("deleteRecipe")
+            .GetProperty("hardDeleteRecipe")
             .GetProperty("deleted")
             .GetBoolean();
         Assert.True(deleted);
@@ -48,7 +48,7 @@ public sealed class DeleteRecipeTests(AppFactory<DeleteRecipeTests> appFactory)
 
         var deleted = ApiAssert
             .SuccessResponse(document)
-            .GetProperty("deleteRecipe")
+            .GetProperty("hardDeleteRecipe")
             .GetProperty("deleted")
             .GetBoolean();
         Assert.False(deleted);
@@ -57,7 +57,7 @@ public sealed class DeleteRecipeTests(AppFactory<DeleteRecipeTests> appFactory)
     private static Task<HttpResponseMessage> PostDeleteRecipeMutation(HttpClient client, long id) =>
         client.PostQuery(
             @"mutation($id: Long!) {
-                deleteRecipe(input: { id: $id }) {
+                hardDeleteRecipe(input: { id: $id }) {
                     deleted
                 }
             }",

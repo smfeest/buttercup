@@ -69,7 +69,7 @@ public sealed class Mutation
     }
 
     /// <summary>
-    /// Deletes a recipe.
+    /// Hard-deletes a recipe.
     /// </summary>
     /// <param name="recipeManager">
     /// The recipe manager.
@@ -78,7 +78,8 @@ public sealed class Mutation
     /// The recipe ID.
     /// </param>
     [Authorize]
-    public async Task<DeleteRecipePayload> DeleteRecipe([Service] IRecipeManager recipeManager, long id)
+    public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
+        [Service] IRecipeManager recipeManager, long id)
     {
         try
         {

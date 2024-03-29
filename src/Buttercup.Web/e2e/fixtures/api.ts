@@ -21,7 +21,7 @@ const CREATE_RECIPE_QUERY = gql`
 
 const DELETE_RECIPE_QUERY = gql`
   mutation DeleteRecipe($id: Long!) {
-    deleteRecipe(input: { id: $id }) {
+    hardDeleteRecipe(input: { id: $id }) {
       deleted
     }
   }
