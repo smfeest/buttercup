@@ -90,7 +90,7 @@ public sealed class RecipesController(
     [HttpPost("{id}/delete")]
     public async Task<IActionResult> DeletePost(long id)
     {
-        await this.RecipeManager.DeleteRecipe(id);
+        await this.RecipeManager.HardDeleteRecipe(id);
 
         return this.RedirectToAction(nameof(this.Index));
     }

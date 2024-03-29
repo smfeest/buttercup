@@ -82,7 +82,7 @@ public sealed class Mutation
     {
         try
         {
-            await recipeManager.DeleteRecipe(id);
+            await recipeManager.HardDeleteRecipe(id);
             return new(true);
         }
         catch (NotFoundException)

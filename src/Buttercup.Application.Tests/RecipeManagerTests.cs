@@ -95,46 +95,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
-    #region DeleteRecipe
-
-    [Fact]
-    public async Task DeleteRecipe_ReturnsRecipe()
-    {
-        var recipe = this.modelFactory.BuildRecipe();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(recipe);
-            await dbContext.SaveChangesAsync();
-        }
-
-        await this.recipeManager.DeleteRecipe(recipe.Id);
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            Assert.False(await dbContext.Recipes.AnyAsync());
-        }
-    }
-
-    [Fact]
-    public async Task DeleteRecipe_ThrowsIfRecordNotFound()
-    {
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
-            await dbContext.SaveChangesAsync();
-        }
-
-        var id = this.modelFactory.NextInt();
-
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeManager.DeleteRecipe(id));
-
-        Assert.Equal($"Recipe {id} not found", exception.Message);
-    }
-
-    #endregion
-
     #region FindNonDeletedRecipe
 
     [Fact]
@@ -306,6 +266,46 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             [allRecipes[3].Id, allRecipes[8].Id]);
 
         Assert.Equal(expected, actual);
+    }
+
+    #endregion
+
+    #region HardDeleteRecipe
+
+    [Fact]
+    public async Task HardDeleteRecipe_HardDeletesRecipe()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(recipe);
+            await dbContext.SaveChangesAsync();
+        }
+
+        await this.recipeManager.HardDeleteRecipe(recipe.Id);
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            Assert.False(await dbContext.Recipes.AnyAsync());
+        }
+    }
+
+    [Fact]
+    public async Task HardDeleteRecipe_ThrowsIfRecordNotFound()
+    {
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+            await dbContext.SaveChangesAsync();
+        }
+
+        var id = this.modelFactory.NextInt();
+
+        var exception = await Assert.ThrowsAsync<NotFoundException>(
+            () => this.recipeManager.HardDeleteRecipe(id));
+
+        Assert.Equal($"Recipe {id} not found", exception.Message);
     }
 
     #endregion

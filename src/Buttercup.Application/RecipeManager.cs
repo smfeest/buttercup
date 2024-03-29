@@ -37,16 +37,6 @@ internal sealed class RecipeManager(
         return recipe.Id;
     }
 
-    public async Task DeleteRecipe(long id)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        if (await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() == 0)
-        {
-            throw RecipeNotFound(id);
-        }
-    }
-
     public async Task<Recipe?> FindNonDeletedRecipe(
         long id, bool includeCreatedAndModifiedByUser = false)
     {
@@ -92,6 +82,16 @@ internal sealed class RecipeManager(
             .OrderByDescending(r => r.Modified)
             .Take(10)
             .ToArrayAsync();
+    }
+
+    public async Task HardDeleteRecipe(long id)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        if (await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() == 0)
+        {
+            throw RecipeNotFound(id);
+        }
     }
 
     public async Task UpdateRecipe(

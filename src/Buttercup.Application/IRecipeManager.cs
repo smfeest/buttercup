@@ -22,20 +22,6 @@ public interface IRecipeManager
     Task<long> AddRecipe(RecipeAttributes attributes, long currentUserId);
 
     /// <summary>
-    /// Deletes a recipe.
-    /// </summary>
-    /// <param name="id">
-    /// The recipe ID.
-    /// </param>
-    /// <returns>
-    /// A task for the operation.
-    /// </returns>
-    /// <exception cref="NotFoundException">
-    /// No matching recipe was found.
-    /// </exception>
-    Task DeleteRecipe(long id);
-
-    /// <summary>
     /// Finds a non-deleted a recipe.
     /// </summary>
     /// <param name="id">
@@ -81,6 +67,20 @@ public interface IRecipeManager
     /// A task for the operation.
     /// </returns>
     Task<IList<Recipe>> GetRecentlyUpdatedRecipes(IReadOnlyCollection<long> excludeRecipeIds);
+
+    /// <summary>
+    /// Hard-deletes a recipe.
+    /// </summary>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    /// <exception cref="NotFoundException">
+    /// No matching recipe was found.
+    /// </exception>
+    Task HardDeleteRecipe(long id);
 
     /// <summary>
     /// Updates a recipe.

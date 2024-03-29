@@ -253,7 +253,7 @@ public sealed class RecipesControllerTests : IDisposable
 
         var result = await this.recipesController.DeletePost(recipeId);
 
-        this.recipeManagerMock.Verify(x => x.DeleteRecipe(recipeId));
+        this.recipeManagerMock.Verify(x => x.HardDeleteRecipe(recipeId));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
