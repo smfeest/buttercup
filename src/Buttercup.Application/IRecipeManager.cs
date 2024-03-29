@@ -36,12 +36,12 @@ public interface IRecipeManager
     Task DeleteRecipe(long id);
 
     /// <summary>
-    /// Gets all the recipes ordered by title.
+    /// Gets all non-deleted recipes ordered by title.
     /// </summary>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<IList<Recipe>> GetAllRecipes();
+    Task<IList<Recipe>> GetNonDeletedRecipes();
 
     /// <summary>
     /// Gets a recipe.

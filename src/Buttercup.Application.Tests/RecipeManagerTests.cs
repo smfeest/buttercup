@@ -135,18 +135,19 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
-    #region GetAllRecipes
+    #region GetNonDeletedRecipes
 
     [Fact]
-    public async Task GetAllRecipes_ReturnsAllRecipesInTitleOrder()
+    public async Task GetNonDeletedRecipes_ReturnsNonDeletedRecipesInTitleOrder()
     {
         var recipeB = this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" };
         var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
         var recipeA = this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" };
+        var deletedRecipe = this.modelFactory.BuildRecipe(softDeleted: true);
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            dbContext.Recipes.AddRange(recipeB, recipeC, recipeA);
+            dbContext.Recipes.AddRange(recipeB, recipeC, recipeA, deletedRecipe);
             await dbContext.SaveChangesAsync();
         }
 
@@ -156,7 +157,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             recipeC,
         };
 
-        var actual = await this.recipeManager.GetAllRecipes();
+        var actual = await this.recipeManager.GetNonDeletedRecipes();
 
         Assert.Equal(expected, actual);
     }

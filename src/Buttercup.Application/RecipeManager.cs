@@ -47,11 +47,11 @@ internal sealed class RecipeManager(
         }
     }
 
-    public async Task<IList<Recipe>> GetAllRecipes()
+    public async Task<IList<Recipe>> GetNonDeletedRecipes()
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Recipes.OrderBy(r => r.Title).ToArrayAsync();
+        return await dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
     }
 
     public async Task<Recipe> GetRecipe(long id, bool includeCreatedAndModifiedByUser = false)

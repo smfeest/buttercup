@@ -19,7 +19,8 @@ public sealed class RecipesController(
     private readonly IRecipeManager RecipeManager = RecipeManager;
 
     [HttpGet]
-    public async Task<IActionResult> Index() => this.View(await this.RecipeManager.GetAllRecipes());
+    public async Task<IActionResult> Index() =>
+        this.View(await this.RecipeManager.GetNonDeletedRecipes());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id) =>
