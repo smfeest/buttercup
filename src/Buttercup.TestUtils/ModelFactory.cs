@@ -29,11 +29,15 @@ public sealed class ModelFactory
     /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
     /// null.
     /// </param>
+    /// <param name="softDeleted">
+    /// <c>true</c> if the recipe should be marked as soft-deleted; <c>false</c> otherwise.
+    /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
-    public Recipe BuildRecipe(bool setOptionalAttributes = false)
+    public Recipe BuildRecipe(bool setOptionalAttributes = false, bool softDeleted = false)
     {
         var createdByUser = setOptionalAttributes ? this.BuildUser() : null;
         var modifiedByUser = setOptionalAttributes ? this.BuildUser() : null;
+        var deletedByUser = softDeleted && setOptionalAttributes ? this.BuildUser() : null;
 
         return new()
         {
@@ -53,6 +57,9 @@ public sealed class ModelFactory
             Modified = this.NextDateTime(),
             ModifiedByUser = modifiedByUser,
             ModifiedByUserId = modifiedByUser?.Id,
+            Deleted = softDeleted ? this.NextDateTime() : null,
+            DeletedByUser = deletedByUser,
+            DeletedByUserId = deletedByUser?.Id,
             Revision = this.NextInt(),
         };
     }
