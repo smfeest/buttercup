@@ -22,6 +22,21 @@ public interface IRecipeManager
     Task<long> AddRecipe(RecipeAttributes attributes, long currentUserId);
 
     /// <summary>
+    /// Soft-deletes a recipe.
+    /// </summary>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    /// <param name="currentUserId">
+    /// The current user ID.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
+    /// recipe does not exist or has already been soft-deleted.
+    /// </returns>
+    Task<bool> DeleteRecipe(long id, long currentUserId);
+
+    /// <summary>
     /// Finds a non-deleted a recipe.
     /// </summary>
     /// <param name="id">

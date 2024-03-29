@@ -37,6 +37,21 @@ internal sealed class RecipeManager(
         return recipe.Id;
     }
 
+    public async Task<bool> DeleteRecipe(long id, long currentUserId)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var updatedRows = await dbContext
+            .Recipes
+            .Where(r => r.Id == id)
+            .WhereNotSoftDeleted()
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(r => r.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                .SetProperty(r => r.DeletedByUserId, currentUserId));
+
+        return updatedRows > 0;
+    }
+
     public async Task<Recipe?> FindNonDeletedRecipe(
         long id, bool includeCreatedAndModifiedByUser = false)
     {

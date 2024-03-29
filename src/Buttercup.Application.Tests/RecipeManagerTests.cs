@@ -95,6 +95,72 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region DeleteRecipe
+
+    [Fact]
+    public async Task DeleteRecipe_SetsSoftDeleteAttributesAndReturnsTrue()
+    {
+        var original = this.modelFactory.BuildRecipe(softDeleted: false);
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(original, currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        Assert.True(await this.recipeManager.DeleteRecipe(original.Id, currentUser.Id));
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            var expected = original with
+            {
+                Deleted = this.timeProvider.GetUtcDateTimeNow(),
+                DeletedByUserId = currentUser.Id,
+            };
+            var actual = await dbContext.Recipes.FindAsync(original.Id);
+            Assert.Equal(expected, actual);
+        }
+    }
+
+    [Fact]
+    public async Task DeleteRecipe_DoesNotUpdateAttributesAndReturnsFalseIfAlreadySoftDeleted()
+    {
+        var original = this.modelFactory.BuildRecipe(softDeleted: true);
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(original, currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        Assert.False(await this.recipeManager.DeleteRecipe(original.Id, currentUser.Id));
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            var actual = await dbContext.Recipes.FindAsync(original.Id);
+            Assert.Equal(original, actual);
+        }
+    }
+
+    [Fact]
+    public async Task DeleteRecipe_ReturnsFalseIfRecordNotFound()
+    {
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(this.modelFactory.BuildRecipe(), currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        Assert.False(
+            await this.recipeManager.DeleteRecipe(this.modelFactory.NextInt(), currentUser.Id));
+    }
+
+    #endregion
+
     #region FindNonDeletedRecipe
 
     [Fact]
