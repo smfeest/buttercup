@@ -43,14 +43,9 @@ public sealed class AppDbContext : DbContext
     public DbSet<User> Users => this.Set<User>();
 
     /// <inheritdoc/>
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder
-            .Entity<User>()
-            .HasAlternateKey(u => u.Email);
+    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder
             .Entity<SecurityEvent>()
             .Property(u => u.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
-    }
 }

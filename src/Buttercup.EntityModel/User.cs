@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a user.
 /// </summary>
+[Index(nameof(Email), IsUnique = true)]
 public sealed record User : IEntityId
 {
     /// <summary>
