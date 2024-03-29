@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a recipe.
 /// </summary>
+[Index(nameof(Deleted))]
 public sealed record Recipe : IEntityId
 {
     /// <summary>
@@ -93,6 +95,22 @@ public sealed record Recipe : IEntityId
     /// Gets or sets the primary key of the user who last modified the recipe.
     /// </summary>
     public long? ModifiedByUserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time at which the recipe was soft-deleted, or null if the recipe
+    /// has not been soft-deleted.
+    /// </summary>
+    public DateTime? Deleted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user who soft-deleted the recipe.
+    /// </summary>
+    public User? DeletedByUser { get; set; }
+
+    /// <summary>
+    /// Gets or sets the primary key of the user who soft-deleted the recipe.
+    /// </summary>
+    public long? DeletedByUserId { get; set; }
 
     /// <summary>
     /// Gets or sets the revision number for concurrency control.
