@@ -69,6 +69,23 @@ public sealed class Mutation
     }
 
     /// <summary>
+    /// Soft-deletes a recipe.
+    /// </summary>
+    /// <param name="recipeManager">
+    /// The recipe manager.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    [Authorize]
+    public async Task<DeleteRecipePayload> DeleteRecipe(
+        [Service] IRecipeManager recipeManager, ClaimsPrincipal claimsPrincipal, long id) =>
+        new(id, await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId()));
+
+    /// <summary>
     /// Hard-deletes a recipe.
     /// </summary>
     /// <param name="recipeManager">
