@@ -249,14 +249,35 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Post_DeletesRecipeAndRedirectsToIndexPage()
     {
+        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
+
+        this.recipeManagerMock
+            .Setup(x => x.DeleteRecipe(recipeId, currentUserId))
+            .ReturnsAsync(true)
+            .Verifiable();
 
         var result = await this.recipesController.DeletePost(recipeId);
 
-        this.recipeManagerMock.Verify(x => x.HardDeleteRecipe(recipeId));
+        this.recipeManagerMock.Verify();
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
+    }
+
+    [Fact]
+    public async Task Delete_Post_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        var recipeId = this.modelFactory.NextInt();
+
+        this.recipeManagerMock
+            .Setup(x => x.DeleteRecipe(recipeId, currentUserId))
+            .ReturnsAsync(false);
+
+        var result = await this.recipesController.DeletePost(recipeId);
+
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
