@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
+using Buttercup.Web.Security;
 using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
@@ -94,7 +95,7 @@ public sealed class Mutation
     /// <param name="id">
     /// The recipe ID.
     /// </param>
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
     public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
         [Service] IRecipeManager recipeManager, long id)
     {
