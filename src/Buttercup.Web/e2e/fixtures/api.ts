@@ -63,8 +63,8 @@ export const api = (baseUrl: string) => {
               authenticate: { accessToken?: string };
             }>(AUTHENTICATE_QUERY, {
               input: {
-                email: 'e2e-user@example.com',
-                password: 'e2e-user-pass',
+                email: 'e2e-admin@example.com',
+                password: 'e2e-admin-pass',
               },
             });
 
