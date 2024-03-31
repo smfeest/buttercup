@@ -47,6 +47,21 @@ internal sealed class RecipeManager(
         }
     }
 
+    public async Task<Recipe?> FindNonDeletedRecipe(
+        long id, bool includeCreatedAndModifiedByUser = false)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var queryable = dbContext.Recipes.WhereNotSoftDeleted();
+
+        if (includeCreatedAndModifiedByUser)
+        {
+            queryable = queryable.Include(r => r.CreatedByUser).Include(r => r.ModifiedByUser);
+        }
+
+        return await queryable.FindAsync(id);
+    }
+
     public async Task<IList<Recipe>> GetNonDeletedRecipes()
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

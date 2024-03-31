@@ -135,6 +135,60 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region FindNonDeletedRecipe
+
+    [Fact]
+    public async Task FindNonDeletedRecipe_ReturnsRecipeWithCreatedAndModifiedByUser()
+    {
+        var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(expected);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var actual = await this.recipeManager.FindNonDeletedRecipe(expected.Id, true);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task FindNonDeletedRecipe_ReturnsRecipeWithoutCreatedAndModifiedByUser()
+    {
+        var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(recipe);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var actual = await this.recipeManager.FindNonDeletedRecipe(recipe.Id, false);
+        var expected = recipe with
+        {
+            CreatedByUser = null,
+            ModifiedByUser = null,
+        };
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task FindNonDeletedRecipe_ReturnsNullIfRecordNotFound()
+    {
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+            await dbContext.SaveChangesAsync();
+        }
+
+        var id = this.modelFactory.NextInt();
+        Assert.Null(await this.recipeManager.FindNonDeletedRecipe(id));
+    }
+
+    #endregion
+
     #region GetNonDeletedRecipes
 
     [Fact]
