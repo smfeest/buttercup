@@ -67,7 +67,7 @@ test('can delete a recipe', async ({
   try {
     await page.goto(`recipes/${id}`);
     await page.getByRole('link', { name: 'Delete' }).click();
-    await page.getByRole('button', { name: 'Delete forever' }).click();
+    await page.getByRole('button', { name: 'Delete' }).click();
 
     await expect(page).toHaveTitle(/All recipes/);
   } finally {

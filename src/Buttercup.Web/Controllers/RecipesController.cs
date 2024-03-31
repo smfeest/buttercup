@@ -19,11 +19,16 @@ public sealed class RecipesController(
     private readonly IRecipeManager RecipeManager = RecipeManager;
 
     [HttpGet]
-    public async Task<IActionResult> Index() => this.View(await this.RecipeManager.GetAllRecipes());
+    public async Task<IActionResult> Index() =>
+        this.View(await this.RecipeManager.GetNonDeletedRecipes());
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Show(long id) =>
-        this.View(await this.RecipeManager.GetRecipe(id, includeCreatedAndModifiedByUser: true));
+    public async Task<IActionResult> Show(long id)
+    {
+        var recipe = await this.RecipeManager.FindNonDeletedRecipe(
+            id, includeCreatedAndModifiedByUser: true);
+        return recipe is null ? this.NotFound() : this.View(recipe);
+    }
 
     [HttpGet("new")]
     public IActionResult New() => this.View();
@@ -42,8 +47,11 @@ public sealed class RecipesController(
     }
 
     [HttpGet("{id}/edit")]
-    public async Task<IActionResult> Edit(long id) =>
-        this.View(EditRecipeViewModel.ForRecipe(await this.RecipeManager.GetRecipe(id)));
+    public async Task<IActionResult> Edit(long id)
+    {
+        var recipe = await this.RecipeManager.FindNonDeletedRecipe(id);
+        return recipe is null ? this.NotFound() : this.View(EditRecipeViewModel.ForRecipe(recipe));
+    }
 
     [HttpPost("{id}/edit")]
     public async Task<IActionResult> Edit(long id, EditRecipeViewModel model)
@@ -64,19 +72,24 @@ public sealed class RecipesController(
 
             return this.View(model);
         }
+        catch (SoftDeletedException)
+        {
+            return this.NotFound();
+        }
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
 
     [HttpGet("{id}/delete")]
-    public async Task<IActionResult> Delete(long id) =>
-        this.View(await this.RecipeManager.GetRecipe(id));
+    public async Task<IActionResult> Delete(long id)
+    {
+        var recipe = await this.RecipeManager.FindNonDeletedRecipe(id);
+        return recipe is null ? this.NotFound() : this.View(recipe);
+    }
 
     [HttpPost("{id}/delete")]
-    public async Task<IActionResult> DeletePost(long id)
-    {
-        await this.RecipeManager.DeleteRecipe(id);
-
-        return this.RedirectToAction(nameof(this.Index));
-    }
+    public async Task<IActionResult> DeletePost(long id) =>
+        await this.RecipeManager.DeleteRecipe(id, this.User.GetUserId()) ?
+            this.RedirectToAction(nameof(this.Index)) :
+            this.NotFound();
 }

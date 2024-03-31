@@ -37,42 +37,52 @@ internal sealed class RecipeManager(
         return recipe.Id;
     }
 
-    public async Task DeleteRecipe(long id)
+    public async Task<bool> DeleteRecipe(long id, long currentUserId)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        if (await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() == 0)
-        {
-            throw RecipeNotFound(id);
-        }
+        var updatedRows = await dbContext
+            .Recipes
+            .Where(r => r.Id == id)
+            .WhereNotSoftDeleted()
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(r => r.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                .SetProperty(r => r.DeletedByUserId, currentUserId));
+
+        return updatedRows > 0;
     }
 
-    public async Task<IList<Recipe>> GetAllRecipes()
+    public async Task<Recipe?> FindNonDeletedRecipe(
+        long id, bool includeCreatedAndModifiedByUser = false)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Recipes.OrderBy(r => r.Title).ToArrayAsync();
-    }
-
-    public async Task<Recipe> GetRecipe(long id, bool includeCreatedAndModifiedByUser = false)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        IQueryable<Recipe> queryable = dbContext.Recipes;
+        var queryable = dbContext.Recipes.WhereNotSoftDeleted();
 
         if (includeCreatedAndModifiedByUser)
         {
             queryable = queryable.Include(r => r.CreatedByUser).Include(r => r.ModifiedByUser);
         }
 
-        return await queryable.GetAsync(id);
+        return await queryable.FindAsync(id);
+    }
+
+    public async Task<IList<Recipe>> GetNonDeletedRecipes()
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
     }
 
     public async Task<IList<Recipe>> GetRecentlyAddedRecipes()
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Recipes.OrderByDescending(r => r.Created).Take(10).ToArrayAsync();
+        return await dbContext.Recipes
+            .WhereNotSoftDeleted()
+            .OrderByDescending(r => r.Created)
+            .Take(10)
+            .ToArrayAsync();
     }
 
     public async Task<IList<Recipe>> GetRecentlyUpdatedRecipes(
@@ -82,10 +92,21 @@ internal sealed class RecipeManager(
 
         return await dbContext
             .Recipes
+            .WhereNotSoftDeleted()
             .Where(r => r.Created != r.Modified && !excludeRecipeIds.Contains(r.Id))
             .OrderByDescending(r => r.Modified)
             .Take(10)
             .ToArrayAsync();
+    }
+
+    public async Task HardDeleteRecipe(long id)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        if (await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() == 0)
+        {
+            throw RecipeNotFound(id);
+        }
     }
 
     public async Task UpdateRecipe(
@@ -95,7 +116,7 @@ internal sealed class RecipeManager(
 
         var updatedRows = await dbContext
             .Recipes
-            .Where(r => r.Id == id && r.Revision == baseRevision)
+            .Where(r => r.Id == id && !r.Deleted.HasValue && r.Revision == baseRevision)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(r => r.Title, newAttributes.Title)
                 .SetProperty(r => r.PreparationMinutes, newAttributes.PreparationMinutes)
@@ -112,23 +133,13 @@ internal sealed class RecipeManager(
 
         if (updatedRows == 0)
         {
-            throw await ConcurrencyOrNotFoundException(dbContext, id, baseRevision);
+            var recipe = await dbContext.Recipes.GetAsync(id);
+
+            throw recipe.Deleted.HasValue ?
+                new SoftDeletedException($"Cannot update soft-deleted recipe {id}") :
+                new ConcurrencyException(
+                    $"Revision {baseRevision} does not match current revision {recipe.Revision}");
         }
-    }
-
-    private static async Task<Exception> ConcurrencyOrNotFoundException(
-        AppDbContext dbContext, long id, int revision)
-    {
-        var currentRevision = await dbContext
-            .Recipes
-            .Where(r => r.Id == id)
-            .Select<Recipe, long?>(r => r.Revision)
-            .SingleOrDefaultAsync();
-
-        return currentRevision == null ?
-            RecipeNotFound(id) :
-            new ConcurrencyException(
-                $"Revision {revision} does not match current revision {currentRevision}");
     }
 
     private static NotFoundException RecipeNotFound(long id) => new($"Recipe {id} not found");

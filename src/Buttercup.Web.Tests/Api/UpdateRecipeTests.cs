@@ -87,7 +87,36 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
             new
             {
                 __typename = "NotFoundError",
-                Message = $"Recipe {recipe.Id} not found",
+                Message = $"Recipe/{recipe.Id} not found",
+            },
+        };
+        JsonAssert.Equivalent(expectedErrors, createRecipeElement.GetProperty("errors"));
+    }
+
+    [Fact]
+    public async Task UpdatingSoftDeletedRecipe()
+    {
+        var currentUser = this.ModelFactory.BuildUser();
+        var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
+
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+
+        using var response = await PostUpdateRecipeMutation(
+            client, recipe.Id, recipe.Revision, new(recipe));
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var createRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
+
+        JsonAssert.ValueIsNull(createRecipeElement.GetProperty("recipe"));
+
+        var expectedErrors = new[]
+        {
+            new
+            {
+                __typename = "SoftDeletedError",
+                Message = $"Cannot update soft-deleted recipe {recipe.Id}",
             },
         };
         JsonAssert.Equivalent(expectedErrors, createRecipeElement.GetProperty("errors"));

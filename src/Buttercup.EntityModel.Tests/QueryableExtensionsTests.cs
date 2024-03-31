@@ -1,4 +1,5 @@
 using Buttercup.TestUtils;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Buttercup.EntityModel;
@@ -79,6 +80,26 @@ public sealed class QueryableExtensionsTests(
             () => dbContext.Recipes.GetAsync(id));
 
         Assert.Equal($"Recipe/{id} not found", exception.Message);
+    }
+
+    #endregion
+
+    #region WhereNotSoftDeleted
+
+    [Fact]
+    public async Task WhereNotSoftDeleted_FiltersOutSoftDeletedEntities()
+    {
+        using var dbContext = this.databaseFixture.CreateDbContext();
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var visibleRecipe = this.modelFactory.BuildRecipe(softDeleted: false);
+        var deletedRecipe = this.modelFactory.BuildRecipe(softDeleted: true);
+
+        dbContext.Recipes.AddRange(visibleRecipe, deletedRecipe);
+        await dbContext.SaveChangesAsync();
+        dbContext.ChangeTracker.Clear();
+
+        Assert.Equal(visibleRecipe, await dbContext.Recipes.WhereNotSoftDeleted().SingleAsync());
     }
 
     #endregion

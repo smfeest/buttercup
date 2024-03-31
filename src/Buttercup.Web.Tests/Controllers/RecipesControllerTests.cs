@@ -1,4 +1,5 @@
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +32,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Index_ReturnsViewResultWithRecipes()
     {
         var recipes = new[] { this.modelFactory.BuildRecipe() };
-        this.recipeManagerMock.Setup(x => x.GetAllRecipes()).ReturnsAsync(recipes);
+        this.recipeManagerMock.Setup(x => x.GetNonDeletedRecipes()).ReturnsAsync(recipes);
 
         var result = await this.recipesController.Index();
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -47,12 +48,22 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, true)).ReturnsAsync(recipe);
+        this.SetupFindNonDeletedRecipe(recipe.Id, recipe, true);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         Assert.Same(recipe, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task Show_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindNonDeletedRecipe(recipeId, null, true);
+
+        var result = await this.recipesController.Show(recipeId);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -109,7 +120,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
+        this.SetupFindNonDeletedRecipe(recipe.Id, recipe);
 
         var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -118,6 +129,16 @@ public sealed class RecipesControllerTests : IDisposable
         var actualModel = Assert.IsType<EditRecipeViewModel>(viewResult.Model);
 
         Assert.Equal(expectedModel, actualModel);
+    }
+
+    [Fact]
+    public async Task Edit_Get_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindNonDeletedRecipe(recipeId, null);
+
+        var result = await this.recipesController.Edit(recipeId);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -179,6 +200,22 @@ public sealed class RecipesControllerTests : IDisposable
         Assert.Equal("translated-stale-edit-error", error.ErrorMessage);
     }
 
+    [Fact]
+    public async Task Edit_Post_SoftDeletedException_ReturnsNotFoundResult()
+    {
+        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
+        var currentUserId = this.SetupCurrentUserId();
+
+        this.recipeManagerMock
+            .Setup(x => x.UpdateRecipe(
+                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId))
+            .ThrowsAsync(new SoftDeletedException());
+
+        var result = await this.recipesController.Edit(editModel.Id, editModel);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
     #endregion
 
     #region Delete (GET)
@@ -187,12 +224,22 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
+        this.SetupFindNonDeletedRecipe(recipe.Id, recipe);
 
         var result = await this.recipesController.Delete(recipe.Id);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(recipe, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task Delete_Get_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindNonDeletedRecipe(recipeId, null);
+
+        var result = await this.recipesController.Delete(recipeId);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -202,14 +249,35 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Post_DeletesRecipeAndRedirectsToIndexPage()
     {
+        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
+
+        this.recipeManagerMock
+            .Setup(x => x.DeleteRecipe(recipeId, currentUserId))
+            .ReturnsAsync(true)
+            .Verifiable();
 
         var result = await this.recipesController.DeletePost(recipeId);
 
-        this.recipeManagerMock.Verify(x => x.DeleteRecipe(recipeId));
+        this.recipeManagerMock.Verify();
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Index), redirectResult.ActionName);
+    }
+
+    [Fact]
+    public async Task Delete_Post_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        var recipeId = this.modelFactory.NextInt();
+
+        this.recipeManagerMock
+            .Setup(x => x.DeleteRecipe(recipeId, currentUserId))
+            .ReturnsAsync(false);
+
+        var result = await this.recipesController.DeletePost(recipeId);
+
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -220,4 +288,10 @@ public sealed class RecipesControllerTests : IDisposable
         this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
         return userId;
     }
+
+    private void SetupFindNonDeletedRecipe(
+        long id, Recipe? recipe, bool includeCreatedAndModifiedByUser = false) =>
+        this.recipeManagerMock
+            .Setup(x => x.FindNonDeletedRecipe(id, includeCreatedAndModifiedByUser))
+            .ReturnsAsync(recipe);
 }

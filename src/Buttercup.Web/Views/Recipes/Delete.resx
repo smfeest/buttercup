@@ -7,10 +7,10 @@
     <value>Delete recipe</value>
   </data>
   <data name="Message_DeleteConfirmation">
-    <value>Are you sure you wish to permanently delete '{0}'?</value>
+    <value>Are you sure you wish to delete '{0}'?</value>
   </data>
-  <data name="Label_DeleteForever">
-    <value>Delete forever</value>
+  <data name="Label_Delete">
+    <value>Delete</value>
   </data>
   <data name="Label_Cancel">
     <value>Cancel</value>

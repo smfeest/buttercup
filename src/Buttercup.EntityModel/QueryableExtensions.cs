@@ -41,4 +41,17 @@ public static class QueryableExtensions
         where T : IEntityId =>
         await source.FindAsync(id) ??
             throw new NotFoundException($"{typeof(T).Name}/{id} not found");
+
+    /// <summary>
+    /// Filters out soft-deleted entities.
+    /// </summary>
+    /// <typeparam name="T">The entity type.</typeparam>
+    /// <param name="source">The queryable source.</param>
+    /// <returns>
+    /// A queryable that contains elements from <paramref name="source"/> that have not been
+    /// soft-deleted.
+    /// </returns>
+    public static IQueryable<T> WhereNotSoftDeleted<T>(this IQueryable<T> source)
+        where T : ISoftDeletable =>
+        source.Where(x => !x.Deleted.HasValue);
 }

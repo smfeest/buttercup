@@ -98,75 +98,73 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region DeleteRecipe
 
     [Fact]
-    public async Task DeleteRecipe_ReturnsRecipe()
+    public async Task DeleteRecipe_SetsSoftDeleteAttributesAndReturnsTrue()
     {
-        var recipe = this.modelFactory.BuildRecipe();
+        var original = this.modelFactory.BuildRecipe(softDeleted: false);
+        var currentUser = this.modelFactory.BuildUser();
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            dbContext.Recipes.Add(recipe);
+            dbContext.AddRange(original, currentUser);
             await dbContext.SaveChangesAsync();
         }
 
-        await this.recipeManager.DeleteRecipe(recipe.Id);
+        Assert.True(await this.recipeManager.DeleteRecipe(original.Id, currentUser.Id));
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            Assert.False(await dbContext.Recipes.AnyAsync());
+            var expected = original with
+            {
+                Deleted = this.timeProvider.GetUtcDateTimeNow(),
+                DeletedByUserId = currentUser.Id,
+            };
+            var actual = await dbContext.Recipes.FindAsync(original.Id);
+            Assert.Equal(expected, actual);
         }
     }
 
     [Fact]
-    public async Task DeleteRecipe_ThrowsIfRecordNotFound()
+    public async Task DeleteRecipe_DoesNotUpdateAttributesAndReturnsFalseIfAlreadySoftDeleted()
     {
+        var original = this.modelFactory.BuildRecipe(softDeleted: true);
+        var currentUser = this.modelFactory.BuildUser();
+
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+            dbContext.AddRange(original, currentUser);
             await dbContext.SaveChangesAsync();
         }
 
-        var id = this.modelFactory.NextInt();
+        Assert.False(await this.recipeManager.DeleteRecipe(original.Id, currentUser.Id));
 
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeManager.DeleteRecipe(id));
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            var actual = await dbContext.Recipes.FindAsync(original.Id);
+            Assert.Equal(original, actual);
+        }
+    }
 
-        Assert.Equal($"Recipe {id} not found", exception.Message);
+    [Fact]
+    public async Task DeleteRecipe_ReturnsFalseIfRecordNotFound()
+    {
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(this.modelFactory.BuildRecipe(), currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        Assert.False(
+            await this.recipeManager.DeleteRecipe(this.modelFactory.NextInt(), currentUser.Id));
     }
 
     #endregion
 
-    #region GetAllRecipes
+    #region FindNonDeletedRecipe
 
     [Fact]
-    public async Task GetAllRecipes_ReturnsAllRecipesInTitleOrder()
-    {
-        var recipeB = this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" };
-        var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
-        var recipeA = this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" };
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.AddRange(recipeB, recipeC, recipeA);
-            await dbContext.SaveChangesAsync();
-        }
-
-        var expected = new Recipe[] {
-            recipeA,
-            recipeB,
-            recipeC,
-        };
-
-        var actual = await this.recipeManager.GetAllRecipes();
-
-        Assert.Equal(expected, actual);
-    }
-
-    #endregion
-
-    #region GetRecipe
-
-    [Fact]
-    public async Task GetRecipe_ReturnsRecipeWithCreatedAndModifiedByUser()
+    public async Task FindNonDeletedRecipe_ReturnsRecipeWithCreatedAndModifiedByUser()
     {
         var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
 
@@ -176,13 +174,13 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.recipeManager.GetRecipe(expected.Id, true);
+        var actual = await this.recipeManager.FindNonDeletedRecipe(expected.Id, true);
 
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task GetRecipe_ReturnsRecipeWithoutCreatedAndModifiedByUser()
+    public async Task FindNonDeletedRecipe_ReturnsRecipeWithoutCreatedAndModifiedByUser()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
 
@@ -192,7 +190,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.recipeManager.GetRecipe(recipe.Id, false);
+        var actual = await this.recipeManager.FindNonDeletedRecipe(recipe.Id, false);
         var expected = recipe with
         {
             CreatedByUser = null,
@@ -203,7 +201,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
-    public async Task GetRecipe_ThrowsIfRecordNotFound()
+    public async Task FindNonDeletedRecipe_ReturnsNullIfRecordNotFound()
     {
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
@@ -212,11 +210,36 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         }
 
         var id = this.modelFactory.NextInt();
+        Assert.Null(await this.recipeManager.FindNonDeletedRecipe(id));
+    }
 
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeManager.GetRecipe(id));
+    #endregion
 
-        Assert.Equal($"Recipe/{id} not found", exception.Message);
+    #region GetNonDeletedRecipes
+
+    [Fact]
+    public async Task GetNonDeletedRecipes_ReturnsNonDeletedRecipesInTitleOrder()
+    {
+        var recipeB = this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" };
+        var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
+        var recipeA = this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" };
+        var deletedRecipe = this.modelFactory.BuildRecipe(softDeleted: true);
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.AddRange(recipeB, recipeC, recipeA, deletedRecipe);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var expected = new Recipe[] {
+            recipeA,
+            recipeB,
+            recipeC,
+        };
+
+        var actual = await this.recipeManager.GetNonDeletedRecipes();
+
+        Assert.Equal(expected, actual);
     }
 
     #endregion
@@ -224,13 +247,13 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region GetRecentlyAddedRecipes
 
     [Fact]
-    public async Task GetRecentlyAddedRecipes_ReturnsRecipesInReverseChronologicalOrder()
+    public async Task GetRecentlyAddedRecipes_ReturnsNonDeletedRecipesInReverseChronologicalOrder()
     {
         var allRecipes = new List<Recipe>();
 
-        for (var i = 0; i < 15; i++)
+        for (var i = 0; i < 20; i++)
         {
-            allRecipes.Add(this.modelFactory.BuildRecipe() with
+            allRecipes.Add(this.modelFactory.BuildRecipe(softDeleted: i % 5 == 0) with
             {
                 Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i),
             });
@@ -242,7 +265,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var expected = allRecipes.AsEnumerable().Reverse().Take(10);
+        var expected = allRecipes.AsEnumerable().Where(r => !r.Deleted.HasValue).Reverse().Take(10);
 
         var actual = await this.recipeManager.GetRecentlyAddedRecipes();
 
@@ -258,8 +281,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var baseDateTime = this.modelFactory.NextDateTime();
 
-        Recipe BuildRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
-            this.modelFactory.BuildRecipe() with
+        Recipe BuildRecipe(int createdDaysAgo, int modifiedDaysAgo, bool softDeleted = false) =>
+            this.modelFactory.BuildRecipe(softDeleted: softDeleted) with
             {
                 Created = baseDateTime.AddDays(-createdDaysAgo),
                 Modified = baseDateTime.AddDays(-modifiedDaysAgo),
@@ -272,7 +295,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             BuildRecipe(0, 1),
             BuildRecipe(0, 3), // explicitly excluded
             BuildRecipe(1, 13),
-            BuildRecipe(1, 2),
+            BuildRecipe(1, 2, true), // soft-deleted
             BuildRecipe(7, 7), // never-updated
             BuildRecipe(1, 14),
             BuildRecipe(0, 5), // explicitly excluded
@@ -294,7 +317,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var expected = new[]
         {
             allRecipes[2],
-            allRecipes[5],
             allRecipes[9],
             allRecipes[12],
             allRecipes[14],
@@ -303,12 +325,53 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             allRecipes[0],
             allRecipes[4],
             allRecipes[7],
+            allRecipes[15],
         };
 
         var actual = await this.recipeManager.GetRecentlyUpdatedRecipes(
             [allRecipes[3].Id, allRecipes[8].Id]);
 
         Assert.Equal(expected, actual);
+    }
+
+    #endregion
+
+    #region HardDeleteRecipe
+
+    [Fact]
+    public async Task HardDeleteRecipe_HardDeletesRecipe()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(recipe);
+            await dbContext.SaveChangesAsync();
+        }
+
+        await this.recipeManager.HardDeleteRecipe(recipe.Id);
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            Assert.False(await dbContext.Recipes.AnyAsync());
+        }
+    }
+
+    [Fact]
+    public async Task HardDeleteRecipe_ThrowsIfRecordNotFound()
+    {
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+            await dbContext.SaveChangesAsync();
+        }
+
+        var id = this.modelFactory.NextInt();
+
+        var exception = await Assert.ThrowsAsync<NotFoundException>(
+            () => this.recipeManager.HardDeleteRecipe(id));
+
+        Assert.Equal($"Recipe {id} not found", exception.Message);
     }
 
     #endregion
@@ -410,7 +473,26 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             () => this.recipeManager.UpdateRecipe(
                 id, new(this.modelFactory.BuildRecipe()), 0, currentUser.Id));
 
-        Assert.Equal($"Recipe {id} not found", exception.Message);
+        Assert.Equal($"Recipe/{id} not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateRecipe_ThrowsIfRecipeSoftDeleted()
+    {
+        var recipe = this.modelFactory.BuildRecipe(softDeleted: true);
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(recipe, currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var exception = await Assert.ThrowsAsync<SoftDeletedException>(
+            () => this.recipeManager.UpdateRecipe(
+                recipe.Id, new(this.modelFactory.BuildRecipe()), recipe.Revision, currentUser.Id));
+
+        Assert.Equal($"Cannot update soft-deleted recipe {recipe.Id}", exception.Message);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
+using Buttercup.Web.Security;
 using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
@@ -69,7 +70,24 @@ public sealed class Mutation
     }
 
     /// <summary>
-    /// Deletes a recipe.
+    /// Soft-deletes a recipe.
+    /// </summary>
+    /// <param name="recipeManager">
+    /// The recipe manager.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="id">
+    /// The recipe ID.
+    /// </param>
+    [Authorize]
+    public async Task<DeleteRecipePayload> DeleteRecipe(
+        [Service] IRecipeManager recipeManager, ClaimsPrincipal claimsPrincipal, long id) =>
+        new(id, await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId()));
+
+    /// <summary>
+    /// Hard-deletes a recipe.
     /// </summary>
     /// <param name="recipeManager">
     /// The recipe manager.
@@ -77,12 +95,13 @@ public sealed class Mutation
     /// <param name="id">
     /// The recipe ID.
     /// </param>
-    [Authorize]
-    public async Task<DeleteRecipePayload> DeleteRecipe([Service] IRecipeManager recipeManager, long id)
+    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
+        [Service] IRecipeManager recipeManager, long id)
     {
         try
         {
-            await recipeManager.DeleteRecipe(id);
+            await recipeManager.HardDeleteRecipe(id);
             return new(true);
         }
         catch (NotFoundException)
@@ -119,6 +138,7 @@ public sealed class Mutation
     [Error<ConcurrencyException>]
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
+    [Error<SoftDeletedException>]
     public async Task<MutationResult<UpdateRecipePayload>> UpdateRecipe(
         [Service] IInputObjectValidatorFactory validatorFactory,
         [Service] IRecipeManager recipeManager,

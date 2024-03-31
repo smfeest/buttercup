@@ -7,12 +7,13 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
     : EndToEndTests<RecipeTests>(appFactory)
 {
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task QueryingRecipe(bool setOptionalAttributes)
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task QueryingRecipe(bool setOptionalAttributes, bool softDeleted)
     {
         var currentUser = this.ModelFactory.BuildUser();
-        var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes);
+        var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes, softDeleted);
 
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
@@ -42,6 +43,10 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
             ModifiedByUser = recipe.ModifiedByUser == null ?
                 null :
                 new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Email },
+            recipe.Deleted,
+            DeletedByUser = recipe.DeletedByUser == null ?
+                null :
+                new { recipe.DeletedByUser.Id, recipe.DeletedByUser.Email },
             recipe.Revision
         };
 
@@ -99,6 +104,8 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
                     createdByUser { id email }
                     modified
                     modifiedByUser { id email }
+                    deleted
+                    deletedByUser { id email }
                     revision
                 }
             }",
