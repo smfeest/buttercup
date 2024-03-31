@@ -120,7 +120,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
+        this.SetupFindNonDeletedRecipe(recipe.Id, recipe);
 
         var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -129,6 +129,16 @@ public sealed class RecipesControllerTests : IDisposable
         var actualModel = Assert.IsType<EditRecipeViewModel>(viewResult.Model);
 
         Assert.Equal(expectedModel, actualModel);
+    }
+
+    [Fact]
+    public async Task Edit_Get_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindNonDeletedRecipe(recipeId, null);
+
+        var result = await this.recipesController.Edit(recipeId);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion

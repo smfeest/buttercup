@@ -47,8 +47,11 @@ public sealed class RecipesController(
     }
 
     [HttpGet("{id}/edit")]
-    public async Task<IActionResult> Edit(long id) =>
-        this.View(EditRecipeViewModel.ForRecipe(await this.RecipeManager.GetRecipe(id)));
+    public async Task<IActionResult> Edit(long id)
+    {
+        var recipe = await this.RecipeManager.FindNonDeletedRecipe(id);
+        return recipe is null ? this.NotFound() : this.View(EditRecipeViewModel.ForRecipe(recipe));
+    }
 
     [HttpPost("{id}/edit")]
     public async Task<IActionResult> Edit(long id, EditRecipeViewModel model)
