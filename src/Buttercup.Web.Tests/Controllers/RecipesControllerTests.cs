@@ -1,4 +1,5 @@
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -47,12 +48,22 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, true)).ReturnsAsync(recipe);
+        this.SetupFindNonDeletedRecipe(recipe.Id, recipe, true);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         Assert.Same(recipe, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task Show_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindNonDeletedRecipe(recipeId, null, true);
+
+        var result = await this.recipesController.Show(recipeId);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -236,4 +247,10 @@ public sealed class RecipesControllerTests : IDisposable
         this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
         return userId;
     }
+
+    private void SetupFindNonDeletedRecipe(
+        long id, Recipe? recipe, bool includeCreatedAndModifiedByUser = false) =>
+        this.recipeManagerMock
+            .Setup(x => x.FindNonDeletedRecipe(id, includeCreatedAndModifiedByUser))
+            .ReturnsAsync(recipe);
 }

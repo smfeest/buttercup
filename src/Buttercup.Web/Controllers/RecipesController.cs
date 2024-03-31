@@ -23,8 +23,12 @@ public sealed class RecipesController(
         this.View(await this.RecipeManager.GetNonDeletedRecipes());
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Show(long id) =>
-        this.View(await this.RecipeManager.GetRecipe(id, includeCreatedAndModifiedByUser: true));
+    public async Task<IActionResult> Show(long id)
+    {
+        var recipe = await this.RecipeManager.FindNonDeletedRecipe(
+            id, includeCreatedAndModifiedByUser: true);
+        return recipe is null ? this.NotFound() : this.View(recipe);
+    }
 
     [HttpGet("new")]
     public IActionResult New() => this.View();
