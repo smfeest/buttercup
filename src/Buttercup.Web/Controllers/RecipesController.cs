@@ -81,8 +81,11 @@ public sealed class RecipesController(
     }
 
     [HttpGet("{id}/delete")]
-    public async Task<IActionResult> Delete(long id) =>
-        this.View(await this.RecipeManager.GetRecipe(id));
+    public async Task<IActionResult> Delete(long id)
+    {
+        var recipe = await this.RecipeManager.FindNonDeletedRecipe(id);
+        return recipe is null ? this.NotFound() : this.View(recipe);
+    }
 
     [HttpPost("{id}/delete")]
     public async Task<IActionResult> DeletePost(long id)

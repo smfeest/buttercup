@@ -224,12 +224,22 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.recipeManagerMock.Setup(x => x.GetRecipe(recipe.Id, false)).ReturnsAsync(recipe);
+        this.SetupFindNonDeletedRecipe(recipe.Id, recipe);
 
         var result = await this.recipesController.Delete(recipe.Id);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(recipe, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task Delete_Get_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindNonDeletedRecipe(recipeId, null);
+
+        var result = await this.recipesController.Delete(recipeId);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
