@@ -259,8 +259,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var baseDateTime = this.modelFactory.NextDateTime();
 
-        Recipe BuildRecipe(int createdDaysAgo, int modifiedDaysAgo) =>
-            this.modelFactory.BuildRecipe() with
+        Recipe BuildRecipe(int createdDaysAgo, int modifiedDaysAgo, bool softDeleted = false) =>
+            this.modelFactory.BuildRecipe(softDeleted: softDeleted) with
             {
                 Created = baseDateTime.AddDays(-createdDaysAgo),
                 Modified = baseDateTime.AddDays(-modifiedDaysAgo),
@@ -273,7 +273,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             BuildRecipe(0, 1),
             BuildRecipe(0, 3), // explicitly excluded
             BuildRecipe(1, 13),
-            BuildRecipe(1, 2),
+            BuildRecipe(1, 2, true), // soft-deleted
             BuildRecipe(7, 7), // never-updated
             BuildRecipe(1, 14),
             BuildRecipe(0, 5), // explicitly excluded
@@ -295,7 +295,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var expected = new[]
         {
             allRecipes[2],
-            allRecipes[5],
             allRecipes[9],
             allRecipes[12],
             allRecipes[14],
@@ -304,6 +303,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             allRecipes[0],
             allRecipes[4],
             allRecipes[7],
+            allRecipes[15],
         };
 
         var actual = await this.recipeManager.GetRecentlyUpdatedRecipes(

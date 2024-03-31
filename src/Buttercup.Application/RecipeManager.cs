@@ -86,6 +86,7 @@ internal sealed class RecipeManager(
 
         return await dbContext
             .Recipes
+            .WhereNotSoftDeleted()
             .Where(r => r.Created != r.Modified && !excludeRecipeIds.Contains(r.Id))
             .OrderByDescending(r => r.Modified)
             .Take(10)
