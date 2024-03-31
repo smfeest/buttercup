@@ -72,7 +72,11 @@ internal sealed class RecipeManager(
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Recipes.OrderByDescending(r => r.Created).Take(10).ToArrayAsync();
+        return await dbContext.Recipes
+            .WhereNotSoftDeleted()
+            .OrderByDescending(r => r.Created)
+            .Take(10)
+            .ToArrayAsync();
     }
 
     public async Task<IList<Recipe>> GetRecentlyUpdatedRecipes(

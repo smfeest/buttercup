@@ -225,13 +225,13 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region GetRecentlyAddedRecipes
 
     [Fact]
-    public async Task GetRecentlyAddedRecipes_ReturnsRecipesInReverseChronologicalOrder()
+    public async Task GetRecentlyAddedRecipes_ReturnsNonDeletedRecipesInReverseChronologicalOrder()
     {
         var allRecipes = new List<Recipe>();
 
-        for (var i = 0; i < 15; i++)
+        for (var i = 0; i < 20; i++)
         {
-            allRecipes.Add(this.modelFactory.BuildRecipe() with
+            allRecipes.Add(this.modelFactory.BuildRecipe(softDeleted: i % 5 == 0) with
             {
                 Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i),
             });
@@ -243,7 +243,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var expected = allRecipes.AsEnumerable().Reverse().Take(10);
+        var expected = allRecipes.AsEnumerable().Where(r => !r.Deleted.HasValue).Reverse().Take(10);
 
         var actual = await this.recipeManager.GetRecentlyAddedRecipes();
 
