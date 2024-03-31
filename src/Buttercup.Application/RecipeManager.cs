@@ -95,7 +95,7 @@ internal sealed class RecipeManager(
 
         var updatedRows = await dbContext
             .Recipes
-            .Where(r => r.Id == id && r.Revision == baseRevision)
+            .Where(r => r.Id == id && !r.Deleted.HasValue && r.Revision == baseRevision)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(r => r.Title, newAttributes.Title)
                 .SetProperty(r => r.PreparationMinutes, newAttributes.PreparationMinutes)
@@ -112,23 +112,13 @@ internal sealed class RecipeManager(
 
         if (updatedRows == 0)
         {
-            throw await ConcurrencyOrNotFoundException(dbContext, id, baseRevision);
+            var recipe = await dbContext.Recipes.GetAsync(id);
+
+            throw recipe.Deleted.HasValue ?
+                new SoftDeletedException($"Cannot update soft-deleted recipe {id}") :
+                new ConcurrencyException(
+                    $"Revision {baseRevision} does not match current revision {recipe.Revision}");
         }
-    }
-
-    private static async Task<Exception> ConcurrencyOrNotFoundException(
-        AppDbContext dbContext, long id, int revision)
-    {
-        var currentRevision = await dbContext
-            .Recipes
-            .Where(r => r.Id == id)
-            .Select<Recipe, long?>(r => r.Revision)
-            .SingleOrDefaultAsync();
-
-        return currentRevision == null ?
-            RecipeNotFound(id) :
-            new ConcurrencyException(
-                $"Revision {revision} does not match current revision {currentRevision}");
     }
 
     private static NotFoundException RecipeNotFound(long id) => new($"Recipe {id} not found");

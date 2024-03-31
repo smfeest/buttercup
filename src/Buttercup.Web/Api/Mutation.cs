@@ -119,6 +119,7 @@ public sealed class Mutation
     [Error<ConcurrencyException>]
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
+    [Error<SoftDeletedException>]
     public async Task<MutationResult<UpdateRecipePayload>> UpdateRecipe(
         [Service] IInputObjectValidatorFactory validatorFactory,
         [Service] IRecipeManager recipeManager,

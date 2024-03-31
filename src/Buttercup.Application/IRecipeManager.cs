@@ -105,6 +105,9 @@ public interface IRecipeManager
     /// <exception cref="NotFoundException">
     /// No matching recipe was found.
     /// </exception>
+    /// <exception cref="SoftDeletedException">
+    /// Recipe is soft-deleted.
+    /// </exception>
     /// <exception cref="ConcurrencyException">
     /// <paramref name="baseRevision"/> does not match the current revision in the database.
     /// </exception>

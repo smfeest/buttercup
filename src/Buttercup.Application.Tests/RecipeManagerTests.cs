@@ -410,7 +410,26 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             () => this.recipeManager.UpdateRecipe(
                 id, new(this.modelFactory.BuildRecipe()), 0, currentUser.Id));
 
-        Assert.Equal($"Recipe {id} not found", exception.Message);
+        Assert.Equal($"Recipe/{id} not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateRecipe_ThrowsIfRecipeSoftDeleted()
+    {
+        var recipe = this.modelFactory.BuildRecipe(softDeleted: true);
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(recipe, currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var exception = await Assert.ThrowsAsync<SoftDeletedException>(
+            () => this.recipeManager.UpdateRecipe(
+                recipe.Id, new(this.modelFactory.BuildRecipe()), recipe.Revision, currentUser.Id));
+
+        Assert.Equal($"Cannot update soft-deleted recipe {recipe.Id}", exception.Message);
     }
 
     [Fact]

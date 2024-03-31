@@ -64,6 +64,10 @@ public sealed class RecipesController(
 
             return this.View(model);
         }
+        catch (SoftDeletedException)
+        {
+            return this.NotFound();
+        }
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
