@@ -218,64 +218,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
-    #region GetRecipe
-
-    [Fact]
-    public async Task GetRecipe_ReturnsRecipeWithCreatedAndModifiedByUser()
-    {
-        var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(expected);
-            await dbContext.SaveChangesAsync();
-        }
-
-        var actual = await this.recipeManager.GetRecipe(expected.Id, true);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public async Task GetRecipe_ReturnsRecipeWithoutCreatedAndModifiedByUser()
-    {
-        var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(recipe);
-            await dbContext.SaveChangesAsync();
-        }
-
-        var actual = await this.recipeManager.GetRecipe(recipe.Id, false);
-        var expected = recipe with
-        {
-            CreatedByUser = null,
-            ModifiedByUser = null,
-        };
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public async Task GetRecipe_ThrowsIfRecordNotFound()
-    {
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
-            await dbContext.SaveChangesAsync();
-        }
-
-        var id = this.modelFactory.NextInt();
-
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeManager.GetRecipe(id));
-
-        Assert.Equal($"Recipe/{id} not found", exception.Message);
-    }
-
-    #endregion
-
     #region GetRecentlyAddedRecipes
 
     [Fact]

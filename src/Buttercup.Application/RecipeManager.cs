@@ -69,20 +69,6 @@ internal sealed class RecipeManager(
         return await dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
     }
 
-    public async Task<Recipe> GetRecipe(long id, bool includeCreatedAndModifiedByUser = false)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        IQueryable<Recipe> queryable = dbContext.Recipes;
-
-        if (includeCreatedAndModifiedByUser)
-        {
-            queryable = queryable.Include(r => r.CreatedByUser).Include(r => r.ModifiedByUser);
-        }
-
-        return await queryable.GetAsync(id);
-    }
-
     public async Task<IList<Recipe>> GetRecentlyAddedRecipes()
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

@@ -60,24 +60,6 @@ public interface IRecipeManager
     Task<IList<Recipe>> GetNonDeletedRecipes();
 
     /// <summary>
-    /// Gets a recipe.
-    /// </summary>
-    /// <param name="id">
-    /// The recipe ID.
-    /// </param>
-    /// <param name="includeCreatedAndModifiedByUser">
-    /// <b>true</b> to populate <see cref="Recipe.CreatedByUser"/> and  <see
-    /// cref="Recipe.ModifiedByUser"/>, <b>false</b> otherwise.
-    /// </param>
-    /// <returns>
-    /// A task for the operation.
-    /// </returns>
-    /// <exception cref="NotFoundException">
-    /// No matching recipe was found.
-    /// </exception>
-    Task<Recipe> GetRecipe(long id, bool includeCreatedAndModifiedByUser = false);
-
-    /// <summary>
     /// Gets the ten most recently added recipes.
     /// </summary>
     /// <returns>
