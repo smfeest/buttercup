@@ -201,6 +201,22 @@ public sealed class RecipesControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Edit_Post_NotFoundException_ReturnsNotFoundResult()
+    {
+        var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
+        var currentUserId = this.SetupCurrentUserId();
+
+        this.recipeManagerMock
+            .Setup(x => x.UpdateRecipe(
+                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId))
+            .ThrowsAsync(new NotFoundException());
+
+        var result = await this.recipesController.Edit(editModel.Id, editModel);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
     public async Task Edit_Post_SoftDeletedException_ReturnsNotFoundResult()
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
