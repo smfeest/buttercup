@@ -339,7 +339,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region HardDeleteRecipe
 
     [Fact]
-    public async Task HardDeleteRecipe_HardDeletesRecipe()
+    public async Task HardDeleteRecipe_HardDeletesRecipeAndReturnsTrue()
     {
         var recipe = this.modelFactory.BuildRecipe();
 
@@ -349,7 +349,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        await this.recipeManager.HardDeleteRecipe(recipe.Id);
+        Assert.True(await this.recipeManager.HardDeleteRecipe(recipe.Id));
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
@@ -358,7 +358,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
-    public async Task HardDeleteRecipe_ThrowsIfRecordNotFound()
+    public async Task HardDeleteRecipe_ReturnsFalseIfRecordNotFound()
     {
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
@@ -368,10 +368,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         var id = this.modelFactory.NextInt();
 
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.recipeManager.HardDeleteRecipe(id));
-
-        Assert.Equal($"Recipe {id} not found", exception.Message);
+        Assert.False(await this.recipeManager.HardDeleteRecipe(id));
     }
 
     #endregion

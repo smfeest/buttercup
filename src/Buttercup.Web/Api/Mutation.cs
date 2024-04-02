@@ -97,18 +97,8 @@ public sealed class Mutation
     /// </param>
     [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
     public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
-        [Service] IRecipeManager recipeManager, long id)
-    {
-        try
-        {
-            await recipeManager.HardDeleteRecipe(id);
-            return new(true);
-        }
-        catch (NotFoundException)
-        {
-            return new(false);
-        }
-    }
+        [Service] IRecipeManager recipeManager, long id) =>
+        new(await recipeManager.HardDeleteRecipe(id));
 
     /// <summary>
     /// Updates a recipe.
