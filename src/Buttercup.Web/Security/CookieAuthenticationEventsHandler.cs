@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -35,7 +36,18 @@ public sealed class CookieAuthenticationEventsHandler(
             return;
         }
 
-        var user = await this.userManager.GetUser(userId.Value);
+        User user;
+
+        try
+        {
+            user = await this.userManager.GetUser(userId.Value);
+        }
+        catch (NotFoundException)
+        {
+            ValidatePrincipalLogMessages.UserNoLongerExists(this.logger, userId.Value, null);
+            await this.RejectPrincipalAndSignOut(context);
+            return;
+        }
 
         var securityStamp = principal.FindFirstValue(CustomClaimTypes.SecurityStamp);
 
@@ -43,12 +55,7 @@ public sealed class CookieAuthenticationEventsHandler(
         {
             ValidatePrincipalLogMessages.IncorrectSecurityStamp(
                 this.logger, user.Id, user.Email, null);
-
-            context.RejectPrincipal();
-
-            await this.authenticationService.SignOutAsync(
-                context.HttpContext, context.Scheme.Name, null);
-
+            await this.RejectPrincipalAndSignOut(context);
             return;
         }
 
@@ -65,6 +72,14 @@ public sealed class CookieAuthenticationEventsHandler(
             ValidatePrincipalLogMessages.RefreshedClaimsPrincipal(
                 this.logger, user.Id, user.Email, null);
         }
+    }
+
+    private async Task RejectPrincipalAndSignOut(CookieValidatePrincipalContext context)
+    {
+        context.RejectPrincipal();
+
+        await this.authenticationService.SignOutAsync(
+            context.HttpContext, context.Scheme.Name, null);
     }
 
     private static class ValidatePrincipalLogMessages
@@ -84,5 +99,8 @@ public sealed class CookieAuthenticationEventsHandler(
                 LogLevel.Information,
                 216,
                 "Refreshed claims principal for user {UserId} ({Email})");
+
+        public static readonly Action<ILogger, long, Exception?> UserNoLongerExists =
+            LoggerMessage.Define<long>(LogLevel.Information, 219, "User {UserId} no longer exists");
     }
 }

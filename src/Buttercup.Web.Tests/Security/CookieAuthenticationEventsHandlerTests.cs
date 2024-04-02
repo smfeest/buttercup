@@ -42,6 +42,47 @@ public sealed class CookieAuthenticationEventsHandlerTests
         Assert.Same(initialPrincipal, context.Principal);
     }
 
+    [Fact]
+    public async Task ValidatePrincipal_UserNoLongerExists_LogsInfoMessage()
+    {
+        var user = this.modelFactory.BuildUser();
+        var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
+
+        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ThrowsAsync(new NotFoundException());
+
+        await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
+
+        LogAssert.HasEntry(
+            this.logger, LogLevel.Information, 219, $"User {user.Id} no longer exists");
+    }
+
+    [Fact]
+    public async Task ValidatePrincipal_UserNoLongerExists_RejectsPrincipal()
+    {
+        var user = this.modelFactory.BuildUser();
+        var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
+
+        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ThrowsAsync(new NotFoundException());
+
+        await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
+
+        Assert.Null(context.Principal);
+    }
+
+    [Fact]
+    public async Task ValidatePrincipal_UserNoLongerExists_SignsUserOut()
+    {
+        var user = this.modelFactory.BuildUser();
+        var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
+
+        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ThrowsAsync(new NotFoundException());
+
+        await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
+
+        this.authenticationServiceMock.Verify(
+            x => x.SignOutAsync(context.HttpContext, context.Scheme.Name, null));
+    }
+
     [Theory]
     [MemberData(nameof(GetTheoryDataForSecurityStampIsMissingOrStale))]
     public async Task ValidatePrincipal_SecurityStampIsMissingOrStale_LogsInfoMessage(
