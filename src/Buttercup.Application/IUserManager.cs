@@ -8,18 +8,15 @@ namespace Buttercup.Application;
 public interface IUserManager
 {
     /// <summary>
-    /// Gets a user.
+    /// Finds a user.
     /// </summary>
     /// <param name="id">
     /// The user ID.
     /// </param>
     /// <returns>
-    /// A task for the operation.
+    /// A task for the operation. The result is the user, or null if the user does not exist.
     /// </returns>
-    /// <exception cref="NotFoundException">
-    /// No matching user was found.
-    /// </exception>
-    Task<User> GetUser(long id);
+    Task<User?> FindUser(long id);
 
     /// <summary>
     /// Sets a user's time zone.

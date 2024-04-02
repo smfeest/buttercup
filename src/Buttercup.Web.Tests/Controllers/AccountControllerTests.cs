@@ -41,10 +41,21 @@ public sealed class AccountControllerTests : IDisposable
     public async void Show_ReturnsViewResultWithCurrentUser()
     {
         var user = this.SetupCurrentUser();
+        this.SetupFindUser(user.Id, user);
 
         var result = await this.accountController.Show();
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(user, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task Show_UserNotFound_ReturnsNotFoundResult()
+    {
+        var userId = this.SetupCurrentUserId();
+        this.SetupFindUser(userId, null);
+
+        var result = await this.accountController.Show();
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -148,12 +159,23 @@ public sealed class AccountControllerTests : IDisposable
     public async void Preferences_Get_ReturnsViewResultWithViewModel()
     {
         var user = this.SetupCurrentUser();
+        this.SetupFindUser(user.Id, user);
 
         var result = await this.accountController.Preferences();
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
         Assert.Equal(user.TimeZone, viewModel.TimeZone);
+    }
+
+    [Fact]
+    public async Task Preferences_Get_UserNotFound_ReturnsNotFoundResult()
+    {
+        var userId = this.SetupCurrentUserId();
+        this.SetupFindUser(userId, null);
+
+        var result = await this.accountController.Preferences();
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion
@@ -202,7 +224,6 @@ public sealed class AccountControllerTests : IDisposable
     {
         var user = this.modelFactory.BuildUser();
         this.httpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
-        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ReturnsAsync(user);
         return user;
     }
 
@@ -212,6 +233,9 @@ public sealed class AccountControllerTests : IDisposable
         this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
         return userId;
     }
+
+    private void SetupFindUser(long id, User? user) =>
+        this.userManagerMock.Setup(x => x.FindUser(id)).ReturnsAsync(user);
 
     private IPAddress SetupRemoteIpAddress()
     {

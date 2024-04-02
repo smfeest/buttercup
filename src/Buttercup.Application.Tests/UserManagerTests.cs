@@ -34,7 +34,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         }
 
         // Returns user
-        Assert.Equal(expected, await this.userManager.GetUser(expected.Id));
+        Assert.Equal(expected, await this.userManager.FindUser(expected.Id));
     }
 
     [Fact]
@@ -46,12 +46,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var id = this.modelFactory.NextInt();
-
-        // Throws exception
-        var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userManager.GetUser(id));
-        Assert.Equal($"User {id} not found", exception.Message);
+        // Returns null
+        Assert.Null(await this.userManager.FindUser(this.modelFactory.NextInt()));
     }
 
     #endregion
