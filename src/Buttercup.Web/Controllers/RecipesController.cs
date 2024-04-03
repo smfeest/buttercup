@@ -1,6 +1,6 @@
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.Security;
-using Buttercup.Web.Filters;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +9,6 @@ using Microsoft.Extensions.Localization;
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
-[HandleNotFoundException]
 [Route("recipes")]
 public sealed class RecipesController(
     IStringLocalizer<RecipesController> localizer, IRecipeManager RecipeManager)
@@ -71,6 +70,10 @@ public sealed class RecipesController(
                 nameof(EditRecipeViewModel.Attributes), this.localizer["Error_StaleEdit"]);
 
             return this.View(model);
+        }
+        catch (NotFoundException)
+        {
+            return this.NotFound();
         }
         catch (SoftDeletedException)
         {

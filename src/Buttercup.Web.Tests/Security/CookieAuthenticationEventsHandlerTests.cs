@@ -47,8 +47,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     {
         var user = this.modelFactory.BuildUser();
         var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
-
-        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ThrowsAsync(new NotFoundException());
+        this.SetupFindUser(user.Id, null);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -61,8 +60,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     {
         var user = this.modelFactory.BuildUser();
         var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
-
-        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ThrowsAsync(new NotFoundException());
+        this.SetupFindUser(user.Id, null);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -74,8 +72,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     {
         var user = this.modelFactory.BuildUser();
         var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
-
-        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ThrowsAsync(new NotFoundException());
+        this.SetupFindUser(user.Id, null);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -88,7 +85,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_SecurityStampIsMissingOrStale_LogsInfoMessage(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var user = this.SetupGetUser();
+        var user = this.SetupFindUser();
         var context = this.BuildValidatePrincipalContext(principalFactory(user));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
@@ -105,7 +102,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_SecurityStampIsMissingOrStale_RejectsPrincipal(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupGetUser()));
+        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupFindUser()));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -117,7 +114,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_SecurityStampIsMissingOrStale_SignsUserOut(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupGetUser()));
+        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupFindUser()));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -128,7 +125,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     [Fact]
     public async Task ValidatePrincipal_SecurityStampMatches_LogsDebugMessage()
     {
-        var user = this.SetupGetUser();
+        var user = this.SetupFindUser();
         var context = this.BuildValidatePrincipalContext(BuildPrincipal(user));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
@@ -145,7 +142,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_ReplacesPrincipal(
          Func<User, ClaimsPrincipal> principalFactory)
     {
-        var user = this.SetupGetUser();
+        var user = this.SetupFindUser();
         var context = this.BuildValidatePrincipalContext(principalFactory(user));
         var updatedPrincipal = this.SetupCreatePrincipal(user, context.Scheme);
 
@@ -159,7 +156,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_RenewsCookie(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupGetUser()));
+        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupFindUser()));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -171,7 +168,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_LogsInfoMessage(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var user = this.SetupGetUser();
+        var user = this.SetupFindUser();
         var context = this.BuildValidatePrincipalContext(principalFactory(user));
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
@@ -186,7 +183,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     [Fact]
     public async Task ValidatePrincipal_UserRevisionMatches_RetainsPrincipal()
     {
-        var initialPrincipal = BuildPrincipal(this.SetupGetUser());
+        var initialPrincipal = BuildPrincipal(this.SetupFindUser());
         var context = this.BuildValidatePrincipalContext(initialPrincipal);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
@@ -259,12 +256,15 @@ public sealed class CookieAuthenticationEventsHandlerTests
         return updatedPrincipal;
     }
 
-    private User SetupGetUser()
+    private User SetupFindUser()
     {
         var user = this.modelFactory.BuildUser();
-        this.userManagerMock.Setup(x => x.GetUser(user.Id)).ReturnsAsync(user);
+        this.SetupFindUser(user.Id, user);
         return user;
     }
+
+    private void SetupFindUser(long id, User? user) =>
+        this.userManagerMock.Setup(x => x.FindUser(id)).ReturnsAsync(user);
 
     #endregion
 }

@@ -99,14 +99,11 @@ internal sealed class RecipeManager(
             .ToArrayAsync();
     }
 
-    public async Task HardDeleteRecipe(long id)
+    public async Task<bool> HardDeleteRecipe(long id)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        if (await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() == 0)
-        {
-            throw RecipeNotFound(id);
-        }
+        return await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() != 0;
     }
 
     public async Task UpdateRecipe(
@@ -141,6 +138,4 @@ internal sealed class RecipeManager(
                     $"Revision {baseRevision} does not match current revision {recipe.Revision}");
         }
     }
-
-    private static NotFoundException RecipeNotFound(long id) => new($"Recipe {id} not found");
 }

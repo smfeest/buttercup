@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
 using Buttercup.Application;
-using Buttercup.EntityModel;
 using Buttercup.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -36,13 +35,9 @@ public sealed class CookieAuthenticationEventsHandler(
             return;
         }
 
-        User user;
+        var user = await this.userManager.FindUser(userId.Value);
 
-        try
-        {
-            user = await this.userManager.GetUser(userId.Value);
-        }
-        catch (NotFoundException)
+        if (user is null)
         {
             ValidatePrincipalLogMessages.UserNoLongerExists(this.logger, userId.Value, null);
             await this.RejectPrincipalAndSignOut(context);

@@ -25,7 +25,11 @@ public sealed class AccountController(
     private readonly IUserManager userManager = userManager;
 
     [HttpGet]
-    public async Task<IActionResult> Show() => this.View(await this.GetCurrentUser());
+    public async Task<IActionResult> Show()
+    {
+        var user = await this.FindCurrentUser();
+        return user is null ? this.NotFound() : this.View(user);
+    }
 
     [HttpGet("change-password")]
     public IActionResult ChangePassword() => this.View();
@@ -59,8 +63,11 @@ public sealed class AccountController(
     }
 
     [HttpGet("preferences")]
-    public async Task<IActionResult> Preferences() =>
-        this.View(new PreferencesViewModel(await this.GetCurrentUser()));
+    public async Task<IActionResult> Preferences()
+    {
+        var user = await this.FindCurrentUser();
+        return user is null ? this.NotFound() : this.View(new PreferencesViewModel(user));
+    }
 
     [HttpPost("preferences")]
     public async Task<IActionResult> Preferences(PreferencesViewModel model)
@@ -75,6 +82,6 @@ public sealed class AccountController(
         return this.RedirectToAction(nameof(this.Show));
     }
 
-    private Task<User> GetCurrentUser() =>
-        this.userManager.GetUser(this.HttpContext.User.GetUserId());
+    private Task<User?> FindCurrentUser() =>
+        this.userManager.FindUser(this.HttpContext.User.GetUserId());
 }

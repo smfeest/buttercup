@@ -90,12 +90,10 @@ public interface IRecipeManager
     /// The recipe ID.
     /// </param>
     /// <returns>
-    /// A task for the operation.
+    /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
+    /// recipe does not exist.
     /// </returns>
-    /// <exception cref="NotFoundException">
-    /// No matching recipe was found.
-    /// </exception>
-    Task HardDeleteRecipe(long id);
+    Task<bool> HardDeleteRecipe(long id);
 
     /// <summary>
     /// Updates a recipe.
