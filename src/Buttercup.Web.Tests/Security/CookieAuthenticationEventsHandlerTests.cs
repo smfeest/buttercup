@@ -217,32 +217,24 @@ public sealed class CookieAuthenticationEventsHandlerTests
         return new(new DefaultHttpContext(), scheme, new(), ticket);
     }
 
-    public static object[][] GetTheoryDataForSecurityStampIsMissingOrStale()
+    public static TheoryData<Func<User, ClaimsPrincipal>> GetTheoryDataForSecurityStampIsMissingOrStale()
     {
         ClaimsPrincipal SetupPrincipalWithoutSecurityStamp(User user) =>
             BuildPrincipal(user, claims => claims.Remove(CustomClaimTypes.SecurityStamp));
         ClaimsPrincipal SetupPrincipalWithStaleSecurityStamp(User user) =>
             BuildPrincipal(user with { SecurityStamp = "stale-security-stamp" });
 
-        return
-        [
-            new[] { SetupPrincipalWithoutSecurityStamp },
-            new[] { SetupPrincipalWithStaleSecurityStamp }
-        ];
+        return new([SetupPrincipalWithoutSecurityStamp, SetupPrincipalWithStaleSecurityStamp]);
     }
 
-    public static object[][] GetTheoryDataForUserRevisionIsMissingOrStale()
+    public static TheoryData<Func<User, ClaimsPrincipal>> GetTheoryDataForUserRevisionIsMissingOrStale()
     {
         ClaimsPrincipal SetupPrincipalWithoutUserRevision(User user) =>
             BuildPrincipal(user, claims => claims.Remove(CustomClaimTypes.UserRevision));
         ClaimsPrincipal SetupPrincipalWithStaleUserRevision(User user) =>
             BuildPrincipal(user with { Revision = user.Revision - 1 });
 
-        return
-        [
-            new[] { SetupPrincipalWithoutUserRevision },
-            new[] { SetupPrincipalWithStaleUserRevision }
-        ];
+        return new([SetupPrincipalWithoutUserRevision, SetupPrincipalWithStaleUserRevision]);
     }
 
     private ClaimsPrincipal SetupCreatePrincipal(User user, AuthenticationScheme scheme)
