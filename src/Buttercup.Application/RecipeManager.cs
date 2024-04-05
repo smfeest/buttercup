@@ -106,7 +106,7 @@ internal sealed class RecipeManager(
         return await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() != 0;
     }
 
-    public async Task UpdateRecipe(
+    public async Task<bool> UpdateRecipe(
         long id, RecipeAttributes newAttributes, int baseRevision, long currentUserId)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -116,6 +116,10 @@ internal sealed class RecipeManager(
         if (recipe.Deleted.HasValue)
         {
             throw new SoftDeletedException($"Cannot update soft-deleted recipe {id}");
+        }
+        if (newAttributes == new RecipeAttributes(recipe))
+        {
+            return false;
         }
         if (recipe.Revision != baseRevision)
         {
@@ -142,7 +146,9 @@ internal sealed class RecipeManager(
         }
         catch (DbUpdateConcurrencyException)
         {
-            await this.UpdateRecipe(id, newAttributes, baseRevision, currentUserId);
+            return await this.UpdateRecipe(id, newAttributes, baseRevision, currentUserId);
         }
+
+        return true;
     }
 }

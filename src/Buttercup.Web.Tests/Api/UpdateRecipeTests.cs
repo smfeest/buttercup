@@ -133,7 +133,7 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision - 1, new(recipe));
+            client, recipe.Id, recipe.Revision - 1, new(this.ModelFactory.BuildRecipe()));
         using var document = await response.Content.ReadAsJsonDocument();
 
         var createRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
