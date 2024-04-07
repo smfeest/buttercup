@@ -142,6 +142,8 @@ internal sealed class RecipeManager(
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
 
+        recipe.Revisions.Add(RecipeRevision.From(recipe));
+
         try
         {
             await dbContext.SaveChangesAsync();

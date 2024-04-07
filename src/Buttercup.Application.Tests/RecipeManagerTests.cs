@@ -394,7 +394,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region UpdateRecipe
 
     [Fact]
-    public async Task UpdateRecipe_UpdatesAllUpdatableAttributes()
+    public async Task UpdateRecipe_UpdatesRecipeInsertsRevisionAndReturnsTrue()
     {
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
@@ -413,7 +413,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            var expected = new Recipe
+            var expectedRecipe = new Recipe
             {
                 Id = original.Id,
                 Title = newAttributes.Title,
@@ -431,10 +431,27 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 ModifiedByUserId = currentUser.Id,
                 Revision = original.Revision + 1,
             };
+            var actualRecipe = await dbContext.Recipes.FindAsync(original.Id);
+            Assert.Equivalent(expectedRecipe, actualRecipe);
 
-            var actual = await dbContext.Recipes.FindAsync(original.Id);
-
-            Assert.Equivalent(expected, actual);
+            var expectedRevision = new RecipeRevision
+            {
+                RecipeId = original.Id,
+                Revision = original.Revision + 1,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
+                CreatedByUserId = currentUser.Id,
+                Title = newAttributes.Title,
+                PreparationMinutes = newAttributes.PreparationMinutes,
+                CookingMinutes = newAttributes.CookingMinutes,
+                Servings = newAttributes.Servings,
+                Ingredients = newAttributes.Ingredients,
+                Method = newAttributes.Method,
+                Suggestions = newAttributes.Suggestions,
+                Remarks = newAttributes.Remarks,
+                Source = newAttributes.Source,
+            };
+            var actualRevision = await dbContext.RecipeRevisions.SingleAsync();
+            Assert.Equivalent(expectedRevision, actualRevision);
         }
     }
 
