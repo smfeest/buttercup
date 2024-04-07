@@ -118,4 +118,9 @@ public sealed record Recipe : IEntityId, ISoftDeletable
     /// </summary>
     [ConcurrencyCheck]
     public int Revision { get; set; }
+
+    /// <summary>
+    /// Gets or sets the recipe revisions.
+    /// </summary>
+    public ICollection<RecipeRevision> Revisions { get; set; } = [];
 }

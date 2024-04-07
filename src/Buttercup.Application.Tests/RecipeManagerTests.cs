@@ -60,7 +60,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             };
             var actual = await dbContext.Recipes.FindAsync(id);
 
-            Assert.Equal(expected, actual);
+            Assert.Equivalent(expected, actual);
         }
     }
 
@@ -119,7 +119,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 DeletedByUserId = currentUser.Id,
             };
             var actual = await dbContext.Recipes.FindAsync(original.Id);
-            Assert.Equal(expected, actual);
+            Assert.Equivalent(expected, actual);
         }
     }
 
@@ -140,7 +140,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
             var actual = await dbContext.Recipes.FindAsync(original.Id);
-            Assert.Equal(original, actual);
+            Assert.Equivalent(original, actual);
         }
     }
 
@@ -176,7 +176,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         var actual = await this.recipeManager.FindNonDeletedRecipe(expected.Id, true);
 
-        Assert.Equal(expected, actual);
+        Assert.Equivalent(expected, actual);
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             ModifiedByUser = null,
         };
 
-        Assert.Equal(expected, actual);
+        Assert.Equivalent(expected, actual);
     }
 
     [Fact]
@@ -231,15 +231,11 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var expected = new Recipe[] {
-            recipeA,
-            recipeB,
-            recipeC,
-        };
-
-        var actual = await this.recipeManager.GetNonDeletedRecipes();
-
-        Assert.Equal(expected, actual);
+        Assert.Collection(
+            await this.recipeManager.GetNonDeletedRecipes(),
+            r => Assert.Equivalent(recipeA, r),
+            r => Assert.Equivalent(recipeB, r),
+            r => Assert.Equivalent(recipeC, r));
     }
 
     #endregion
@@ -251,7 +247,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var allRecipes = new List<Recipe>();
 
-        for (var i = 0; i < 20; i++)
+        for (var i = 0; i < 15; i++)
         {
             allRecipes.Add(this.modelFactory.BuildRecipe(softDeleted: i % 5 == 0) with
             {
@@ -265,11 +261,18 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var expected = allRecipes.AsEnumerable().Where(r => !r.Deleted.HasValue).Reverse().Take(10);
-
-        var actual = await this.recipeManager.GetRecentlyAddedRecipes();
-
-        Assert.Equal(expected, actual);
+        Assert.Collection(
+            await this.recipeManager.GetRecentlyAddedRecipes(),
+            r => Assert.Equivalent(allRecipes[14], r),
+            r => Assert.Equivalent(allRecipes[13], r),
+            r => Assert.Equivalent(allRecipes[12], r),
+            r => Assert.Equivalent(allRecipes[11], r),
+            r => Assert.Equivalent(allRecipes[9], r),
+            r => Assert.Equivalent(allRecipes[8], r),
+            r => Assert.Equivalent(allRecipes[7], r),
+            r => Assert.Equivalent(allRecipes[6], r),
+            r => Assert.Equivalent(allRecipes[4], r),
+            r => Assert.Equivalent(allRecipes[3], r));
     }
 
     #endregion
@@ -314,24 +317,21 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext.SaveChangesAsync();
         }
 
-        var expected = new[]
-        {
-            allRecipes[2],
-            allRecipes[9],
-            allRecipes[12],
-            allRecipes[14],
-            allRecipes[13],
-            allRecipes[1],
-            allRecipes[0],
-            allRecipes[4],
-            allRecipes[7],
-            allRecipes[15],
-        };
-
         var actual = await this.recipeManager.GetRecentlyUpdatedRecipes(
             [allRecipes[3].Id, allRecipes[8].Id]);
 
-        Assert.Equal(expected, actual);
+        Assert.Collection(
+            actual,
+            r => Assert.Equivalent(allRecipes[2], r),
+            r => Assert.Equivalent(allRecipes[9], r),
+            r => Assert.Equivalent(allRecipes[12], r),
+            r => Assert.Equivalent(allRecipes[14], r),
+            r => Assert.Equivalent(allRecipes[13], r),
+            r => Assert.Equivalent(allRecipes[1], r),
+            r => Assert.Equivalent(allRecipes[0], r),
+            r => Assert.Equivalent(allRecipes[4], r),
+            r => Assert.Equivalent(allRecipes[7], r),
+            r => Assert.Equivalent(allRecipes[15], r));
     }
 
     #endregion
@@ -416,7 +416,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
             var actual = await dbContext.Recipes.FindAsync(original.Id);
 
-            Assert.Equal(expected, actual);
+            Assert.Equivalent(expected, actual);
         }
     }
 
@@ -472,7 +472,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             var expected = original with { CreatedByUser = null, ModifiedByUser = null };
             var actual = await dbContext.Recipes.FindAsync(original.Id);
 
-            Assert.Equal(expected, actual);
+            Assert.Equivalent(expected, actual);
         }
     }
 

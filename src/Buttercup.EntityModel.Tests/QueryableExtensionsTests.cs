@@ -27,7 +27,7 @@ public sealed class QueryableExtensionsTests(
 
         var actual = await dbContext.Recipes.AsQueryable().FindAsync(expected.Id);
 
-        Assert.Equal(expected, actual);
+        Assert.Equivalent(expected, actual);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class QueryableExtensionsTests(
 
         var actual = await dbContext.Recipes.GetAsync(expected.Id);
 
-        Assert.Equal(expected, actual);
+        Assert.Equivalent(expected, actual);
     }
 
     [Fact]
@@ -99,7 +99,8 @@ public sealed class QueryableExtensionsTests(
         await dbContext.SaveChangesAsync();
         dbContext.ChangeTracker.Clear();
 
-        Assert.Equal(visibleRecipe, await dbContext.Recipes.WhereNotSoftDeleted().SingleAsync());
+        Assert.Equivalent(
+            visibleRecipe, await dbContext.Recipes.WhereNotSoftDeleted().SingleAsync());
     }
 
     #endregion
