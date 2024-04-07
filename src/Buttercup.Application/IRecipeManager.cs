@@ -111,7 +111,8 @@ public interface IRecipeManager
     /// The current user ID.
     /// </param>
     /// <returns>
-    /// A task for the operation.
+    /// A task for the operation. The task result is <b>true</b> if the recipe was updated,
+    /// <b>false</b> if the recipe's attributes already matched <paramref name="newAttributes"/>.
     /// </returns>
     /// <exception cref="NotFoundException">
     /// No matching recipe was found.
@@ -122,6 +123,6 @@ public interface IRecipeManager
     /// <exception cref="ConcurrencyException">
     /// <paramref name="baseRevision"/> does not match the current revision in the database.
     /// </exception>
-    Task UpdateRecipe(
+    Task<bool> UpdateRecipe(
         long id, RecipeAttributes newAttributes, int baseRevision, long currentUserId);
 }

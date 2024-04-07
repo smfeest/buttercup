@@ -390,8 +390,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var newAttributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: true));
 
-        await this.recipeManager.UpdateRecipe(
-            original.Id, newAttributes, original.Revision, currentUser.Id);
+        Assert.True(await this.recipeManager.UpdateRecipe(
+            original.Id, newAttributes, original.Revision, currentUser.Id));
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
@@ -435,8 +435,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var newAttributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: false));
 
-        await this.recipeManager.UpdateRecipe(
-            original.Id, newAttributes, original.Revision, currentUser.Id);
+        Assert.True(await this.recipeManager.UpdateRecipe(
+            original.Id, newAttributes, original.Revision, currentUser.Id));
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
@@ -449,6 +449,30 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             Assert.Null(actual.Suggestions);
             Assert.Null(actual.Remarks);
             Assert.Null(actual.Source);
+        }
+    }
+
+    [Fact]
+    public async Task UpdateRecipe_ReturnsFalseAndDoesNotUpdateIfAttributesAlreadyMatch()
+    {
+        var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+        var currentUser = this.modelFactory.BuildUser();
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.AddRange(original, currentUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        Assert.False(await this.recipeManager.UpdateRecipe(
+            original.Id, new(original), original.Revision, currentUser.Id));
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            var expected = original with { CreatedByUser = null, ModifiedByUser = null };
+            var actual = await dbContext.Recipes.FindAsync(original.Id);
+
+            Assert.Equal(expected, actual);
         }
     }
 

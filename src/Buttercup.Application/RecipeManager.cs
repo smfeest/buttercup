@@ -106,36 +106,49 @@ internal sealed class RecipeManager(
         return await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() != 0;
     }
 
-    public async Task UpdateRecipe(
+    public async Task<bool> UpdateRecipe(
         long id, RecipeAttributes newAttributes, int baseRevision, long currentUserId)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var updatedRows = await dbContext
-            .Recipes
-            .Where(r => r.Id == id && !r.Deleted.HasValue && r.Revision == baseRevision)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(r => r.Title, newAttributes.Title)
-                .SetProperty(r => r.PreparationMinutes, newAttributes.PreparationMinutes)
-                .SetProperty(r => r.CookingMinutes, newAttributes.CookingMinutes)
-                .SetProperty(r => r.Servings, newAttributes.Servings)
-                .SetProperty(r => r.Ingredients, newAttributes.Ingredients)
-                .SetProperty(r => r.Method, newAttributes.Method)
-                .SetProperty(r => r.Suggestions, newAttributes.Suggestions)
-                .SetProperty(r => r.Remarks, newAttributes.Remarks)
-                .SetProperty(r => r.Source, newAttributes.Source)
-                .SetProperty(r => r.Modified, this.timeProvider.GetUtcDateTimeNow())
-                .SetProperty(r => r.ModifiedByUserId, currentUserId)
-                .SetProperty(r => r.Revision, baseRevision + 1));
+        var recipe = await dbContext.Recipes.AsTracking().GetAsync(id);
 
-        if (updatedRows == 0)
+        if (recipe.Deleted.HasValue)
         {
-            var recipe = await dbContext.Recipes.GetAsync(id);
-
-            throw recipe.Deleted.HasValue ?
-                new SoftDeletedException($"Cannot update soft-deleted recipe {id}") :
-                new ConcurrencyException(
-                    $"Revision {baseRevision} does not match current revision {recipe.Revision}");
+            throw new SoftDeletedException($"Cannot update soft-deleted recipe {id}");
         }
+        if (newAttributes == new RecipeAttributes(recipe))
+        {
+            return false;
+        }
+        if (recipe.Revision != baseRevision)
+        {
+            throw new ConcurrencyException(
+                $"Revision {baseRevision} does not match current revision {recipe.Revision}");
+        }
+
+        recipe.Title = newAttributes.Title;
+        recipe.PreparationMinutes = newAttributes.PreparationMinutes;
+        recipe.CookingMinutes = newAttributes.CookingMinutes;
+        recipe.Servings = newAttributes.Servings;
+        recipe.Ingredients = newAttributes.Ingredients;
+        recipe.Method = newAttributes.Method;
+        recipe.Suggestions = newAttributes.Suggestions;
+        recipe.Remarks = newAttributes.Remarks;
+        recipe.Source = newAttributes.Source;
+        recipe.Modified = this.timeProvider.GetUtcDateTimeNow();
+        recipe.ModifiedByUserId = currentUserId;
+        recipe.Revision++;
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return await this.UpdateRecipe(id, newAttributes, baseRevision, currentUserId);
+        }
+
+        return true;
     }
 }

@@ -100,6 +100,7 @@ public sealed record Recipe : IEntityId, ISoftDeletable
     /// Gets or sets the date and time at which the recipe was soft-deleted, or null if the recipe
     /// has not been soft-deleted.
     /// </summary>
+    [ConcurrencyCheck]
     public DateTime? Deleted { get; set; }
 
     /// <summary>
@@ -115,5 +116,6 @@ public sealed record Recipe : IEntityId, ISoftDeletable
     /// <summary>
     /// Gets or sets the revision number for concurrency control.
     /// </summary>
+    [ConcurrencyCheck]
     public int Revision { get; set; }
 }
