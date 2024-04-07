@@ -90,4 +90,33 @@ public sealed record RecipeRevision
     /// </summary>
     [StringLength(250)]
     public string? Source { get; set; }
+
+    /// <summary>
+    /// Creates a new <see cref="RecipeRevision" /> copying property values from a <see
+    /// cref="Recipe" />.
+    /// </summary>
+    /// <param name="recipe">
+    /// The recipe to copy property values from.
+    /// </param>
+    /// <returns>
+    /// The new <see cref="RecipeRevision"/>.
+    /// </returns>
+    public static RecipeRevision From(Recipe recipe) => new()
+    {
+        Recipe = recipe,
+        RecipeId = recipe.Id,
+        Revision = recipe.Revision,
+        Created = recipe.Modified,
+        CreatedByUser = recipe.ModifiedByUser,
+        CreatedByUserId = recipe.ModifiedByUserId,
+        Title = recipe.Title,
+        PreparationMinutes = recipe.PreparationMinutes,
+        CookingMinutes = recipe.CookingMinutes,
+        Servings = recipe.Servings,
+        Ingredients = recipe.Ingredients,
+        Method = recipe.Method,
+        Suggestions = recipe.Suggestions,
+        Remarks = recipe.Remarks,
+        Source = recipe.Source,
+    };
 }
