@@ -30,6 +30,8 @@ internal sealed class RecipeManager(
             ModifiedByUserId = currentUserId
         };
 
+        recipe.Revisions.Add(RecipeRevision.From(recipe));
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Recipes.Add(recipe);
         await dbContext.SaveChangesAsync();

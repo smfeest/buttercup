@@ -24,7 +24,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region AddRecipe
 
     [Fact]
-    public async Task AddRecipe_InsertsRecipeAndReturnsId()
+    public async Task AddRecipe_InsertsRecipeAndRevisionAndReturnsId()
     {
         var currentUser = this.modelFactory.BuildUser();
         var attributes = new RecipeAttributes(
@@ -40,7 +40,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            var expected = new Recipe
+            var expectedRecipe = new Recipe
             {
                 Id = id,
                 Title = attributes.Title,
@@ -58,9 +58,27 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 ModifiedByUserId = currentUser.Id,
                 Revision = 0,
             };
-            var actual = await dbContext.Recipes.FindAsync(id);
+            var actualRecipe = await dbContext.Recipes.FindAsync(id);
+            Assert.Equivalent(expectedRecipe, actualRecipe);
 
-            Assert.Equivalent(expected, actual);
+            var expectedRevision = new RecipeRevision
+            {
+                RecipeId = id,
+                Revision = 0,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
+                CreatedByUserId = currentUser.Id,
+                Title = attributes.Title,
+                PreparationMinutes = attributes.PreparationMinutes,
+                CookingMinutes = attributes.CookingMinutes,
+                Servings = attributes.Servings,
+                Ingredients = attributes.Ingredients,
+                Method = attributes.Method,
+                Suggestions = attributes.Suggestions,
+                Remarks = attributes.Remarks,
+                Source = attributes.Source,
+            };
+            var actualRevision = await dbContext.RecipeRevisions.SingleAsync();
+            Assert.Equivalent(expectedRevision, actualRevision);
         }
     }
 
