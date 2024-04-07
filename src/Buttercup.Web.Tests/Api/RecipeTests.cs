@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using Xunit;
 
@@ -14,6 +15,8 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes, softDeleted);
+        recipe.Revisions.Add(
+            RecipeRevision.From(this.ModelFactory.BuildRecipe(setOptionalAttributes)));
 
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
@@ -47,7 +50,24 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
             DeletedByUser = recipe.DeletedByUser == null ?
                 null :
                 new { recipe.DeletedByUser.Id, recipe.DeletedByUser.Email },
-            recipe.Revision
+            recipe.Revision,
+            revisions = recipe.Revisions.Select(revision => new
+            {
+                revision.Revision,
+                revision.Created,
+                CreatedByUser = revision.CreatedByUser == null ?
+                    null :
+                    new { revision.CreatedByUser.Id, revision.CreatedByUser.Email },
+                revision.Title,
+                revision.PreparationMinutes,
+                revision.CookingMinutes,
+                revision.Servings,
+                revision.Ingredients,
+                revision.Method,
+                revision.Suggestions,
+                revision.Remarks,
+                revision.Source,
+            }),
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
@@ -107,6 +127,20 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
                     deleted
                     deletedByUser { id email }
                     revision
+                    revisions {
+                        revision
+                        created
+                        createdByUser { id email }
+                        title
+                        preparationMinutes
+                        cookingMinutes
+                        servings
+                        ingredients
+                        method
+                        suggestions
+                        remarks
+                        source
+                    }
                 }
             }",
             new { id });
