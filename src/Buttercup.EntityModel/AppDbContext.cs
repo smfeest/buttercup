@@ -38,6 +38,11 @@ public sealed class AppDbContext : DbContext
     public DbSet<Recipe> Recipes => this.Set<Recipe>();
 
     /// <summary>
+    /// Gets the set of all recipe revisions.
+    /// </summary>
+    public DbSet<RecipeRevision> RecipeRevisions => this.Set<RecipeRevision>();
+
+    /// <summary>
     /// Gets the set of all users.
     /// </summary>
     public DbSet<User> Users => this.Set<User>();

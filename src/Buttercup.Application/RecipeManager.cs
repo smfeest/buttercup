@@ -30,6 +30,8 @@ internal sealed class RecipeManager(
             ModifiedByUserId = currentUserId
         };
 
+        recipe.Revisions.Add(RecipeRevision.From(recipe));
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Recipes.Add(recipe);
         await dbContext.SaveChangesAsync();
@@ -139,6 +141,8 @@ internal sealed class RecipeManager(
         recipe.Modified = this.timeProvider.GetUtcDateTimeNow();
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
+
+        recipe.Revisions.Add(RecipeRevision.From(recipe));
 
         try
         {
