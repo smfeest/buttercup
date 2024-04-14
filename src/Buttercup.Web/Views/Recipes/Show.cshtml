@@ -6,6 +6,10 @@
 }
 <header class="recipe-header">
   <h1>@Model.Title</h1>
+  <nav class="button-bar recipe-actions">
+    <a class="push-button" asp-action="Edit" asp-route-id="@Model.Id">@Localizer["Label_Edit"]</a>
+    <a class="push-button" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
+  </nav>
 </header>
 
 <table class="recipe-summary">
@@ -86,7 +90,3 @@
   <ul lines-in="@Model.Remarks"></ul>
 }
 
-<footer class="button-bar">
-  <a class="push-button" asp-action="Edit" asp-route-id="@Model.Id">@Localizer["Label_Edit"]</a>
-  <a class="push-button" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
-</footer>
