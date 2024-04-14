@@ -4,7 +4,9 @@
 @{
   ViewData["Title"] = Model!.Title;
 }
-<h1>@Model.Title</h1>
+<header class="recipe-header">
+  <h1>@Model.Title</h1>
+</header>
 
 <table class="recipe-summary">
   @if (Model.PreparationMinutes != null)
