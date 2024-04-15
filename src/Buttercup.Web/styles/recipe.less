@@ -1,9 +1,28 @@
 .recipe-header {
-  border-bottom: 1px;
+  h1 {
+    text-align: center;
+  }
+  border-bottom: 1px solid @color-grey;
+  padding-bottom: @padding;
+  margin-bottom: @large-padding;
 }
 
 .recipe-actions {
+  justify-content: center;
 }
+
+// @media (min-width: @medium-breakpoint) {
+//   h1 {
+//     margin: 0.7em 0;
+//   }
+
+//   .recipe-header {
+//     display: flex;
+//     align-items: baseline;
+//     gap: @padding;
+//     justify-content: space-between;
+//   }
+// }
 
 .recipe-summary {
   border-spacing: 0;
