@@ -9,6 +9,15 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddApplicationServices
 
     [Fact]
+    public void AddApplicationServices_AddsCommentManager() =>
+        Assert.Contains(
+            new ServiceCollection().AddApplicationServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(ICommentManager) &&
+                serviceDescriptor.ImplementationType == typeof(CommentManager) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddApplicationServices_AddsRecipeManager() =>
         Assert.Contains(
             new ServiceCollection().AddApplicationServices(),
