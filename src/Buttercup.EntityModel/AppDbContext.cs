@@ -23,6 +23,16 @@ public sealed class AppDbContext : DbContext
     { }
 
     /// <summary>
+    /// Gets the set of all comments.
+    /// </summary>
+    public DbSet<Comment> Comments => this.Set<Comment>();
+
+    /// <summary>
+    /// Gets the set of all comment revisions.
+    /// </summary>
+    public DbSet<CommentRevision> CommentRevisions => this.Set<CommentRevision>();
+
+    /// <summary>
     /// Gets the set of all security events.
     /// </summary>
     public DbSet<SecurityEvent> SecurityEvents => this.Set<SecurityEvent>();
