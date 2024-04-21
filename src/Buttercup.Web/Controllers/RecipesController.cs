@@ -11,20 +11,20 @@ namespace Buttercup.Web.Controllers;
 [Authorize]
 [Route("recipes")]
 public sealed class RecipesController(
-    IStringLocalizer<RecipesController> localizer, IRecipeManager RecipeManager)
+    IStringLocalizer<RecipesController> localizer, IRecipeManager recipeManager)
     : Controller
 {
     private readonly IStringLocalizer<RecipesController> localizer = localizer;
-    private readonly IRecipeManager RecipeManager = RecipeManager;
+    private readonly IRecipeManager recipeManager = recipeManager;
 
     [HttpGet]
     public async Task<IActionResult> Index() =>
-        this.View(await this.RecipeManager.GetNonDeletedRecipes());
+        this.View(await this.recipeManager.GetNonDeletedRecipes());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id)
     {
-        var recipe = await this.RecipeManager.FindNonDeletedRecipe(
+        var recipe = await this.recipeManager.FindNonDeletedRecipe(
             id, includeCreatedAndModifiedByUser: true);
         return recipe is null ? this.NotFound() : this.View(recipe);
     }
@@ -40,7 +40,7 @@ public sealed class RecipesController(
             return this.View(model);
         }
 
-        var id = await this.RecipeManager.AddRecipe(model, this.User.GetUserId());
+        var id = await this.recipeManager.AddRecipe(model, this.User.GetUserId());
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
@@ -48,7 +48,7 @@ public sealed class RecipesController(
     [HttpGet("{id}/edit")]
     public async Task<IActionResult> Edit(long id)
     {
-        var recipe = await this.RecipeManager.FindNonDeletedRecipe(id);
+        var recipe = await this.recipeManager.FindNonDeletedRecipe(id);
         return recipe is null ? this.NotFound() : this.View(EditRecipeViewModel.ForRecipe(recipe));
     }
 
@@ -61,7 +61,7 @@ public sealed class RecipesController(
         }
         try
         {
-            await this.RecipeManager.UpdateRecipe(
+            await this.recipeManager.UpdateRecipe(
                 id, model.Attributes, model.BaseRevision, this.User.GetUserId());
         }
         catch (ConcurrencyException)
@@ -86,13 +86,13 @@ public sealed class RecipesController(
     [HttpGet("{id}/delete")]
     public async Task<IActionResult> Delete(long id)
     {
-        var recipe = await this.RecipeManager.FindNonDeletedRecipe(id);
+        var recipe = await this.recipeManager.FindNonDeletedRecipe(id);
         return recipe is null ? this.NotFound() : this.View(recipe);
     }
 
     [HttpPost("{id}/delete")]
     public async Task<IActionResult> DeletePost(long id) =>
-        await this.RecipeManager.DeleteRecipe(id, this.User.GetUserId()) ?
+        await this.recipeManager.DeleteRecipe(id, this.User.GetUserId()) ?
             this.RedirectToAction(nameof(this.Index)) :
             this.NotFound();
 }
