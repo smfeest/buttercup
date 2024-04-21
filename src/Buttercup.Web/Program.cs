@@ -7,6 +7,7 @@ using Buttercup.Web;
 using Buttercup.Web.Api;
 using Buttercup.Web.Security;
 using Buttercup.Web.Binders;
+using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
 using Microsoft.AspNetCore.Authentication;
@@ -83,6 +84,7 @@ services
 
 services
     .AddTransient<IInputObjectValidatorFactory, InputObjectValidatorFactory>()
+    .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
