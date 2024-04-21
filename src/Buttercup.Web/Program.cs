@@ -84,6 +84,7 @@ services
 
 services
     .AddTransient<IInputObjectValidatorFactory, InputObjectValidatorFactory>()
+    .AddTransient<IHomeControllerQueries, HomeControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<IAssetHelper, AssetHelper>()

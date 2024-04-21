@@ -1,5 +1,5 @@
-using Buttercup.Application;
 using Buttercup.TestUtils;
+using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -20,16 +20,16 @@ public sealed class HomeControllerTests
         var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
         var recentlyUpdatedRecipes = new[] { modelFactory.BuildRecipe() };
 
-        var recipeManagerMock = new Mock<IRecipeManager>();
+        var queriesMock = new Mock<IHomeControllerQueries>();
 
-        recipeManagerMock
+        queriesMock
             .Setup(x => x.GetRecentlyAddedRecipes())
             .ReturnsAsync(recentlyAddedRecipes);
-        recipeManagerMock
+        queriesMock
             .Setup(x => x.GetRecentlyUpdatedRecipes(recentlyAddedIds))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
-        using var homeController = new HomeController(recipeManagerMock.Object);
+        using var homeController = new HomeController(queriesMock.Object);
 
         var result = await homeController.Index();
 
