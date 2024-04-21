@@ -3,7 +3,7 @@ using Buttercup.EntityModel;
 namespace Buttercup.Application;
 
 /// <summary>
-/// Defines the contract for the recipe data provider.
+/// Defines the contract for the recipe manager.
 /// </summary>
 public interface IRecipeManager
 {
