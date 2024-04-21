@@ -54,53 +54,6 @@ internal sealed class RecipeManager(
         return updatedRows > 0;
     }
 
-    public async Task<Recipe?> FindNonDeletedRecipe(
-        long id, bool includeCreatedAndModifiedByUser = false)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        var queryable = dbContext.Recipes.WhereNotSoftDeleted();
-
-        if (includeCreatedAndModifiedByUser)
-        {
-            queryable = queryable.Include(r => r.CreatedByUser).Include(r => r.ModifiedByUser);
-        }
-
-        return await queryable.FindAsync(id);
-    }
-
-    public async Task<IList<Recipe>> GetNonDeletedRecipes()
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
-    }
-
-    public async Task<IList<Recipe>> GetRecentlyAddedRecipes()
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await dbContext.Recipes
-            .WhereNotSoftDeleted()
-            .OrderByDescending(r => r.Created)
-            .Take(10)
-            .ToArrayAsync();
-    }
-
-    public async Task<IList<Recipe>> GetRecentlyUpdatedRecipes(
-        IReadOnlyCollection<long> excludeRecipeIds)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await dbContext
-            .Recipes
-            .WhereNotSoftDeleted()
-            .Where(r => r.Created != r.Modified && !excludeRecipeIds.Contains(r.Id))
-            .OrderByDescending(r => r.Modified)
-            .Take(10)
-            .ToArrayAsync();
-    }
-
     public async Task<bool> HardDeleteRecipe(long id)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

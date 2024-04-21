@@ -1,6 +1,7 @@
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -14,12 +15,14 @@ public sealed class RecipesControllerTests : IDisposable
 
     private readonly DefaultHttpContext httpContext = new();
     private readonly DictionaryLocalizer<RecipesController> localizer = new();
+    private readonly Mock<IRecipesControllerQueries> queriesMock = new();
     private readonly Mock<IRecipeManager> recipeManagerMock = new();
 
     private readonly RecipesController recipesController;
 
     public RecipesControllerTests() =>
-        this.recipesController = new(this.localizer, this.recipeManagerMock.Object)
+        this.recipesController = new(
+            this.localizer, this.queriesMock.Object, this.recipeManagerMock.Object)
         {
             ControllerContext = new() { HttpContext = this.httpContext },
         };
@@ -32,7 +35,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Index_ReturnsViewResultWithRecipes()
     {
         var recipes = new[] { this.modelFactory.BuildRecipe() };
-        this.recipeManagerMock.Setup(x => x.GetNonDeletedRecipes()).ReturnsAsync(recipes);
+        this.queriesMock.Setup(x => x.GetRecipes()).ReturnsAsync(recipes);
 
         var result = await this.recipesController.Index();
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -48,7 +51,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindNonDeletedRecipe(recipe.Id, recipe, true);
+        this.SetupFindRecipe(recipe.Id, recipe, true);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -60,7 +63,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
     {
         var recipeId = this.modelFactory.NextInt();
-        this.SetupFindNonDeletedRecipe(recipeId, null, true);
+        this.SetupFindRecipe(recipeId, null, true);
 
         var result = await this.recipesController.Show(recipeId);
         Assert.IsType<NotFoundResult>(result);
@@ -120,7 +123,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindNonDeletedRecipe(recipe.Id, recipe);
+        this.SetupFindRecipe(recipe.Id, recipe);
 
         var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -135,7 +138,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Edit_Get_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
     {
         var recipeId = this.modelFactory.NextInt();
-        this.SetupFindNonDeletedRecipe(recipeId, null);
+        this.SetupFindRecipe(recipeId, null);
 
         var result = await this.recipesController.Edit(recipeId);
         Assert.IsType<NotFoundResult>(result);
@@ -240,7 +243,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindNonDeletedRecipe(recipe.Id, recipe);
+        this.SetupFindRecipe(recipe.Id, recipe);
 
         var result = await this.recipesController.Delete(recipe.Id);
 
@@ -252,7 +255,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Delete_Get_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
     {
         var recipeId = this.modelFactory.NextInt();
-        this.SetupFindNonDeletedRecipe(recipeId, null);
+        this.SetupFindRecipe(recipeId, null);
 
         var result = await this.recipesController.Delete(recipeId);
         Assert.IsType<NotFoundResult>(result);
@@ -305,9 +308,9 @@ public sealed class RecipesControllerTests : IDisposable
         return userId;
     }
 
-    private void SetupFindNonDeletedRecipe(
+    private void SetupFindRecipe(
         long id, Recipe? recipe, bool includeCreatedAndModifiedByUser = false) =>
-        this.recipeManagerMock
-            .Setup(x => x.FindNonDeletedRecipe(id, includeCreatedAndModifiedByUser))
+        this.queriesMock
+            .Setup(x => x.FindRecipe(id, includeCreatedAndModifiedByUser))
             .ReturnsAsync(recipe);
 }

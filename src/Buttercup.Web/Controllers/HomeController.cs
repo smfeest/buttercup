@@ -1,19 +1,19 @@
-using Buttercup.Application;
+using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
-public sealed class HomeController(IRecipeManager RecipeManager) : Controller
+public sealed class HomeController(IHomeControllerQueries queries) : Controller
 {
-    private readonly IRecipeManager RecipeManager = RecipeManager;
+    private readonly IHomeControllerQueries queries = queries;
 
     [HttpGet("/")]
     public async Task<IActionResult> Index()
     {
-        var recentlyAdded = await this.RecipeManager.GetRecentlyAddedRecipes();
-        var recentlyUpdated = await this.RecipeManager.GetRecentlyUpdatedRecipes(
+        var recentlyAdded = await this.queries.GetRecentlyAddedRecipes();
+        var recentlyUpdated = await this.queries.GetRecentlyUpdatedRecipes(
             recentlyAdded.Select(r => r.Id).ToArray());
 
         return this.View(new HomePageViewModel(recentlyAdded, recentlyUpdated));
