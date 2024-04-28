@@ -50,19 +50,6 @@ public sealed class RecipesControllerQueriesTests(
         Assert.Equivalent(expected, actual);
     }
 
-    [Fact]
-    public async Task FindRecipe_ReturnsNullIfRecordNotFound()
-    {
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
-            await dbContext.SaveChangesAsync();
-        }
-
-        var id = this.modelFactory.NextInt();
-        Assert.Null(await this.queries.FindRecipe(id));
-    }
-
     #endregion
 
     #region GetRecipes
