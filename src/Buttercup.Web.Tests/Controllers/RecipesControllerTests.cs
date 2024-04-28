@@ -51,7 +51,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_ReturnsViewResultWithRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipe(recipe.Id, recipe, true);
+        this.SetupFindRecipeForShowView(recipe.Id, recipe);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -63,7 +63,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Show_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
     {
         var recipeId = this.modelFactory.NextInt();
-        this.SetupFindRecipe(recipeId, null, true);
+        this.SetupFindRecipeForShowView(recipeId, null);
 
         var result = await this.recipesController.Show(recipeId);
         Assert.IsType<NotFoundResult>(result);
@@ -308,9 +308,9 @@ public sealed class RecipesControllerTests : IDisposable
         return userId;
     }
 
-    private void SetupFindRecipe(
-        long id, Recipe? recipe, bool includeCreatedAndModifiedByUser = false) =>
-        this.queriesMock
-            .Setup(x => x.FindRecipe(id, includeCreatedAndModifiedByUser))
-            .ReturnsAsync(recipe);
+    private void SetupFindRecipe(long id, Recipe? recipe) =>
+        this.queriesMock.Setup(x => x.FindRecipe(id)).ReturnsAsync(recipe);
+
+    private void SetupFindRecipeForShowView(long id, Recipe? recipe) =>
+        this.queriesMock.Setup(x => x.FindRecipeForShowView(id)).ReturnsAsync(recipe);
 }

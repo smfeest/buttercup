@@ -14,23 +14,7 @@ public sealed class RecipesControllerQueriesTests(
     #region FindRecipe
 
     [Fact]
-    public async Task FindRecipe_ReturnsRecipeWithCreatedAndModifiedByUser()
-    {
-        var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(expected);
-            await dbContext.SaveChangesAsync();
-        }
-
-        var actual = await this.queries.FindRecipe(expected.Id, true);
-
-        Assert.Equivalent(expected, actual);
-    }
-
-    [Fact]
-    public async Task FindRecipe_ReturnsRecipeWithoutCreatedAndModifiedByUser()
+    public async Task FindRecipe_ReturnsRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
 
@@ -40,12 +24,32 @@ public sealed class RecipesControllerQueriesTests(
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.queries.FindRecipe(recipe.Id, false);
+        var actual = await this.queries.FindRecipe(recipe.Id);
         var expected = recipe with
         {
             CreatedByUser = null,
             ModifiedByUser = null,
         };
+
+        Assert.Equivalent(expected, actual);
+    }
+
+    #endregion
+
+    #region FindRecipeForShowView
+
+    [Fact]
+    public async Task FindRecipeForShowView_ReturnsRecipeWithCreatedAndModifiedByUser()
+    {
+        var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            dbContext.Recipes.Add(expected);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var actual = await this.queries.FindRecipeForShowView(expected.Id);
 
         Assert.Equivalent(expected, actual);
     }

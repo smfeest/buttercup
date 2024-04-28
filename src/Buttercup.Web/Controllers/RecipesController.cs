@@ -28,8 +28,7 @@ public sealed class RecipesController(
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id)
     {
-        var recipe = await this.queries.FindRecipe(
-            id, includeCreatedAndModifiedByUser: true);
+        var recipe = await this.queries.FindRecipeForShowView(id);
         return recipe is null ? this.NotFound() : this.View(recipe);
     }
 
