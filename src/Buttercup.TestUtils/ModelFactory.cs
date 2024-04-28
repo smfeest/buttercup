@@ -11,6 +11,46 @@ public sealed class ModelFactory
     private int nextInt = Random.Shared.Next(0, 2);
 
     /// <summary>
+    /// Instantiates a new <see cref="Comment" /> object with unique property values.
+    /// </summary>
+    /// <param name="setOptionalAttributes">
+    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// null.
+    /// </param>
+    /// <param name="setRecipe">
+    /// <c>true</c> if a <see cref="Comment.Recipe"/> should be populated and <see
+    /// cref="Comment.RecipeId"/> set to match; <c>false</c> if <see cref="Comment.Recipe"/> and
+    /// <see cref="Comment.RecipeId"/> should be left null and zero.
+    /// </param>
+    /// <param name="softDeleted">
+    /// <c>true</c> if the commend should be marked as soft-deleted; <c>false</c> otherwise.
+    /// </param>
+    /// <returns>The new <see cref="Comment" /> object.</returns>
+    public Comment BuildComment(
+        bool setOptionalAttributes = false, bool setRecipe = false, bool softDeleted = false)
+    {
+        var recipe = setRecipe ? this.BuildRecipe() : null;
+        var author = setOptionalAttributes ? this.BuildUser() : null;
+        var deletedByUser = softDeleted && setOptionalAttributes ? this.BuildUser() : null;
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Recipe = recipe,
+            RecipeId = recipe?.Id ?? 0,
+            Author = author,
+            AuthorId = author?.Id,
+            Body = this.NextString("comment-body"),
+            Created = this.NextDateTime(),
+            Modified = this.NextDateTime(),
+            Deleted = softDeleted ? this.NextDateTime() : null,
+            DeletedByUser = deletedByUser,
+            DeletedByUserId = deletedByUser?.Id,
+            Revision = this.NextInt(),
+        };
+    }
+
+    /// <summary>
     /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
     /// </summary>
     /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
