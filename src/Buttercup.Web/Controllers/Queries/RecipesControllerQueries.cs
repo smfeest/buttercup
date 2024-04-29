@@ -8,22 +8,25 @@ public sealed class RecipesControllerQueries(IDbContextFactory<AppDbContext> dbC
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
-    public async Task<Recipe?> FindRecipe(
-        long id, bool includeCreatedAndModifiedByUser = false)
+    public async Task<Recipe?> FindRecipe(long id)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var queryable = dbContext.Recipes.WhereNotSoftDeleted();
-
-        if (includeCreatedAndModifiedByUser)
-        {
-            queryable = queryable.Include(r => r.CreatedByUser).Include(r => r.ModifiedByUser);
-        }
-
-        return await queryable.FindAsync(id);
+        return await dbContext.Recipes.WhereNotSoftDeleted().FindAsync(id);
     }
 
-    public async Task<IList<Recipe>> GetRecipes()
+    public async Task<Recipe?> FindRecipeForShowView(long id)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await dbContext.Recipes
+            .WhereNotSoftDeleted()
+            .Include(r => r.CreatedByUser)
+            .Include(r => r.ModifiedByUser)
+            .FindAsync(id);
+    }
+
+    public async Task<IList<Recipe>> GetRecipesForIndex()
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 

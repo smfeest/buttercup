@@ -14,23 +14,7 @@ public sealed class RecipesControllerQueriesTests(
     #region FindRecipe
 
     [Fact]
-    public async Task FindRecipe_ReturnsRecipeWithCreatedAndModifiedByUser()
-    {
-        var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(expected);
-            await dbContext.SaveChangesAsync();
-        }
-
-        var actual = await this.queries.FindRecipe(expected.Id, true);
-
-        Assert.Equivalent(expected, actual);
-    }
-
-    [Fact]
-    public async Task FindRecipe_ReturnsRecipeWithoutCreatedAndModifiedByUser()
+    public async Task FindRecipe_ReturnsRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
 
@@ -40,7 +24,7 @@ public sealed class RecipesControllerQueriesTests(
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.queries.FindRecipe(recipe.Id, false);
+        var actual = await this.queries.FindRecipe(recipe.Id);
         var expected = recipe with
         {
             CreatedByUser = null,
@@ -50,25 +34,32 @@ public sealed class RecipesControllerQueriesTests(
         Assert.Equivalent(expected, actual);
     }
 
+    #endregion
+
+    #region FindRecipeForShowView
+
     [Fact]
-    public async Task FindRecipe_ReturnsNullIfRecordNotFound()
+    public async Task FindRecipeForShowView_ReturnsRecipeWithCreatedAndModifiedByUser()
     {
+        var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
+            dbContext.Recipes.Add(expected);
             await dbContext.SaveChangesAsync();
         }
 
-        var id = this.modelFactory.NextInt();
-        Assert.Null(await this.queries.FindRecipe(id));
+        var actual = await this.queries.FindRecipeForShowView(expected.Id);
+
+        Assert.Equivalent(expected, actual);
     }
 
     #endregion
 
-    #region GetRecipes
+    #region GetRecipesForIndex
 
     [Fact]
-    public async Task GetRecipes_ReturnsNonDeletedRecipesInTitleOrder()
+    public async Task GetRecipesForIndex_ReturnsNonDeletedRecipesInTitleOrder()
     {
         var recipeB = this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" };
         var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
@@ -82,7 +73,7 @@ public sealed class RecipesControllerQueriesTests(
         }
 
         Assert.Collection(
-            await this.queries.GetRecipes(),
+            await this.queries.GetRecipesForIndex(),
             r => Assert.Equivalent(recipeA, r),
             r => Assert.Equivalent(recipeB, r),
             r => Assert.Equivalent(recipeC, r));
