@@ -4,13 +4,11 @@ using Xunit;
 
 namespace Buttercup.Web.Areas.Admin.Controllers;
 
-public sealed class UsersControllerTests(DatabaseFixture<UsersControllerTests> databaseFixture)
-    : DatabaseTests<UsersControllerTests>(databaseFixture),
-    IClassFixture<DatabaseFixture<UsersControllerTests>>,
-    IDisposable
+[Collection(nameof(DatabaseCollection))]
+public sealed class UsersControllerTests(DatabaseFixture<DatabaseCollection> databaseFixture)
+    : DatabaseTests<DatabaseCollection>(databaseFixture), IDisposable
 {
     private readonly ModelFactory modelFactory = new();
-
     private readonly UsersController usersController = new(databaseFixture);
 
     public void Dispose() => this.usersController.Dispose();
