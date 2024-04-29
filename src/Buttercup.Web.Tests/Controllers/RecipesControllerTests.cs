@@ -35,7 +35,7 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Index_ReturnsViewResultWithRecipes()
     {
         var recipes = new[] { this.modelFactory.BuildRecipe() };
-        this.queriesMock.Setup(x => x.GetRecipes()).ReturnsAsync(recipes);
+        this.queriesMock.Setup(x => x.GetRecipesForIndex()).ReturnsAsync(recipes);
 
         var result = await this.recipesController.Index();
         var viewResult = Assert.IsType<ViewResult>(result);

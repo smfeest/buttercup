@@ -38,5 +38,5 @@ public interface IRecipesControllerQueries
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<IList<Recipe>> GetRecipes();
+    Task<IList<Recipe>> GetRecipesForIndex();
 }

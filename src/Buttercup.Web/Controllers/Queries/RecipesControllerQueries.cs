@@ -26,7 +26,7 @@ public sealed class RecipesControllerQueries(IDbContextFactory<AppDbContext> dbC
             .FindAsync(id);
     }
 
-    public async Task<IList<Recipe>> GetRecipes()
+    public async Task<IList<Recipe>> GetRecipesForIndex()
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 

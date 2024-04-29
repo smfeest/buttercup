@@ -23,7 +23,7 @@ public sealed class RecipesController(
 
     [HttpGet]
     public async Task<IActionResult> Index() =>
-        this.View(await this.queries.GetRecipes());
+        this.View(await this.queries.GetRecipesForIndex());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id)

@@ -56,10 +56,10 @@ public sealed class RecipesControllerQueriesTests(
 
     #endregion
 
-    #region GetRecipes
+    #region GetRecipesForIndex
 
     [Fact]
-    public async Task GetRecipes_ReturnsNonDeletedRecipesInTitleOrder()
+    public async Task GetRecipesForIndex_ReturnsNonDeletedRecipesInTitleOrder()
     {
         var recipeB = this.modelFactory.BuildRecipe() with { Title = "recipe-title-b" };
         var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
@@ -73,7 +73,7 @@ public sealed class RecipesControllerQueriesTests(
         }
 
         Assert.Collection(
-            await this.queries.GetRecipes(),
+            await this.queries.GetRecipesForIndex(),
             r => Assert.Equivalent(recipeA, r),
             r => Assert.Equivalent(recipeB, r),
             r => Assert.Equivalent(recipeC, r));
