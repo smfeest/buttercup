@@ -20,16 +20,18 @@ public sealed class HomeControllerTests
         var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
         var recentlyUpdatedRecipes = new[] { modelFactory.BuildRecipe() };
 
+        var dbContextFactory = new FakeDbContextFactory();
         var queriesMock = new Mock<IHomeControllerQueries>();
 
         queriesMock
-            .Setup(x => x.GetRecentlyAddedRecipes())
+            .Setup(x => x.GetRecentlyAddedRecipes(dbContextFactory.FakeDbContext))
             .ReturnsAsync(recentlyAddedRecipes);
         queriesMock
-            .Setup(x => x.GetRecentlyUpdatedRecipes(recentlyAddedIds))
+            .Setup(
+                x => x.GetRecentlyUpdatedRecipes(dbContextFactory.FakeDbContext, recentlyAddedIds))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
-        using var homeController = new HomeController(queriesMock.Object);
+        using var homeController = new HomeController(dbContextFactory, queriesMock.Object);
 
         var result = await homeController.Index();
 

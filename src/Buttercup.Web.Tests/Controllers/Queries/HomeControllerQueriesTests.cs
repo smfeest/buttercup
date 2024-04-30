@@ -9,7 +9,7 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
     : DatabaseTests<DatabaseCollection>(databaseFixture)
 {
     private readonly ModelFactory modelFactory = new();
-    private readonly HomeControllerQueries queries = new(databaseFixture);
+    private readonly HomeControllerQueries queries = new();
 
     #region GetRecentlyAddedRecipes
 
@@ -32,18 +32,21 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
             await dbContext.SaveChangesAsync();
         }
 
-        Assert.Collection(
-            await this.queries.GetRecentlyAddedRecipes(),
-            r => Assert.Equivalent(allRecipes[14], r),
-            r => Assert.Equivalent(allRecipes[13], r),
-            r => Assert.Equivalent(allRecipes[12], r),
-            r => Assert.Equivalent(allRecipes[11], r),
-            r => Assert.Equivalent(allRecipes[9], r),
-            r => Assert.Equivalent(allRecipes[8], r),
-            r => Assert.Equivalent(allRecipes[7], r),
-            r => Assert.Equivalent(allRecipes[6], r),
-            r => Assert.Equivalent(allRecipes[4], r),
-            r => Assert.Equivalent(allRecipes[3], r));
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            Assert.Collection(
+                await this.queries.GetRecentlyAddedRecipes(dbContext),
+                    r => Assert.Equivalent(allRecipes[14], r),
+                    r => Assert.Equivalent(allRecipes[13], r),
+                    r => Assert.Equivalent(allRecipes[12], r),
+                    r => Assert.Equivalent(allRecipes[11], r),
+                    r => Assert.Equivalent(allRecipes[9], r),
+                    r => Assert.Equivalent(allRecipes[8], r),
+                    r => Assert.Equivalent(allRecipes[7], r),
+                    r => Assert.Equivalent(allRecipes[6], r),
+                    r => Assert.Equivalent(allRecipes[4], r),
+                    r => Assert.Equivalent(allRecipes[3], r));
+        }
     }
 
     #endregion
@@ -88,21 +91,24 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.queries.GetRecentlyUpdatedRecipes(
-            [allRecipes[3].Id, allRecipes[8].Id]);
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            var actual = await this.queries.GetRecentlyUpdatedRecipes(
+                dbContext, [allRecipes[3].Id, allRecipes[8].Id]);
 
-        Assert.Collection(
-            actual,
-            r => Assert.Equivalent(allRecipes[2], r),
-            r => Assert.Equivalent(allRecipes[9], r),
-            r => Assert.Equivalent(allRecipes[12], r),
-            r => Assert.Equivalent(allRecipes[14], r),
-            r => Assert.Equivalent(allRecipes[13], r),
-            r => Assert.Equivalent(allRecipes[1], r),
-            r => Assert.Equivalent(allRecipes[0], r),
-            r => Assert.Equivalent(allRecipes[4], r),
-            r => Assert.Equivalent(allRecipes[7], r),
-            r => Assert.Equivalent(allRecipes[15], r));
+            Assert.Collection(
+                actual,
+                r => Assert.Equivalent(allRecipes[2], r),
+                r => Assert.Equivalent(allRecipes[9], r),
+                r => Assert.Equivalent(allRecipes[12], r),
+                r => Assert.Equivalent(allRecipes[14], r),
+                r => Assert.Equivalent(allRecipes[13], r),
+                r => Assert.Equivalent(allRecipes[1], r),
+                r => Assert.Equivalent(allRecipes[0], r),
+                r => Assert.Equivalent(allRecipes[4], r),
+                r => Assert.Equivalent(allRecipes[7], r),
+                r => Assert.Equivalent(allRecipes[15], r));
+        }
     }
 
     #endregion
