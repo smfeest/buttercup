@@ -39,4 +39,7 @@
   <data name="Label_Delete">
     <value>Delete</value>
   </data>
+  <data name="Label_Comments">
+    <value>Comments</value>
+  </data>
 </root>

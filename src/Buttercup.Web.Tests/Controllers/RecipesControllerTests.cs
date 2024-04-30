@@ -54,15 +54,21 @@ public sealed class RecipesControllerTests : IDisposable
     #region Show
 
     [Fact]
-    public async Task Show_ReturnsViewResultWithRecipe()
+    public async Task Show_ReturnsViewResultWithRecipeAndComments()
     {
         var recipe = this.modelFactory.BuildRecipe();
         this.SetupFindRecipeForShowView(recipe.Id, recipe);
 
+        var comments = new[] { this.modelFactory.BuildComment() };
+        this.queriesMock
+            .Setup(x => x.GetCommentsForRecipe(this.dbContextFactory.FakeDbContext, recipe.Id))
+            .ReturnsAsync(comments);
+
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
 
-        Assert.Same(recipe, viewResult.Model);
+        Assert.Equal(new(recipe, comments), model);
     }
 
     [Fact]

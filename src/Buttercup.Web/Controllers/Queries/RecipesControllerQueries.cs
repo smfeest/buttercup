@@ -15,6 +15,14 @@ public sealed class RecipesControllerQueries : IRecipesControllerQueries
             .Include(r => r.ModifiedByUser)
             .FindAsync(id);
 
+    public Task<Comment[]> GetCommentsForRecipe(AppDbContext dbContext, long recipeId) =>
+        dbContext.Comments
+            .WhereNotSoftDeleted()
+            .Where(c => c.RecipeId == recipeId)
+            .Include(c => c.Author)
+            .OrderBy(c => c.Id)
+            .ToArrayAsync();
+
     public Task<Recipe[]> GetRecipesForIndex(AppDbContext dbContext) =>
         dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
 }

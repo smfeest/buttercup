@@ -35,8 +35,17 @@ public sealed class RecipesController(
     public async Task<IActionResult> Show(long id)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
         var recipe = await this.queries.FindRecipeForShowView(dbContext, id);
-        return recipe is null ? this.NotFound() : this.View(recipe);
+
+        if (recipe is null)
+        {
+            return this.NotFound();
+        }
+
+        var comments = await this.queries.GetCommentsForRecipe(dbContext, id);
+
+        return this.View(new ShowRecipeViewModel(recipe, comments));
     }
 
     [HttpGet("new")]
