@@ -5,6 +5,7 @@ using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Models.Recipes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
@@ -12,23 +13,29 @@ namespace Buttercup.Web.Controllers;
 [Authorize]
 [Route("recipes")]
 public sealed class RecipesController(
+    IDbContextFactory<AppDbContext> dbContextFactory,
     IStringLocalizer<RecipesController> localizer,
     IRecipesControllerQueries queries,
     IRecipeManager recipeManager)
     : Controller
 {
+    private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly IStringLocalizer<RecipesController> localizer = localizer;
     private readonly IRecipesControllerQueries queries = queries;
     private readonly IRecipeManager recipeManager = recipeManager;
 
     [HttpGet]
-    public async Task<IActionResult> Index() =>
-        this.View(await this.queries.GetRecipesForIndex());
+    public async Task<IActionResult> Index()
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+        return this.View(await this.queries.GetRecipesForIndex(dbContext));
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> Show(long id)
     {
-        var recipe = await this.queries.FindRecipeForShowView(id);
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+        var recipe = await this.queries.FindRecipeForShowView(dbContext, id);
         return recipe is null ? this.NotFound() : this.View(recipe);
     }
 
@@ -51,7 +58,8 @@ public sealed class RecipesController(
     [HttpGet("{id}/edit")]
     public async Task<IActionResult> Edit(long id)
     {
-        var recipe = await this.queries.FindRecipe(id);
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+        var recipe = await this.queries.FindRecipe(dbContext, id);
         return recipe is null ? this.NotFound() : this.View(EditRecipeViewModel.ForRecipe(recipe));
     }
 
@@ -89,7 +97,8 @@ public sealed class RecipesController(
     [HttpGet("{id}/delete")]
     public async Task<IActionResult> Delete(long id)
     {
-        var recipe = await this.queries.FindRecipe(id);
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+        var recipe = await this.queries.FindRecipe(dbContext, id);
         return recipe is null ? this.NotFound() : this.View(recipe);
     }
 

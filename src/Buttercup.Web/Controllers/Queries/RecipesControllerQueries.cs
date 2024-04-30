@@ -3,33 +3,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Controllers.Queries;
 
-public sealed class RecipesControllerQueries(IDbContextFactory<AppDbContext> dbContextFactory)
-    : IRecipesControllerQueries
+public sealed class RecipesControllerQueries : IRecipesControllerQueries
 {
-    private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    public Task<Recipe?> FindRecipe(AppDbContext dbContext, long id) =>
+        dbContext.Recipes.WhereNotSoftDeleted().FindAsync(id);
 
-    public async Task<Recipe?> FindRecipe(long id)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await dbContext.Recipes.WhereNotSoftDeleted().FindAsync(id);
-    }
-
-    public async Task<Recipe?> FindRecipeForShowView(long id)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await dbContext.Recipes
+    public Task<Recipe?> FindRecipeForShowView(AppDbContext dbContext, long id) =>
+        dbContext.Recipes
             .WhereNotSoftDeleted()
             .Include(r => r.CreatedByUser)
             .Include(r => r.ModifiedByUser)
             .FindAsync(id);
-    }
 
-    public async Task<IList<Recipe>> GetRecipesForIndex()
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        return await dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
-    }
+    public Task<Recipe[]> GetRecipesForIndex(AppDbContext dbContext) =>
+        dbContext.Recipes.WhereNotSoftDeleted().OrderBy(r => r.Title).ToArrayAsync();
 }

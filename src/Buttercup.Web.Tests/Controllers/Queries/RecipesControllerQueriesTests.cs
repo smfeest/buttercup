@@ -9,7 +9,7 @@ public sealed class RecipesControllerQueriesTests(
     : DatabaseTests<DatabaseCollection>(databaseFixture)
 {
     private readonly ModelFactory modelFactory = new();
-    private readonly RecipesControllerQueries queries = new(databaseFixture);
+    private readonly RecipesControllerQueries queries = new();
 
     #region FindRecipe
 
@@ -24,14 +24,17 @@ public sealed class RecipesControllerQueriesTests(
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.queries.FindRecipe(recipe.Id);
-        var expected = recipe with
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
-            CreatedByUser = null,
-            ModifiedByUser = null,
-        };
+            var actual = await this.queries.FindRecipe(dbContext, recipe.Id);
+            var expected = recipe with
+            {
+                CreatedByUser = null,
+                ModifiedByUser = null,
+            };
 
-        Assert.Equivalent(expected, actual);
+            Assert.Equivalent(expected, actual);
+        }
     }
 
     #endregion
@@ -49,9 +52,11 @@ public sealed class RecipesControllerQueriesTests(
             await dbContext.SaveChangesAsync();
         }
 
-        var actual = await this.queries.FindRecipeForShowView(expected.Id);
-
-        Assert.Equivalent(expected, actual);
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            var actual = await this.queries.FindRecipeForShowView(dbContext, expected.Id);
+            Assert.Equivalent(expected, actual);
+        }
     }
 
     #endregion
@@ -72,11 +77,14 @@ public sealed class RecipesControllerQueriesTests(
             await dbContext.SaveChangesAsync();
         }
 
-        Assert.Collection(
-            await this.queries.GetRecipesForIndex(),
-            r => Assert.Equivalent(recipeA, r),
-            r => Assert.Equivalent(recipeB, r),
-            r => Assert.Equivalent(recipeC, r));
+        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        {
+            Assert.Collection(
+                await this.queries.GetRecipesForIndex(dbContext),
+                r => Assert.Equivalent(recipeA, r),
+                r => Assert.Equivalent(recipeB, r),
+                r => Assert.Equivalent(recipeC, r));
+        }
     }
 
     #endregion

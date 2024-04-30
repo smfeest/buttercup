@@ -13,6 +13,7 @@ public sealed class RecipesControllerTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly DefaultHttpContext httpContext = new();
     private readonly DictionaryLocalizer<RecipesController> localizer = new();
     private readonly Mock<IRecipesControllerQueries> queriesMock = new();
@@ -22,7 +23,10 @@ public sealed class RecipesControllerTests : IDisposable
 
     public RecipesControllerTests() =>
         this.recipesController = new(
-            this.localizer, this.queriesMock.Object, this.recipeManagerMock.Object)
+            this.dbContextFactory,
+            this.localizer,
+            this.queriesMock.Object,
+            this.recipeManagerMock.Object)
         {
             ControllerContext = new() { HttpContext = this.httpContext },
         };
@@ -35,7 +39,9 @@ public sealed class RecipesControllerTests : IDisposable
     public async Task Index_ReturnsViewResultWithRecipes()
     {
         var recipes = new[] { this.modelFactory.BuildRecipe() };
-        this.queriesMock.Setup(x => x.GetRecipesForIndex()).ReturnsAsync(recipes);
+        this.queriesMock
+            .Setup(x => x.GetRecipesForIndex(this.dbContextFactory.FakeDbContext))
+            .ReturnsAsync(recipes);
 
         var result = await this.recipesController.Index();
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -309,8 +315,12 @@ public sealed class RecipesControllerTests : IDisposable
     }
 
     private void SetupFindRecipe(long id, Recipe? recipe) =>
-        this.queriesMock.Setup(x => x.FindRecipe(id)).ReturnsAsync(recipe);
+        this.queriesMock
+            .Setup(x => x.FindRecipe(this.dbContextFactory.FakeDbContext, id))
+            .ReturnsAsync(recipe);
 
     private void SetupFindRecipeForShowView(long id, Recipe? recipe) =>
-        this.queriesMock.Setup(x => x.FindRecipeForShowView(id)).ReturnsAsync(recipe);
+        this.queriesMock
+            .Setup(x => x.FindRecipeForShowView(this.dbContextFactory.FakeDbContext, id))
+            .ReturnsAsync(recipe);
 }
