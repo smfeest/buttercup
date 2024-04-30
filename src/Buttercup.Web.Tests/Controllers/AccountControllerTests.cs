@@ -3,7 +3,7 @@ using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Account;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

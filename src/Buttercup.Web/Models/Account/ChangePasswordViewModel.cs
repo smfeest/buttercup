@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Buttercup.Web.Models;
+namespace Buttercup.Web.Models.Account;
 
 public sealed record ChangePasswordViewModel
 {

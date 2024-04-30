@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Buttercup.EntityModel;
 
-namespace Buttercup.Web.Models;
+namespace Buttercup.Web.Models.Account;
 
 public sealed record PreferencesViewModel
 {

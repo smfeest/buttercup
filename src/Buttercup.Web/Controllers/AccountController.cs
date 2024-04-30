@@ -1,7 +1,7 @@
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;

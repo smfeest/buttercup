@@ -1,5 +1,5 @@
 using Buttercup.Web.Controllers.Queries;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Home;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace Buttercup.Web.Controllers;

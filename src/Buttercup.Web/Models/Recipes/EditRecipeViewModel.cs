@@ -1,7 +1,7 @@
 using Buttercup.Application;
 using Buttercup.EntityModel;
 
-namespace Buttercup.Web.Models;
+namespace Buttercup.Web.Models.Recipes;
 
 public sealed record EditRecipeViewModel(long Id, RecipeAttributes Attributes, int BaseRevision)
 {

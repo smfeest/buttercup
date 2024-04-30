@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Error;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers;

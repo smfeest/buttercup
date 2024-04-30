@@ -2,7 +2,7 @@ using System.Net;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Authentication;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

@@ -1,6 +1,6 @@
 using Buttercup.TestUtils;
 using Buttercup.Web.Controllers.Queries;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Home;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;

@@ -1,6 +1,8 @@
 using Xunit;
 
-namespace Buttercup.Web.Models;
+#pragma warning disable CA1716
+namespace Buttercup.Web.Models.Error;
+#pragma warning restore CA1716
 
 public sealed class ErrorViewModelTests
 {

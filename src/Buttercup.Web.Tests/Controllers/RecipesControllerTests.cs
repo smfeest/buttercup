@@ -2,7 +2,7 @@ using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Controllers.Queries;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Recipes;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;

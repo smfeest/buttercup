@@ -1,7 +1,7 @@
 using Buttercup.TestUtils;
 using Xunit;
 
-namespace Buttercup.Web.Models;
+namespace Buttercup.Web.Models.Account;
 
 public sealed class PreferencesViewModelTests
 {

@@ -1,6 +1,6 @@
 using Buttercup.Security;
 using Buttercup.Web.Filters;
-using Buttercup.Web.Models;
+using Buttercup.Web.Models.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 
