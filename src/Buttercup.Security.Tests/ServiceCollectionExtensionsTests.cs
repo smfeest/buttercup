@@ -46,6 +46,15 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
+    public void AddSecurityServices_AddsClaimsIdentityFactory() =>
+        Assert.Contains(
+            new ServiceCollection().AddSecurityServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IClaimsIdentityFactory) &&
+                serviceDescriptor.ImplementationType == typeof(ClaimsIdentityFactory) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddSecurityServices_AddsCookieAuthenticationService() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(),
@@ -88,15 +97,6 @@ public sealed class ServiceCollectionExtensionsTests
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(ITokenAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(TokenAuthenticationService) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-    [Fact]
-    public void AddSecurityServices_AddsUserPrincipalFactory() =>
-        Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IUserPrincipalFactory) &&
-                serviceDescriptor.ImplementationType == typeof(UserPrincipalFactory) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     #endregion

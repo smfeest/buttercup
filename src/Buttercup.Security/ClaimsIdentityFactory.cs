@@ -4,9 +4,9 @@ using Buttercup.EntityModel;
 
 namespace Buttercup.Security;
 
-internal sealed class UserPrincipalFactory : IUserPrincipalFactory
+internal sealed class ClaimsIdentityFactory : IClaimsIdentityFactory
 {
-    public ClaimsPrincipal Create(User user, string authenticationType)
+    public ClaimsIdentity CreateIdentityForUser(User user, string authenticationType)
     {
         var claims = new List<Claim>
         {
@@ -24,6 +24,6 @@ internal sealed class UserPrincipalFactory : IUserPrincipalFactory
             claims.Add(new(ClaimTypes.Role, RoleNames.Admin));
         }
 
-        return new(new ClaimsIdentity(claims, authenticationType));
+        return new(claims, authenticationType);
     }
 }

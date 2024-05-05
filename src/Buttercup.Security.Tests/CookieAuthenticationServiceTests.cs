@@ -20,9 +20,9 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
+    private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
     private readonly ListLogger<CookieAuthenticationService> logger = new();
     private readonly FakeTimeProvider timeProvider;
-    private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
     private readonly CookieAuthenticationService cookieAuthenticationService;
 
@@ -33,10 +33,10 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         this.cookieAuthenticationService = new(
             this.authenticationServiceMock.Object,
+            this.claimsIdentityFactoryMock.Object,
             this.DatabaseFixture,
             this.logger,
-            this.timeProvider,
-            this.userPrincipalFactoryMock.Object);
+            this.timeProvider);
     }
 
     #region RefreshPrincipal
@@ -71,8 +71,6 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         var originalPrincipal = PrincipalFactory.CreateWithUserId(
             user.Id, new Claim(ClaimTypes.Name, "original-principal"));
-        var updatedPrincipal = PrincipalFactory.CreateWithUserId(
-            user.Id, new Claim(ClaimTypes.Name, "updated-principal"));
 
         var ticket = new AuthenticationTicket(
             originalPrincipal,
@@ -85,9 +83,9 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
                     httpContext, CookieAuthenticationDefaults.AuthenticationScheme))
             .ReturnsAsync(AuthenticateResult.Success(ticket));
 
-        this.userPrincipalFactoryMock
-            .Setup(x => x.Create(user, CookieAuthenticationDefaults.AuthenticationScheme))
-                .Returns(updatedPrincipal);
+        this.claimsIdentityFactoryMock
+            .Setup(x => x.CreateIdentityForUser(user, CookieAuthenticationDefaults.AuthenticationScheme))
+                .Returns(new ClaimsIdentity([new Claim(ClaimTypes.Name, "updated-principal")]));
 
         var result = await this.cookieAuthenticationService.RefreshPrincipal(httpContext);
 
@@ -96,7 +94,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
             x => x.SignInAsync(
                 httpContext,
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                updatedPrincipal,
+                It.Is<ClaimsPrincipal>(p => p.HasClaim(ClaimTypes.Name, "updated-principal")),
                 authenticationProperties));
 
         // Returns true
@@ -112,8 +110,8 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     {
         var httpContext = new DefaultHttpContext();
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var principal = new ClaimsPrincipal();
         var user = this.modelFactory.BuildUser();
+        var identity = new ClaimsIdentity([new Claim(ClaimTypes.Name, "user-identity")]);
 
         using (var dbContext = this.DatabaseFixture.CreateDbContext())
         {
@@ -124,9 +122,9 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         httpContext.Features.Set<IHttpConnectionFeature>(
             new HttpConnectionFeature { RemoteIpAddress = ipAddress });
 
-        this.userPrincipalFactoryMock
-            .Setup(x => x.Create(user, CookieAuthenticationDefaults.AuthenticationScheme))
-            .Returns(principal);
+        this.claimsIdentityFactoryMock
+            .Setup(x => x.CreateIdentityForUser(user, CookieAuthenticationDefaults.AuthenticationScheme))
+            .Returns(identity);
 
         await this.cookieAuthenticationService.SignIn(httpContext, user);
 
@@ -137,7 +135,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
                 x => x.SignInAsync(
                     httpContext,
                     CookieAuthenticationDefaults.AuthenticationScheme,
-                    principal,
+                    It.Is<ClaimsPrincipal>(p => p.Identity == identity),
                     null));
 
             // Inserts security event
