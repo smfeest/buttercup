@@ -14,6 +14,8 @@ public sealed class Mutation
         [Service] IHttpContextAccessor httpContextAccessor,
         [Service] IPasswordAuthenticationService passwordAuthenticationService,
         [Service] ITokenAuthenticationService tokenAuthenticationService,
+        [Service] IClaimsIdentityFactory claimsIdentityFactory,
+        ClaimsPrincipal claimsPrincipal,
         string email,
         string password)
     {
@@ -27,6 +29,8 @@ public sealed class Mutation
         }
 
         var accessToken = await tokenAuthenticationService.IssueAccessToken(user, ipAddress);
+
+        claimsPrincipal.AddIdentity(claimsIdentityFactory.CreateIdentityForUser(user));
 
         return new(true, accessToken, user);
     }

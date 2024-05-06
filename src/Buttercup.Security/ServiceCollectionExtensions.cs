@@ -26,9 +26,9 @@ public static class ServiceCollectionExtensions
             .AddTransient<IAccessTokenSerializer, AccessTokenSerializer>()
             .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
             .AddTransient<ICookieAuthenticationService, CookieAuthenticationService>()
+            .AddTransient<IClaimsIdentityFactory, ClaimsIdentityFactory>()
             .AddTransient<IPasswordAuthenticationService, PasswordAuthenticationService>()
             .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
             .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
-            .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>()
-            .AddTransient<IUserPrincipalFactory, UserPrincipalFactory>();
+            .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>();
 }

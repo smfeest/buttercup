@@ -11,17 +11,17 @@ namespace Buttercup.Security;
 
 internal sealed class CookieAuthenticationService(
     IAuthenticationService authenticationService,
+    IClaimsIdentityFactory claimsIdentityFactory,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<CookieAuthenticationService> logger,
-    TimeProvider timeProvider,
-    IUserPrincipalFactory userPrincipalFactory)
+    TimeProvider timeProvider)
     : ICookieAuthenticationService
 {
     private readonly IAuthenticationService authenticationService = authenticationService;
+    private readonly IClaimsIdentityFactory claimsIdentityFactory = claimsIdentityFactory;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<CookieAuthenticationService> logger = logger;
     private readonly TimeProvider timeProvider = timeProvider;
-    private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     public async Task<bool> RefreshPrincipal(HttpContext httpContext)
     {
@@ -86,11 +86,14 @@ internal sealed class CookieAuthenticationService(
     private async Task SignInUser(
         HttpContext httpContext, User user, AuthenticationProperties? properties = null)
     {
-        var principal = this.userPrincipalFactory.Create(
+        var userIdentity = this.claimsIdentityFactory.CreateIdentityForUser(
             user, CookieAuthenticationDefaults.AuthenticationScheme);
 
         await this.authenticationService.SignInAsync(
-            httpContext, CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
+            httpContext,
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new(userIdentity),
+            properties);
     }
 
     private Task SignOutCurrentUser(HttpContext httpContext) =>

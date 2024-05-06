@@ -9,15 +9,15 @@ namespace Buttercup.Web.Security;
 
 public sealed class TokenAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
+    IClaimsIdentityFactory claimsIdentityFactory,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    ITokenAuthenticationService tokenAuthenticationService,
-    IUserPrincipalFactory userPrincipalFactory)
+    ITokenAuthenticationService tokenAuthenticationService)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
+    private readonly IClaimsIdentityFactory claimsIdentityFactory = claimsIdentityFactory;
     private readonly ITokenAuthenticationService tokenAuthenticationService =
         tokenAuthenticationService;
-    private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -35,9 +35,9 @@ public sealed class TokenAuthenticationHandler(
             return AuthenticateResult.Fail("Invalid access token");
         }
 
-        var principal = this.userPrincipalFactory.Create(user, this.Scheme.Name);
+        var identity = this.claimsIdentityFactory.CreateIdentityForUser(user, this.Scheme.Name);
 
-        var ticket = new AuthenticationTicket(principal, this.Scheme.Name);
+        var ticket = new AuthenticationTicket(new(identity), this.Scheme.Name);
 
         return AuthenticateResult.Success(ticket);
     }

@@ -16,18 +16,18 @@ public sealed class CookieAuthenticationEventsHandlerTests
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
+    private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
     private readonly ListLogger<CookieAuthenticationEventsHandler> logger = new();
     private readonly Mock<IUserManager> userManagerMock = new();
-    private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
     private readonly CookieAuthenticationEventsHandler cookieAuthenticationEventsHandler;
 
     public CookieAuthenticationEventsHandlerTests() =>
         this.cookieAuthenticationEventsHandler = new(
             this.authenticationServiceMock.Object,
+            this.claimsIdentityFactoryMock.Object,
             this.logger,
-            this.userManagerMock.Object,
-            this.userPrincipalFactoryMock.Object);
+            this.userManagerMock.Object);
 
     #region ValidatePrincipal
 
@@ -144,11 +144,11 @@ public sealed class CookieAuthenticationEventsHandlerTests
     {
         var user = this.SetupFindUser();
         var context = this.BuildValidatePrincipalContext(principalFactory(user));
-        var updatedPrincipal = this.SetupCreatePrincipal(user, context.Scheme);
+        var newIdentity = this.SetupCreateIdentityForUser(user, context.Scheme);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        Assert.Same(updatedPrincipal, context.Principal);
+        Assert.Same(context.Principal?.Identity, newIdentity);
     }
 
     [Theory]
@@ -156,7 +156,9 @@ public sealed class CookieAuthenticationEventsHandlerTests
     public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_RenewsCookie(
         Func<User, ClaimsPrincipal> principalFactory)
     {
-        var context = this.BuildValidatePrincipalContext(principalFactory(this.SetupFindUser()));
+        var user = this.SetupFindUser();
+        var context = this.BuildValidatePrincipalContext(principalFactory(user));
+        this.SetupCreateIdentityForUser(user, context.Scheme);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -170,6 +172,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     {
         var user = this.SetupFindUser();
         var context = this.BuildValidatePrincipalContext(principalFactory(user));
+        this.SetupCreateIdentityForUser(user, context.Scheme);
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
@@ -237,15 +240,15 @@ public sealed class CookieAuthenticationEventsHandlerTests
         return new([SetupPrincipalWithoutUserRevision, SetupPrincipalWithStaleUserRevision]);
     }
 
-    private ClaimsPrincipal SetupCreatePrincipal(User user, AuthenticationScheme scheme)
+    private ClaimsIdentity SetupCreateIdentityForUser(User user, AuthenticationScheme scheme)
     {
-        var updatedPrincipal = new ClaimsPrincipal();
+        var identity = new ClaimsIdentity();
 
-        this.userPrincipalFactoryMock
-            .Setup(x => x.Create(user, scheme.Name))
-            .Returns(updatedPrincipal);
+        this.claimsIdentityFactoryMock
+            .Setup(x => x.CreateIdentityForUser(user, scheme.Name))
+            .Returns(identity);
 
-        return updatedPrincipal;
+        return identity;
     }
 
     private User SetupFindUser()

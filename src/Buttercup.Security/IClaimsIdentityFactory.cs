@@ -4,12 +4,12 @@ using Buttercup.EntityModel;
 namespace Buttercup.Security;
 
 /// <summary>
-/// Defines the contract for the user principal factory.
+/// Defines the contract for the claims identity factory.
 /// </summary>
-public interface IUserPrincipalFactory
+public interface IClaimsIdentityFactory
 {
     /// <summary>
-    /// Creates a claims principal representing a user.
+    /// Creates a claims identity representing a user.
     /// </summary>
     /// <param name="user">
     /// The user.
@@ -18,7 +18,7 @@ public interface IUserPrincipalFactory
     /// The authentication type.
     /// </param>
     /// <returns>
-    /// The claims principal.
+    /// The claims identity.
     /// </returns>
-    ClaimsPrincipal Create(User user, string authenticationType);
+    ClaimsIdentity CreateIdentityForUser(User user, string? authenticationType = null);
 }

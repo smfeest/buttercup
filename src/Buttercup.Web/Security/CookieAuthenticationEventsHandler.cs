@@ -9,15 +9,15 @@ namespace Buttercup.Web.Security;
 
 public sealed class CookieAuthenticationEventsHandler(
     IAuthenticationService authenticationService,
+    IClaimsIdentityFactory claimsIdentityFactory,
     ILogger<CookieAuthenticationEventsHandler> logger,
-    IUserManager userManager,
-    IUserPrincipalFactory userPrincipalFactory)
+    IUserManager userManager)
     : CookieAuthenticationEvents
 {
     private readonly IAuthenticationService authenticationService = authenticationService;
+    private readonly IClaimsIdentityFactory claimsIdentityFactory = claimsIdentityFactory;
     private readonly ILogger<CookieAuthenticationEventsHandler> logger = logger;
     private readonly IUserManager userManager = userManager;
-    private readonly IUserPrincipalFactory userPrincipalFactory = userPrincipalFactory;
 
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
@@ -61,7 +61,8 @@ public sealed class CookieAuthenticationEventsHandler(
         if (userRevision is null ||
             int.Parse(userRevision, CultureInfo.InvariantCulture) != user.Revision)
         {
-            context.ReplacePrincipal(this.userPrincipalFactory.Create(user, context.Scheme.Name));
+            context.ReplacePrincipal(
+                new(this.claimsIdentityFactory.CreateIdentityForUser(user, context.Scheme.Name)));
             context.ShouldRenew = true;
 
             ValidatePrincipalLogMessages.RefreshedClaimsPrincipal(

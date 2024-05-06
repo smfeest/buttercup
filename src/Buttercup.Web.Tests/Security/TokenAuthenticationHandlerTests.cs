@@ -18,9 +18,9 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
     private readonly DefaultHttpContext httpContext = new();
     private readonly Mock<ITokenAuthenticationService> tokenAuthenticationServiceMock = new();
-    private readonly Mock<IUserPrincipalFactory> userPrincipalFactoryMock = new();
 
     private readonly TokenAuthenticationHandler tokenAuthenticationHandler;
 
@@ -31,10 +31,10 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
 
         this.tokenAuthenticationHandler = new(
             optionsMonitor,
+            this.claimsIdentityFactoryMock.Object,
             NullLoggerFactory.Instance,
             Mock.Of<UrlEncoder>(),
-            this.tokenAuthenticationServiceMock.Object,
-            this.userPrincipalFactoryMock.Object);
+            this.tokenAuthenticationServiceMock.Object);
     }
 
     public Task InitializeAsync() => this.tokenAuthenticationHandler.InitializeAsync(
@@ -88,7 +88,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
         string authorizationHeaderValue)
     {
         var user = this.modelFactory.BuildUser();
-        var principal = new ClaimsPrincipal();
+        var identity = new ClaimsIdentity();
 
         this.SetAuthorizationHeader(authorizationHeaderValue);
 
@@ -96,16 +96,16 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
             .Setup(x => x.ValidateAccessToken("valid-token"))
             .ReturnsAsync(user);
 
-        this.userPrincipalFactoryMock
-            .Setup(x => x.Create(user, SchemeName))
-            .Returns(principal);
+        this.claimsIdentityFactoryMock
+            .Setup(x => x.CreateIdentityForUser(user, SchemeName))
+            .Returns(identity);
 
         var result = await this.tokenAuthenticationHandler.AuthenticateAsync();
 
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Ticket);
         Assert.Equal(SchemeName, result.Ticket.AuthenticationScheme);
-        Assert.Same(principal, result.Ticket.Principal);
+        Assert.Same(identity, result.Ticket.Principal.Identity);
     }
 
     #endregion

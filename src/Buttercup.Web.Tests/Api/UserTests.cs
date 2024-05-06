@@ -7,15 +7,15 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     : EndToEndTests<UserTests>(appFactory)
 {
     [Fact]
-    public async Task QueryingUser()
+    public async Task QueryingPublicFieldsOnAnotherUserWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
         var user = this.ModelFactory.BuildUser();
 
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await PostUserQuery(client, user.Id);
+        using var response = await PostPublicFieldsQuery(client, user.Id);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -24,8 +24,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
         {
             user.Id,
             user.Name,
-            user.Email,
-            user.PasswordCreated,
             user.TimeZone,
             user.Created,
             user.Modified,
@@ -36,14 +34,98 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     }
 
     [Fact]
-    public async Task QueryingNonExistentUser()
+    public async Task QueryingPrivateFieldsOnSelfWhenNotAnAdmin()
+    {
+        var user = this.ModelFactory.BuildUser() with { IsAdmin = false };
+
+        await this.DatabaseFixture.InsertEntities(user);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(user);
+        using var response = await PostPrivateFieldsQuery(client, user.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new
+        {
+            user.Email,
+            user.PasswordCreated,
+            user.IsAdmin,
+        };
+
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("user"));
+    }
+
+    [Fact]
+    public async Task QueryingPrivateFieldsOnAnotherUserWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var user = this.ModelFactory.BuildUser();
+
+        await this.DatabaseFixture.InsertEntities(currentUser, user);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostPrivateFieldsQuery(client, user.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("user"));
+
+        var expectedErrors = new[]
+        {
+            new
+            {
+                Path = new string[] { "user", "email" },
+                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+            },
+            new
+            {
+                Path = new string[] { "user", "passwordCreated" },
+                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+            },
+            new
+            {
+                Path = new string[] { "user", "isAdmin" },
+                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+            },
+        };
+
+        Assert.True(document.RootElement.TryGetProperty("errors", out var errorsElement));
+        JsonAssert.Equivalent(expectedErrors, errorsElement);
+    }
+
+    [Fact]
+    public async Task QueryingPrivateFieldsOnAnotherUserWhenAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var user = this.ModelFactory.BuildUser();
+
+        await this.DatabaseFixture.InsertEntities(currentUser, user);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostPrivateFieldsQuery(client, user.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new
+        {
+            user.Email,
+            user.PasswordCreated,
+            user.IsAdmin,
+        };
+
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("user"));
+    }
+
+    [Fact]
+    public async Task QueryingNonExistentUser()
+    {
+        var currentUser = this.ModelFactory.BuildUser();
 
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await PostUserQuery(client, this.ModelFactory.NextInt());
+        using var response = await PostPublicFieldsQuery(client, this.ModelFactory.NextInt());
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -52,15 +134,14 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     }
 
     [Fact]
-    public async Task QueryingUserWhenNotAnAdmin()
+    public async Task QueryingUserWhenUnauthenticated()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
         var user = this.ModelFactory.BuildUser();
 
-        await this.DatabaseFixture.InsertEntities(currentUser, user);
+        await this.DatabaseFixture.InsertEntities(user);
 
-        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await PostUserQuery(client, user.Id);
+        using var client = this.AppFactory.CreateClient();
+        using var response = await PostPublicFieldsQuery(client, user.Id);
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("user"));
@@ -68,18 +149,27 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
         ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
     }
 
-    private static Task<HttpResponseMessage> PostUserQuery(HttpClient client, long id) =>
+    private static Task<HttpResponseMessage> PostPublicFieldsQuery(HttpClient client, long id) =>
         client.PostQuery(
             @"query($id: Long!) {
                 user(id: $id) {
                     id
                     name
-                    email
-                    passwordCreated
                     timeZone
                     created
                     modified
                     revision
+                }
+            }",
+            new { id });
+
+    private static Task<HttpResponseMessage> PostPrivateFieldsQuery(HttpClient client, long id) =>
+        client.PostQuery(
+            @"query($id: Long!) {
+                user(id: $id) {
+                    email
+                    passwordCreated
+                    isAdmin
                 }
             }",
             new { id });
