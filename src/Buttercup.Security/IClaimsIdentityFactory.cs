@@ -20,5 +20,5 @@ public interface IClaimsIdentityFactory
     /// <returns>
     /// The claims identity.
     /// </returns>
-    ClaimsIdentity CreateIdentityForUser(User user, string authenticationType);
+    ClaimsIdentity CreateIdentityForUser(User user, string? authenticationType = null);
 }

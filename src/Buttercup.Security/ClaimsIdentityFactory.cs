@@ -6,7 +6,7 @@ namespace Buttercup.Security;
 
 internal sealed class ClaimsIdentityFactory : IClaimsIdentityFactory
 {
-    public ClaimsIdentity CreateIdentityForUser(User user, string authenticationType)
+    public ClaimsIdentity CreateIdentityForUser(User user, string? authenticationType)
     {
         var claims = new List<Claim>
         {
