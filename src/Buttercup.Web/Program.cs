@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
+using HotChocolate.Resolvers;
+using System.Security.Claims;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,7 +79,17 @@ services
         TokenAuthenticationDefaults.AuthenticationScheme, null);
 
 services.AddAuthorizationBuilder()
-    .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin));
+    .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
+    .AddPolicy(
+        AuthorizationPolicyNames.SelfOrAdminOnly,
+        policy => policy.RequireAssertion(context =>
+            context.User.IsInRole(RoleNames.Admin) ||
+            (
+                context.Resource is IMiddlewareContext middlewareContext &&
+                context.User.HasClaim(
+                    ClaimTypes.NameIdentifier,
+                    middlewareContext.Parent<User>().Id.ToString(CultureInfo.InvariantCulture))
+            )));
 
 services
     .Configure<Bugsnag.Configuration>(configuration.GetSection("Bugsnag"))
