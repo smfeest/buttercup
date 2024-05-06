@@ -52,14 +52,13 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     }
 
     [Fact]
-    public async Task QueryingUserWhenNotAnAdmin()
+    public async Task QueryingUserWhenUnauthenticated()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
         var user = this.ModelFactory.BuildUser();
 
-        await this.DatabaseFixture.InsertEntities(currentUser, user);
+        await this.DatabaseFixture.InsertEntities(user);
 
-        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var client = this.AppFactory.CreateClient();
         using var response = await PostUserQuery(client, user.Id);
         using var document = await response.Content.ReadAsJsonDocument();
 
