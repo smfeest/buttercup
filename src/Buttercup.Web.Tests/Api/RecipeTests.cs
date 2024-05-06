@@ -17,7 +17,6 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
         var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes, softDeleted);
         recipe.Revisions.Add(
             RecipeRevision.From(this.ModelFactory.BuildRecipe(setOptionalAttributes)));
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -78,7 +77,6 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe();
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -94,7 +92,6 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
     public async Task QueryingRecipeWhenUnauthenticated()
     {
         var recipe = this.ModelFactory.BuildRecipe();
-
         await this.DatabaseFixture.InsertEntities(recipe);
 
         using var client = this.AppFactory.CreateClient();

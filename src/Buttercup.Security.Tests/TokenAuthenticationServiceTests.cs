@@ -42,11 +42,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(user);
 
         this.accessTokenEncoderMock
             .Setup(x => x.Encode(
@@ -55,27 +51,26 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(user, ipAddress);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            // Inserts security event
-            Assert.True(
-                await dbContext.SecurityEvents.AnyAsync(
-                    securityEvent =>
-                        securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
-                        securityEvent.Event == "access_token_issued" &&
-                        securityEvent.IpAddress == ipAddress &&
-                        securityEvent.UserId == user.Id));
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            // Logs token issued message
-            LogAssert.HasEntry(
-                this.logger,
-                LogLevel.Information,
-                300,
-                $"Issued access token for user {user.Id} ({user.Email})");
+        // Inserts security event
+        Assert.True(
+            await dbContext.SecurityEvents.AnyAsync(
+                securityEvent =>
+                    securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
+                    securityEvent.Event == "access_token_issued" &&
+                    securityEvent.IpAddress == ipAddress &&
+                    securityEvent.UserId == user.Id));
 
-            // Returns token
-            Assert.Equal(accessToken, returnedToken);
-        }
+        // Logs token issued message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            300,
+            $"Issued access token for user {user.Id} ({user.Email})");
+
+        // Returns token
+        Assert.Equal(accessToken, returnedToken);
     }
 
     #endregion
@@ -166,11 +161,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         var accessToken = this.modelFactory.NextString("access-token");
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(user);
 
         this.SetupDecodeSuccess(accessToken, user, securityStamp: "stale-security-stamp");
 
@@ -191,11 +182,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         var accessToken = this.modelFactory.NextString("access-token");
         var user = this.modelFactory.BuildUser();
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(user);
 
         this.SetupDecodeSuccess(accessToken, user);
 

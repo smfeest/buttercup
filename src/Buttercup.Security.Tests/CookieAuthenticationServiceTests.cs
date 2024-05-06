@@ -59,15 +59,11 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     [Fact]
     public async Task RefreshPrincipal_Authenticated()
     {
+        var user = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(user);
+
         var httpContext = new DefaultHttpContext();
         var authenticationProperties = new AuthenticationProperties();
-        var user = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-        }
 
         var originalPrincipal = PrincipalFactory.CreateWithUserId(
             user.Id, new Claim(ClaimTypes.Name, "original-principal"));
@@ -108,16 +104,12 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     [Fact]
     public async Task SignIn()
     {
+        var user = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(user);
+
         var httpContext = new DefaultHttpContext();
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var user = this.modelFactory.BuildUser();
         var identity = new ClaimsIdentity([new Claim(ClaimTypes.Name, "user-identity")]);
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-        }
 
         httpContext.Features.Set<IHttpConnectionFeature>(
             new HttpConnectionFeature { RemoteIpAddress = ipAddress });
@@ -128,23 +120,22 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         await this.cookieAuthenticationService.SignIn(httpContext, user);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            // Signs in principal
-            this.authenticationServiceMock.Verify(
-                x => x.SignInAsync(
-                    httpContext,
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    It.Is<ClaimsPrincipal>(p => p.Identity == identity),
-                    null));
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            // Inserts security event
-            Assert.True(await this.SecurityEventExists(dbContext, "sign_in", ipAddress, user.Id));
+        // Signs in principal
+        this.authenticationServiceMock.Verify(
+            x => x.SignInAsync(
+                httpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                It.Is<ClaimsPrincipal>(p => p.Identity == identity),
+                null));
 
-            // Logs signed in message
-            LogAssert.HasEntry(
-                this.logger, LogLevel.Information, 212, $"User {user.Id} ({user.Email}) signed in");
-        }
+        // Inserts security event
+        Assert.True(await this.SecurityEventExists(dbContext, "sign_in", ipAddress, user.Id));
+
+        // Logs signed in message
+        LogAssert.HasEntry(
+            this.logger, LogLevel.Information, 212, $"User {user.Id} ({user.Email}) signed in");
     }
 
     #endregion
@@ -154,15 +145,11 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     [Fact]
     public async Task SignOut_PreviouslySignedIn()
     {
+        var user = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(user);
+
         var email = this.modelFactory.NextString("email");
         var ipAddress = new IPAddress(this.modelFactory.NextInt());
-        var user = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(user);
-            await dbContext.SaveChangesAsync();
-        }
 
         var httpContext = new DefaultHttpContext()
         {
@@ -174,20 +161,19 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         await this.cookieAuthenticationService.SignOut(httpContext);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            // Signs out user
-            this.authenticationServiceMock.Verify(
-                x => x.SignOutAsync(
-                    httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            // Inserts security event
-            Assert.True(await this.SecurityEventExists(dbContext, "sign_out", ipAddress, user.Id));
+        // Signs out user
+        this.authenticationServiceMock.Verify(
+            x => x.SignOutAsync(
+                httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
 
-            // Logs signed out message
-            LogAssert.HasEntry(
-                this.logger, LogLevel.Information, 213, $"User {user.Id} ({email}) signed out");
-        }
+        // Inserts security event
+        Assert.True(await this.SecurityEventExists(dbContext, "sign_out", ipAddress, user.Id));
+
+        // Logs signed out message
+        LogAssert.HasEntry(
+            this.logger, LogLevel.Information, 213, $"User {user.Id} ({email}) signed out");
     }
 
     [Fact]

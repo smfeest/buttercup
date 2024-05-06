@@ -14,7 +14,6 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe(true);
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -69,7 +68,6 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe();
-
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -98,7 +96,6 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -127,7 +124,6 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe();
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -156,7 +152,6 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe(true);
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

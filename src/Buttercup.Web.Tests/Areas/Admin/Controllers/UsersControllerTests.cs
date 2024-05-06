@@ -25,7 +25,6 @@ public sealed class UsersControllerTests(DatabaseFixture<DatabaseCollection> dat
             this.modelFactory.BuildUser() with { Name = "Bob", Email = "x@example.com" },
             this.modelFactory.BuildUser() with { Name = "Clara", Email = "y@example.com" },
         };
-
         await this.DatabaseFixture.InsertEntities(
             orderedUsers[1], orderedUsers[3], orderedUsers[2], orderedUsers[0]);
 

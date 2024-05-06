@@ -26,12 +26,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     public async Task GetUser_ReturnsUser()
     {
         var expected = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(expected);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(expected);
 
         // Returns user
         Assert.Equal(expected, await this.userManager.FindUser(expected.Id));
@@ -40,11 +35,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     [Fact]
     public async Task GetUser_UserDoesNotExist()
     {
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(this.modelFactory.BuildUser());
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
 
         // Returns null
         Assert.Null(await this.userManager.FindUser(this.modelFactory.NextInt()));
@@ -58,40 +49,28 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     public async Task SetTimeZone_Success()
     {
         var original = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(original);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(original);
 
         var newTimeZone = this.modelFactory.NextString("new-time-zone");
-
         await this.userManager.SetTimeZone(original.Id, newTimeZone);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Updates user
+        var expected = original with
         {
-            // Updates user
-            var expected = original with
-            {
-                TimeZone = newTimeZone,
-                Modified = this.timeProvider.GetUtcDateTimeNow(),
-                Revision = original.Revision + 1,
-            };
-            var actual = await dbContext.Users.FindAsync(original.Id);
-            Assert.Equal(expected, actual);
-        }
+            TimeZone = newTimeZone,
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Revision = original.Revision + 1,
+        };
+        var actual = await dbContext.Users.FindAsync(original.Id);
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
     public async Task SetTimeZone_UserDoesNotExist()
     {
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(this.modelFactory.BuildUser());
-            await dbContext.SaveChangesAsync();
-        }
-
+        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
         var id = this.modelFactory.NextInt();
 
         // Throws exception

@@ -11,7 +11,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
         var user = this.ModelFactory.BuildUser();
-
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -37,7 +36,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     public async Task QueryingPrivateFieldsOnSelfWhenNotAnAdmin()
     {
         var user = this.ModelFactory.BuildUser() with { IsAdmin = false };
-
         await this.DatabaseFixture.InsertEntities(user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(user);
@@ -61,7 +59,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
         var user = this.ModelFactory.BuildUser();
-
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -98,7 +95,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         var user = this.ModelFactory.BuildUser();
-
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -121,7 +117,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     public async Task QueryingNonExistentUser()
     {
         var currentUser = this.ModelFactory.BuildUser();
-
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -137,7 +132,6 @@ public sealed class UserTests(AppFactory<UserTests> appFactory)
     public async Task QueryingUserWhenUnauthenticated()
     {
         var user = this.ModelFactory.BuildUser();
-
         await this.DatabaseFixture.InsertEntities(user);
 
         using var client = this.AppFactory.CreateClient();

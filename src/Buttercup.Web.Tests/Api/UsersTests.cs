@@ -26,7 +26,6 @@ public sealed class UsersTests(AppFactory<UsersTests> appFactory)
     {
         var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
         var otherUser = this.ModelFactory.BuildUser(false);
-
         await this.DatabaseFixture.InsertEntities(currentUser, otherUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

@@ -25,7 +25,6 @@ public sealed class CurrentUserTests(AppFactory<CurrentUserTests> appFactory)
     public async Task QueryingCurrentUser(bool setOptionalAttributes)
     {
         var user = this.ModelFactory.BuildUser(setOptionalAttributes);
-
         await this.DatabaseFixture.InsertEntities(user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(user);

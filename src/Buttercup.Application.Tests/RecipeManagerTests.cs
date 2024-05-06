@@ -29,57 +29,51 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var currentUser = this.modelFactory.BuildUser();
         var attributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: true));
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(currentUser);
 
         var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var expectedRecipe = new Recipe
-            {
-                Id = id,
-                Title = attributes.Title,
-                PreparationMinutes = attributes.PreparationMinutes,
-                CookingMinutes = attributes.CookingMinutes,
-                Servings = attributes.Servings,
-                Ingredients = attributes.Ingredients,
-                Method = attributes.Method,
-                Suggestions = attributes.Suggestions,
-                Remarks = attributes.Remarks,
-                Source = attributes.Source,
-                Created = this.timeProvider.GetUtcDateTimeNow(),
-                CreatedByUserId = currentUser.Id,
-                Modified = this.timeProvider.GetUtcDateTimeNow(),
-                ModifiedByUserId = currentUser.Id,
-                Revision = 0,
-            };
-            var actualRecipe = await dbContext.Recipes.FindAsync(id);
-            Assert.Equivalent(expectedRecipe, actualRecipe);
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            var expectedRevision = new RecipeRevision
-            {
-                RecipeId = id,
-                Revision = 0,
-                Created = this.timeProvider.GetUtcDateTimeNow(),
-                CreatedByUserId = currentUser.Id,
-                Title = attributes.Title,
-                PreparationMinutes = attributes.PreparationMinutes,
-                CookingMinutes = attributes.CookingMinutes,
-                Servings = attributes.Servings,
-                Ingredients = attributes.Ingredients,
-                Method = attributes.Method,
-                Suggestions = attributes.Suggestions,
-                Remarks = attributes.Remarks,
-                Source = attributes.Source,
-            };
-            var actualRevision = await dbContext.RecipeRevisions.SingleAsync();
-            Assert.Equivalent(expectedRevision, actualRevision);
-        }
+        var expectedRecipe = new Recipe
+        {
+            Id = id,
+            Title = attributes.Title,
+            PreparationMinutes = attributes.PreparationMinutes,
+            CookingMinutes = attributes.CookingMinutes,
+            Servings = attributes.Servings,
+            Ingredients = attributes.Ingredients,
+            Method = attributes.Method,
+            Suggestions = attributes.Suggestions,
+            Remarks = attributes.Remarks,
+            Source = attributes.Source,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            CreatedByUserId = currentUser.Id,
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            ModifiedByUserId = currentUser.Id,
+            Revision = 0,
+        };
+        var actualRecipe = await dbContext.Recipes.FindAsync(id);
+        Assert.Equivalent(expectedRecipe, actualRecipe);
+
+        var expectedRevision = new RecipeRevision
+        {
+            RecipeId = id,
+            Revision = 0,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            CreatedByUserId = currentUser.Id,
+            Title = attributes.Title,
+            PreparationMinutes = attributes.PreparationMinutes,
+            CookingMinutes = attributes.CookingMinutes,
+            Servings = attributes.Servings,
+            Ingredients = attributes.Ingredients,
+            Method = attributes.Method,
+            Suggestions = attributes.Suggestions,
+            Remarks = attributes.Remarks,
+            Source = attributes.Source,
+        };
+        var actualRevision = await dbContext.RecipeRevisions.SingleAsync();
+        Assert.Equivalent(expectedRevision, actualRevision);
     }
 
     [Fact]
@@ -88,27 +82,21 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var currentUser = this.modelFactory.BuildUser();
         var attributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: false));
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Users.Add(currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(currentUser);
 
         var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var actual = await dbContext.Recipes.FindAsync(id);
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            Assert.NotNull(actual);
-            Assert.Null(actual.PreparationMinutes);
-            Assert.Null(actual.CookingMinutes);
-            Assert.Null(actual.Servings);
-            Assert.Null(actual.Suggestions);
-            Assert.Null(actual.Remarks);
-            Assert.Null(actual.Source);
-        }
+        var actual = await dbContext.Recipes.FindAsync(id);
+
+        Assert.NotNull(actual);
+        Assert.Null(actual.PreparationMinutes);
+        Assert.Null(actual.CookingMinutes);
+        Assert.Null(actual.Servings);
+        Assert.Null(actual.Suggestions);
+        Assert.Null(actual.Remarks);
+        Assert.Null(actual.Source);
     }
 
     #endregion
@@ -120,25 +108,19 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var original = this.modelFactory.BuildRecipe(softDeleted: false);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(original, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         Assert.True(await this.recipeManager.DeleteRecipe(original.Id, currentUser.Id));
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var expected = original with
         {
-            var expected = original with
-            {
-                Deleted = this.timeProvider.GetUtcDateTimeNow(),
-                DeletedByUserId = currentUser.Id,
-            };
-            var actual = await dbContext.Recipes.FindAsync(original.Id);
-            Assert.Equivalent(expected, actual);
-        }
+            Deleted = this.timeProvider.GetUtcDateTimeNow(),
+            DeletedByUserId = currentUser.Id,
+        };
+        var actual = await dbContext.Recipes.FindAsync(original.Id);
+        Assert.Equivalent(expected, actual);
     }
 
     [Fact]
@@ -146,32 +128,21 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var original = this.modelFactory.BuildRecipe(softDeleted: true);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(original, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         Assert.False(await this.recipeManager.DeleteRecipe(original.Id, currentUser.Id));
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var actual = await dbContext.Recipes.FindAsync(original.Id);
-            Assert.Equivalent(original, actual);
-        }
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var actual = await dbContext.Recipes.FindAsync(original.Id);
+        Assert.Equivalent(original, actual);
     }
 
     [Fact]
     public async Task DeleteRecipe_ReturnsFalseIfRecordNotFound()
     {
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(this.modelFactory.BuildRecipe(), currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildRecipe(), currentUser);
 
         Assert.False(
             await this.recipeManager.DeleteRecipe(this.modelFactory.NextInt(), currentUser.Id));
@@ -185,33 +156,21 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     public async Task HardDeleteRecipe_HardDeletesRecipeAndReturnsTrue()
     {
         var recipe = this.modelFactory.BuildRecipe();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(recipe);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(recipe);
 
         Assert.True(await this.recipeManager.HardDeleteRecipe(recipe.Id));
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            Assert.False(await dbContext.Recipes.AnyAsync());
-        }
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        Assert.False(await dbContext.Recipes.AnyAsync());
     }
 
     [Fact]
     public async Task HardDeleteRecipe_ReturnsFalseIfRecordNotFound()
     {
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildRecipe());
 
-        var id = this.modelFactory.NextInt();
-
-        Assert.False(await this.recipeManager.HardDeleteRecipe(id));
+        Assert.False(await this.recipeManager.HardDeleteRecipe(this.modelFactory.NextInt()));
     }
 
     #endregion
@@ -223,12 +182,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(original, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         var newAttributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: true));
@@ -236,48 +190,47 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.True(await this.recipeManager.UpdateRecipe(
             original.Id, newAttributes, original.Revision, currentUser.Id));
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var expectedRecipe = new Recipe
-            {
-                Id = original.Id,
-                Title = newAttributes.Title,
-                PreparationMinutes = newAttributes.PreparationMinutes,
-                CookingMinutes = newAttributes.CookingMinutes,
-                Servings = newAttributes.Servings,
-                Ingredients = newAttributes.Ingredients,
-                Method = newAttributes.Method,
-                Suggestions = newAttributes.Suggestions,
-                Remarks = newAttributes.Remarks,
-                Source = newAttributes.Source,
-                Created = original.Created,
-                CreatedByUserId = original.CreatedByUserId,
-                Modified = this.timeProvider.GetUtcDateTimeNow(),
-                ModifiedByUserId = currentUser.Id,
-                Revision = original.Revision + 1,
-            };
-            var actualRecipe = await dbContext.Recipes.FindAsync(original.Id);
-            Assert.Equivalent(expectedRecipe, actualRecipe);
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            var expectedRevision = new RecipeRevision
-            {
-                RecipeId = original.Id,
-                Revision = original.Revision + 1,
-                Created = this.timeProvider.GetUtcDateTimeNow(),
-                CreatedByUserId = currentUser.Id,
-                Title = newAttributes.Title,
-                PreparationMinutes = newAttributes.PreparationMinutes,
-                CookingMinutes = newAttributes.CookingMinutes,
-                Servings = newAttributes.Servings,
-                Ingredients = newAttributes.Ingredients,
-                Method = newAttributes.Method,
-                Suggestions = newAttributes.Suggestions,
-                Remarks = newAttributes.Remarks,
-                Source = newAttributes.Source,
-            };
-            var actualRevision = await dbContext.RecipeRevisions.SingleAsync();
-            Assert.Equivalent(expectedRevision, actualRevision);
-        }
+        var expectedRecipe = new Recipe
+        {
+            Id = original.Id,
+            Title = newAttributes.Title,
+            PreparationMinutes = newAttributes.PreparationMinutes,
+            CookingMinutes = newAttributes.CookingMinutes,
+            Servings = newAttributes.Servings,
+            Ingredients = newAttributes.Ingredients,
+            Method = newAttributes.Method,
+            Suggestions = newAttributes.Suggestions,
+            Remarks = newAttributes.Remarks,
+            Source = newAttributes.Source,
+            Created = original.Created,
+            CreatedByUserId = original.CreatedByUserId,
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            ModifiedByUserId = currentUser.Id,
+            Revision = original.Revision + 1,
+        };
+        var actualRecipe = await dbContext.Recipes.FindAsync(original.Id);
+        Assert.Equivalent(expectedRecipe, actualRecipe);
+
+        var expectedRevision = new RecipeRevision
+        {
+            RecipeId = original.Id,
+            Revision = original.Revision + 1,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            CreatedByUserId = currentUser.Id,
+            Title = newAttributes.Title,
+            PreparationMinutes = newAttributes.PreparationMinutes,
+            CookingMinutes = newAttributes.CookingMinutes,
+            Servings = newAttributes.Servings,
+            Ingredients = newAttributes.Ingredients,
+            Method = newAttributes.Method,
+            Suggestions = newAttributes.Suggestions,
+            Remarks = newAttributes.Remarks,
+            Source = newAttributes.Source,
+        };
+        var actualRevision = await dbContext.RecipeRevisions.SingleAsync();
+        Assert.Equivalent(expectedRevision, actualRevision);
     }
 
     [Fact]
@@ -285,12 +238,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(original, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         var newAttributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: false));
@@ -298,18 +246,16 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.True(await this.recipeManager.UpdateRecipe(
             original.Id, newAttributes, original.Revision, currentUser.Id));
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var actual = await dbContext.Recipes.FindAsync(original.Id);
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+        var actual = await dbContext.Recipes.FindAsync(original.Id);
 
-            Assert.NotNull(actual);
-            Assert.Null(actual.PreparationMinutes);
-            Assert.Null(actual.CookingMinutes);
-            Assert.Null(actual.Servings);
-            Assert.Null(actual.Suggestions);
-            Assert.Null(actual.Remarks);
-            Assert.Null(actual.Source);
-        }
+        Assert.NotNull(actual);
+        Assert.Null(actual.PreparationMinutes);
+        Assert.Null(actual.CookingMinutes);
+        Assert.Null(actual.Servings);
+        Assert.Null(actual.Suggestions);
+        Assert.Null(actual.Remarks);
+        Assert.Null(actual.Source);
     }
 
     [Fact]
@@ -317,23 +263,16 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(original, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         Assert.False(await this.recipeManager.UpdateRecipe(
             original.Id, new(original), original.Revision, currentUser.Id));
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var expected = original with { CreatedByUser = null, ModifiedByUser = null };
-            var actual = await dbContext.Recipes.FindAsync(original.Id);
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+        var expected = original with { CreatedByUser = null, ModifiedByUser = null };
+        var actual = await dbContext.Recipes.FindAsync(original.Id);
 
-            Assert.Equivalent(expected, actual);
-        }
+        Assert.Equivalent(expected, actual);
     }
 
     [Fact]
@@ -341,15 +280,9 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var otherRecipe = this.modelFactory.BuildRecipe();
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(otherRecipe, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(otherRecipe, currentUser);
 
         var id = this.modelFactory.NextInt();
-
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeManager.UpdateRecipe(
                 id, new(this.modelFactory.BuildRecipe()), 0, currentUser.Id));
@@ -362,12 +295,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var recipe = this.modelFactory.BuildRecipe(softDeleted: true);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(recipe, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
         var exception = await Assert.ThrowsAsync<SoftDeletedException>(
             () => this.recipeManager.UpdateRecipe(
@@ -381,15 +309,9 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
-
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.AddRange(recipe, currentUser);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
         var staleRevision = recipe.Revision - 1;
-
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeManager.UpdateRecipe(
                 recipe.Id, new(this.modelFactory.BuildRecipe()), staleRevision, currentUser.Id));

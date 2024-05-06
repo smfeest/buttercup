@@ -36,7 +36,6 @@ public sealed class RecipesTests(AppFactory<RecipesTests> appFactory)
             this.ModelFactory.BuildRecipe(true),
             this.ModelFactory.BuildRecipe(false),
         };
-
         await this.DatabaseFixture.InsertEntities(currentUser, recipes);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

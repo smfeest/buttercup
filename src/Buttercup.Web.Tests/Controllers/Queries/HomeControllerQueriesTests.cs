@@ -26,27 +26,22 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
             });
         }
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.AddRange(allRecipes);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(allRecipes);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            Assert.Collection(
-                await this.queries.GetRecentlyAddedRecipes(dbContext),
-                    r => Assert.Equivalent(allRecipes[14], r),
-                    r => Assert.Equivalent(allRecipes[13], r),
-                    r => Assert.Equivalent(allRecipes[12], r),
-                    r => Assert.Equivalent(allRecipes[11], r),
-                    r => Assert.Equivalent(allRecipes[9], r),
-                    r => Assert.Equivalent(allRecipes[8], r),
-                    r => Assert.Equivalent(allRecipes[7], r),
-                    r => Assert.Equivalent(allRecipes[6], r),
-                    r => Assert.Equivalent(allRecipes[4], r),
-                    r => Assert.Equivalent(allRecipes[3], r));
-        }
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        Assert.Collection(
+            await this.queries.GetRecentlyAddedRecipes(dbContext),
+                r => Assert.Equivalent(allRecipes[14], r),
+                r => Assert.Equivalent(allRecipes[13], r),
+                r => Assert.Equivalent(allRecipes[12], r),
+                r => Assert.Equivalent(allRecipes[11], r),
+                r => Assert.Equivalent(allRecipes[9], r),
+                r => Assert.Equivalent(allRecipes[8], r),
+                r => Assert.Equivalent(allRecipes[7], r),
+                r => Assert.Equivalent(allRecipes[6], r),
+                r => Assert.Equivalent(allRecipes[4], r),
+                r => Assert.Equivalent(allRecipes[3], r));
     }
 
     #endregion
@@ -85,30 +80,25 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
             BuildRecipe(1, 15),
         };
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.AddRange(allRecipes);
-            await dbContext.SaveChangesAsync();
-        }
+        await this.DatabaseFixture.InsertEntities(allRecipes);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var actual = await this.queries.GetRecentlyUpdatedRecipes(
-                dbContext, [allRecipes[3].Id, allRecipes[8].Id]);
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-            Assert.Collection(
-                actual,
-                r => Assert.Equivalent(allRecipes[2], r),
-                r => Assert.Equivalent(allRecipes[9], r),
-                r => Assert.Equivalent(allRecipes[12], r),
-                r => Assert.Equivalent(allRecipes[14], r),
-                r => Assert.Equivalent(allRecipes[13], r),
-                r => Assert.Equivalent(allRecipes[1], r),
-                r => Assert.Equivalent(allRecipes[0], r),
-                r => Assert.Equivalent(allRecipes[4], r),
-                r => Assert.Equivalent(allRecipes[7], r),
-                r => Assert.Equivalent(allRecipes[15], r));
-        }
+        var actual = await this.queries.GetRecentlyUpdatedRecipes(
+            dbContext, [allRecipes[3].Id, allRecipes[8].Id]);
+
+        Assert.Collection(
+            actual,
+            r => Assert.Equivalent(allRecipes[2], r),
+            r => Assert.Equivalent(allRecipes[9], r),
+            r => Assert.Equivalent(allRecipes[12], r),
+            r => Assert.Equivalent(allRecipes[14], r),
+            r => Assert.Equivalent(allRecipes[13], r),
+            r => Assert.Equivalent(allRecipes[1], r),
+            r => Assert.Equivalent(allRecipes[0], r),
+            r => Assert.Equivalent(allRecipes[4], r),
+            r => Assert.Equivalent(allRecipes[7], r),
+            r => Assert.Equivalent(allRecipes[15], r));
     }
 
     #endregion

@@ -17,24 +17,17 @@ public sealed class RecipesControllerQueriesTests(
     public async Task FindRecipe_ReturnsRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+        await this.DatabaseFixture.InsertEntities(recipe);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+        var actual = await this.queries.FindRecipe(dbContext, recipe.Id);
+        var expected = recipe with
         {
-            dbContext.Recipes.Add(recipe);
-            await dbContext.SaveChangesAsync();
-        }
+            CreatedByUser = null,
+            ModifiedByUser = null,
+        };
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var actual = await this.queries.FindRecipe(dbContext, recipe.Id);
-            var expected = recipe with
-            {
-                CreatedByUser = null,
-                ModifiedByUser = null,
-            };
-
-            Assert.Equivalent(expected, actual);
-        }
+        Assert.Equivalent(expected, actual);
     }
 
     #endregion
@@ -45,18 +38,12 @@ public sealed class RecipesControllerQueriesTests(
     public async Task FindRecipeForShowView_ReturnsRecipeWithCreatedAndModifiedByUser()
     {
         var expected = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
+        await this.DatabaseFixture.InsertEntities(expected);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.Add(expected);
-            await dbContext.SaveChangesAsync();
-        }
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+        var actual = await this.queries.FindRecipeForShowView(dbContext, expected.Id);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            var actual = await this.queries.FindRecipeForShowView(dbContext, expected.Id);
-            Assert.Equivalent(expected, actual);
-        }
+        Assert.Equivalent(expected, actual);
     }
 
     #endregion
@@ -70,21 +57,15 @@ public sealed class RecipesControllerQueriesTests(
         var recipeC = this.modelFactory.BuildRecipe() with { Title = "recipe-title-c" };
         var recipeA = this.modelFactory.BuildRecipe() with { Title = "recipe-title-a" };
         var deletedRecipe = this.modelFactory.BuildRecipe(softDeleted: true);
+        await this.DatabaseFixture.InsertEntities(recipeB, recipeC, recipeA, deletedRecipe);
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            dbContext.Recipes.AddRange(recipeB, recipeC, recipeA, deletedRecipe);
-            await dbContext.SaveChangesAsync();
-        }
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        using (var dbContext = this.DatabaseFixture.CreateDbContext())
-        {
-            Assert.Collection(
-                await this.queries.GetRecipesForIndex(dbContext),
-                r => Assert.Equivalent(recipeA, r),
-                r => Assert.Equivalent(recipeB, r),
-                r => Assert.Equivalent(recipeC, r));
-        }
+        Assert.Collection(
+            await this.queries.GetRecipesForIndex(dbContext),
+            r => Assert.Equivalent(recipeA, r),
+            r => Assert.Equivalent(recipeB, r),
+            r => Assert.Equivalent(recipeC, r));
     }
 
     #endregion
