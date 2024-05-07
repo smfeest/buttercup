@@ -4,7 +4,7 @@ using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
 
-public class UserType : ObjectType<User>
+public sealed class UserType : ObjectType<User>
 {
     protected override void Configure(IObjectTypeDescriptor<User> descriptor)
     {

@@ -9,8 +9,7 @@ namespace Buttercup.TestUtils;
 /// <typeparam name="T">
 /// The type to provide strings for.
 /// </typeparam>
-public class DictionaryLocalizer<T>()
-    : IStringLocalizer<T>
+public sealed class DictionaryLocalizer<T>() : IStringLocalizer<T>
 {
     /// <summary>
     /// Gets the backing dictionary.

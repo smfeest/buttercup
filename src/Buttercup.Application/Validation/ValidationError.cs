@@ -20,7 +20,7 @@ namespace Buttercup.Application.Validation;
 /// <param name="ValidationAttribute">
 /// The validation attribute that raised the error.
 /// </param>
-public record ValidationError(
+public sealed record ValidationError(
     string Message,
     object Instance,
     string? Member,

@@ -39,6 +39,6 @@ public sealed class ListLogger<TCategoryName> : ILogger<TCategoryName>
     /// <param name="EventId">The event ID.</param>
     /// <param name="Message">The formatted message.</param>
     /// <param name="Exception">The associated exception, if any.</param>
-    public record LogEntry(
+    public sealed record LogEntry(
         LogLevel LogLevel, EventId EventId, string Message, Exception? Exception);
 }
