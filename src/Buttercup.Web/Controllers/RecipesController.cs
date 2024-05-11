@@ -13,12 +13,14 @@ namespace Buttercup.Web.Controllers;
 [Authorize]
 [Route("recipes")]
 public sealed class RecipesController(
+    ICommentManager commentManager,
     IDbContextFactory<AppDbContext> dbContextFactory,
     IStringLocalizer<RecipesController> localizer,
     IRecipesControllerQueries queries,
     IRecipeManager recipeManager)
     : Controller
 {
+    private readonly ICommentManager commentManager = commentManager;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly IStringLocalizer<RecipesController> localizer = localizer;
     private readonly IRecipesControllerQueries queries = queries;
@@ -32,21 +34,7 @@ public sealed class RecipesController(
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Show(long id)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        var recipe = await this.queries.FindRecipeForShowView(dbContext, id);
-
-        if (recipe is null)
-        {
-            return this.NotFound();
-        }
-
-        var comments = await this.queries.GetCommentsForRecipe(dbContext, id);
-
-        return this.View(new ShowRecipeViewModel(recipe, comments));
-    }
+    public Task<IActionResult> Show(long id) => this.Show(id, new());
 
     [HttpGet("new")]
     public IActionResult New() => this.View();
@@ -116,4 +104,48 @@ public sealed class RecipesController(
         await this.recipeManager.DeleteRecipe(id, this.User.GetUserId()) ?
             this.RedirectToAction(nameof(this.Index)) :
             this.NotFound();
+
+    [HttpPost("{id}/comments")]
+    public async Task<IActionResult> AddComment(long id, CommentAttributes newCommentAttributes)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return await this.Show(id, newCommentAttributes);
+        }
+
+        long commentId;
+
+        try
+        {
+            commentId = await this.commentManager.AddComment(
+                id, newCommentAttributes, this.User.GetUserId());
+        }
+        catch (NotFoundException)
+        {
+            return this.NotFound();
+        }
+        catch (SoftDeletedException)
+        {
+            return this.NotFound();
+        }
+
+        return this.RedirectToAction(nameof(Show), null, new { id }, $"comment{commentId}");
+    }
+
+    private async Task<IActionResult> Show(long id, CommentAttributes newCommentAttributes)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var recipe = await this.queries.FindRecipeForShowView(dbContext, id);
+
+        if (recipe is null)
+        {
+            return this.NotFound();
+        }
+
+        var comments = await this.queries.GetCommentsForRecipe(dbContext, id);
+
+        return this.View(
+            nameof(Show), new ShowRecipeViewModel(recipe, comments, newCommentAttributes));
+    }
 }

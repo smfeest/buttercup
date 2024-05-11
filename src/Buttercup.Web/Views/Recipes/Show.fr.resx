@@ -42,4 +42,13 @@
   <data name="Label_Comments">
     <value>Commentaires</value>
   </data>
+  <data name="Label_Comment">
+    <value>Commentaire</value>
+  </data>
+  <data name="Placeholder_Comment">
+    <value>Écrivez un commentaire…</value>
+  </data>
+  <data name="Label_Add">
+    <value>Ajouter</value>
+  </data>
 </root>

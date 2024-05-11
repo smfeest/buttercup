@@ -13,6 +13,7 @@ public sealed class RecipesControllerTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<ICommentManager> commentManagerMock = new();
     private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly DefaultHttpContext httpContext = new();
     private readonly DictionaryLocalizer<RecipesController> localizer = new();
@@ -23,6 +24,7 @@ public sealed class RecipesControllerTests : IDisposable
 
     public RecipesControllerTests() =>
         this.recipesController = new(
+            this.commentManagerMock.Object,
             this.dbContextFactory,
             this.localizer,
             this.queriesMock.Object,
@@ -63,7 +65,7 @@ public sealed class RecipesControllerTests : IDisposable
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
 
-        Assert.Equal(new(recipe, comments), model);
+        Assert.Equal(new(recipe, comments, new()), model);
     }
 
     [Fact]
@@ -305,6 +307,97 @@ public sealed class RecipesControllerTests : IDisposable
     }
 
     #endregion
+
+    #region AddComment
+
+    [Fact]
+    public async Task AddComment_Success_AddsAndRedirectsToCommentOnShowPage()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        long recipeId = this.modelFactory.NextInt();
+        var commentAttributes = this.BuildCommentAttributes();
+        var commentId = this.modelFactory.NextInt();
+
+        this.commentManagerMock
+            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .ReturnsAsync(commentId);
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(recipeId, redirectResult.RouteValues["id"]);
+        Assert.Equal($"comment{commentId}", redirectResult.Fragment);
+    }
+
+    [Fact]
+    public async Task AddComment_InvalidModel_ReturnsViewResultWithAttributes()
+    {
+        var recipe = this.SetupFindRecipeForShowView();
+        var comments = this.SetupGetCommentsForRecipe(recipe.Id);
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.recipesController.ModelState.AddModelError("test", "test");
+
+        var result = await this.recipesController.AddComment(recipe.Id, commentAttributes);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
+        Assert.Equal(nameof(RecipesController.Show), viewResult.ViewName);
+        Assert.Equal(new(recipe, comments, commentAttributes), model);
+    }
+
+    [Fact]
+    public async Task AddComment_InvalidModelAndRecipeNotFound_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindRecipeForShowView(recipeId, null);
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.recipesController.ModelState.AddModelError("test", "test");
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task AddComment_NotFoundException_ReturnsNotFoundResult()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        var recipeId = this.modelFactory.NextInt();
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.commentManagerMock
+            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .ThrowsAsync(new NotFoundException());
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task AddComment_SoftDeletedException_ReturnsNotFoundResult()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        var recipeId = this.modelFactory.NextInt();
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.commentManagerMock
+            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .ThrowsAsync(new SoftDeletedException());
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    #endregion
+
+    private CommentAttributes BuildCommentAttributes() =>
+        new() { Body = this.modelFactory.NextString("comment-body") };
 
     private long SetupCurrentUserId()
     {

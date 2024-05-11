@@ -95,4 +95,12 @@
   {
     <partial name="_Comment" model="@comment" />
   }
+  <form method="post" asp-action="AddComment" asp-route-id="@Model.Recipe.Id">
+    <p class="new-comment-form__author">@User.Identity?.Name</p>
+    <div class="new-comment-form__field form-field">
+      <textarea class="form-field__input" asp-for="NewCommentAttributes.Body" aria-label="@Localizer["Label_Comment"]" placeholder="@Localizer["Placeholder_Comment"]" required></textarea>
+      <span asp-validation-for="NewCommentAttributes.Body"></span>
+    </div>
+    <button class="primary-push-button">@Localizer["Label_Add"]</button>
+  </form>
 </section>
