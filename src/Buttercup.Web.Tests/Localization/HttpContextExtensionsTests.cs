@@ -11,8 +11,7 @@ public sealed class HttpContextExtensionsTests
     [Fact]
     public void ToUserTime_Authenticated_ReturnsTimeInUserTimeZone()
     {
-        var identity = new ClaimsIdentity(
-            new Claim[] { new(CustomClaimTypes.TimeZone, "Etc/GMT+10") });
+        var identity = new ClaimsIdentity([new(CustomClaimTypes.TimeZone, "Etc/GMT+10")]);
 
         var httpContext = new DefaultHttpContext { User = new(identity) };
 

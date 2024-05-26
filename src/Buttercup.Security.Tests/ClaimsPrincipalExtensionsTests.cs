@@ -11,7 +11,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void GetUserId_ReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "7214") }));
+            new ClaimsIdentity([new(ClaimTypes.NameIdentifier, "7214")]));
 
         Assert.Equal(7214, principal.GetUserId());
     }
@@ -20,7 +20,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void GetUserId_ThrowsWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));
+            new ClaimsIdentity([new(ClaimTypes.Email, "user@example.com")]));
 
         Assert.Throws<InvalidOperationException>(() => principal.GetUserId());
     }
@@ -33,7 +33,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void TryGetUserId_ReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity(new Claim[] { new(ClaimTypes.NameIdentifier, "7214") }));
+            new ClaimsIdentity([new(ClaimTypes.NameIdentifier, "7214")]));
 
         Assert.Equal(7214, principal.TryGetUserId());
     }
@@ -42,7 +42,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void TryGetUserId_ReturnsNullWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity(new Claim[] { new(ClaimTypes.Email, "user@example.com") }));
+            new ClaimsIdentity([new(ClaimTypes.Email, "user@example.com")]));
 
         Assert.Null(principal.TryGetUserId());
     }
