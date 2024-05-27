@@ -56,13 +56,8 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Show_ReturnsViewResultWithRecipeAndComments()
     {
-        var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipeForShowView(recipe.Id, recipe);
-
-        var comments = new[] { this.modelFactory.BuildComment() };
-        this.queriesMock
-            .Setup(x => x.GetCommentsForRecipe(this.dbContextFactory.FakeDbContext, recipe.Id))
-            .ReturnsAsync(comments);
+        var recipe = this.SetupFindRecipeForShowView();
+        var comments = this.SetupGetCommentsForRecipe(recipe.Id);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -134,8 +129,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
-        var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipe(recipe.Id, recipe);
+        var recipe = this.SetupFindRecipe();
 
         var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -254,8 +248,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
-        var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipe(recipe.Id, recipe);
+        var recipe = this.SetupFindRecipe();
 
         var result = await this.recipesController.Delete(recipe.Id);
 
@@ -320,13 +313,36 @@ public sealed class RecipesControllerTests : IDisposable
         return userId;
     }
 
+    private Recipe SetupFindRecipe()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        this.SetupFindRecipe(recipe.Id, recipe);
+        return recipe;
+    }
+
     private void SetupFindRecipe(long id, Recipe? recipe) =>
         this.queriesMock
             .Setup(x => x.FindRecipe(this.dbContextFactory.FakeDbContext, id))
             .ReturnsAsync(recipe);
 
+    private Recipe SetupFindRecipeForShowView()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        this.SetupFindRecipeForShowView(recipe.Id, recipe);
+        return recipe;
+    }
+
     private void SetupFindRecipeForShowView(long id, Recipe? recipe) =>
         this.queriesMock
             .Setup(x => x.FindRecipeForShowView(this.dbContextFactory.FakeDbContext, id))
             .ReturnsAsync(recipe);
+
+    private Comment[] SetupGetCommentsForRecipe(long recipeId)
+    {
+        var comments = new[] { this.modelFactory.BuildComment() };
+        this.queriesMock
+            .Setup(x => x.GetCommentsForRecipe(this.dbContextFactory.FakeDbContext, recipeId))
+            .ReturnsAsync(comments);
+        return comments;
+    }
 }
