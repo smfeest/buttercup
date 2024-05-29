@@ -36,6 +36,51 @@ public sealed class Mutation
     }
 
     /// <summary>
+    /// Creates a comment on a recipe.
+    /// </summary>
+    /// <param name="validatorFactory">
+    /// The input object validator factory.
+    /// </param>
+    /// <param name="commentManager">
+    /// The comment manager.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="recipeId">
+    /// The recipe ID.
+    /// </param>
+    /// <param name="attributes">
+    /// The comment attributes.
+    /// </param>
+    [Authorize]
+    [Error<NotFoundException>]
+    [Error<InputObjectValidationError>]
+    [Error<SoftDeletedException>]
+    public async Task<MutationResult<CreateCommentPayload>> CreateComment(
+        [Service] IInputObjectValidatorFactory validatorFactory,
+        [Service] ICommentManager commentManager,
+        ClaimsPrincipal claimsPrincipal,
+        ISchema schema,
+        long recipeId,
+        CommentAttributes attributes)
+    {
+        var validator = validatorFactory.CreateValidator<CommentAttributes>(schema);
+        var validationErrors = new List<InputObjectValidationError>();
+
+        if (!validator.Validate(attributes, ["input", "attributes"], validationErrors))
+        {
+            return new(validationErrors);
+        }
+
+        var id = await commentManager.AddComment(recipeId, attributes, claimsPrincipal.GetUserId());
+        return new CreateCommentPayload(id);
+    }
+
+    /// <summary>
     /// Creates a recipe.
     /// </summary>
     /// <param name="validatorFactory">
