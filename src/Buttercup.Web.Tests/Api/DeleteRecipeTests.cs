@@ -24,7 +24,7 @@ public sealed class SoftDeleteRecipeTests(AppFactory<SoftDeleteRecipeTests> appF
             {
                 recipe.Id,
                 recipe.Title,
-                DeletedByUser = new { currentUser.Id, currentUser.Email },
+                DeletedByUser = new { currentUser.Id, currentUser.Name },
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteRecipe");
@@ -61,7 +61,7 @@ public sealed class SoftDeleteRecipeTests(AppFactory<SoftDeleteRecipeTests> appF
             {
                 recipe.Id,
                 recipe.Title,
-                DeletedByUser = new { recipe.DeletedByUser?.Id, recipe.DeletedByUser?.Email },
+                DeletedByUser = new { recipe.DeletedByUser?.Id, recipe.DeletedByUser?.Name },
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteRecipe");
@@ -92,7 +92,7 @@ public sealed class SoftDeleteRecipeTests(AppFactory<SoftDeleteRecipeTests> appF
                     recipe {
                         id
                         title
-                        deletedByUser { id email }
+                        deletedByUser { id name }
                     }
                 }
             }",

@@ -38,8 +38,8 @@ public sealed class CreateRecipeTests(AppFactory<CreateRecipeTests> appFactory)
             attributes.Suggestions,
             attributes.Remarks,
             attributes.Source,
-            CreatedByUser = new { currentUser.Id, currentUser.Email },
-            ModifiedByUser = new { currentUser.Id, currentUser.Email },
+            CreatedByUser = new { currentUser.Id, currentUser.Name },
+            ModifiedByUser = new { currentUser.Id, currentUser.Name },
             Revision = 0
         };
         JsonAssert.Equivalent(expected, recipeElement);
@@ -115,8 +115,8 @@ public sealed class CreateRecipeTests(AppFactory<CreateRecipeTests> appFactory)
                         suggestions
                         remarks
                         source
-                        createdByUser { id email }
-                        modifiedByUser { id email }
+                        createdByUser { id name }
+                        modifiedByUser { id name }
                         revision
                     }
                     errors {

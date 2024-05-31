@@ -40,15 +40,15 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
             recipe.Created,
             CreatedByUser = recipe.CreatedByUser == null ?
                 null :
-                new { recipe.CreatedByUser.Id, recipe.CreatedByUser.Email },
+                new { recipe.CreatedByUser.Id, recipe.CreatedByUser.Name },
             recipe.Modified,
             ModifiedByUser = recipe.ModifiedByUser == null ?
                 null :
-                new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Email },
+                new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Name },
             recipe.Deleted,
             DeletedByUser = recipe.DeletedByUser == null ?
                 null :
-                new { recipe.DeletedByUser.Id, recipe.DeletedByUser.Email },
+                new { recipe.DeletedByUser.Id, recipe.DeletedByUser.Name },
             recipe.Revision,
             revisions = recipe.Revisions.Select(revision => new
             {
@@ -56,7 +56,7 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
                 revision.Created,
                 CreatedByUser = revision.CreatedByUser == null ?
                     null :
-                    new { revision.CreatedByUser.Id, revision.CreatedByUser.Email },
+                    new { revision.CreatedByUser.Id, revision.CreatedByUser.Name },
                 revision.Title,
                 revision.PreparationMinutes,
                 revision.CookingMinutes,
@@ -118,16 +118,16 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
                     remarks
                     source
                     created
-                    createdByUser { id email }
+                    createdByUser { id name }
                     modified
-                    modifiedByUser { id email }
+                    modifiedByUser { id name }
                     deleted
-                    deletedByUser { id email }
+                    deletedByUser { id name }
                     revision
                     revisions {
                         revision
                         created
-                        createdByUser { id email }
+                        createdByUser { id name }
                         title
                         preparationMinutes
                         cookingMinutes
