@@ -34,4 +34,23 @@ public sealed record CommentRevision
     /// </summary>
     [Column(TypeName = "text")]
     public required string Body { get; set; }
+
+    /// <summary>
+    /// Creates a new <see cref="CommentRevision" /> copying property values from a <see
+    /// cref="Comment" />.
+    /// </summary>
+    /// <param name="comment">
+    /// The comment to copy property values from.
+    /// </param>
+    /// <returns>
+    /// The new <see cref="CommentRevision"/>.
+    /// </returns>
+    public static CommentRevision From(Comment comment) => new()
+    {
+        Comment = comment,
+        CommentId = comment.Id,
+        Revision = comment.Revision,
+        Created = comment.Modified,
+        Body = comment.Body,
+    };
 }
