@@ -24,9 +24,19 @@ public sealed class SelfOrAdminRequirement : IAuthorizationHandler, IAuthorizati
         return Task.CompletedTask;
     }
 
-    public static bool IsSelf(AuthorizationHandlerContext context) =>
-        context.Resource is IMiddlewareContext { ObjectType: UserType } middlewareContext &&
-        context.User.HasClaim(
-            ClaimTypes.NameIdentifier,
-            middlewareContext.Parent<User>().Id.ToString(CultureInfo.InvariantCulture));
+    private static bool IsSelf(AuthorizationHandlerContext context)
+    {
+        var userResource = context.Resource switch
+        {
+            User user => user,
+            IMiddlewareContext { ObjectType: UserType } middlewareContext =>
+                middlewareContext.Parent<User>(),
+            _ => null,
+        };
+
+        return userResource is not null &&
+            context.User.HasClaim(
+                ClaimTypes.NameIdentifier,
+                userResource.Id.ToString(CultureInfo.InvariantCulture));
+    }
 }

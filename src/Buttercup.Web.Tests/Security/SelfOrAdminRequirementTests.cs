@@ -30,6 +30,32 @@ public sealed class SelfOrAdminRequirementTests
     }
 
     [Fact]
+    public async Task ResourceIsUserAndIdMatchesCurrentUser_IndicatesSuccess()
+    {
+        var requirement = new SelfOrAdminRequirement();
+        var subjectUser = this.modelFactory.BuildUser();
+        var currentUser = PrincipalFactory.CreateWithUserId(subjectUser.Id);
+        var context = new AuthorizationHandlerContext([requirement], currentUser, subjectUser);
+
+        await requirement.HandleAsync(context);
+
+        Assert.True(context.HasSucceeded);
+    }
+
+    [Fact]
+    public async Task ResourceIsUserAndIdDoesNotMatchCurrentUser_DoesNotIndicateSuccess()
+    {
+        var requirement = new SelfOrAdminRequirement();
+        var subjectUser = this.modelFactory.BuildUser();
+        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var context = new AuthorizationHandlerContext([requirement], currentUser, subjectUser);
+
+        await requirement.HandleAsync(context);
+
+        Assert.False(context.HasSucceeded);
+    }
+
+    [Fact]
     public async Task ResourceIsMiddlewareContextForUserObjectAndIdMatchesCurrentUser_IndicatesSuccess()
     {
         var requirement = new SelfOrAdminRequirement();
@@ -71,7 +97,7 @@ public sealed class SelfOrAdminRequirementTests
     }
 
     [Fact]
-    public async Task ResourceIsNotMiddlewareContext_DoesNotIndicateSuccess()
+    public async Task ResourceIsNotUserOrMiddlewareContext_DoesNotIndicateSuccess()
     {
         var requirement = new SelfOrAdminRequirement();
         var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
