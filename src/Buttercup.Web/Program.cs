@@ -81,7 +81,7 @@ services
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
     .AddPolicy(
-        AuthorizationPolicyNames.SelfOrAdminOnly,
+        AuthorizationPolicyNames.SelfOrAdmin,
         policy => policy.RequireAssertion(context =>
             context.User.IsInRole(RoleNames.Admin) ||
             (
