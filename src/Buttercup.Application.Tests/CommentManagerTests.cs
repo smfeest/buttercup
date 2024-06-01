@@ -97,6 +97,57 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region DeleteComment
+
+    [Fact]
+    public async Task DeleteComment_SetsSoftDeleteAttributesAndReturnsTrue()
+    {
+        var original = this.modelFactory.BuildComment(setRecipe: true, softDeleted: false);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
+
+        Assert.True(await this.commentManager.DeleteComment(original.Id, currentUser.Id));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var expected = original with
+        {
+            Recipe = null,
+            Deleted = this.timeProvider.GetUtcDateTimeNow(),
+            DeletedByUserId = currentUser.Id,
+        };
+        var actual = await dbContext.Comments.FindAsync(original.Id);
+        Assert.Equivalent(expected, actual);
+    }
+
+    [Fact]
+    public async Task DeleteComment_DoesNotUpdateAttributesAndReturnsFalseIfAlreadySoftDeleted()
+    {
+        var original = this.modelFactory.BuildComment(setRecipe: true, softDeleted: true);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
+
+        Assert.False(await this.commentManager.DeleteComment(original.Id, currentUser.Id));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var actual = await dbContext.Comments.FindAsync(original.Id);
+        Assert.Equivalent(original with { Recipe = null }, actual);
+    }
+
+    [Fact]
+    public async Task DeleteComment_ReturnsFalseIfRecordNotFound()
+    {
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(
+            this.modelFactory.BuildComment(setRecipe: true), currentUser);
+
+        Assert.False(
+            await this.commentManager.DeleteComment(this.modelFactory.NextInt(), currentUser.Id));
+    }
+
+    #endregion
+
     private CommentAttributes BuildCommentAttributes() =>
         new() { Body = this.modelFactory.NextString("comment-body") };
 }

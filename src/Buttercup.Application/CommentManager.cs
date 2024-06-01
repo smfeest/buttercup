@@ -38,4 +38,19 @@ internal sealed class CommentManager(
 
         return comment.Id;
     }
+
+    public async Task<bool> DeleteComment(long id, long currentUserId)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var updatedRows = await dbContext
+            .Comments
+            .Where(c => c.Id == id)
+            .WhereNotSoftDeleted()
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(c => c.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                .SetProperty(c => c.DeletedByUserId, currentUserId));
+
+        return updatedRows > 0;
+    }
 }
