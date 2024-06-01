@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Buttercup.Security;
 
 namespace Buttercup.Web.Security;
@@ -14,8 +13,8 @@ public static class AuthorizationPolicyNames
     public const string AdminOnly = nameof(AdminOnly);
 
     /// <summary>
-    /// The name of the authorization policy that requires either the <see cref="RoleNames.Admin"/>
-    /// role or a <see cref="ClaimTypes.NameIdentifier"/> role matching the parent user ID.
+    /// The name of the authorization policy that is satisfied if either the resource represents the
+    /// current user, or the current user has the <see cref="RoleNames.Admin"/> role.
     /// </summary>
     public const string SelfOrAdmin = nameof(SelfOrAdmin);
 }
