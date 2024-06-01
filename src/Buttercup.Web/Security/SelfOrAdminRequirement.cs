@@ -1,0 +1,32 @@
+using System.Globalization;
+using System.Security.Claims;
+using Buttercup.EntityModel;
+using Buttercup.Security;
+using Buttercup.Web.Api;
+using HotChocolate.Resolvers;
+using Microsoft.AspNetCore.Authorization;
+
+namespace Buttercup.Web.Security;
+
+/// <summary>
+/// An <see cref="IAuthorizationRequirement"/> that is satisfied if either the resource represents
+/// the current user, or the current user has the <see cref="RoleNames.Admin"/> role.
+/// </summary>
+public sealed class SelfOrAdminRequirement : IAuthorizationHandler, IAuthorizationRequirement
+{
+    public Task HandleAsync(AuthorizationHandlerContext context)
+    {
+        if (context.User.IsInRole(RoleNames.Admin) || IsSelf(context))
+        {
+            context.Succeed(this);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public static bool IsSelf(AuthorizationHandlerContext context) =>
+        context.Resource is IMiddlewareContext { ObjectType: UserType } middlewareContext &&
+        context.User.HasClaim(
+            ClaimTypes.NameIdentifier,
+            middlewareContext.Parent<User>().Id.ToString(CultureInfo.InvariantCulture));
+}
