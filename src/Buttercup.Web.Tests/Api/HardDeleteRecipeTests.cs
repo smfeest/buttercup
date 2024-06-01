@@ -43,7 +43,7 @@ public sealed class HardDeleteRecipeTests(AppFactory<HardDeleteRecipeTests> appF
     [Fact]
     public async Task DeletingNonExistentRecipe()
     {
-        var currentUser = this.ModelFactory.BuildUser();
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

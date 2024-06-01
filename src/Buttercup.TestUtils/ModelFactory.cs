@@ -8,7 +8,7 @@ namespace Buttercup.TestUtils;
 /// </summary>
 public sealed class ModelFactory
 {
-    private int nextInt = 1;
+    private int nextInt = Random.Shared.Next(0, 2);
 
     /// <summary>
     /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.

@@ -40,8 +40,8 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
             attributes.Remarks,
             attributes.Source,
             recipe.Created,
-            CreatedByUser = new { Id = recipe.CreatedByUserId },
-            ModifiedByUser = new { currentUser.Id, currentUser.Email },
+            CreatedByUser = new { recipe.CreatedByUser?.Id, recipe.CreatedByUser?.Name },
+            ModifiedByUser = new { currentUser.Id, currentUser.Name },
             Revision = recipe.Revision + 1
         };
         JsonAssert.Equivalent(expected, recipeElement);
@@ -207,8 +207,8 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
                         remarks
                         source
                         created
-                        createdByUser { id }
-                        modifiedByUser { id email }
+                        createdByUser { id name }
+                        modifiedByUser { id name }
                         revision
                     }
                     errors {

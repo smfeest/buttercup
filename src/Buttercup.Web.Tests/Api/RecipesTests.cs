@@ -20,9 +20,9 @@ public sealed class RecipesTests(AppFactory<RecipesTests> appFactory)
                 remarks
                 source
                 created
-                createdByUser { id email }
+                createdByUser { id name }
                 modified
-                modifiedByUser { id email }
+                modifiedByUser { id name }
                 revision
             }
         }";
@@ -59,11 +59,11 @@ public sealed class RecipesTests(AppFactory<RecipesTests> appFactory)
             recipe.Created,
             CreatedByUser = recipe.CreatedByUser == null ?
                 null :
-                new { recipe.CreatedByUser.Id, recipe.CreatedByUser.Email },
+                new { recipe.CreatedByUser.Id, recipe.CreatedByUser.Name },
             recipe.Modified,
             ModifiedByUser = recipe.ModifiedByUser == null ?
                 null :
-                new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Email },
+                new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Name },
             recipe.Revision
         });
 
