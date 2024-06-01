@@ -17,6 +17,10 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
         var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes, softDeleted);
         recipe.Revisions.Add(
             RecipeRevision.From(this.ModelFactory.BuildRecipe(setOptionalAttributes)));
+        var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true);
+        comment.Revisions.Add(
+            CommentRevision.From(this.ModelFactory.BuildComment(setOptionalAttributes: true)));
+        recipe.Comments.Add(comment);
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -66,6 +70,21 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
                 revision.Suggestions,
                 revision.Remarks,
                 revision.Source,
+            }),
+            Comments = recipe.Comments.Select(comment => new
+            {
+                comment.Id,
+                Author = new { comment.Author?.Id, comment.Author?.Name },
+                comment.Body,
+                comment.Created,
+                comment.Modified,
+                comment.Revision,
+                Revisions = comment.Revisions.Select(revision => new
+                {
+                    revision.Revision,
+                    revision.Created,
+                    revision.Body
+                }),
             }),
         };
 
@@ -137,6 +156,15 @@ public sealed class RecipeTests(AppFactory<RecipeTests> appFactory)
                         suggestions
                         remarks
                         source
+                    }
+                    comments {
+                        id
+                        author { id name }
+                        body
+                        created
+                        modified
+                        revision
+                        revisions { revision created body }
                     }
                 }
             }",

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_BodyRequired">
+    <value>Comment cannot be empty</value>
+  </data>
+  <data name="Error_BodyTooLong">
+    <value>Comment cannot contain more than {1} characters</value>
+  </data>
+</root>

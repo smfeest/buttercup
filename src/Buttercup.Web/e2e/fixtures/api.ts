@@ -28,12 +28,34 @@ const DELETE_RECIPE_QUERY = gql`
 `;
 
 const DEFAULT_RECIPE_ATTRIBUTES: RecipeAttributes = {
-  title: 'Cheese sandwich',
-  ingredients: ['2 slices of bread', 'Butter', 'Cheese'].join('\n'),
-  method: [
-    'Spread butter on one side of each slice of bread',
-    'Place cheese between the slices',
+  title: 'Italian white bean soup',
+  servings: 2,
+  ingredients: [
+    '400g dried haricot or flageolet beans',
+    'Salt',
+    'Butter',
+    '1 carrot',
+    '1 onion, halved',
+    '2 leeks, in chunks',
+    '1 stalk celery',
+    'Chicken stock',
+    '3 egg yolks',
+    '200ml cream',
+    'Peas, boiled',
+    'Croûtons',
   ].join('\n'),
+  method: [
+    'Soak beans in water for 12 hours, then drain them.',
+    'Add the drained beans to a stock pot with a little salt, butter, carrot, onion, two leeks, and a stick of celery.',
+    'Cover with water, and simmer until the vegetables are well cooked.',
+    'Drain the beans and vegetables, discarding the vegetables.',
+    'Purée the beans, adding stock as necessary to get a smooth consistency.',
+    'Transfer purée to a pot, and add stock to get the desired consistency. Bring to a boil, and keep hot until serving.',
+    'Combine the egg yolks with the cream, and add this to the soup.',
+    'Transfer the soup to a warm dish, add some boiled green peas, and serve with fried croûtons handed separately.',
+  ].join('\n'),
+  source:
+    "The cook's Decameron : a study in taste, containing over two hundred recipes for Italian dishes",
 };
 
 export const api = (baseUrl: string) => {

@@ -48,6 +48,38 @@ public sealed class RecipesControllerQueriesTests(
 
     #endregion
 
+    #region GetCommentsForRecipe
+
+    [Fact]
+    public async Task GetCommentsForRecipe_ReturnsNonDeletedCommentsForRecipeOrderedById()
+    {
+        var comment1 = this.modelFactory.BuildComment(setOptionalAttributes: true);
+        var comment2 = this.modelFactory.BuildComment(setOptionalAttributes: false);
+        var softDeletedComment = this.modelFactory.BuildComment(softDeleted: true);
+        var commentForOtherRecipe = this.modelFactory.BuildComment();
+
+        var recipe = this.modelFactory.BuildRecipe() with
+        {
+            Comments = [comment1, comment2, softDeletedComment],
+        };
+        var otherRecipe = this.modelFactory.BuildRecipe() with
+        {
+            Comments = [commentForOtherRecipe],
+        };
+        await this.DatabaseFixture.InsertEntities(recipe, otherRecipe);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var expected = new[] { comment1, comment2 };
+        var actual = await this.queries.GetCommentsForRecipe(dbContext, recipe.Id);
+
+        Assert.Equal(
+            expected.Select(c => new { c.Id, c.Author }),
+            actual.Select(c => new { c.Id, c.Author }));
+    }
+
+    #endregion
+
     #region GetRecipesForIndex
 
     [Fact]

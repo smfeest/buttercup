@@ -13,6 +13,7 @@ public sealed class RecipesControllerTests : IDisposable
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<ICommentManager> commentManagerMock = new();
     private readonly FakeDbContextFactory dbContextFactory = new();
     private readonly DefaultHttpContext httpContext = new();
     private readonly DictionaryLocalizer<RecipesController> localizer = new();
@@ -23,6 +24,7 @@ public sealed class RecipesControllerTests : IDisposable
 
     public RecipesControllerTests() =>
         this.recipesController = new(
+            this.commentManagerMock.Object,
             this.dbContextFactory,
             this.localizer,
             this.queriesMock.Object,
@@ -54,15 +56,16 @@ public sealed class RecipesControllerTests : IDisposable
     #region Show
 
     [Fact]
-    public async Task Show_ReturnsViewResultWithRecipe()
+    public async Task Show_ReturnsViewResultWithRecipeAndComments()
     {
-        var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipeForShowView(recipe.Id, recipe);
+        var recipe = this.SetupFindRecipeForShowView();
+        var comments = this.SetupGetCommentsForRecipe(recipe.Id);
 
         var result = await this.recipesController.Show(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
 
-        Assert.Same(recipe, viewResult.Model);
+        Assert.Equal(new(recipe, comments, new()), model);
     }
 
     [Fact]
@@ -128,8 +131,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Edit_Get_ReturnsViewResultWithEditModel()
     {
-        var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipe(recipe.Id, recipe);
+        var recipe = this.SetupFindRecipe();
 
         var result = await this.recipesController.Edit(recipe.Id);
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -248,8 +250,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Get_ReturnsViewResultWithRecipe()
     {
-        var recipe = this.modelFactory.BuildRecipe();
-        this.SetupFindRecipe(recipe.Id, recipe);
+        var recipe = this.SetupFindRecipe();
 
         var result = await this.recipesController.Delete(recipe.Id);
 
@@ -307,6 +308,97 @@ public sealed class RecipesControllerTests : IDisposable
 
     #endregion
 
+    #region AddComment
+
+    [Fact]
+    public async Task AddComment_Success_AddsAndRedirectsToCommentOnShowPage()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        long recipeId = this.modelFactory.NextInt();
+        var commentAttributes = this.BuildCommentAttributes();
+        var commentId = this.modelFactory.NextInt();
+
+        this.commentManagerMock
+            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .ReturnsAsync(commentId);
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(recipeId, redirectResult.RouteValues["id"]);
+        Assert.Equal($"comment{commentId}", redirectResult.Fragment);
+    }
+
+    [Fact]
+    public async Task AddComment_InvalidModel_ReturnsViewResultWithAttributes()
+    {
+        var recipe = this.SetupFindRecipeForShowView();
+        var comments = this.SetupGetCommentsForRecipe(recipe.Id);
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.recipesController.ModelState.AddModelError("test", "test");
+
+        var result = await this.recipesController.AddComment(recipe.Id, commentAttributes);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
+        Assert.Equal(nameof(RecipesController.Show), viewResult.ViewName);
+        Assert.Equal(new(recipe, comments, commentAttributes), model);
+    }
+
+    [Fact]
+    public async Task AddComment_InvalidModelAndRecipeNotFound_ReturnsNotFoundResult()
+    {
+        var recipeId = this.modelFactory.NextInt();
+        this.SetupFindRecipeForShowView(recipeId, null);
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.recipesController.ModelState.AddModelError("test", "test");
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task AddComment_NotFoundException_ReturnsNotFoundResult()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        var recipeId = this.modelFactory.NextInt();
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.commentManagerMock
+            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .ThrowsAsync(new NotFoundException());
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task AddComment_SoftDeletedException_ReturnsNotFoundResult()
+    {
+        var currentUserId = this.SetupCurrentUserId();
+        var recipeId = this.modelFactory.NextInt();
+        var commentAttributes = this.BuildCommentAttributes();
+
+        this.commentManagerMock
+            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .ThrowsAsync(new SoftDeletedException());
+
+        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    #endregion
+
+    private CommentAttributes BuildCommentAttributes() =>
+        new() { Body = this.modelFactory.NextString("comment-body") };
+
     private long SetupCurrentUserId()
     {
         var userId = this.modelFactory.NextInt();
@@ -314,13 +406,36 @@ public sealed class RecipesControllerTests : IDisposable
         return userId;
     }
 
+    private Recipe SetupFindRecipe()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        this.SetupFindRecipe(recipe.Id, recipe);
+        return recipe;
+    }
+
     private void SetupFindRecipe(long id, Recipe? recipe) =>
         this.queriesMock
             .Setup(x => x.FindRecipe(this.dbContextFactory.FakeDbContext, id))
             .ReturnsAsync(recipe);
 
+    private Recipe SetupFindRecipeForShowView()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        this.SetupFindRecipeForShowView(recipe.Id, recipe);
+        return recipe;
+    }
+
     private void SetupFindRecipeForShowView(long id, Recipe? recipe) =>
         this.queriesMock
             .Setup(x => x.FindRecipeForShowView(this.dbContextFactory.FakeDbContext, id))
             .ReturnsAsync(recipe);
+
+    private Comment[] SetupGetCommentsForRecipe(long recipeId)
+    {
+        var comments = new[] { this.modelFactory.BuildComment() };
+        this.queriesMock
+            .Setup(x => x.GetCommentsForRecipe(this.dbContextFactory.FakeDbContext, recipeId))
+            .ReturnsAsync(comments);
+        return comments;
+    }
 }

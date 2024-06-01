@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_BodyRequired">
+    <value>Le commentaire ne peut pas être vide</value>
+  </data>
+  <data name="Error_BodyTooLong">
+    <value>Le commentaire ne peut pas contenir plus de {1} caractères</value>
+  </data>
+</root>

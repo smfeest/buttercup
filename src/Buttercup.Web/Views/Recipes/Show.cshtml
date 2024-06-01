@@ -1,65 +1,65 @@
 ﻿@inject ITimeFormatter TimeFormatter
 @inject IViewLocalizer Localizer
-@model Recipe
+@model Buttercup.Web.Models.Recipes.ShowRecipeViewModel
 @{
-  ViewData["Title"] = Model!.Title;
+  ViewData["Title"] = Model!.Recipe.Title;
 }
-<h1>@Model.Title</h1>
+<h1>@Model.Recipe.Title</h1>
 
 <table class="recipe-header">
-  @if (Model.PreparationMinutes != null)
+  @if (Model.Recipe.PreparationMinutes != null)
   {
     <tr>
       <th>@Localizer["Label_PreparationTime"]</th>
-      <td>@TimeFormatter.AsHoursAndMinutes(Model.PreparationMinutes.Value)</td>
+      <td>@TimeFormatter.AsHoursAndMinutes(Model.Recipe.PreparationMinutes.Value)</td>
     </tr>
   }
-  @if (Model.CookingMinutes != null)
+  @if (Model.Recipe.CookingMinutes != null)
   {
     <tr>
       <th>@Localizer["Label_CookingTime"]</th>
-      <td>@TimeFormatter.AsHoursAndMinutes(Model.CookingMinutes.Value)</td>
+      <td>@TimeFormatter.AsHoursAndMinutes(Model.Recipe.CookingMinutes.Value)</td>
     </tr>
   }
-  @if (Model.Servings != null)
+  @if (Model.Recipe.Servings != null)
   {
     <tr>
       <th>@Localizer["Label_Servings"]</th>
-      <td>@Html.FormatValue(Model.Servings, "{0:d}")</td>
+      <td>@Html.FormatValue(Model.Recipe.Servings, "{0:d}")</td>
     </tr>
   }
-  @if (Model.Source != null)
+  @if (Model.Recipe.Source != null)
   {
     <tr>
       <th>@Localizer["Label_Source"]</th>
-      <td>@Model.Source</td>
+      <td>@Model.Recipe.Source</td>
     </tr>
   }
   <tr>
     <th>@Localizer["Label_Added"]</th>
     <td>
-      @if (Model.CreatedByUser == null)
+      @if (Model.Recipe.CreatedByUser == null)
       {
-        @Html.UserDateTime(Model.Created)
+        @Html.UserDateTime(Model.Recipe.Created)
       }
       else
       {
-        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Created), Model.CreatedByUser.Name]
+        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Recipe.Created), Model.Recipe.CreatedByUser.Name]
       }
     </td>
   </tr>
-  @if (Model.Modified > Model.Created)
+  @if (Model.Recipe.Modified > Model.Recipe.Created)
   {
     <tr>
       <th>@Localizer["Label_Updated"]</th>
       <td>
-      @if (Model.ModifiedByUser == null)
+      @if (Model.Recipe.ModifiedByUser == null)
       {
-        @Html.UserDateTime(Model.Modified)
+        @Html.UserDateTime(Model.Recipe.Modified)
       }
       else
       {
-        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Modified), Model.ModifiedByUser.Name]
+        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Recipe.Modified), Model.Recipe.ModifiedByUser.Name]
       }
       </td>
     </tr>
@@ -67,24 +67,40 @@
 </table>
 
 <h2>@Localizer["Label_Ingredients"]</h2>
-<ul lines-in="@Model.Ingredients"></ul>
+<ul lines-in="@Model.Recipe.Ingredients"></ul>
 
 <h2>@Localizer["Label_Method"]</h2>
-<ol lines-in="@Model.Method"></ol>
+<ol lines-in="@Model.Recipe.Method"></ol>
 
-@if (Model.Suggestions != null)
+@if (Model.Recipe.Suggestions != null)
 {
   <h2>@Localizer["Label_Suggestions"]</h2>
-  <ul lines-in="@Model.Suggestions"></ul>
+  <ul lines-in="@Model.Recipe.Suggestions"></ul>
 }
 
-@if (Model.Remarks != null)
+@if (Model.Recipe.Remarks != null)
 {
   <h2>@Localizer["Label_Remarks"]</h2>
-  <ul lines-in="@Model.Remarks"></ul>
+  <ul lines-in="@Model.Recipe.Remarks"></ul>
 }
 
 <footer class="button-bar">
-  <a class="push-button" asp-action="Edit" asp-route-id="@Model.Id">@Localizer["Label_Edit"]</a>
-  <a class="push-button" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
+  <a class="push-button" asp-action="Edit" asp-route-id="@Model.Recipe.Id">@Localizer["Label_Edit"]</a>
+  <a class="push-button" asp-action="Delete" asp-route-id="@Model.Recipe.Id">@Localizer["Label_Delete"]</a>
 </footer>
+
+<section>
+  <h2>@Localizer["Label_Comments"]</h2>
+  @foreach (var comment in Model.Comments)
+  {
+    <partial name="_Comment" model="@comment" />
+  }
+  <form method="post" asp-action="AddComment" asp-route-id="@Model.Recipe.Id">
+    <p class="new-comment-form__author">@User.Identity?.Name</p>
+    <div class="new-comment-form__field form-field">
+      <textarea class="form-field__input" asp-for="NewCommentAttributes.Body" aria-label="@Localizer["Label_Comment"]" placeholder="@Localizer["Placeholder_Comment"]" required></textarea>
+      <span asp-validation-for="NewCommentAttributes.Body"></span>
+    </div>
+    <button class="primary-push-button">@Localizer["Label_Add"]</button>
+  </form>
+</section>

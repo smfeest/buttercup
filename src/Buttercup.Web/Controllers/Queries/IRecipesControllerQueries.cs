@@ -39,6 +39,20 @@ public interface IRecipesControllerQueries
     Task<Recipe?> FindRecipeForShowView(AppDbContext dbContext, long id);
 
     /// <summary>
+    /// Gets all comments (with authors) for a recipe.
+    /// </summary>
+    /// <param name="dbContext">
+    /// The database context.
+    /// </param>
+    /// <param name="recipeId">
+    /// The recipe ID.
+    /// </param>
+    /// <returns>
+    /// A task for the operation.
+    /// </returns>
+    Task<Comment[]> GetCommentsForRecipe(AppDbContext dbContext, long recipeId);
+
+    /// <summary>
     /// Gets all non-deleted recipes ordered by title.
     /// </summary>
     /// <param name="dbContext">
