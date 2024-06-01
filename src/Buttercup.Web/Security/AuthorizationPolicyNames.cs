@@ -11,11 +11,11 @@ public static class AuthorizationPolicyNames
     /// <summary>
     /// The name of the authorization policy that requires the <see cref="RoleNames.Admin"/> role.
     /// </summary>
-    public const string AdminOnly = "AdminOnly";
+    public const string AdminOnly = nameof(AdminOnly);
 
     /// <summary>
     /// The name of the authorization policy that requires either the <see cref="RoleNames.Admin"/>
     /// role or a <see cref="ClaimTypes.NameIdentifier"/> role matching the parent user ID.
     /// </summary>
-    public const string SelfOrAdminOnly = "SelfOrAdminOnly";
+    public const string SelfOrAdminOnly = nameof(SelfOrAdminOnly);
 }
