@@ -13,6 +13,13 @@ public static class AuthorizationPolicyNames
     public const string AdminOnly = nameof(AdminOnly);
 
     /// <summary>
+    /// The name of the authorization policy that is satisfied if either the resource represents a
+    /// comment authored by the current user, or the current user has the <see
+    /// cref="RoleNames.Admin"/> role.
+    /// </summary>
+    public const string CommentAuthorOrAdmin = nameof(CommentAuthorOrAdmin);
+
+    /// <summary>
     /// The name of the authorization policy that is satisfied if either the resource represents the
     /// current user, or the current user has the <see cref="RoleNames.Admin"/> role.
     /// </summary>

@@ -78,6 +78,9 @@ services
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
     .AddPolicy(
+        AuthorizationPolicyNames.CommentAuthorOrAdmin,
+        policy => policy.AddRequirements(new CommentAuthorOrAdminRequirement()))
+    .AddPolicy(
         AuthorizationPolicyNames.SelfOrAdmin,
         policy => policy.AddRequirements(new SelfOrAdminRequirement()));
 
