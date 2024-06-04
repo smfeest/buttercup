@@ -24,6 +24,17 @@ public static class ClaimsPrincipalExtensions
         throw new InvalidOperationException("Principal has no name identifier claim");
 
     /// <summary>
+    /// Checks whether the principal has a <see cref="ClaimTypes.NameIdentifier"/> claim set to the
+    /// specified user ID.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the principal has a matching claim; <c>false</c> otherwise.
+    /// </returns>
+    public static bool HasUserId(this ClaimsPrincipal principal, long userId) =>
+        principal.HasClaim(
+            ClaimTypes.NameIdentifier, userId.ToString(CultureInfo.InvariantCulture));
+
+    /// <summary>
     /// Gets the user ID stored in the principal's first <see cref="ClaimTypes.NameIdentifier"/>
     /// claim, if the principal has any such claim.
     /// </summary>
