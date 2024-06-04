@@ -27,6 +27,26 @@ public sealed class ClaimsPrincipalExtensionsTests
 
     #endregion
 
+    #region HasUserId
+
+    [Theory]
+    [InlineData(123, true)]
+    [InlineData(456, false)]
+    [InlineData(789, true)]
+    public void HasUserId_ChecksForMatchingNameIdentifierClaim(long userId, bool expectedResult)
+    {
+        var principal = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [
+                    new(ClaimTypes.NameIdentifier, "123"),
+                    new(ClaimTypes.SerialNumber, "456"),
+                    new(ClaimTypes.NameIdentifier, "789")
+                ]));
+        Assert.Equal(expectedResult, principal.HasUserId(userId));
+    }
+
+    #endregion
+
     #region TryGetUserId
 
     [Fact]

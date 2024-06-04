@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Security.Claims;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Api;
@@ -34,9 +32,6 @@ public sealed class SelfOrAdminRequirement : IAuthorizationHandler, IAuthorizati
             _ => null,
         };
 
-        return userResource is not null &&
-            context.User.HasClaim(
-                ClaimTypes.NameIdentifier,
-                userResource.Id.ToString(CultureInfo.InvariantCulture));
+        return userResource is not null && context.User.HasUserId(userResource.Id);
     }
 }
