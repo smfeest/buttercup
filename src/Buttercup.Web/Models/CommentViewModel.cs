@@ -2,7 +2,7 @@ using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Models;
 
-public sealed record CommentViewModel(Comment Comment)
+public sealed record CommentViewModel(Comment Comment, bool IncludeDeleteLink = false)
 {
     public long Id => this.Comment.Id;
     public string? AuthorName => this.Comment.Author?.Name;

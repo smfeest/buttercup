@@ -146,6 +146,7 @@ public sealed class RecipesController(
         var comments = await this.queries.GetCommentsForRecipe(dbContext, id);
 
         return this.View(
-            nameof(Show), new ShowRecipeViewModel(recipe, comments, newCommentAttributes));
+            nameof(Show),
+            new ShowRecipeViewModel(recipe, comments, newCommentAttributes, this.User));
     }
 }

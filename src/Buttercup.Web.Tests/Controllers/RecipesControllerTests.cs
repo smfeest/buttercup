@@ -68,6 +68,7 @@ public sealed class RecipesControllerTests : IDisposable
         Assert.Equal(recipe, model.Recipe);
         Assert.Equal(comments, model.Comments);
         Assert.Equal(new(), model.NewCommentAttributes);
+        Assert.Equal(this.httpContext.User, model.User);
     }
 
     [Fact]
@@ -350,6 +351,7 @@ public sealed class RecipesControllerTests : IDisposable
         Assert.Equal(recipe, model.Recipe);
         Assert.Equal(comments, model.Comments);
         Assert.Equal(commentAttributes, model.NewCommentAttributes);
+        Assert.Equal(this.httpContext.User, model.User);
     }
 
     [Fact]

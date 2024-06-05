@@ -3,4 +3,7 @@
   <data name="Label_UnknownUser">
     <value>Utilisateur inconnu</value>
   </data>
+  <data name="Label_Delete">
+    <value>Supprimer</value>
+  </data>
 </root>

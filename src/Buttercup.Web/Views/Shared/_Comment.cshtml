@@ -4,6 +4,10 @@
   <header class="comment__header">
     <span class="comment__author">@(Model.AuthorName is null ? Localizer["Label_UnknownUser"] : Model.AuthorName)</span>
     <a class="comment__timestamp" href="@($"#comment{Model.Id}")">@Html.UserDateTime(Model.Created, "d")</a>
+    @if (Model.IncludeDeleteLink)
+    {
+      <a asp-controller="Comments" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
+    }
   </header>
   @Html.FromMarkdown(Model.Body, MarkdownPipelines.Comments)
 </article>

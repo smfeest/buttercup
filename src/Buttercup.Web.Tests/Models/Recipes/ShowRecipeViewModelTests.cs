@@ -1,4 +1,7 @@
+using System.Security.Claims;
 using Buttercup.Application;
+using Buttercup.EntityModel;
+using Buttercup.Security;
 using Buttercup.TestUtils;
 using Xunit;
 
@@ -12,7 +15,7 @@ public sealed class ShowRecipeViewModelTests
     public void ExposesRecipe()
     {
         var recipe = this.modelFactory.BuildRecipe();
-        var viewModel = new ShowRecipeViewModel(recipe, [], new());
+        var viewModel = new ShowRecipeViewModel(recipe, [], new(), new());
 
         Assert.Equal(recipe, viewModel.Recipe);
     }
@@ -21,7 +24,8 @@ public sealed class ShowRecipeViewModelTests
     public void ExposesComments()
     {
         var comments = new[] { this.modelFactory.BuildComment(), this.modelFactory.BuildComment() };
-        var viewModel = new ShowRecipeViewModel(this.modelFactory.BuildRecipe(), comments, new());
+        var viewModel = new ShowRecipeViewModel(
+            this.modelFactory.BuildRecipe(), comments, new(), new());
 
         Assert.Equal(comments, viewModel.Comments);
     }
@@ -34,17 +38,61 @@ public sealed class ShowRecipeViewModelTests
             Body = this.modelFactory.NextString("comment-body")
         };
         var viewModel = new ShowRecipeViewModel(
-            this.modelFactory.BuildRecipe(), [], commentAttributes);
+            this.modelFactory.BuildRecipe(), [], commentAttributes, new());
 
         Assert.Equal(commentAttributes, viewModel.NewCommentAttributes);
     }
 
     [Fact]
-    public void InitializesCommentViewModels()
+    public void ExposesUser()
     {
-        var comment = this.modelFactory.BuildComment();
-        var viewModel = new ShowRecipeViewModel(this.modelFactory.BuildRecipe(), [comment], new());
+        var user = new ClaimsPrincipal();
+        var viewModel = new ShowRecipeViewModel(this.modelFactory.BuildRecipe(), [], new(), user);
 
-        Assert.Equal([new CommentViewModel(comment)], viewModel.CommentViewModels);
+        Assert.Equal(user, viewModel.User);
+    }
+
+    [Fact]
+    public void UserNotAnAdmin_InitializesCommentViewModelsWithDeleteLinkOnOwnComments()
+    {
+        var userId = this.modelFactory.NextInt();
+        var comments = new Comment[]
+        {
+            this.modelFactory.BuildComment(),
+            this.modelFactory.BuildComment() with { AuthorId = userId },
+            this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
+        };
+        var user = PrincipalFactory.CreateWithUserId(userId);
+        var viewModel = new ShowRecipeViewModel(
+            this.modelFactory.BuildRecipe(), comments, new(), user);
+
+        Assert.Equal(
+            [
+                new(comments[0], IncludeDeleteLink: false),
+                new(comments[1], IncludeDeleteLink: true),
+                new(comments[2], IncludeDeleteLink: false),
+            ],
+            viewModel.CommentViewModels);
+    }
+
+    [Fact]
+    public void UserIsAdmin_InitializesCommentViewModelsWithDeleteLinkOnAllComments()
+    {
+        var comments = new Comment[]
+        {
+            this.modelFactory.BuildComment(),
+            this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
+        };
+        var user = PrincipalFactory.CreateWithUserId(
+            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
+        var viewModel = new ShowRecipeViewModel(
+            this.modelFactory.BuildRecipe(), comments, new(), user);
+
+        Assert.Equal(
+            [
+                new(comments[0], IncludeDeleteLink: true),
+                new(comments[1], IncludeDeleteLink: true)
+            ],
+            viewModel.CommentViewModels);
     }
 }
