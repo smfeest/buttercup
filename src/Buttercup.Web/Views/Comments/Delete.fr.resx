@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_DeleteComment">
+    <value>Supprimer commentaire</value>
+  </data>
+  <data name="Message_DeleteConfirmation">
+    <value>Êtes-vous sûr de vouloir supprimer ce commentaire ?</value>
+  </data>
+  <data name="Label_Delete">
+    <value>Supprimer</value>
+  </data>
+  <data name="Label_Cancel">
+    <value>Annuler</value>
+  </data>
+</root>
