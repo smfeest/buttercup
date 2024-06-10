@@ -4,6 +4,10 @@ using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
+using HotChocolate.Execution;
+using HotChocolate.Resolvers;
+using Microsoft.Extensions.Localization;
+using IAuthorizationService = Microsoft.AspNetCore.Authorization.IAuthorizationService;
 
 namespace Buttercup.Web.Api;
 
@@ -116,6 +120,52 @@ public sealed class Mutation
 
         var id = await recipeManager.AddRecipe(attributes, claimsPrincipal.GetUserId());
         return new CreateRecipePayload(id);
+    }
+
+    /// <summary>
+    /// Soft-deletes a comment.
+    /// </summary>
+    /// <param name="authorizationService">
+    /// The authorization service.
+    /// </param>
+    /// <param name="commentManager">
+    /// The comment manager.
+    /// </param>
+    /// <param name="localizer">
+    /// The string localizer.
+    /// </param>
+    /// <param name="dbContext">
+    /// The database context.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="resolverContext">
+    /// The resolver context.
+    /// </param>
+    /// <param name="id">
+    /// The comment ID.
+    /// </param>
+    public async Task<DeleteCommentPayload> DeleteComment(
+        [Service] IAuthorizationService authorizationService,
+        [Service] ICommentManager commentManager,
+        [Service] IStringLocalizer<Mutation> localizer,
+        AppDbContext dbContext,
+        ClaimsPrincipal claimsPrincipal,
+        IResolverContext resolverContext,
+        long id)
+    {
+        var comment = await dbContext.Comments.FindAsync(id);
+
+        var authorizationResult = await authorizationService.AuthorizeAsync(
+            claimsPrincipal, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
+
+        return authorizationResult.Succeeded
+            ? new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()))
+            : throw new QueryException(
+                resolverContext.CreateError(
+                    ErrorCodes.Authentication.NotAuthorized,
+                    localizer["Error_DeleteCommentNotAuthorized"]));
     }
 
     /// <summary>
