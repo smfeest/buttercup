@@ -3,7 +3,9 @@ using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
-using HotChocolate.Authorization;
+using HotChocolate.Resolvers;
+using Microsoft.AspNetCore.Authorization;
+using AuthorizeAttribute = HotChocolate.Authorization.AuthorizeAttribute;
 
 namespace Buttercup.Web.Api;
 
@@ -116,6 +118,56 @@ public sealed class Mutation
 
         var id = await recipeManager.AddRecipe(attributes, claimsPrincipal.GetUserId());
         return new CreateRecipePayload(id);
+    }
+
+    /// <summary>
+    /// Soft-deletes a comment.
+    /// </summary>
+    /// <param name="authorizationService">
+    /// The authorization service.
+    /// </param>
+    /// <param name="commentManager">
+    /// The comment manager.
+    /// </param>
+    /// <param name="dbContext">
+    /// The database context.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="resolverContext">
+    /// The resolver context.
+    /// </param>
+    /// <param name="id">
+    /// The comment ID.
+    /// </param>
+    [Authorize]
+    public async Task<DeleteCommentPayload> DeleteComment(
+        [Service] IAuthorizationService authorizationService,
+        [Service] ICommentManager commentManager,
+        AppDbContext dbContext,
+        ClaimsPrincipal claimsPrincipal,
+        IResolverContext resolverContext,
+        long id)
+    {
+        var comment = await dbContext.Comments.FindAsync(id);
+
+        if (comment is null)
+        {
+            return new(id, false);
+        }
+
+        var authorizationResult = await authorizationService.AuthorizeAsync(
+            claimsPrincipal, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
+
+        if (!authorizationResult.Succeeded)
+        {
+            resolverContext.ReportError(
+                ErrorBuilder.New().SetCode(ErrorCodes.Authentication.NotAuthorized).Build()); // should this be a halting error. Compare to auth errors on queries
+            return new(id, false);
+        }
+
+        return new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()));
     }
 
     /// <summary>
