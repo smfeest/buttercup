@@ -3,6 +3,7 @@ using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
 using AuthorizeAttribute = HotChocolate.Authorization.AuthorizeAttribute;
@@ -158,9 +159,13 @@ public sealed class Mutation
 
         if (!authorizationResult.Succeeded)
         {
-            resolverContext.ReportError(
-                ErrorBuilder.New().SetCode(ErrorCodes.Authentication.NotAuthorized).Build()); // should this be a halting error. Compare to auth errors on queries
-            return new(id, false);
+            throw new QueryException(
+                ErrorBuilder.New()
+                    .SetMessage("nope!")
+                    .SetCode(ErrorCodes.Authentication.NotAuthorized)
+                    .SetPath(resolverContext.Path)
+                    .AddLocation(resolverContext.Selection.SyntaxNode)
+                    .Build());
         }
 
         return new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()));
