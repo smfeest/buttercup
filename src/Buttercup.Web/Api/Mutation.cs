@@ -142,7 +142,8 @@ public sealed class Mutation
     /// The comment ID.
     /// </param>
     [Authorize]
-    public async Task<DeleteCommentPayload> DeleteComment(
+    [Error<NotFoundException>]
+    public async Task<MutationResult<DeleteCommentPayload>> DeleteComment(
         [Service] IAuthorizationService authorizationService,
         [Service] ICommentManager commentManager,
         AppDbContext dbContext,
@@ -150,12 +151,7 @@ public sealed class Mutation
         IResolverContext resolverContext,
         long id)
     {
-        var comment = await dbContext.Comments.FindAsync(id);
-
-        if (comment is null)
-        {
-            return new(id, false);
-        }
+        var comment = await dbContext.Comments.GetAsync(id);
 
         var authorizationResult = await authorizationService.AuthorizeAsync(
             claimsPrincipal, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
