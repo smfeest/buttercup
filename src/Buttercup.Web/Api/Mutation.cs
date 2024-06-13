@@ -157,18 +157,9 @@ public sealed class Mutation
         var authorizationResult = await authorizationService.AuthorizeAsync(
             claimsPrincipal, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
 
-        if (!authorizationResult.Succeeded)
-        {
-            throw new QueryException(
-                ErrorBuilder.New()
-                    .SetMessage("nope!")
-                    .SetCode(ErrorCodes.Authentication.NotAuthorized)
-                    .SetPath(resolverContext.Path)
-                    .AddLocation(resolverContext.Selection.SyntaxNode)
-                    .Build());
-        }
-
-        return new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()));
+        return !authorizationResult.Succeeded
+            ? throw new QueryException(ErrorFactory.AuthorizationError(resolverContext, "Nope")) // TOOD: Translated message
+            : new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()));
     }
 
     /// <summary>
