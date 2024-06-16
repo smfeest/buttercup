@@ -19,9 +19,6 @@ public static class ApiAssert
     /// <param name="document">
     /// The response document.
     /// </param>
-    /// <returns>
-    /// A task for the operation.
-    /// </returns>
     public static void HasSingleError(string expectedErrorCode, JsonDocument document)
     {
         Assert.True(document.RootElement.TryGetProperty("errors", out var errorsElement));
@@ -43,7 +40,7 @@ public static class ApiAssert
     /// The response document.
     /// </param>
     /// <returns>
-    /// A task for the operation. The result is the data field as a <see cref="JsonElement" />.
+    /// The data field as a <see cref="JsonElement" />.
     /// </returns>
     public static JsonElement SuccessResponse(JsonDocument document)
     {
