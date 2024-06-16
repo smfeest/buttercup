@@ -76,9 +76,9 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
             client, recipe.Id, recipe.Revision, new(recipe));
         using var document = await response.Content.ReadAsJsonDocument();
 
-        var createRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
+        var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
 
-        JsonAssert.ValueIsNull(createRecipeElement.GetProperty("recipe"));
+        JsonAssert.ValueIsNull(updateRecipeElement.GetProperty("recipe"));
 
         var expectedErrors = new[]
         {
@@ -88,7 +88,7 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
                 Message = $"Recipe/{recipe.Id} not found",
             },
         };
-        JsonAssert.Equivalent(expectedErrors, createRecipeElement.GetProperty("errors"));
+        JsonAssert.Equivalent(expectedErrors, updateRecipeElement.GetProperty("errors"));
     }
 
     [Fact]
@@ -104,9 +104,9 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
             client, recipe.Id, recipe.Revision, new(recipe));
         using var document = await response.Content.ReadAsJsonDocument();
 
-        var createRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
+        var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
 
-        JsonAssert.ValueIsNull(createRecipeElement.GetProperty("recipe"));
+        JsonAssert.ValueIsNull(updateRecipeElement.GetProperty("recipe"));
 
         var expectedErrors = new[]
         {
@@ -116,7 +116,7 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
                 Message = $"Cannot update soft-deleted recipe {recipe.Id}",
             },
         };
-        JsonAssert.Equivalent(expectedErrors, createRecipeElement.GetProperty("errors"));
+        JsonAssert.Equivalent(expectedErrors, updateRecipeElement.GetProperty("errors"));
     }
 
     [Fact]
@@ -132,9 +132,9 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
             client, recipe.Id, recipe.Revision - 1, new(this.ModelFactory.BuildRecipe()));
         using var document = await response.Content.ReadAsJsonDocument();
 
-        var createRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
+        var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
 
-        JsonAssert.ValueIsNull(createRecipeElement.GetProperty("recipe"));
+        JsonAssert.ValueIsNull(updateRecipeElement.GetProperty("recipe"));
 
         var expectedErrors = new[]
         {
@@ -144,7 +144,7 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
                 Message = $"Revision {recipe.Revision - 1} does not match current revision {recipe.Revision}",
             },
         };
-        JsonAssert.Equivalent(expectedErrors, createRecipeElement.GetProperty("errors"));
+        JsonAssert.Equivalent(expectedErrors, updateRecipeElement.GetProperty("errors"));
     }
 
     [Fact]
@@ -166,9 +166,9 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
             client, recipe.Id, recipe.Revision, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        var createRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
+        var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
 
-        JsonAssert.ValueIsNull(createRecipeElement.GetProperty("recipe"));
+        JsonAssert.ValueIsNull(updateRecipeElement.GetProperty("recipe"));
 
         var expectedErrors = new[]
         {
@@ -187,7 +187,7 @@ public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
                 Code = "REQUIRED",
             },
         };
-        JsonAssert.Equivalent(expectedErrors, createRecipeElement.GetProperty("errors"));
+        JsonAssert.Equivalent(expectedErrors, updateRecipeElement.GetProperty("errors"));
     }
 
     private static Task<HttpResponseMessage> PostUpdateRecipeMutation(
