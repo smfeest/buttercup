@@ -59,7 +59,9 @@
 }
 
 .critical-push-button {
-  .push-button(@foreground-color: @color-red);
+  .push-button(@background-color: @color-red,
+  @foreground-color: @color-white,
+  @border-color: @color-red);
   font-weight: bold;
 }
 
