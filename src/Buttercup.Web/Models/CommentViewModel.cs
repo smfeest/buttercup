@@ -5,7 +5,8 @@ namespace Buttercup.Web.Models;
 public sealed record CommentViewModel(
     Comment Comment,
     bool IncludeDeleteLink = false,
-    bool IncludeFragmentLink = false)
+    bool IncludeFragmentLink = false,
+    bool IncludeFrame = false)
 {
     public long Id => this.Comment.Id;
     public string? AuthorName => this.Comment.Author?.Name;

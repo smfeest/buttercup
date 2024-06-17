@@ -1,6 +1,8 @@
 @inject IViewLocalizer Localizer
 @model CommentViewModel
-<article id="@(Model.IncludeFragmentLink ? $"comment{Model.Id}" : null)" class="comment">
+<article
+  id="@(Model.IncludeFragmentLink ? $"comment{Model.Id}" : null)"
+  class="@Bem.Block("comment", Model.IncludeFrame ? "framed" : null)">
   <header class="comment__header">
     <span class="comment__author">@(Model.AuthorName is null ? Localizer["Label_UnknownUser"] : Model.AuthorName)</span>
     @if (Model.IncludeFragmentLink)
