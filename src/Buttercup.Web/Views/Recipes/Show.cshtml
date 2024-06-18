@@ -93,7 +93,7 @@
   <h2>@Localizer["Label_Comments"]</h2>
   @foreach (var comment in Model.Comments)
   {
-    <partial name="_Comment" model="@comment" />
+    <partial name="_Comment" model="@new CommentViewModel(comment)" />
   }
   <form method="post" asp-action="AddComment" asp-route-id="@Model.Recipe.Id">
     <p class="new-comment-form__author">@User.Identity?.Name</p>

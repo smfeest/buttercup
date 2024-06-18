@@ -1,8 +1,8 @@
 @inject IViewLocalizer Localizer
-@model Comment
+@model CommentViewModel
 <article id="@($"comment{Model.Id}")" class="comment">
   <header class="comment__header">
-    <span class="comment__author">@(Model.Author is null ? Localizer["Label_UnknownUser"] : Model.Author.Name)</span>
+    <span class="comment__author">@(Model.AuthorName is null ? Localizer["Label_UnknownUser"] : Model.AuthorName)</span>
     <a class="comment__timestamp" href="@($"#comment{Model.Id}")">@Html.UserDateTime(Model.Created, "d")</a>
   </header>
   @Html.FromMarkdown(Model.Body, MarkdownPipelines.Comments)
