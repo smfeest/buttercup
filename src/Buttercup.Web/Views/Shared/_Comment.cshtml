@@ -1,9 +1,16 @@
 @inject IViewLocalizer Localizer
 @model CommentViewModel
-<article id="@($"comment{Model.Id}")" class="comment">
+<article id="@(Model.IncludeFragmentLink ? $"comment{Model.Id}" : null)" class="comment">
   <header class="comment__header">
     <span class="comment__author">@(Model.AuthorName is null ? Localizer["Label_UnknownUser"] : Model.AuthorName)</span>
-    <a class="comment__timestamp" href="@($"#comment{Model.Id}")">@Html.UserDateTime(Model.Created, "d")</a>
+    @if (Model.IncludeFragmentLink)
+    {
+      <a class="comment__timestamp" href="@($"#comment{Model.Id}")">@Html.UserDateTime(Model.Created, "d")</a>
+    }
+    else
+    {
+      <span class="comment__timestamp">@Html.UserDateTime(Model.Created, "d")</span>
+    }
     @if (Model.IncludeDeleteLink)
     {
       <a asp-controller="Comments" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>

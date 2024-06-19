@@ -68,9 +68,9 @@ public sealed class ShowRecipeViewModelTests
 
         Assert.Equal(
             [
-                new(comments[0], IncludeDeleteLink: false),
-                new(comments[1], IncludeDeleteLink: true),
-                new(comments[2], IncludeDeleteLink: false),
+                new(comments[0], IncludeDeleteLink: false, IncludeFragmentLink: true),
+                new(comments[1], IncludeDeleteLink: true, IncludeFragmentLink: true),
+                new(comments[2], IncludeDeleteLink: false, IncludeFragmentLink: true),
             ],
             viewModel.CommentViewModels);
     }
@@ -90,8 +90,8 @@ public sealed class ShowRecipeViewModelTests
 
         Assert.Equal(
             [
-                new(comments[0], IncludeDeleteLink: true),
-                new(comments[1], IncludeDeleteLink: true)
+                new(comments[0], IncludeDeleteLink: true, IncludeFragmentLink: true),
+                new(comments[1], IncludeDeleteLink: true, IncludeFragmentLink: true)
             ],
             viewModel.CommentViewModels);
     }

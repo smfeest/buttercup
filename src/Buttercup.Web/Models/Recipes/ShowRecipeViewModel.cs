@@ -27,6 +27,8 @@ public sealed class ShowRecipeViewModel(
 
         return comments.Select(comment =>
             new CommentViewModel(
-                comment, IncludeDeleteLink: isAdmin || comment.AuthorId == userId));
+                comment,
+                IncludeDeleteLink: isAdmin || comment.AuthorId == userId,
+                IncludeFragmentLink: true));
     }
 }
