@@ -62,10 +62,12 @@ public sealed class RecipesControllerTests : IDisposable
         var comments = this.SetupGetCommentsForRecipe(recipe.Id);
 
         var result = await this.recipesController.Show(recipe.Id);
+
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
-
-        Assert.Equal(new(recipe, comments, new()), model);
+        Assert.Equal(recipe, model.Recipe);
+        Assert.Equal(comments, model.Comments);
+        Assert.Equal(new(), model.NewCommentAttributes);
     }
 
     [Fact]
@@ -345,7 +347,9 @@ public sealed class RecipesControllerTests : IDisposable
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
         Assert.Equal(nameof(RecipesController.Show), viewResult.ViewName);
-        Assert.Equal(new(recipe, comments, commentAttributes), model);
+        Assert.Equal(recipe, model.Recipe);
+        Assert.Equal(comments, model.Comments);
+        Assert.Equal(commentAttributes, model.NewCommentAttributes);
     }
 
     [Fact]
