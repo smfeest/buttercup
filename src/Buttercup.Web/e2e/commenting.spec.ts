@@ -3,10 +3,9 @@ import { expect, test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can comment on a recipe', async ({
-  page,
-  api: { createRecipe, deleteRecipe },
-}) => {
+test('can comment on a recipe', async ({ page, api }) => {
+  const { createRecipe, deleteRecipe } = api('e2e-admin');
+
   const { id } = await createRecipe();
 
   try {

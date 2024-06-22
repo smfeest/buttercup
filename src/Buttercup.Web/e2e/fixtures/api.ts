@@ -58,7 +58,7 @@ const DEFAULT_RECIPE_ATTRIBUTES: RecipeAttributes = {
     "The cook's Decameron : a study in taste, containing over two hundred recipes for Italian dishes",
 };
 
-export const api = (baseUrl: string) => {
+export const api = (baseUrl: string, username: string) => {
   const client = new Client({
     url: `${baseUrl}/graphql`,
     exchanges: [
@@ -85,8 +85,8 @@ export const api = (baseUrl: string) => {
               authenticate: { accessToken?: string };
             }>(AUTHENTICATE_QUERY, {
               input: {
-                email: 'e2e-admin@example.com',
-                password: 'e2e-admin-pass',
+                email: `${username}@example.com`,
+                password: `${username}-pass`,
               },
             });
 
