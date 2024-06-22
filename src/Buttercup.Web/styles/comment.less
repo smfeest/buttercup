@@ -4,6 +4,13 @@
   padding-left: calc(@padding - 0.25em);
 }
 
+.comment--framed {
+  margin: 1em 0;
+  padding: 1em 1em 0 1em;
+  background-color: @color-light-grey;
+  border: 1px solid @color-light-grey;
+}
+
 .comment__header {
   display: flex;
   flex-direction: row;
@@ -14,6 +21,6 @@
   font-weight: 500;
 }
 
-.comment__timestamp {
+a.comment__timestamp {
   color: @color-black;
 }

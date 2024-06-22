@@ -5,10 +5,9 @@ import { expect, test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can view a recipe', async ({
-  page,
-  api: { createRecipe, deleteRecipe },
-}) => {
+test('can view a recipe', async ({ page, api }) => {
+  const { createRecipe, deleteRecipe } = api('e2e-admin');
+
   const title = `${randomString()} Cheese on toast`;
   const ingredients = ['1 slice of bread', '2 slices of cheese'];
   const steps = [
@@ -39,10 +38,9 @@ test('can view a recipe', async ({
   }
 });
 
-test('can find recipes by title', async ({
-  page,
-  api: { createRecipe, deleteRecipe },
-}) => {
+test('can find recipes by title', async ({ page, api }) => {
+  const { createRecipe, deleteRecipe } = api('e2e-admin');
+
   const prefix = randomString();
   const prefixedTitle = (title: string) => `${prefix} ${title}`;
 

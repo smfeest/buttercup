@@ -5,7 +5,9 @@ import { expect, test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can add a recipe', async ({ page, api: { deleteRecipe } }) => {
+test('can add a recipe', async ({ page, api }) => {
+  const { deleteRecipe } = api('e2e-admin');
+
   await page.goto('/');
 
   const navigation = new Navigation(page);
@@ -35,10 +37,9 @@ test('can add a recipe', async ({ page, api: { deleteRecipe } }) => {
   }
 });
 
-test('can edit a recipe', async ({
-  page,
-  api: { createRecipe, deleteRecipe },
-}) => {
+test('can edit a recipe', async ({ page, api }) => {
+  const { createRecipe, deleteRecipe } = api('e2e-admin');
+
   const { id } = await createRecipe({ title: 'Glorious cheese sandwich' });
 
   try {
@@ -58,10 +59,9 @@ test('can edit a recipe', async ({
   }
 });
 
-test('can delete a recipe', async ({
-  page,
-  api: { createRecipe, deleteRecipe },
-}) => {
+test('can delete a recipe', async ({ page, api }) => {
+  const { createRecipe, deleteRecipe } = api('e2e-admin');
+
   const { id } = await createRecipe();
 
   try {

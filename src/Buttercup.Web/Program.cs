@@ -78,6 +78,9 @@ services
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
     .AddPolicy(
+        AuthorizationPolicyNames.CommentAuthorOrAdmin,
+        policy => policy.AddRequirements(new CommentAuthorOrAdminRequirement()))
+    .AddPolicy(
         AuthorizationPolicyNames.SelfOrAdmin,
         policy => policy.AddRequirements(new SelfOrAdminRequirement()));
 
@@ -88,6 +91,7 @@ services
 services
     .AddTransient<IInputObjectValidatorFactory, InputObjectValidatorFactory>()
     .AddTransient<IHomeControllerQueries, HomeControllerQueries>()
+    .AddTransient<ICommentsControllerQueries, CommentsControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<IAssetHelper, AssetHelper>()

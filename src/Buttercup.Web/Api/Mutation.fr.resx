@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_DeleteCommentNotAuthorized">
+    <value>L'utilisateur actuel n'est pas autorisé à supprimer ce commentaire</value>
+  </data>
+</root>
