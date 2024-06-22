@@ -186,6 +186,20 @@ public sealed class Mutation
         new(id, await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId()));
 
     /// <summary>
+    /// Hard-deletes a comment.
+    /// </summary>
+    /// <param name="commentManager">
+    /// The comment manager.
+    /// </param>
+    /// <param name="id">
+    /// The comment ID.
+    /// </param>
+    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    public async Task<HardDeleteCommentPayload> HardDeleteComment(
+        [Service] ICommentManager commentManager, long id) =>
+        new(await commentManager.HardDeleteComment(id));
+
+    /// <summary>
     /// Hard-deletes a recipe.
     /// </summary>
     /// <param name="recipeManager">
