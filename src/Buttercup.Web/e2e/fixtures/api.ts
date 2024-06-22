@@ -9,6 +9,19 @@ const AUTHENTICATE_QUERY = gql`
   }
 `;
 
+const CREATE_COMMENT_QUERY = gql`
+  mutation CreateComment(
+    $recipeId: Long!
+    $attributes: CommentAttributesInput!
+  ) {
+    createComment(input: { recipeId: $recipeId, attributes: $attributes }) {
+      comment {
+        id
+      }
+    }
+  }
+`;
+
 const CREATE_RECIPE_QUERY = gql`
   mutation CreateRecipe($attributes: RecipeAttributesInput!) {
     createRecipe(input: { attributes: $attributes }) {
@@ -26,6 +39,10 @@ const DELETE_RECIPE_QUERY = gql`
     }
   }
 `;
+
+const DEFAULT_COMMENT_ATTRIBUTES: CommentAttributes = {
+  body: 'Everything tastes better with a spoonful of marmite.',
+};
 
 const DEFAULT_RECIPE_ATTRIBUTES: RecipeAttributes = {
   title: 'Italian white bean soup',
@@ -103,6 +120,26 @@ export const api = (baseUrl: string, username: string) => {
 
   return {
     client,
+    async createComment(
+      recipeId: number,
+      explicitAttributes: Partial<CommentAttributes> = {},
+    ): Promise<Comment> {
+      const attributes = {
+        ...DEFAULT_COMMENT_ATTRIBUTES,
+        ...explicitAttributes,
+      };
+
+      const result = await client.mutation<{
+        createComment: { comment: { id: number } };
+      }>(CREATE_COMMENT_QUERY, { recipeId, attributes });
+
+      if (!result.data) {
+        throw new Error('Failed to insert comment');
+      }
+
+      const id = result.data.createComment.comment.id;
+      return { id, ...attributes };
+    },
     async createRecipe(
       explicitAttributes: Partial<RecipeAttributes> = {},
     ): Promise<Recipe> {
@@ -127,6 +164,14 @@ export const api = (baseUrl: string, username: string) => {
     },
   };
 };
+
+export interface CommentAttributes {
+  body: string;
+}
+
+export interface Comment extends CommentAttributes {
+  id: number;
+}
 
 export interface RecipeAttributes {
   title: string;
