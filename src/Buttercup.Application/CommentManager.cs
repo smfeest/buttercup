@@ -53,4 +53,11 @@ internal sealed class CommentManager(
 
         return updatedRows > 0;
     }
+
+    public async Task<bool> HardDeleteComment(long id)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        return await dbContext.Comments.Where(r => r.Id == id).ExecuteDeleteAsync() != 0;
+    }
 }

@@ -44,4 +44,16 @@ public interface ICommentManager
     /// comment does not exist or has already been soft-deleted.
     /// </returns>
     Task<bool> DeleteComment(long id, long currentUserId);
+
+    /// <summary>
+    /// Hard-deletes a comment.
+    /// </summary>
+    /// <param name="id">
+    /// The comment ID.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
+    /// comment does not exist.
+    /// </returns>
+    Task<bool> HardDeleteComment(long id);
 }

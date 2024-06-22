@@ -148,6 +148,31 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region HardDeleteComment
+
+    [Fact]
+    public async Task HardDeleteComment_HardDeletesCommentAndReturnsTrue()
+    {
+        var comment = this.modelFactory.BuildComment(setRecipe: true);
+        await this.DatabaseFixture.InsertEntities(comment);
+
+        Assert.True(await this.commentManager.HardDeleteComment(comment.Id));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        Assert.False(await dbContext.Comments.AnyAsync());
+    }
+
+    [Fact]
+    public async Task HardDeleteComment_ReturnsFalseIfRecordNotFound()
+    {
+        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildComment(setRecipe: true));
+
+        Assert.False(await this.commentManager.HardDeleteComment(this.modelFactory.NextInt()));
+    }
+
+    #endregion
+
     private CommentAttributes BuildCommentAttributes() =>
         new() { Body = this.modelFactory.NextString("comment-body") };
 }
