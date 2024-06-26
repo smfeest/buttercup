@@ -6,16 +6,16 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Bugsnag.AspNet.Core" Version="3.1.0" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.9.0" />
-    <PackageReference Include="HotChocolate.Data" Version="13.9.0" />
-    <PackageReference Include="HotChocolate.Data.EntityFramework" Version="13.9.0" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="13.9.0">
+    <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.6" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.9.6" />
+    <PackageReference Include="HotChocolate.Data" Version="13.9.6" />
+    <PackageReference Include="HotChocolate.Data.EntityFramework" Version="13.9.6" />
+    <PackageReference Include="HotChocolate.Types.Analyzers" Version="13.9.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Markdig" Version="0.37.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.2">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
