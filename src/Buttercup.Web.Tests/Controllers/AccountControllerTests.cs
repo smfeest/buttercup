@@ -38,7 +38,7 @@ public sealed class AccountControllerTests : IDisposable
     #region Show (GET)
 
     [Fact]
-    public async void Show_ReturnsViewResultWithCurrentUser()
+    public async Task Show_ReturnsViewResultWithCurrentUser()
     {
         var user = this.SetupCurrentUser();
         this.SetupFindUser(user.Id, user);
@@ -156,7 +156,7 @@ public sealed class AccountControllerTests : IDisposable
     #region Preferences (GET)
 
     [Fact]
-    public async void Preferences_Get_ReturnsViewResultWithViewModel()
+    public async Task Preferences_Get_ReturnsViewResultWithViewModel()
     {
         var user = this.SetupCurrentUser();
         this.SetupFindUser(user.Id, user);
