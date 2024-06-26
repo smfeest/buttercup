@@ -6,7 +6,7 @@ import { expect, test } from './test';
 test.use({ storageState: authStatePath('e2e-user') });
 
 test('can view a recipe', async ({ page, api }) => {
-  const { createRecipe, deleteRecipe } = api('e2e-admin');
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const title = `${randomString()} Cheese on toast`;
   const ingredients = ['1 slice of bread', '2 slices of cheese'];
@@ -34,12 +34,12 @@ test('can view a recipe', async ({ page, api }) => {
     await expect(page.locator('ul > li')).toContainText(ingredients);
     await expect(page.locator('ol > li')).toContainText(steps);
   } finally {
-    await deleteRecipe(id);
+    await hardDeleteRecipe(id);
   }
 });
 
 test('can find recipes by title', async ({ page, api }) => {
-  const { createRecipe, deleteRecipe } = api('e2e-admin');
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const prefix = randomString();
   const prefixedTitle = (title: string) => `${prefix} ${title}`;
@@ -69,7 +69,7 @@ test('can find recipes by title', async ({ page, api }) => {
     ).toBeVisible();
   } finally {
     for (const { id } of recipes) {
-      await deleteRecipe(id);
+      await hardDeleteRecipe(id);
     }
   }
 });

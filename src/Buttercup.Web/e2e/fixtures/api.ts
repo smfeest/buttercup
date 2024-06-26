@@ -32,8 +32,8 @@ const CREATE_RECIPE_QUERY = gql`
   }
 `;
 
-const DELETE_RECIPE_QUERY = gql`
-  mutation DeleteRecipe($id: Long!) {
+const HARD_DELETE_RECIPE_QUERY = gql`
+  mutation HardDeleteRecipe($id: Long!) {
     hardDeleteRecipe(input: { id: $id }) {
       deleted
     }
@@ -159,8 +159,8 @@ export const api = (baseUrl: string, username: string) => {
       const id = result.data.createRecipe.recipe.id;
       return { id, ...attributes };
     },
-    async deleteRecipe(id: number) {
-      await client.mutation(DELETE_RECIPE_QUERY, { id });
+    async hardDeleteRecipe(id: number) {
+      await client.mutation(HARD_DELETE_RECIPE_QUERY, { id });
     },
   };
 };

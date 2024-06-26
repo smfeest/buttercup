@@ -4,7 +4,7 @@ import { expect, test } from './test';
 test.use({ storageState: authStatePath('e2e-user') });
 
 test('can comment on a recipe', async ({ page, api }) => {
-  const { createRecipe, deleteRecipe } = api('e2e-admin');
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const { id } = await createRecipe();
 
@@ -18,12 +18,12 @@ test('can comment on a recipe', async ({ page, api }) => {
 
     await expect(page.getByText(commentBody)).toBeInViewport();
   } finally {
-    await deleteRecipe(id);
+    await hardDeleteRecipe(id);
   }
 });
 
 test('can delete a comment', async ({ page, api }) => {
-  const { createRecipe, deleteRecipe } = api('e2e-admin');
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
   const { createComment } = api('e2e-user');
 
   const { id, title } = await createRecipe();
@@ -42,6 +42,6 @@ test('can delete a comment', async ({ page, api }) => {
     await expect(page.locator('h1')).toHaveText(title);
     await expect(page.getByText(comment.body)).toHaveCount(0);
   } finally {
-    await deleteRecipe(id);
+    await hardDeleteRecipe(id);
   }
 });

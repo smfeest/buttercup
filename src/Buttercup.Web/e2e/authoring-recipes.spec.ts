@@ -6,7 +6,7 @@ import { expect, test } from './test';
 test.use({ storageState: authStatePath('e2e-user') });
 
 test('can add a recipe', async ({ page, api }) => {
-  const { deleteRecipe } = api('e2e-admin');
+  const { hardDeleteRecipe } = api('e2e-admin');
 
   await page.goto('/');
 
@@ -33,12 +33,12 @@ test('can add a recipe', async ({ page, api }) => {
     await expect(page.locator('ul > li')).toContainText(ingredients);
     await expect(page.locator('ol > li')).toContainText(steps);
   } finally {
-    await deleteRecipe(recipeId);
+    await hardDeleteRecipe(recipeId);
   }
 });
 
 test('can edit a recipe', async ({ page, api }) => {
-  const { createRecipe, deleteRecipe } = api('e2e-admin');
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const { id } = await createRecipe({ title: 'Glorious cheese sandwich' });
 
@@ -55,12 +55,12 @@ test('can edit a recipe', async ({ page, api }) => {
 
     await expect(page.locator('h1')).toHaveText('Spectacular cheese sandwich');
   } finally {
-    await deleteRecipe(id);
+    await hardDeleteRecipe(id);
   }
 });
 
 test('can delete a recipe', async ({ page, api }) => {
-  const { createRecipe, deleteRecipe } = api('e2e-admin');
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const { id } = await createRecipe();
 
@@ -71,6 +71,6 @@ test('can delete a recipe', async ({ page, api }) => {
 
     await expect(page).toHaveTitle(/All recipes/);
   } finally {
-    await deleteRecipe(id);
+    await hardDeleteRecipe(id);
   }
 });
