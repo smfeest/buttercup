@@ -3,8 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class RecipesTests(AppFactory<RecipesTests> appFactory)
-    : EndToEndTests<RecipesTests>(appFactory)
+public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     private const string RecipesQuery =
         @"query {

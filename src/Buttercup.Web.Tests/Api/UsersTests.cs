@@ -4,8 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class UsersTests(AppFactory<UsersTests> appFactory)
-    : EndToEndTests<UsersTests>(appFactory)
+public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     private const string UsersQuery =
         @"query {

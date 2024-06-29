@@ -3,8 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class CreateCommentTests(AppFactory<CreateCommentTests> appFactory)
-    : EndToEndTests<CreateCommentTests>(appFactory)
+public sealed class CreateCommentTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Fact]
     public async Task CreatingComment()

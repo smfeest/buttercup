@@ -3,8 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class UserTests(AppFactory<UserTests> appFactory)
-    : EndToEndTests<UserTests>(appFactory)
+public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Fact]
     public async Task QueryingPublicFieldsOnAnotherUserWhenNotAnAdmin()

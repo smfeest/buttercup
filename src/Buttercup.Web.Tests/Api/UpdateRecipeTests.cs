@@ -4,8 +4,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class UpdateRecipeTests(AppFactory<UpdateRecipeTests> appFactory)
-    : EndToEndTests<UpdateRecipeTests>(appFactory)
+public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Theory]
     [InlineData(true)]

@@ -3,8 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class HardDeleteCommentTests(AppFactory<HardDeleteCommentTests> appFactory)
-    : EndToEndTests<HardDeleteCommentTests>(appFactory)
+public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Fact]
     public async Task DeletingComment()

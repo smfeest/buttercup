@@ -8,31 +8,26 @@ namespace Buttercup.Web.TestUtils;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class adds <see cref="AppFactory{T}" /> as a class fixture to create a test database and
-/// bootstrap the application before the first test in the class is run.
+/// This class includes the tests in <see cref="EndToEndCollection"/>, which uses <see
+/// cref="TestUtils.AppFactory" /> as a collection fixture to create a test database and bootstrap
+/// the application before the first end to end test is run.
 /// </para>
 /// <para>
-/// It inherits from <see cref="DatabaseTests{T}"/> that provides a default implementation of <see
+/// It also inherits from <see cref="DatabaseTests{T}"/> to provide a base implementation of <see
 /// cref="IAsyncLifetime.InitializeAsync" /> that clears the database before each test.
 /// </para>
-/// <para>
-/// Type parameter <typeparamref name="T" /> is used to generate a unique name for the database so
-/// that multiple end to end test classes can safely run in parallel.
-/// </para>
 /// </remarks>
-/// <typeparam name="T">
-/// The test class.
-/// </typeparam>
 /// <param name="appFactory">
 /// The application factory.
 /// </param>
-public abstract class EndToEndTests<T>(AppFactory<T> appFactory)
-    : DatabaseTests<T>(appFactory.DatabaseFixture), IClassFixture<AppFactory<T>>
+[Collection(nameof(EndToEndCollection))]
+public abstract class EndToEndTests(AppFactory appFactory)
+    : DatabaseTests<AppFactory>(appFactory.DatabaseFixture)
 {
     /// <summary>
     /// Gets the application factory.
     /// </summary>
-    protected AppFactory<T> AppFactory { get; } = appFactory;
+    protected AppFactory AppFactory { get; } = appFactory;
 
     /// <summary>
     /// Gets the model factory.

@@ -8,17 +8,14 @@ using Xunit;
 namespace Buttercup.Web.TestUtils;
 
 /// <summary>
-/// A fixture for bootstrapping the application in memory for end to end tests.
+/// A fixture for bootstrapping the application in memory for end-to-end tests.
 /// </summary>
-/// <typeparam name="T">
-/// The test class.
-/// </typeparam>
-public sealed class AppFactory<T> : WebApplicationFactory<HomeController>, IAsyncLifetime
+public sealed class AppFactory : WebApplicationFactory<HomeController>, IAsyncLifetime
 {
     /// <summary>
     /// Gets the database fixture.
     /// </summary>
-    public DatabaseFixture<T> DatabaseFixture { get; } = new();
+    public DatabaseFixture<AppFactory> DatabaseFixture { get; } = new();
 
     /// <inheritdoc/>
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>

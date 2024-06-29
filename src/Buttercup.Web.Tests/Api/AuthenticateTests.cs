@@ -6,8 +6,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class AuthenticateTests(AppFactory<AuthenticateTests> appFactory)
-    : EndToEndTests<AuthenticateTests>(appFactory)
+public sealed class AuthenticateTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     private const string UserEmail = "user@example.com";
     private const string UserPassword = "secret-password";

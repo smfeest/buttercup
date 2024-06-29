@@ -3,8 +3,7 @@ using Xunit;
 
 namespace Buttercup.Web.Api;
 
-public sealed class DeleteRecipeTests(AppFactory<DeleteRecipeTests> appFactory)
-    : EndToEndTests<DeleteRecipeTests>(appFactory)
+public sealed class DeleteRecipeTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Fact]
     public async Task DeletingRecipe()
