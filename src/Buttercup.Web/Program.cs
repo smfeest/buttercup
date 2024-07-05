@@ -2,6 +2,7 @@ using Bugsnag.AspNet.Core;
 using Buttercup.Application;
 using Buttercup.Email;
 using Buttercup.EntityModel;
+using Buttercup.Redis;
 using Buttercup.Security;
 using Buttercup.Web;
 using Buttercup.Web.Api;
@@ -63,6 +64,7 @@ services
     .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddEmailServices(configuration.GetSection("Email"))
+    .AddRedisServices(configuration.GetSection("Redis"))
     .AddSecurityServices();
 
 services

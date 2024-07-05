@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Buttercup.Email\Buttercup.Email.csproj" />
     <ProjectReference Include="..\Buttercup.Core\Buttercup.Core.csproj" />
     <ProjectReference Include="..\Buttercup.EntityModel.Migrations\Buttercup.EntityModel.Migrations.csproj" />
+    <ProjectReference Include="..\Buttercup.Redis\Buttercup.Redis.csproj" />
     <ProjectReference Include="..\Buttercup.Security\Buttercup.Security.csproj" />
   </ItemGroup>
 </Project>
