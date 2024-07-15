@@ -79,11 +79,7 @@ public sealed class RecipesController(
 
             return this.View(model);
         }
-        catch (NotFoundException)
-        {
-            return this.NotFound();
-        }
-        catch (SoftDeletedException)
+        catch (Exception e) when (e is NotFoundException or SoftDeletedException)
         {
             return this.NotFound();
         }
@@ -120,11 +116,7 @@ public sealed class RecipesController(
             commentId = await this.commentManager.AddComment(
                 id, newCommentAttributes, this.User.GetUserId());
         }
-        catch (NotFoundException)
-        {
-            return this.NotFound();
-        }
-        catch (SoftDeletedException)
+        catch (Exception e) when (e is NotFoundException or SoftDeletedException)
         {
             return this.NotFound();
         }
