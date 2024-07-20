@@ -84,10 +84,10 @@ public sealed class QueryableExtensionsTests(
 
     #endregion
 
-    #region WhereNotSoftDeleted
+    #region WhereSoftDeleted / WhereNotSoftDeleted
 
     [Fact]
-    public async Task WhereNotSoftDeleted_FiltersOutSoftDeletedEntities()
+    public async Task WhereSoftDeleted_IncludesOnlySoftDeleted_WhereNotSoftDeleted_ExcludesSoftDeleted()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
         using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -99,6 +99,8 @@ public sealed class QueryableExtensionsTests(
         await dbContext.SaveChangesAsync();
         dbContext.ChangeTracker.Clear();
 
+        Assert.Equivalent(
+            deletedRecipe, await dbContext.Recipes.WhereSoftDeleted().SingleAsync());
         Assert.Equivalent(
             visibleRecipe, await dbContext.Recipes.WhereNotSoftDeleted().SingleAsync());
     }
