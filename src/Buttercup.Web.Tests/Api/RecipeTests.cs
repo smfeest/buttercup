@@ -20,6 +20,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         comment.Revisions.Add(
             CommentRevision.From(this.ModelFactory.BuildComment(setOptionalAttributes: true)));
         recipe.Comments.Add(comment);
+        recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -70,21 +71,24 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                 revision.Remarks,
                 revision.Source,
             }),
-            Comments = recipe.Comments.Select(comment => new
+            Comments = new[]
             {
-                comment.Id,
-                Author = new { comment.Author?.Id, comment.Author?.Name },
-                comment.Body,
-                comment.Created,
-                comment.Modified,
-                comment.Revision,
-                Revisions = comment.Revisions.Select(revision => new
+                new
                 {
-                    revision.Revision,
-                    revision.Created,
-                    revision.Body
-                }),
-            }),
+                    comment.Id,
+                    Author = new { comment.Author?.Id, comment.Author?.Name },
+                    comment.Body,
+                    comment.Created,
+                    comment.Modified,
+                    comment.Revision,
+                    Revisions = comment.Revisions.Select(revision => new
+                    {
+                        revision.Revision,
+                        revision.Created,
+                        revision.Body
+                    }),
+                }
+            },
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
