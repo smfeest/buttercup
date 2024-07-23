@@ -125,6 +125,68 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
     }
 
+    [Fact]
+    public async Task QueryingDeletedCommentsWhenAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var recipe = this.ModelFactory.BuildRecipe();
+        var deletedComment = this.ModelFactory.BuildComment(
+            setOptionalAttributes: true, softDeleted: true);
+        recipe.Comments.Add(deletedComment);
+        recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: false));
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostDeletedCommentsQuery(client, recipe.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new[]
+        {
+            new
+            {
+                deletedComment.Id,
+                deletedComment.Deleted,
+                DeletedByUser = new
+                {
+                    deletedComment.DeletedByUser?.Id,
+                    deletedComment.DeletedByUser?.Name,
+                },
+            }
+        };
+
+        JsonAssert.Equivalent(
+            expected, dataElement.GetProperty("recipe").GetProperty("deletedComments"));
+    }
+
+    [Fact]
+    public async Task QueryingDeletedCommentsWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var recipe = this.ModelFactory.BuildRecipe();
+        recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostDeletedCommentsQuery(client, recipe.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("recipe"));
+
+        var expectedErrors = new[]
+        {
+            new
+            {
+                Path = new string[] { "recipe", "deletedComments" },
+                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+            },
+        };
+
+        Assert.True(document.RootElement.TryGetProperty("errors", out var errorsElement));
+        JsonAssert.Equivalent(expectedErrors, errorsElement);
+    }
+
     private static Task<HttpResponseMessage> PostRecipeQuery(HttpClient client, long id) =>
         client.PostQuery(
             @"query($id: Long!) {
@@ -168,6 +230,19 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         modified
                         revision
                         revisions { revision created body }
+                    }
+                }
+            }",
+            new { id });
+
+    private static Task<HttpResponseMessage> PostDeletedCommentsQuery(HttpClient client, long id) =>
+        client.PostQuery(
+            @"query($id: Long!) {
+                recipe(id: $id) {
+                    deletedComments {
+                        id
+                        deleted
+                        deletedByUser { id name }
                     }
                 }
             }",
