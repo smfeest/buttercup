@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Buttercup.EntityModel;
 using Buttercup.Security;
+using Buttercup.Web.Security;
 using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
@@ -16,6 +17,11 @@ public sealed class Query
 
         return userId.HasValue ? dbContext.Users.Where(u => u.Id == userId) : null;
     }
+
+    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [UseProjection]
+    public IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
+        dbContext.Recipes.WhereSoftDeleted();
 
     [Authorize]
     [UseSingleOrDefault]
