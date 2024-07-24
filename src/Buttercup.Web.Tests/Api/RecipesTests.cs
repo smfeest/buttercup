@@ -35,7 +35,8 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
             this.ModelFactory.BuildRecipe(true),
             this.ModelFactory.BuildRecipe(false),
         };
-        await this.DatabaseFixture.InsertEntities(currentUser, recipes);
+        var deletedRecipe = this.ModelFactory.BuildRecipe(softDeleted: true);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipes, deletedRecipe);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await client.PostQuery(RecipesQuery);

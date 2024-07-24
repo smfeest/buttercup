@@ -25,7 +25,8 @@ public sealed class Query
 
     [Authorize]
     [UseProjection]
-    public IQueryable<Recipe> Recipes(AppDbContext dbContext) => dbContext.Recipes;
+    public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
+        dbContext.Recipes.WhereNotSoftDeleted();
 
     [Authorize]
     [UseSingleOrDefault]
