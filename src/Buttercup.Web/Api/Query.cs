@@ -23,7 +23,7 @@ public sealed class Query
     public IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereSoftDeleted();
 
-    [Authorize]
+    [Authorize(AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted, ApplyPolicy.AfterResolver)]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Recipe> Recipe(AppDbContext dbContext, long id) =>
