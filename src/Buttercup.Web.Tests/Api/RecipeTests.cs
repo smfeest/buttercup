@@ -7,13 +7,12 @@ namespace Buttercup.Web.Api;
 public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, false)]
-    [InlineData(true, true)]
-    public async Task QueryingRecipe(bool setOptionalAttributes, bool softDeleted)
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task QueryingRecipe(bool setOptionalAttributes)
     {
         var currentUser = this.ModelFactory.BuildUser();
-        var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes, softDeleted);
+        var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes);
         recipe.Revisions.Add(
             RecipeRevision.From(this.ModelFactory.BuildRecipe(setOptionalAttributes)));
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true);
@@ -109,6 +108,61 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         await this.DatabaseFixture.InsertEntities(recipe);
 
         using var client = this.AppFactory.CreateClient();
+        using var response = await PostRecipeQuery(client, recipe.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("recipe"));
+
+        ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
+    }
+
+    [Fact]
+    public async Task QueryingDeletedRecipeWhenAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostRecipeQuery(client, recipe.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new
+        {
+            recipe.Id,
+            recipe.Title,
+            recipe.PreparationMinutes,
+            recipe.CookingMinutes,
+            recipe.Servings,
+            recipe.Ingredients,
+            recipe.Method,
+            recipe.Suggestions,
+            recipe.Remarks,
+            recipe.Source,
+            recipe.Created,
+            CreatedByUser = IdName.From(recipe.CreatedByUser),
+            recipe.Modified,
+            ModifiedByUser = IdName.From(recipe.ModifiedByUser),
+            recipe.Deleted,
+            DeletedByUser = IdName.From(recipe.DeletedByUser),
+            recipe.Revision,
+            revisions = Array.Empty<object>(),
+            Comments = Array.Empty<object>()
+        };
+
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
+    }
+
+    [Fact]
+    public async Task QueryingDeletedRecipeWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostRecipeQuery(client, recipe.Id);
         using var document = await response.Content.ReadAsJsonDocument();
 

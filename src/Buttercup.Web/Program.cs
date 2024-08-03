@@ -81,6 +81,10 @@ services
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
     .AddPolicy(
+        AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted,
+        policy =>
+            policy.RequireAuthenticatedUser().AddRequirements(new AdminWhenDeletedRequirement()))
+    .AddPolicy(
         AuthorizationPolicyNames.CommentAuthorOrAdmin,
         policy => policy.AddRequirements(new CommentAuthorOrAdminRequirement()))
     .AddPolicy(
