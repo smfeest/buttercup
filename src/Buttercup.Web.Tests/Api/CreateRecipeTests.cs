@@ -37,8 +37,8 @@ public sealed class CreateRecipeTests(AppFactory appFactory) : EndToEndTests(app
             attributes.Suggestions,
             attributes.Remarks,
             attributes.Source,
-            CreatedByUser = new { currentUser.Id, currentUser.Name },
-            ModifiedByUser = new { currentUser.Id, currentUser.Name },
+            CreatedByUser = IdName.From(currentUser),
+            ModifiedByUser = IdName.From(currentUser),
             Revision = 0
         };
         JsonAssert.Equivalent(expected, recipeElement);

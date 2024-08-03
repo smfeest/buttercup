@@ -58,23 +58,11 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
                 deletedRecipe.Remarks,
                 deletedRecipe.Source,
                 deletedRecipe.Created,
-                CreatedByUser = new
-                {
-                    deletedRecipe.CreatedByUser!.Id,
-                    deletedRecipe.CreatedByUser.Name,
-                },
+                CreatedByUser = IdName.From(deletedRecipe.CreatedByUser),
                 deletedRecipe.Modified,
-                ModifiedByUser = new
-                {
-                    deletedRecipe.ModifiedByUser!.Id,
-                    deletedRecipe.ModifiedByUser.Name,
-                },
+                ModifiedByUser = IdName.From(deletedRecipe.ModifiedByUser),
                 deletedRecipe.Deleted,
-                DeletedByUser = new
-                {
-                    deletedRecipe.DeletedByUser!.Id,
-                    deletedRecipe.DeletedByUser.Name,
-                },
+                DeletedByUser = IdName.From(deletedRecipe.DeletedByUser),
                 deletedRecipe.Revision
             }
         };

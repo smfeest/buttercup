@@ -23,7 +23,7 @@ public sealed class DeleteRecipeTests(AppFactory appFactory) : EndToEndTests(app
             {
                 recipe.Id,
                 recipe.Title,
-                DeletedByUser = new { currentUser.Id, currentUser.Name },
+                DeletedByUser = IdName.From(currentUser),
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteRecipe");
@@ -60,7 +60,7 @@ public sealed class DeleteRecipeTests(AppFactory appFactory) : EndToEndTests(app
             {
                 recipe.Id,
                 recipe.Title,
-                DeletedByUser = new { recipe.DeletedByUser?.Id, recipe.DeletedByUser?.Name },
+                DeletedByUser = IdName.From(recipe.DeletedByUser),
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteRecipe");

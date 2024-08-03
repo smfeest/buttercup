@@ -42,25 +42,17 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             recipe.Remarks,
             recipe.Source,
             recipe.Created,
-            CreatedByUser = recipe.CreatedByUser == null ?
-                null :
-                new { recipe.CreatedByUser.Id, recipe.CreatedByUser.Name },
+            CreatedByUser = IdName.From(recipe.CreatedByUser),
             recipe.Modified,
-            ModifiedByUser = recipe.ModifiedByUser == null ?
-                null :
-                new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Name },
+            ModifiedByUser = IdName.From(recipe.ModifiedByUser),
             recipe.Deleted,
-            DeletedByUser = recipe.DeletedByUser == null ?
-                null :
-                new { recipe.DeletedByUser.Id, recipe.DeletedByUser.Name },
+            DeletedByUser = IdName.From(recipe.DeletedByUser),
             recipe.Revision,
             revisions = recipe.Revisions.Select(revision => new
             {
                 revision.Revision,
                 revision.Created,
-                CreatedByUser = revision.CreatedByUser == null ?
-                    null :
-                    new { revision.CreatedByUser.Id, revision.CreatedByUser.Name },
+                CreatedByUser = IdName.From(revision.CreatedByUser),
                 revision.Title,
                 revision.PreparationMinutes,
                 revision.CookingMinutes,
@@ -76,7 +68,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                 new
                 {
                     comment.Id,
-                    Author = new { comment.Author?.Id, comment.Author?.Name },
+                    Author = IdName.From(comment.Author),
                     comment.Body,
                     comment.Created,
                     comment.Modified,
@@ -148,11 +140,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             {
                 deletedComment.Id,
                 deletedComment.Deleted,
-                DeletedByUser = new
-                {
-                    deletedComment.DeletedByUser?.Id,
-                    deletedComment.DeletedByUser?.Name,
-                },
+                DeletedByUser = IdName.From(deletedComment.DeletedByUser),
             }
         };
 

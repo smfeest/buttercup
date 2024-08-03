@@ -23,7 +23,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
             {
                 comment.Id,
                 comment.Body,
-                DeletedByUser = new { currentUser.Id, currentUser.Name },
+                DeletedByUser = IdName.From(currentUser),
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteComment");
@@ -67,7 +67,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
             {
                 comment.Id,
                 comment.Body,
-                DeletedByUser = new { currentUser.Id, currentUser.Name },
+                DeletedByUser = IdName.From(currentUser),
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteComment");
@@ -111,7 +111,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
             {
                 comment.Id,
                 comment.Body,
-                DeletedByUser = new { comment.DeletedByUser?.Id, comment.DeletedByUser?.Name },
+                DeletedByUser = IdName.From(comment.DeletedByUser),
             },
         };
         var actual = ApiAssert.SuccessResponse(document).GetProperty("deleteComment");

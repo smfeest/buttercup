@@ -57,13 +57,9 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
             recipe.Remarks,
             recipe.Source,
             recipe.Created,
-            CreatedByUser = recipe.CreatedByUser == null ?
-                null :
-                new { recipe.CreatedByUser.Id, recipe.CreatedByUser.Name },
+            CreatedByUser = IdName.From(recipe.CreatedByUser),
             recipe.Modified,
-            ModifiedByUser = recipe.ModifiedByUser == null ?
-                null :
-                new { recipe.ModifiedByUser.Id, recipe.ModifiedByUser.Name },
+            ModifiedByUser = IdName.From(recipe.ModifiedByUser),
             recipe.Revision
         });
 

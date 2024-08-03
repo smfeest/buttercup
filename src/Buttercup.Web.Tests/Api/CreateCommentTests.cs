@@ -27,7 +27,7 @@ public sealed class CreateCommentTests(AppFactory appFactory) : EndToEndTests(ap
         {
             id,
             Recipe = new { recipe.Id, recipe.Title },
-            Author = new { currentUser.Id, currentUser.Name },
+            Author = IdName.From(currentUser),
             body,
             Revision = 0
         };
