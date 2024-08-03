@@ -88,8 +88,8 @@ services.AddAuthorizationBuilder()
         AuthorizationPolicyNames.CommentAuthorOrAdmin,
         policy => policy.AddRequirements(new CommentAuthorOrAdminRequirement()))
     .AddPolicy(
-        AuthorizationPolicyNames.SelfOrAdmin,
-        policy => policy.AddRequirements(new SelfOrAdminRequirement()));
+        AuthorizationPolicyNames.ParentResultSelfOrAdmin,
+        policy => policy.AddRequirements(new ParentResultSelfOrAdminRequirement()));
 
 services
     .Configure<Bugsnag.Configuration>(configuration.GetSection("Bugsnag"))

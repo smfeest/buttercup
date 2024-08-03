@@ -13,13 +13,13 @@ public sealed class UserType : ObjectType<User>
             .IsProjected(true);
         descriptor
             .Field(u => u.Email)
-            .Authorize(AuthorizationPolicyNames.SelfOrAdmin, ApplyPolicy.BeforeResolver);
+            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin, ApplyPolicy.BeforeResolver);
         descriptor
             .Field(u => u.PasswordCreated)
-            .Authorize(AuthorizationPolicyNames.SelfOrAdmin, ApplyPolicy.BeforeResolver);
+            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin, ApplyPolicy.BeforeResolver);
         descriptor
             .Field(u => u.IsAdmin)
-            .Authorize(AuthorizationPolicyNames.SelfOrAdmin, ApplyPolicy.BeforeResolver);
+            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin, ApplyPolicy.BeforeResolver);
 
         descriptor
             .Ignore(u => u.HashedPassword)

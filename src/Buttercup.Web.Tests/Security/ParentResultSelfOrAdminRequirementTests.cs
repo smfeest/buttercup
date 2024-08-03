@@ -10,16 +10,15 @@ using Xunit;
 
 namespace Buttercup.Web.Security;
 
-public sealed class SelfOrAdminRequirementTests
+public sealed class ParentResultSelfOrAdminRequirementTests
 {
     private readonly ModelFactory modelFactory = new();
 
     [Fact]
     public async Task CurrentUserInAdminRole_IndicatesSuccess()
     {
-        var requirement = new SelfOrAdminRequirement();
-        var subjectUser = this.modelFactory.BuildUser();
-        var resource = CreateMiddlewareContextWithUser(subjectUser);
+        var requirement = new ParentResultSelfOrAdminRequirement();
+        var resource = CreateMiddlewareContextWithUser(this.modelFactory.BuildUser());
         var currentUser = PrincipalFactory.CreateWithUserId(
             this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
@@ -30,35 +29,9 @@ public sealed class SelfOrAdminRequirementTests
     }
 
     [Fact]
-    public async Task ResourceIsUserAndIdMatchesCurrentUser_IndicatesSuccess()
-    {
-        var requirement = new SelfOrAdminRequirement();
-        var subjectUser = this.modelFactory.BuildUser();
-        var currentUser = PrincipalFactory.CreateWithUserId(subjectUser.Id);
-        var context = new AuthorizationHandlerContext([requirement], currentUser, subjectUser);
-
-        await requirement.HandleAsync(context);
-
-        Assert.True(context.HasSucceeded);
-    }
-
-    [Fact]
-    public async Task ResourceIsUserAndIdDoesNotMatchCurrentUser_DoesNotIndicateSuccess()
-    {
-        var requirement = new SelfOrAdminRequirement();
-        var subjectUser = this.modelFactory.BuildUser();
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
-        var context = new AuthorizationHandlerContext([requirement], currentUser, subjectUser);
-
-        await requirement.HandleAsync(context);
-
-        Assert.False(context.HasSucceeded);
-    }
-
-    [Fact]
     public async Task ResourceIsMiddlewareContextForUserObjectAndIdMatchesCurrentUser_IndicatesSuccess()
     {
-        var requirement = new SelfOrAdminRequirement();
+        var requirement = new ParentResultSelfOrAdminRequirement();
         var subjectUser = this.modelFactory.BuildUser();
         var resource = CreateMiddlewareContextWithUser(subjectUser);
         var currentUser = PrincipalFactory.CreateWithUserId(subjectUser.Id);
@@ -72,9 +45,8 @@ public sealed class SelfOrAdminRequirementTests
     [Fact]
     public async Task ResourceIsMiddlewareContextForUserObjectAndIdDoesNotMatchCurrentUser_DoesNotIndicateSuccess()
     {
-        var requirement = new SelfOrAdminRequirement();
-        var subjectUser = this.modelFactory.BuildUser();
-        var resource = CreateMiddlewareContextWithUser(subjectUser);
+        var requirement = new ParentResultSelfOrAdminRequirement();
+        var resource = CreateMiddlewareContextWithUser(this.modelFactory.BuildUser());
         var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
@@ -86,7 +58,7 @@ public sealed class SelfOrAdminRequirementTests
     [Fact]
     public async Task ResourceIsMiddlewareContextForDifferentObjectType_DoesNotIndicateSuccess()
     {
-        var requirement = new SelfOrAdminRequirement();
+        var requirement = new ParentResultSelfOrAdminRequirement();
         var resource = Mock.Of<IMiddlewareContext>(x => x.ObjectType == new RecipeType());
         var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
@@ -97,9 +69,9 @@ public sealed class SelfOrAdminRequirementTests
     }
 
     [Fact]
-    public async Task ResourceIsNotUserOrMiddlewareContext_DoesNotIndicateSuccess()
+    public async Task ResourceIsNotMiddlewareContext_DoesNotIndicateSuccess()
     {
-        var requirement = new SelfOrAdminRequirement();
+        var requirement = new ParentResultSelfOrAdminRequirement();
         var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
         var context = new AuthorizationHandlerContext([requirement], currentUser, new());
 
