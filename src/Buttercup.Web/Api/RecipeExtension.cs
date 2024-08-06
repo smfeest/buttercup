@@ -7,9 +7,13 @@ namespace Buttercup.Web.Api;
 [ExtendObjectType<Recipe>]
 public static class RecipeExtension
 {
+    [UsePaging]
     [UseProjection]
     public static IQueryable<Comment> Comments(AppDbContext dbContext, [Parent] Recipe recipe) =>
-        dbContext.Comments.WhereNotSoftDeleted().Where(c => c.RecipeId == recipe.Id);
+        dbContext.Comments
+            .WhereNotSoftDeleted()
+            .Where(c => c.RecipeId == recipe.Id)
+            .OrderBy(c => c.Id);
 
     [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]

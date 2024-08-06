@@ -62,23 +62,26 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                 revision.Remarks,
                 revision.Source,
             }),
-            Comments = new[]
+            Comments = new
             {
-                new
+                Nodes = new[]
                 {
-                    comment.Id,
-                    Author = IdName.From(comment.Author),
-                    comment.Body,
-                    comment.Created,
-                    comment.Modified,
-                    comment.Revision,
-                    Revisions = comment.Revisions.Select(revision => new
+                    new
                     {
-                        revision.Revision,
-                        revision.Created,
-                        revision.Body
-                    }),
-                }
+                        comment.Id,
+                        Author = IdName.From(comment.Author),
+                        comment.Body,
+                        comment.Created,
+                        comment.Modified,
+                        comment.Revision,
+                        Revisions = comment.Revisions.Select(revision => new
+                        {
+                            revision.Revision,
+                            revision.Created,
+                            revision.Body
+                        }),
+                    }
+                },
             },
         };
 
@@ -149,7 +152,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             DeletedByUser = IdName.From(recipe.DeletedByUser),
             recipe.Revision,
             revisions = Array.Empty<object>(),
-            Comments = Array.Empty<object>()
+            Comments = new { Nodes = Array.Empty<object>() }
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
@@ -229,6 +232,41 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         JsonAssert.Equivalent(expectedErrors, errorsElement);
     }
 
+    [Fact]
+    public async Task PagingComments()
+    {
+        var currentUser = this.ModelFactory.BuildUser();
+        var recipe = this.ModelFactory.BuildRecipe();
+        for (var i = 0; i < 3; i++)
+        {
+            recipe.Comments.Add(this.ModelFactory.BuildComment());
+        }
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery(
+            @"query($id: Long!) {
+                recipe(id: $id) {
+                    comments(first: 2) {
+                        pageInfo { hasPreviousPage hasNextPage }
+                        nodes { id body }
+                    }
+                }
+            }",
+            new { recipe.Id });
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new
+        {
+            PageInfo = new { HasPreviousPage = false, HasNextPage = true },
+            Nodes = recipe.Comments.Take(2).Select(comment => new { comment.Id, comment.Body }),
+        };
+
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe").GetProperty("comments"));
+    }
+
     private static Task<HttpResponseMessage> PostRecipeQuery(HttpClient client, long id) =>
         client.PostQuery(
             @"query($id: Long!) {
@@ -265,13 +303,15 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         source
                     }
                     comments {
-                        id
-                        author { id name }
-                        body
-                        created
-                        modified
-                        revision
-                        revisions { revision created body }
+                        nodes {
+                            id
+                            author { id name }
+                            body
+                            created
+                            modified
+                            revision
+                            revisions { revision created body }
+                        }
                     }
                 }
             }",
