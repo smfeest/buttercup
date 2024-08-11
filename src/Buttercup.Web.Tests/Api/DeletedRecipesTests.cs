@@ -83,4 +83,29 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
         ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
     }
+
+    [Fact]
+    public async Task SortingDeletedRecipes()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var recipes = new[]
+        {
+            this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 1, Title = "Recipe A" },
+            this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 2, Title = "Recipe C" },
+            this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 3, Title = "Recipe B" },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, recipes);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery(@"query {
+            deletedRecipes(order: [{ title: ASC }]) { id }
+        }");
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+        var sortedIds = dataElement.GetProperty("deletedRecipes").EnumerateArray().Select(
+            u => u.GetProperty("id").GetInt64());
+
+        Assert.Equal([1, 3, 2], sortedIds);
+    }
 }
