@@ -7,6 +7,9 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a recipe.
 /// </summary>
+[Index(nameof(Title))]
+[Index(nameof(Created))]
+[Index(nameof(Modified))]
 [Index(nameof(Deleted))]
 public sealed record Recipe : IEntityId, ISoftDeletable
 {

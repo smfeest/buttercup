@@ -7,7 +7,10 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a user.
 /// </summary>
+[Index(nameof(Name))]
 [Index(nameof(Email), IsUnique = true)]
+[Index(nameof(Created))]
+[Index(nameof(Modified))]
 public sealed record User : IEntityId
 {
     /// <summary>
