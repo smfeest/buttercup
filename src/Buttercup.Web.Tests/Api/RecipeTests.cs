@@ -202,7 +202,8 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         };
 
         JsonAssert.Equivalent(
-            expected, dataElement.GetProperty("recipe").GetProperty("deletedComments"));
+            expected,
+            dataElement.GetProperty("recipe").GetProperty("deletedComments").GetProperty("nodes"));
     }
 
     [Fact]
@@ -217,7 +218,12 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         using var response = await PostDeletedCommentsQuery(client, recipe.Id);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("recipe"));
+        JsonAssert.ValueIsNull(
+            document
+                .RootElement
+                .GetProperty("data")
+                .GetProperty("recipe")
+                .GetProperty("deletedComments"));
 
         var expectedErrors = new[]
         {
@@ -265,6 +271,43 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe").GetProperty("comments"));
+    }
+
+    [Fact]
+    public async Task PagingDeletedComments()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var recipe = this.ModelFactory.BuildRecipe();
+        for (var i = 0; i < 3; i++)
+        {
+            recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
+        }
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery(
+            @"query($id: Long!) {
+                recipe(id: $id) {
+                    deletedComments(last: 2) {
+                        pageInfo { hasPreviousPage hasNextPage }
+                        nodes { id body }
+                    }
+                }
+            }",
+            new { recipe.Id });
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new
+        {
+            PageInfo = new { HasPreviousPage = true, HasNextPage = false },
+            Nodes = recipe.Comments.Skip(1).Take(2)
+                .Select(comment => new { comment.Id, comment.Body }),
+        };
+
+        JsonAssert.Equivalent(
+            expected, dataElement.GetProperty("recipe").GetProperty("deletedComments"));
     }
 
     private static Task<HttpResponseMessage> PostRecipeQuery(HttpClient client, long id) =>
@@ -322,9 +365,11 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             @"query($id: Long!) {
                 recipe(id: $id) {
                     deletedComments {
-                        id
-                        deleted
-                        deletedByUser { id name }
+                        nodes {
+                            id
+                            deleted
+                            deletedByUser { id name }
+                        }
                     }
                 }
             }",
