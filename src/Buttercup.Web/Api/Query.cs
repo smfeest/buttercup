@@ -44,5 +44,6 @@ public sealed class Query
 
     [Authorize]
     [UseProjection]
+    [UseSorting]
     public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;
 }
