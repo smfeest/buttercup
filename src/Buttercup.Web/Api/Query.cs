@@ -43,6 +43,7 @@ public sealed class Query
         dbContext.Users.Where(u => u.Id == id);
 
     [Authorize]
+    [Authorize(Policy = AuthorizationPolicyNames.ApiUsersSort)]
     [UseProjection]
     [UseSorting]
     public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;

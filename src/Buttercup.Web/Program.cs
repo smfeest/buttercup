@@ -82,6 +82,10 @@ services
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
     .AddPolicy(
+        AuthorizationPolicyNames.ApiUsersSort,
+        policy => policy.AddRequirements(
+            new RoleRestrictedOrderByFieldsRequirement(RoleNames.Admin, "email")))
+    .AddPolicy(
         AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted,
         policy =>
             policy.RequireAuthenticatedUser().AddRequirements(new AdminWhenDeletedRequirement()))
