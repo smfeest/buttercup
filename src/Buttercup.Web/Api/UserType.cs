@@ -1,6 +1,5 @@
 using Buttercup.EntityModel;
 using Buttercup.Web.Security;
-using HotChocolate.Authorization;
 
 namespace Buttercup.Web.Api;
 
@@ -13,13 +12,13 @@ public sealed class UserType : ObjectType<User>
             .IsProjected(true);
         descriptor
             .Field(u => u.Email)
-            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin, ApplyPolicy.BeforeResolver);
+            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin);
         descriptor
             .Field(u => u.PasswordCreated)
-            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin, ApplyPolicy.BeforeResolver);
+            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin);
         descriptor
             .Field(u => u.IsAdmin)
-            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin, ApplyPolicy.BeforeResolver);
+            .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin);
 
         descriptor
             .Ignore(u => u.HashedPassword)
