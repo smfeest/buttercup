@@ -61,6 +61,7 @@ public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFac
     {
         var options = new DbContextOptionsBuilder()
             .UseAppDbOptions(this.ConnectionString, this.serverVersion.Value)
+            .EnableSensitiveDataLogging()
             .Options;
 
         return new(options);
