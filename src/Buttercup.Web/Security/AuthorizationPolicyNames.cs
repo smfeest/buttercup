@@ -8,6 +8,13 @@ namespace Buttercup.Web.Security;
 public static class AuthorizationPolicyNames
 {
     /// <summary>
+    /// The name of the GraphQL field authorization policy that is used to ensure that users cannot
+    /// be ordered by email address unless the current user has the <see cref="RoleNames.Admin"/>
+    /// role.
+    /// </summary>
+    public const string ApiUsersSort = nameof(ApiUsersSort);
+
+    /// <summary>
     /// The name of the authorization policy that requires the <see cref="RoleNames.Admin"/> role.
     /// </summary>
     public const string AdminOnly = nameof(AdminOnly);

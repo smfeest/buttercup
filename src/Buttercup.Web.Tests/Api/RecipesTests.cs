@@ -76,4 +76,33 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
         ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
     }
+
+    [Fact]
+    public async Task SortingRecipes()
+    {
+        var currentUser = this.ModelFactory.BuildUser();
+        var recipes = new[]
+        {
+            this.ModelFactory.BuildRecipe() with { Id = 1, Title = "Recipe A" },
+            this.ModelFactory.BuildRecipe() with { Id = 2, Title = "Recipe C" },
+            this.ModelFactory.BuildRecipe() with { Id = 3, Title = "Recipe B" },
+            this.ModelFactory.BuildRecipe() with { Id = 4, Title = "Recipe A" },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, recipes);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery(@"query {
+            recipes(order: [{ title: DESC, id: ASC }]) { id title }
+        }");
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        Assert.Collection(
+            dataElement.GetProperty("recipes").EnumerateArray(),
+            r => JsonAssert.Equivalent(new { Id = 2, Title = "Recipe C" }, r),
+            r => JsonAssert.Equivalent(new { Id = 3, Title = "Recipe B" }, r),
+            r => JsonAssert.Equivalent(new { Id = 1, Title = "Recipe A" }, r),
+            r => JsonAssert.Equivalent(new { Id = 4, Title = "Recipe A" }, r));
+    }
 }

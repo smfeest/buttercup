@@ -20,6 +20,7 @@ public sealed class Query
 
     [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]
+    [UseSorting]
     public IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereSoftDeleted();
 
@@ -31,6 +32,7 @@ public sealed class Query
 
     [Authorize]
     [UseProjection]
+    [UseSorting]
     public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereNotSoftDeleted();
 
@@ -41,6 +43,8 @@ public sealed class Query
         dbContext.Users.Where(u => u.Id == id);
 
     [Authorize]
+    [Authorize(Policy = AuthorizationPolicyNames.ApiUsersSort)]
     [UseProjection]
+    [UseSorting]
     public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;
 }

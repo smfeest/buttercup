@@ -47,6 +47,7 @@ services.AddGraphQLServer()
     .AddAuthorization()
     .AddMutationConventions()
     .AddProjections()
+    .AddSorting()
     .AllowIntrospection(isDevelopment)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
     .RegisterDbContext<AppDbContext>(DbContextKind.Pooled);
@@ -80,6 +81,10 @@ services
 
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
+    .AddPolicy(
+        AuthorizationPolicyNames.ApiUsersSort,
+        policy => policy.AddRequirements(
+            new RoleRestrictedOrderByFieldsRequirement(RoleNames.Admin, "email")))
     .AddPolicy(
         AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted,
         policy =>
