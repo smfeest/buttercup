@@ -71,6 +71,49 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
     }
 
     [Fact]
+    public async Task FilteringComments()
+    {
+        var currentUser = this.ModelFactory.BuildUser();
+        var recipe = this.ModelFactory.BuildRecipe();
+        var comments = new[]
+        {
+            this.ModelFactory.BuildComment() with { Recipe = recipe, Body = "Delectable" },
+            this.ModelFactory.BuildComment() with { Recipe = recipe, Body = "Palatable" },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, comments);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                comments(where: { body: { startsWith: "Pal" } }) { body }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+        var commentsArray = dataElement.GetProperty("comments").EnumerateArray();
+        Assert.Equal("Palatable", Assert.Single(commentsArray).GetProperty("body").GetString());
+    }
+
+    [Fact]
+    public async Task FilteringCommentsByAdminOnlyUserFieldWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                comments(where: { author: { email: { eq: "foo@example.com" } } }) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+    }
+
+    [Fact]
     public async Task SortingComments()
     {
         var currentUser = this.ModelFactory.BuildUser();
