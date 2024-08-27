@@ -9,6 +9,11 @@ namespace Buttercup.Web.Api;
 [QueryType]
 public sealed class Query
 {
+    [Authorize]
+    [UseProjection]
+    public IQueryable<Comment> Comments(AppDbContext dbContext) =>
+        dbContext.Comments.WhereNotSoftDeleted();
+
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)
