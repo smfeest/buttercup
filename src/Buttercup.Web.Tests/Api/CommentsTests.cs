@@ -69,4 +69,54 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
+
+    [Fact]
+    public async Task SortingComments()
+    {
+        var currentUser = this.ModelFactory.BuildUser();
+        var recipe = this.ModelFactory.BuildRecipe();
+        var baseCreated = this.ModelFactory.NextDateTime();
+        var comments = new[]
+        {
+            this.ModelFactory.BuildComment() with
+                { Id = 1, Recipe = recipe, Created = baseCreated },
+            this.ModelFactory.BuildComment() with
+                { Id = 2, Recipe = recipe, Created = baseCreated.AddHours(10) },
+            this.ModelFactory.BuildComment() with
+                { Id = 3, Recipe = recipe, Created = baseCreated.AddHours(5) },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, comments);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                comments(order: { created: ASC }) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+        var ids = dataElement.GetProperty("comments").EnumerateArray().Select(
+            c => c.GetProperty("id").GetInt64());
+
+        Assert.Equal([1, 3, 2], ids);
+    }
+
+    [Fact]
+    public async Task SortingCommentsByAdminOnlyUserFieldsWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                comments(order: { author: { email: ASC } }) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+    }
 }

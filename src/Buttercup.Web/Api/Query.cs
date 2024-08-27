@@ -10,7 +10,9 @@ namespace Buttercup.Web.Api;
 public sealed class Query
 {
     [Authorize]
+    [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
     [UseProjection]
+    [UseSorting]
     public IQueryable<Comment> Comments(AppDbContext dbContext) =>
         dbContext.Comments.WhereNotSoftDeleted();
 
