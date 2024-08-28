@@ -9,14 +9,16 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
     private const string CommentsQuery = """
         query {
             comments {
-                id
-                recipe { id title }
-                author { id name }
-                body
-                created
-                modified
-                revision
-                revisions { revision created body }
+                nodes {
+                    id
+                    recipe { id title }
+                    author { id name }
+                    body
+                    created
+                    modified
+                    revision
+                    revisions { revision created body }
+                }
             }
         }
         """;
@@ -56,7 +58,7 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
             }),
         });
 
-        JsonAssert.Equivalent(expected, dataElement.GetProperty("comments"));
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("comments").GetProperty("nodes"));
     }
 
     [Fact]
@@ -66,7 +68,7 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         using var response = await client.PostQuery(CommentsQuery);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("comments"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 
@@ -85,14 +87,18 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await client.PostQuery("""
             query {
-                comments(where: { body: { startsWith: "Pal" } }) { body }
+                comments(where: { body: { startsWith: "Pal" } }) {
+                    nodes {
+                        body
+                    }
+                }
             }
             """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
-        var commentsArray = dataElement.GetProperty("comments").EnumerateArray();
-        Assert.Equal("Palatable", Assert.Single(commentsArray).GetProperty("body").GetString());
+        var nodesArray = dataElement.GetProperty("comments").GetProperty("nodes").EnumerateArray();
+        Assert.Equal("Palatable", Assert.Single(nodesArray).GetProperty("body").GetString());
     }
 
     [Fact]
@@ -104,17 +110,21 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await client.PostQuery("""
             query {
-                comments(where: { author: { email: { eq: "foo@example.com" } } }) { id }
+                comments(where: { author: { email: { eq: "foo@example.com" } } }) {
+                    nodes {
+                        id
+                    }
+                }
             }
             """);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("comments"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 
     [Fact]
-    public async Task SortingComments()
+    public async Task SortingAndPagingComments()
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe();
@@ -127,22 +137,60 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
                 { Id = 2, Recipe = recipe, Created = baseCreated.AddHours(10) },
             this.ModelFactory.BuildComment() with
                 { Id = 3, Recipe = recipe, Created = baseCreated.AddHours(5) },
+            this.ModelFactory.BuildComment() with
+                { Id = 4, Recipe = recipe, Created = baseCreated.AddHours(15) },
         };
         await this.DatabaseFixture.InsertEntities(currentUser, comments);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await client.PostQuery("""
-            query {
-                comments(order: { created: ASC }) { id }
+
+        Task<HttpResponseMessage> PostQuery(string? afterCursor) => client.PostQuery("""
+            query($afterCursor: String) {
+                comments(first: 2, after: $afterCursor, order: { created: ASC }) {
+                    nodes {
+                        id
+                    }
+                    pageInfo {
+                        endCursor
+                    }
+                }
             }
-            """);
-        using var document = await response.Content.ReadAsJsonDocument();
+            """,
+            new { afterCursor });
 
-        var dataElement = ApiAssert.SuccessResponse(document);
-        var ids = dataElement.GetProperty("comments").EnumerateArray().Select(
-            c => c.GetProperty("id").GetInt64());
+        string? endCursor;
 
-        Assert.Equal([1, 3, 2], ids);
+        using (var response = await PostQuery(null))
+        {
+            using var document = await response.Content.ReadAsJsonDocument();
+
+            var dataElement = ApiAssert.SuccessResponse(document);
+            var commentsElement = dataElement.GetProperty("comments");
+
+            Assert.Equal(
+                [1, 3],
+                commentsElement
+                    .GetProperty("nodes")
+                    .EnumerateArray().Select(c => c.GetProperty("id").GetInt64()));
+
+            endCursor = commentsElement
+                .GetProperty("pageInfo")
+                .GetProperty("endCursor")
+                .GetString();
+        }
+
+        using (var response = await PostQuery(endCursor))
+        {
+            using var document = await response.Content.ReadAsJsonDocument();
+
+            var dataElement = ApiAssert.SuccessResponse(document);
+            Assert.Equal(
+                [2, 4],
+                dataElement
+                    .GetProperty("comments")
+                    .GetProperty("nodes")
+                    .EnumerateArray().Select(c => c.GetProperty("id").GetInt64()));
+        }
     }
 
     [Fact]
@@ -154,12 +202,16 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await client.PostQuery("""
             query {
-                comments(order: { author: { email: ASC } }) { id }
+                comments(order: { author: { email: ASC } }) {
+                    nodes {
+                        id
+                    }
+                }
             }
             """);
         using var document = await response.Content.ReadAsJsonDocument();
 
-        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("comments"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 }
