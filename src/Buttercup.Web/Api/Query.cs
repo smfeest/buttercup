@@ -11,6 +11,7 @@ public sealed class Query
 {
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
+    [UsePaging(MaxPageSize = 500)]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
