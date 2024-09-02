@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class CookieAuthenticationService(
+internal sealed partial class CookieAuthenticationService(
     IAuthenticationService authenticationService,
     IClaimsIdentityFactory claimsIdentityFactory,
     IDbContextFactory<AppDbContext> dbContextFactory,
@@ -48,7 +48,7 @@ internal sealed class CookieAuthenticationService(
 
         await this.InsertSecurityEvent("sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
 
-        SignInLogMessages.SignedIn(this.logger, user.Id, user.Email, null);
+        this.LogSignedIn(user.Id, user.Email);
     }
 
     public async Task SignOut(HttpContext httpContext)
@@ -64,7 +64,7 @@ internal sealed class CookieAuthenticationService(
 
             var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
-            SignOutLogMessages.SignedOut(this.logger, userId.Value, email, null);
+            this.LogSignedOut(userId.Value, email);
         }
     }
 
@@ -100,17 +100,17 @@ internal sealed class CookieAuthenticationService(
         this.authenticationService.SignOutAsync(
             httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
-    private static class SignInLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> SignedIn =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 212, "User {UserId} ({Email}) signed in");
-    }
+    [LoggerMessage(
+        EventId = 212,
+        EventName = "SignedIn",
+        Level = LogLevel.Information,
+        Message = "User {UserId} ({Email}) signed in")]
+    private partial void LogSignedIn(long userId, string email);
 
-    private static class SignOutLogMessages
-    {
-        public static readonly Action<ILogger, long, string?, Exception?> SignedOut =
-            LoggerMessage.Define<long, string?>(
-                LogLevel.Information, 213, "User {UserId} ({Email}) signed out");
-    }
+    [LoggerMessage(
+        EventId = 213,
+        EventName = "SignedOut",
+        Level = LogLevel.Information,
+        Message = "User {UserId} ({Email}) signed out")]
+    private partial void LogSignedOut(long userId, string? email);
 }
