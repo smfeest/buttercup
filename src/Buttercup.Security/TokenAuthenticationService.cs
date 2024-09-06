@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class TokenAuthenticationService(
+internal sealed partial class TokenAuthenticationService(
     IAccessTokenEncoder accessTokenEncoder,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<TokenAuthenticationService> logger,
@@ -36,7 +36,7 @@ internal sealed class TokenAuthenticationService(
             await dbContext.SaveChangesAsync();
         }
 
-        LogMessages.TokenIssued(this.logger, user.Id, user.Email, null);
+        this.LogTokenIssued(user.Id, user.Email);
 
         return token;
     }
@@ -51,21 +51,18 @@ internal sealed class TokenAuthenticationService(
         }
         catch (FormatException exception)
         {
-            LogMessages.ValidationFailedIncorrectEncoding(this.logger, exception);
-
+            this.LogIncorrectEncoding(exception);
             return null;
         }
         catch (CryptographicException exception)
         {
-            LogMessages.ValidationFailedEncryptionError(this.logger, exception);
-
+            this.LogEncryptionError(exception);
             return null;
         }
 
         if (this.timeProvider.GetUtcDateTimeNow().Subtract(payload.Issued) > new TimeSpan(24, 0, 0))
         {
-            LogMessages.ValidationFailedExpired(this.logger, payload.UserId, null);
-
+            this.LogTokenExpired(payload.UserId);
             return null;
         }
 
@@ -75,59 +72,68 @@ internal sealed class TokenAuthenticationService(
 
         if (user is null)
         {
-            LogMessages.ValidationFailedUserDoesNotExist(this.logger, payload.UserId, null);
-
+            this.LogUserDoesNotExist(payload.UserId);
             return null;
         }
 
         if (!string.Equals(payload.SecurityStamp, user.SecurityStamp, StringComparison.Ordinal))
         {
-            LogMessages.ValidationFailedStaleSecurityStamp(this.logger, payload.UserId, null);
+            this.LogStaleSecurityStamp(payload.UserId);
 
             return null;
         }
 
-        LogMessages.ValidationSuccessful(this.logger, payload.UserId, null);
+        this.LogTokenValidated(payload.UserId);
 
         return user;
     }
 
-    private static class LogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> TokenIssued =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 300, "Issued access token for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 302,
+        EventName = "EncryptionError",
+        Level = LogLevel.Warning,
+        Message = "Access token failed validation; malformed or encrypted with wrong key")]
+    private partial void LogEncryptionError(Exception exception);
 
-        public static readonly Action<ILogger, Exception?> ValidationFailedIncorrectEncoding =
-            LoggerMessage.Define(
-                LogLevel.Warning, 301, "Access token failed validation; not base64url encoded");
+    [LoggerMessage(
+        EventId = 301,
+        EventName = "IncorrectEncoding",
+        Level = LogLevel.Warning,
+        Message = "Access token failed validation; not base64url encoded")]
+    private partial void LogIncorrectEncoding(Exception exception);
 
-        public static readonly Action<ILogger, Exception?> ValidationFailedEncryptionError =
-            LoggerMessage.Define(
-                LogLevel.Warning,
-                302,
-                "Access token failed validation; malformed or encrypted with wrong key");
+    [LoggerMessage(
+        EventId = 305,
+        EventName = "StaleSecurityStamp",
+        Level = LogLevel.Information,
+        Message = "Access token failed validation for user {UserId}; contains stale security stamp")]
+    private partial void LogStaleSecurityStamp(long userId);
 
-        public static readonly Action<ILogger, long, Exception?> ValidationFailedExpired =
-            LoggerMessage.Define<long>(
-                LogLevel.Information,
-                303,
-                "Access token failed validation for user {UserId}; expired");
+    [LoggerMessage(
+        EventId = 303,
+        EventName = "TokenExpired",
+        Level = LogLevel.Information,
+        Message = "Access token failed validation for user {UserId}; expired")]
+    private partial void LogTokenExpired(long userId);
 
-        public static readonly Action<ILogger, long, Exception?> ValidationFailedUserDoesNotExist =
-            LoggerMessage.Define<long>(
-                LogLevel.Warning,
-                304,
-                "Access token failed validation for user {UserId}; user does not exist");
+    [LoggerMessage(
+        EventId = 300,
+        EventName = "TokenIssued",
+        Level = LogLevel.Information,
+        Message = "Issued access token for user {UserId} ({Email})")]
+    private partial void LogTokenIssued(long userId, string email);
 
-        public static readonly Action<ILogger, long, Exception?>
-            ValidationFailedStaleSecurityStamp = LoggerMessage.Define<long>(
-                LogLevel.Information,
-                305,
-                "Access token failed validation for user {UserId}; contains stale security stamp");
+    [LoggerMessage(
+        EventId = 306,
+        EventName = "TokenValidated",
+        Level = LogLevel.Information,
+        Message = "Access token successfully validated for user {UserId}")]
+    private partial void LogTokenValidated(long userId);
 
-        public static readonly Action<ILogger, long, Exception?> ValidationSuccessful =
-            LoggerMessage.Define<long>(
-                LogLevel.Information, 306, "Access token successfully validated for user {UserId}");
-    }
+    [LoggerMessage(
+        EventId = 304,
+        EventName = "UserDoesNotExist",
+        Level = LogLevel.Warning,
+        Message = "Access token failed validation for user {UserId}; user does not exist")]
+    private partial void LogUserDoesNotExist(long userId);
 }
