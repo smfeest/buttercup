@@ -11,7 +11,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void GetUserId_ReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity([new(ClaimTypes.NameIdentifier, "7214")]));
+            new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7214")]));
 
         Assert.Equal(7214, principal.GetUserId());
     }
@@ -20,7 +20,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void GetUserId_ThrowsWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity([new(ClaimTypes.Email, "user@example.com")]));
+            new ClaimsIdentity([new Claim(ClaimTypes.Email, "user@example.com")]));
 
         Assert.Throws<InvalidOperationException>(() => principal.GetUserId());
     }
@@ -38,9 +38,9 @@ public sealed class ClaimsPrincipalExtensionsTests
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(
                 [
-                    new(ClaimTypes.NameIdentifier, "123"),
-                    new(ClaimTypes.SerialNumber, "456"),
-                    new(ClaimTypes.NameIdentifier, "789")
+                    new Claim(ClaimTypes.NameIdentifier, "123"),
+                    new Claim(ClaimTypes.SerialNumber, "456"),
+                    new Claim(ClaimTypes.NameIdentifier, "789")
                 ]));
         Assert.Equal(expectedResult, principal.HasUserId(userId));
     }
@@ -53,7 +53,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void TryGetUserId_ReturnsParsedNameIdentifier()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity([new(ClaimTypes.NameIdentifier, "7214")]));
+            new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7214")]));
 
         Assert.Equal(7214, principal.TryGetUserId());
     }
@@ -62,7 +62,7 @@ public sealed class ClaimsPrincipalExtensionsTests
     public void TryGetUserId_ReturnsNullWhenNameIdentifierIsMissing()
     {
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity([new(ClaimTypes.Email, "user@example.com")]));
+            new ClaimsIdentity([new Claim(ClaimTypes.Email, "user@example.com")]));
 
         Assert.Null(principal.TryGetUserId());
     }
