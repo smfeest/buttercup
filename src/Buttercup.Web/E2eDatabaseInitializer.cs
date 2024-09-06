@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web;
 
-internal sealed class E2eDatabaseInitializer(
+internal sealed partial class E2eDatabaseInitializer(
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<E2eDatabaseInitializer> logger,
     IPasswordHasher<User> passwordHasher,
@@ -28,7 +28,7 @@ internal sealed class E2eDatabaseInitializer(
 
         if (!await dbContext.Database.EnsureCreatedAsync())
         {
-            LogMessages.DatabaseAlreadyExists(this.logger, null);
+            this.LogDatabaseAlreadyExists();
             return;
         }
 
@@ -38,7 +38,7 @@ internal sealed class E2eDatabaseInitializer(
 
         await dbContext.SaveChangesAsync();
 
-        LogMessages.DatabaseSuccessfullyInitialized(this.logger, null);
+        this.LogDatabaseSuccessfullyInitialized();
     }
 
     private User BuildUser(string name, string username, bool isAdmin)
@@ -62,14 +62,17 @@ internal sealed class E2eDatabaseInitializer(
         return user;
     }
 
-    private static class LogMessages
-    {
-        public static readonly Action<ILogger, Exception?> DatabaseAlreadyExists =
-            LoggerMessage.Define(
-                LogLevel.Information, 400, "End-to-end test database already exists");
+    [LoggerMessage(
+        EventId = 400,
+        EventName = "DatabaseAlreadyExists",
+        Level = LogLevel.Information,
+        Message = "End-to-end test database already exists")]
+    private partial void LogDatabaseAlreadyExists();
 
-        public static readonly Action<ILogger, Exception?> DatabaseSuccessfullyInitialized =
-            LoggerMessage.Define(
-                LogLevel.Information, 401, "End-to-end test database successfully initialized");
-    }
+    [LoggerMessage(
+        EventId = 401,
+        EventName = "DatabaseSuccessfullyInitialized",
+        Level = LogLevel.Information,
+        Message = "End-to-end test database successfully initialized")]
+    private partial void LogDatabaseSuccessfullyInitialized();
 }

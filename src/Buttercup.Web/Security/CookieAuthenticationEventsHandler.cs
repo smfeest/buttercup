@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Buttercup.Web.Security;
 
-public sealed class CookieAuthenticationEventsHandler(
+public sealed partial class CookieAuthenticationEventsHandler(
     IAuthenticationService authenticationService,
     IClaimsIdentityFactory claimsIdentityFactory,
     ILogger<CookieAuthenticationEventsHandler> logger,
@@ -39,7 +39,7 @@ public sealed class CookieAuthenticationEventsHandler(
 
         if (user is null)
         {
-            ValidatePrincipalLogMessages.UserNoLongerExists(this.logger, userId.Value, null);
+            this.LogUserNoLongerExists(userId.Value);
             await this.RejectPrincipalAndSignOut(context);
             return;
         }
@@ -48,13 +48,12 @@ public sealed class CookieAuthenticationEventsHandler(
 
         if (!string.Equals(securityStamp, user.SecurityStamp, StringComparison.Ordinal))
         {
-            ValidatePrincipalLogMessages.IncorrectSecurityStamp(
-                this.logger, user.Id, user.Email, null);
+            this.LogIncorrectSecurityStamp(user.Id, user.Email);
             await this.RejectPrincipalAndSignOut(context);
             return;
         }
 
-        ValidatePrincipalLogMessages.Success(this.logger, user.Id, user.Email, null);
+        this.LogValidatedPrincipal(user.Id, user.Email);
 
         var userRevision = principal.FindFirstValue(CustomClaimTypes.UserRevision);
 
@@ -65,8 +64,7 @@ public sealed class CookieAuthenticationEventsHandler(
                 new(this.claimsIdentityFactory.CreateIdentityForUser(user, context.Scheme.Name)));
             context.ShouldRenew = true;
 
-            ValidatePrincipalLogMessages.RefreshedClaimsPrincipal(
-                this.logger, user.Id, user.Email, null);
+            this.LogRefreshedPrincipal(user.Id, user.Email);
         }
     }
 
@@ -78,25 +76,31 @@ public sealed class CookieAuthenticationEventsHandler(
             context.HttpContext, context.Scheme.Name, null);
     }
 
-    private static class ValidatePrincipalLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> IncorrectSecurityStamp =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 214, "Incorrect security stamp for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 214,
+        EventName = "IncorrectSecurityStamp",
+        Level = LogLevel.Information,
+        Message = "Incorrect security stamp for user {UserId} ({Email})")]
+    private partial void LogIncorrectSecurityStamp(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> Success =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Debug,
-                215,
-                "Principal successfully validated for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 216,
+        EventName = "RefreshedPrincipal",
+        Level = LogLevel.Information,
+        Message = "Refreshed claims principal for user {UserId} ({Email})")]
+    private partial void LogRefreshedPrincipal(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> RefreshedClaimsPrincipal =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                216,
-                "Refreshed claims principal for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 219,
+        EventName = "UserNoLongerExists",
+        Level = LogLevel.Information,
+        Message = "User {UserId} no longer exists")]
+    private partial void LogUserNoLongerExists(long userId);
 
-        public static readonly Action<ILogger, long, Exception?> UserNoLongerExists =
-            LoggerMessage.Define<long>(LogLevel.Information, 219, "User {UserId} no longer exists");
-    }
+    [LoggerMessage(
+        EventId = 215,
+        EventName = "ValidatedPrincipal",
+        Level = LogLevel.Debug,
+        Message = "Successfully validated claims principal for user {UserId} ({Email})")]
+    private partial void LogValidatedPrincipal(long userId, string email);
 }

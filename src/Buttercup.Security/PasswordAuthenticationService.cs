@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Buttercup.Security;
 
-internal sealed class PasswordAuthenticationService(
+internal sealed partial class PasswordAuthenticationService(
     IAuthenticationMailer authenticationMailer,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<PasswordAuthenticationService> logger,
@@ -36,7 +36,7 @@ internal sealed class PasswordAuthenticationService(
             await this.InsertSecurityEvent(
                 dbContext, "authentication_failure:unrecognized_email", ipAddress);
 
-            AuthenticateLogMessages.UnrecognizedEmail(this.logger, email, null);
+            this.LogAuthenticationFailedUnrecognizedEmail(email);
 
             return null;
         }
@@ -46,7 +46,7 @@ internal sealed class PasswordAuthenticationService(
             await this.InsertSecurityEvent(
                 dbContext, "authentication_failure:no_password_set", ipAddress, user.Id);
 
-            AuthenticateLogMessages.NoPasswordSet(this.logger, user.Id, user.Email, null);
+            this.LogAuthenticationFailedNoPasswordSet(user.Id, user.Email);
 
             return null;
         }
@@ -59,14 +59,14 @@ internal sealed class PasswordAuthenticationService(
             await this.InsertSecurityEvent(
                 dbContext, "authentication_failure:incorrect_password", ipAddress, user.Id);
 
-            AuthenticateLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
+            this.LogAuthenticationFailedIncorrectPassword(user.Id, user.Email);
 
             return null;
         }
 
         await this.InsertSecurityEvent(dbContext, "authentication_success", ipAddress, user.Id);
 
-        AuthenticateLogMessages.Success(this.logger, user.Id, user.Email, null);
+        this.LogAuthenticated(user.Id, user.Email);
 
         if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
         {
@@ -80,12 +80,11 @@ internal sealed class PasswordAuthenticationService(
             {
                 await dbContext.SaveChangesAsync();
 
-                AuthenticateLogMessages.PasswordHashUpgraded(this.logger, user.Id, user.Email, null);
+                this.LogPasswordHashUpgraded(user.Id, user.Email);
             }
             catch (DbUpdateConcurrencyException)
             {
-                AuthenticateLogMessages.UpgradedPasswordHashNotPersisted(
-                    this.logger, user.Id, user.Email, null);
+                this.LogUpgradedPasswordHashNotPersisted(user.Id, user.Email);
 
                 user = unmodifiedUser;
             }
@@ -118,14 +117,14 @@ internal sealed class PasswordAuthenticationService(
             await this.InsertSecurityEvent(
                 dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id);
 
-            ChangePasswordLogMessages.IncorrectPassword(this.logger, user.Id, user.Email, null);
+            this.LogPasswordChangeFailedIncorrectPassword(user.Id, user.Email);
 
             return false;
         }
 
         await this.SetPassword(dbContext, user, newPassword, "password_change_success", ipAddress);
 
-        ChangePasswordLogMessages.Success(this.logger, user.Id, user.Email, null);
+        this.LogPasswordChanged(user.Id, user.Email);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -142,15 +141,14 @@ internal sealed class PasswordAuthenticationService(
 
         if (userId.HasValue)
         {
-            PasswordResetTokenIsValidLogMessages.Valid(
-                this.logger, RedactToken(token), userId.Value, null);
+            this.LogPasswordResetTokenValid(RedactToken(token), userId.Value);
         }
         else
         {
             await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
 
-            PasswordResetTokenIsValidLogMessages.Invalid(this.logger, RedactToken(token), null);
+            this.LogPasswordResetTokenInvalid(RedactToken(token));
         }
 
         return userId.HasValue;
@@ -170,14 +168,14 @@ internal sealed class PasswordAuthenticationService(
             await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
 
-            ResetPasswordLogMessages.InvalidToken(this.logger, RedactToken(token), null);
+            this.LogPasswordResetFailedInvalidToken(RedactToken(token));
 
             throw new InvalidTokenException("Password reset token is invalid");
         }
 
         await this.SetPassword(dbContext, user, newPassword, "password_reset_success", ipAddress);
 
-        ResetPasswordLogMessages.Success(this.logger, user.Id, RedactToken(token), null);
+        this.LogPasswordReset(user.Id, RedactToken(token));
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -196,7 +194,7 @@ internal sealed class PasswordAuthenticationService(
             await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:unrecognized_email", ipAddress);
 
-            SendPasswordResetLinkLogMessages.UnrecognizedEmail(this.logger, email, null);
+            this.LogPasswordResetLinkNotSentUnrecognizedEmail(email);
 
             return;
         }
@@ -220,7 +218,7 @@ internal sealed class PasswordAuthenticationService(
 
         await this.InsertSecurityEvent(dbContext, "password_reset_link_sent", ipAddress, user.Id);
 
-        SendPasswordResetLinkLogMessages.Success(this.logger, user.Id, email, null);
+        this.LogPasswordResetLinkSent(user.Id, email);
     }
 
     private static Task<User?> FindByEmailAsync(IQueryable<User> queryable, string email) =>
@@ -277,90 +275,101 @@ internal sealed class PasswordAuthenticationService(
         await dbContext.PasswordResetTokens.Where(t => t.User == user).ExecuteDeleteAsync();
     }
 
-    private static class AuthenticateLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> IncorrectPassword =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                200,
-                "Authentication failed; incorrect password for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 202,
+        EventName = "Authenticated",
+        Level = LogLevel.Information,
+        Message = "User {UserId} ({Email}) successfully authenticated")]
+    private partial void LogAuthenticated(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> NoPasswordSet =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                201,
-                "Authentication failed; no password set for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 200,
+        EventName = "AuthenticationFailedIncorrectPassword",
+        Level = LogLevel.Information,
+        Message = "Authentication failed; incorrect password for user {UserId} ({Email})")]
+    private partial void LogAuthenticationFailedIncorrectPassword(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> PasswordHashUpgraded =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 217, "Password hash upgraded for user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 201,
+        EventName = "AuthenticationFailedNoPasswordSet",
+        Level = LogLevel.Information,
+        Message = "Authentication failed; no password set for user {UserId} ({Email})")]
+    private partial void LogAuthenticationFailedNoPasswordSet(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> UpgradedPasswordHashNotPersisted =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                218,
-                "Upgraded password hash not persisted for user {UserId} ({Email}); concurrent changed detected");
+    [LoggerMessage(
+        EventId = 203,
+        EventName = "AuthenticationFailedUnrecognizedEmail",
+        Level = LogLevel.Information,
+        Message = "Authentication failed; no user with email {Email}")]
+    private partial void LogAuthenticationFailedUnrecognizedEmail(string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> Success =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 202, "User {UserId} ({Email}) successfully authenticated");
+    [LoggerMessage(
+        EventId = 205,
+        EventName = "PasswordChanged",
+        Level = LogLevel.Information,
+        Message = "Password successfully changed for user {UserId} ({Email})")]
+    private partial void LogPasswordChanged(long userId, string email);
 
-        public static readonly Action<ILogger, string, Exception?> UnrecognizedEmail =
-            LoggerMessage.Define<string>(
-                LogLevel.Information, 203, "Authentication failed; no user with email {Email}");
-    }
+    [LoggerMessage(
+        EventId = 204,
+        EventName = "PasswordChangeFailedIncorrectPassword",
+        Level = LogLevel.Information,
+        Message = "Password change denied for user {UserId} ({Email}); current password is incorrect")]
+    private partial void LogPasswordChangeFailedIncorrectPassword(long userId, string email);
 
-    private static class ChangePasswordLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> IncorrectPassword =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                204,
-                "Password change denied for user {UserId} ({Email}); current password is incorrect");
+    [LoggerMessage(
+        EventId = 217,
+        EventName = "PasswordHashUpgraded",
+        Level = LogLevel.Information,
+        Message = "Password hash upgraded for user {UserId} ({Email})")]
+    private partial void LogPasswordHashUpgraded(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> Success =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information,
-                205,
-                "Password successfully changed for user {UserId} ({Email})");
-    }
+    [LoggerMessage(
+        EventId = 209,
+        EventName = "PasswordReset",
+        Level = LogLevel.Information,
+        Message = "Password reset for user {UserId} using token {Token}")]
+    private partial void LogPasswordReset(long userId, string token);
 
-    private static class PasswordResetTokenIsValidLogMessages
-    {
-        public static readonly Action<ILogger, string, Exception?> Invalid =
-            LoggerMessage.Define<string>(
-                LogLevel.Debug, 206, "Password reset token '{Token}' is no longer valid");
+    [LoggerMessage(
+        EventId = 208,
+        EventName = "PasswordResetFailedInvalidToken",
+        Level = LogLevel.Information,
+        Message = "Unable to reset password; password reset token {Token} is invalid")]
+    private partial void LogPasswordResetFailedInvalidToken(string token);
 
-        public static readonly Action<ILogger, string, long, Exception?> Valid =
-            LoggerMessage.Define<string, long>(
-                LogLevel.Debug,
-                207,
-                "Password reset token '{Token}' is valid and belongs to user {UserId}");
-    }
+    [LoggerMessage(
+        EventId = 211,
+        EventName = "PasswordResetLinkNotSentUnrecognizedEmail",
+        Level = LogLevel.Information,
+        Message = "Unable to send password reset link; No user with email {Email}")]
+    private partial void LogPasswordResetLinkNotSentUnrecognizedEmail(string email);
 
-    private static class ResetPasswordLogMessages
-    {
-        public static readonly Action<ILogger, string, Exception?> InvalidToken =
-            LoggerMessage.Define<string>(
-                LogLevel.Information,
-                208,
-                "Unable to reset password; password reset token {Token} is invalid");
+    [LoggerMessage(
+        EventId = 210,
+        EventName = "PasswordResetLinkSent",
+        Level = LogLevel.Information,
+        Message = "Password reset link sent to user {UserId} ({Email})")]
+    private partial void LogPasswordResetLinkSent(long userId, string email);
 
-        public static readonly Action<ILogger, long, string, Exception?> Success =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 209, "Password reset for user {UserId} using token {Token}");
-    }
+    [LoggerMessage(
+        EventId = 206,
+        EventName = "PasswordResetTokenInvalid",
+        Level = LogLevel.Debug,
+        Message = "Password reset token '{Token}' is no longer valid")]
+    private partial void LogPasswordResetTokenInvalid(string token);
 
-    private static class SendPasswordResetLinkLogMessages
-    {
-        public static readonly Action<ILogger, long, string, Exception?> Success =
-            LoggerMessage.Define<long, string>(
-                LogLevel.Information, 210, "Password reset link sent to user {UserId} ({Email})");
+    [LoggerMessage(
+        EventId = 207,
+        EventName = "PasswordResetTokenValid",
+        Level = LogLevel.Debug,
+        Message = "Password reset token '{Token}' is valid and belongs to user {UserId}")]
+    private partial void LogPasswordResetTokenValid(string token, long userId);
 
-        public static readonly Action<ILogger, string, Exception?> UnrecognizedEmail =
-            LoggerMessage.Define<string>(
-                LogLevel.Information,
-                211,
-                "Unable to send password reset link; No user with email {Email}");
-    }
+    [LoggerMessage(
+        EventId = 218,
+        EventName = "UpgradedPasswordHashNotPersisted",
+        Level = LogLevel.Information,
+        Message = "Upgraded password hash not persisted for user {UserId} ({Email}); concurrent changed detected")]
+    private partial void LogUpgradedPasswordHashNotPersisted(long userId, string email);
 }

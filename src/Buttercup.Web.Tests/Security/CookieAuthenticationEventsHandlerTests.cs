@@ -134,7 +134,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
             this.logger,
             LogLevel.Debug,
             215,
-            $"Principal successfully validated for user {user.Id} ({user.Email})");
+            $"Successfully validated claims principal for user {user.Id} ({user.Email})");
     }
 
     [Theory]

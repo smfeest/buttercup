@@ -1,6 +1,6 @@
 namespace Buttercup.Web.Infrastructure;
 
-public sealed class AssetManifestSource(
+public sealed partial class AssetManifestSource(
     IWebHostEnvironment hostEnvironment,
     ILogger<AssetManifestSource> logger,
     IAssetManifestReader manifestReader)
@@ -10,7 +10,7 @@ public sealed class AssetManifestSource(
     {
         var path = System.IO.Path.Combine("prod-assets", "manifest.json");
 
-        LoggerMessages.LoadingManifest(logger, path, null);
+        LogLoadingManifest(logger, path);
 
         var fileInfo = hostEnvironment.WebRootFileProvider.GetFileInfo(path);
 
@@ -21,10 +21,10 @@ public sealed class AssetManifestSource(
 
     public IReadOnlyDictionary<string, string> ProductionManifest => this.productionManifest.Value;
 
-    private static class LoggerMessages
-    {
-        public static readonly Action<ILogger, string, Exception?> LoadingManifest =
-            LoggerMessage.Define<string>(
-                LogLevel.Information, 100, "Loading asset manifest {Path}");
-    }
+    [LoggerMessage(
+        EventId = 100,
+        EventName = "LoadingManifest",
+        Level = LogLevel.Information,
+        Message = "Loading asset manifest {Path}")]
+    private static partial void LogLoadingManifest(ILogger logger, string path);
 }
