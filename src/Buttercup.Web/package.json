@@ -10,7 +10,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.25",
-    "@urql/core": "^4.3.0",
+    "@urql/core": "^5.0.6",
     "@urql/exchange-auth": "^2.1.6",
     "del": "^7.1.0",
     "eslint": "^9.10.0",
