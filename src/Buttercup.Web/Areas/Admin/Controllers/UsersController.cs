@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Areas.Admin.Controllers;
 
-[Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+[Authorize(AuthorizationPolicyNames.AdminOnly)]
 [Area("Admin")]
 [Route("[area]/[controller]")]
 public sealed class UsersController(IDbContextFactory<AppDbContext> dbContextFactory) : Controller

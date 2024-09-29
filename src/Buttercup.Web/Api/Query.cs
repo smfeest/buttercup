@@ -18,7 +18,7 @@ public sealed class Query
         return userId.HasValue ? dbContext.Users.Where(u => u.Id == userId) : null;
     }
 
-    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]
     [UseSorting]
     public IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
@@ -43,7 +43,7 @@ public sealed class Query
         dbContext.Users.Where(u => u.Id == id);
 
     [Authorize]
-    [Authorize(Policy = AuthorizationPolicyNames.ApiUsersSort)]
+    [Authorize(AuthorizationPolicyNames.ApiUsersSort)]
     [UseProjection]
     [UseSorting]
     public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;

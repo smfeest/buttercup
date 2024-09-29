@@ -11,7 +11,7 @@ public static class RecipeExtension
     public static IQueryable<Comment> Comments(AppDbContext dbContext, [Parent] Recipe recipe) =>
         dbContext.Comments.WhereNotSoftDeleted().Where(c => c.RecipeId == recipe.Id);
 
-    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]
     public static IQueryable<Comment> DeletedComments(
         AppDbContext dbContext, [Parent] Recipe recipe) =>

@@ -194,7 +194,7 @@ public sealed class Mutation
     /// <param name="id">
     /// The comment ID.
     /// </param>
-    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<HardDeleteCommentPayload> HardDeleteComment(
         [Service] ICommentManager commentManager, long id) =>
         new(await commentManager.HardDeleteComment(id));
@@ -208,7 +208,7 @@ public sealed class Mutation
     /// <param name="id">
     /// The recipe ID.
     /// </param>
-    [Authorize(Policy = AuthorizationPolicyNames.AdminOnly)]
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
         [Service] IRecipeManager recipeManager, long id) =>
         new(await recipeManager.HardDeleteRecipe(id));
