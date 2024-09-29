@@ -1,4 +1,5 @@
 using Buttercup.Web.TestUtils;
+using HotChocolate;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -71,17 +72,17 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
             new
             {
                 Path = new string[] { "user", "email" },
-                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+                Extensions = new { Code = ErrorCodes.Authentication.NotAuthorized },
             },
             new
             {
                 Path = new string[] { "user", "passwordCreated" },
-                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+                Extensions = new { Code = ErrorCodes.Authentication.NotAuthorized },
             },
             new
             {
                 Path = new string[] { "user", "isAdmin" },
-                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+                Extensions = new { Code = ErrorCodes.Authentication.NotAuthorized },
             },
         };
 
@@ -139,7 +140,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("user"));
 
-        ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 
     private static Task<HttpResponseMessage> PostPublicFieldsQuery(HttpClient client, long id) =>

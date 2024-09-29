@@ -1,5 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
+using HotChocolate;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -113,7 +114,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("recipe"));
 
-        ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 
     [Fact]
@@ -168,7 +169,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("recipe"));
 
-        ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 
     [Fact]
@@ -221,7 +222,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             new
             {
                 Path = new string[] { "recipe", "deletedComments" },
-                Extensions = new { Code = "AUTH_NOT_AUTHORIZED"},
+                Extensions = new { Code = ErrorCodes.Authentication.NotAuthorized },
             },
         };
 

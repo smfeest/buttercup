@@ -1,4 +1,5 @@
 using Buttercup.Web.TestUtils;
+using HotChocolate;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -36,7 +37,7 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
-        ApiAssert.HasSingleError("AUTH_NOT_AUTHORIZED", document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
 
     [Fact]
