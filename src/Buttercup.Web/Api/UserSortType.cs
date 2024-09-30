@@ -7,11 +7,12 @@ public sealed class UserSortType : SortInputType<User>
 {
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
     {
-        descriptor.BindFieldsExplicitly();
-        descriptor.Field(u => u.Id);
-        descriptor.Field(u => u.Name);
         descriptor.Field(u => u.Email).Directive(AdminOnlyDirectiveType.DirectiveName);
-        descriptor.Field(u => u.Created);
-        descriptor.Field(u => u.Modified);
+        descriptor.Field(u => u.PasswordCreated).Directive(AdminOnlyDirectiveType.DirectiveName);
+        descriptor.Field(u => u.IsAdmin).Directive(AdminOnlyDirectiveType.DirectiveName);
+        descriptor
+            .Ignore(u => u.HashedPassword)
+            .Ignore(u => u.SecurityStamp)
+            .Ignore(u => u.Revision);
     }
 }
