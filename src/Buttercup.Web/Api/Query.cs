@@ -31,6 +31,7 @@ public sealed class Query
         dbContext.Recipes.Where(r => r.Id == id);
 
     [Authorize]
+    [Authorize(AuthorizationPolicyNames.AdminOnlySortFields)]
     [UseProjection]
     [UseSorting]
     public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>

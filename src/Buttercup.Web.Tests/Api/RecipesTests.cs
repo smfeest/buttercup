@@ -106,4 +106,20 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
             r => JsonAssert.Equivalent(new { Id = 1, Title = "Recipe A" }, r),
             r => JsonAssert.Equivalent(new { Id = 4, Title = "Recipe A" }, r));
     }
+
+    [Fact]
+    public async Task SortingRecipesByAdminOnlyUserFieldsWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery(@"query {
+            recipes(order: { createdByUser: { email: ASC } }) { id }
+        }");
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+    }
 }
