@@ -59,11 +59,12 @@ public sealed class HardDeleteRecipeTests(AppFactory appFactory) : EndToEndTests
     }
 
     private static Task<HttpResponseMessage> PostDeleteRecipeMutation(HttpClient client, long id) =>
-        client.PostQuery(
-            @"mutation($id: Long!) {
+        client.PostQuery("""
+            mutation($id: Long!) {
                 hardDeleteRecipe(input: { id: $id }) {
                     deleted
                 }
-            }",
+            }
+            """,
             new { id });
 }

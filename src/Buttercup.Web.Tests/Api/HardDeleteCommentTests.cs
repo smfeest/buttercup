@@ -61,11 +61,12 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
 
     private static Task<HttpResponseMessage> PostHardDeleteCommentMutation(
         HttpClient client, long id) =>
-        client.PostQuery(
-            @"mutation($id: Long!) {
+        client.PostQuery("""
+            mutation($id: Long!) {
                 hardDeleteComment(input: { id: $id }) {
                     deleted
                 }
-            }",
+            }
+            """,
             new { id });
 }

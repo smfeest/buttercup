@@ -192,8 +192,8 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
 
     private static Task<HttpResponseMessage> PostUpdateRecipeMutation(
         HttpClient client, long id, int baseRevision, RecipeAttributes attributes) =>
-        client.PostQuery(
-            @"mutation($input: UpdateRecipeInput!) {
+        client.PostQuery("""
+            mutation($input: UpdateRecipeInput!) {
                 updateRecipe(input: $input) {
                     recipe {
                         id
@@ -222,6 +222,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
                         }
                     }
                 }
-            }",
+            }
+            """,
             new { input = new { id, baseRevision, attributes } });
 }

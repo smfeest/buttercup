@@ -5,8 +5,8 @@ namespace Buttercup.Web.Api;
 
 public sealed class CurrentUserTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
-    private const string CurrentUserQuery =
-        @"query {
+    private const string CurrentUserQuery = """
+        query {
             currentUser {
                 id
                 name
@@ -16,7 +16,8 @@ public sealed class CurrentUserTests(AppFactory appFactory) : EndToEndTests(appF
                 created
                 modified
             }
-        }";
+        }
+        """;
 
     [Theory]
     [InlineData(true)]

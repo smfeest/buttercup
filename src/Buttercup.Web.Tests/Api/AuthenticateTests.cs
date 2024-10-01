@@ -70,8 +70,8 @@ public sealed class AuthenticateTests(AppFactory appFactory) : EndToEndTests(app
 
     private static Task<HttpResponseMessage> PostAuthenticateMutation(
         HttpClient client, string email, string password) =>
-        client.PostQuery(
-            @"mutation($input: AuthenticateInput!) {
+        client.PostQuery("""
+            mutation($input: AuthenticateInput!) {
                 authenticate(input: $input) {
                     isSuccess
                     accessToken
@@ -79,6 +79,7 @@ public sealed class AuthenticateTests(AppFactory appFactory) : EndToEndTests(app
                         email
                     }
                 }
-            }",
+            }
+            """,
             new { input = new { email, password } });
 }

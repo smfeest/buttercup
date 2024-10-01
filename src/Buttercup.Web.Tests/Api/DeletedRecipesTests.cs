@@ -6,8 +6,8 @@ namespace Buttercup.Web.Api;
 
 public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
-    private const string DeletedRecipesQuery =
-        @"query {
+    private const string DeletedRecipesQuery = """
+        query {
             deletedRecipes {
                 id
                 title
@@ -27,7 +27,8 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
                 deletedByUser { id name }
                 revision
             }
-        }";
+        }
+        """;
 
     [Fact]
     public async Task QueryingDeletedRecipes()
@@ -98,9 +99,11 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
         await this.DatabaseFixture.InsertEntities(currentUser, recipes);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await client.PostQuery(@"query {
-            deletedRecipes(order: [{ title: ASC }]) { id }
-        }");
+        using var response = await client.PostQuery("""
+            query {
+                deletedRecipes(order: [{ title: ASC }]) { id }
+            }
+            """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
