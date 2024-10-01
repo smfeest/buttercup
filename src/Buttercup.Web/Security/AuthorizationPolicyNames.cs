@@ -14,9 +14,9 @@ public static class AuthorizationPolicyNames
 
     /// <summary>
     /// The name of the GraphQL field authorization policy that requires the <see
-    /// cref="RoleNames.Admin"/> role if any admin-only sort fields have been used.
+    /// cref="RoleNames.Admin"/> role if any admin-only filter or sort fields have been used.
     /// </summary>
-    public const string AdminOnlySortFields = nameof(AdminOnlySortFields);
+    public const string AdminOnlyFilterAndSortFields = nameof(AdminOnlyFilterAndSortFields);
 
     /// <summary>
     /// The name of the authorization policy that requires that the user is authenticated and, if

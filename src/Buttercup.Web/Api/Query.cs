@@ -31,7 +31,7 @@ public sealed class Query
         dbContext.Recipes.Where(r => r.Id == id);
 
     [Authorize]
-    [Authorize(AuthorizationPolicyNames.AdminOnlySortFields)]
+    [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
     [UseProjection]
     [UseSorting]
     public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
@@ -44,7 +44,7 @@ public sealed class Query
         dbContext.Users.Where(u => u.Id == id);
 
     [Authorize]
-    [Authorize(AuthorizationPolicyNames.AdminOnlySortFields)]
+    [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
     [UseProjection]
     [UseSorting]
     public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;
