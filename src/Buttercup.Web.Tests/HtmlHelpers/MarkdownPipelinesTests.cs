@@ -27,7 +27,7 @@ public sealed class MarkdownPipelinesTests
     public void Comments_EnablesAutoLinks()
     {
         var output = Markdown.ToHtml("Visit https://example.com", MarkdownPipelines.Comments);
-        Assert.Contains("Visit <a href=\"https://example.com\">https://example.com</a>", output);
+        Assert.Contains("""Visit <a href="https://example.com">https://example.com</a>""", output);
     }
 
     #endregion

@@ -42,7 +42,7 @@ public sealed class OptionalSuffixTagHelperTests
         tagHelper.Process(context, output);
 
         var expected = optionalSuffixIsExpected ?
-            "initial-content<span class=\"form-field__optional-label\">optional</span>" :
+            """initial-content<span class="form-field__optional-label">optional</span>""" :
             "initial-content";
 
         Assert.Equal(expected, output.Content.GetContent());
