@@ -33,6 +33,7 @@ public sealed class Query
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
     [UseProjection]
+    [UseFiltering]
     [UseSorting]
     public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereNotSoftDeleted();
