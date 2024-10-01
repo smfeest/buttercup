@@ -130,8 +130,8 @@ public sealed class CreateCommentTests(AppFactory appFactory) : EndToEndTests(ap
 
     private static Task<HttpResponseMessage> PostCreateCommentMutation(
         HttpClient client, long recipeId, string body) =>
-        client.PostQuery(
-            @"mutation($recipeId: Long!, $body: String!) {
+        client.PostQuery("""
+            mutation($recipeId: Long!, $body: String!) {
                 createComment(input: { recipeId: $recipeId, attributes: { body: $body } }) {
                     comment {
                         id
@@ -151,6 +151,7 @@ public sealed class CreateCommentTests(AppFactory appFactory) : EndToEndTests(ap
                         }
                     }
                 }
-            }",
+            }
+            """,
             new { recipeId, body });
 }

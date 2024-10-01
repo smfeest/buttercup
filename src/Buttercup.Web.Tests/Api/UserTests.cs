@@ -144,8 +144,8 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     }
 
     private static Task<HttpResponseMessage> PostPublicFieldsQuery(HttpClient client, long id) =>
-        client.PostQuery(
-            @"query($id: Long!) {
+        client.PostQuery("""
+            query($id: Long!) {
                 user(id: $id) {
                     id
                     name
@@ -154,17 +154,19 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
                     modified
                     revision
                 }
-            }",
+            }
+            """,
             new { id });
 
     private static Task<HttpResponseMessage> PostPrivateFieldsQuery(HttpClient client, long id) =>
-        client.PostQuery(
-            @"query($id: Long!) {
+        client.PostQuery("""
+            query($id: Long!) {
                 user(id: $id) {
                     email
                     passwordCreated
                     isAdmin
                 }
-            }",
+            }
+            """,
             new { id });
 }

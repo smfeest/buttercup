@@ -85,8 +85,8 @@ public sealed class DeleteRecipeTests(AppFactory appFactory) : EndToEndTests(app
     }
 
     private static Task<HttpResponseMessage> PostDeleteRecipeMutation(HttpClient client, long id) =>
-        client.PostQuery(
-            @"mutation($id: Long!) {
+        client.PostQuery("""
+            mutation($id: Long!) {
                 deleteRecipe(input: { id: $id }) {
                     deleted
                     recipe {
@@ -95,6 +95,7 @@ public sealed class DeleteRecipeTests(AppFactory appFactory) : EndToEndTests(app
                         deletedByUser { id name }
                     }
                 }
-            }",
+            }
+            """,
             new { id });
 }

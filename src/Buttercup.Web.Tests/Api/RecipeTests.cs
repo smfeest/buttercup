@@ -231,8 +231,8 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     }
 
     private static Task<HttpResponseMessage> PostRecipeQuery(HttpClient client, long id) =>
-        client.PostQuery(
-            @"query($id: Long!) {
+        client.PostQuery("""
+            query($id: Long!) {
                 recipe(id: $id) {
                     id
                     title
@@ -275,12 +275,13 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         revisions { revision created body }
                     }
                 }
-            }",
+            }
+            """,
             new { id });
 
     private static Task<HttpResponseMessage> PostDeletedCommentsQuery(HttpClient client, long id) =>
-        client.PostQuery(
-            @"query($id: Long!) {
+        client.PostQuery("""
+            query($id: Long!) {
                 recipe(id: $id) {
                     deletedComments {
                         id
@@ -288,6 +289,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         deletedByUser { id name }
                     }
                 }
-            }",
+            }
+            """,
             new { id });
 }

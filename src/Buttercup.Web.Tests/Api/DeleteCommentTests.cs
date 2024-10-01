@@ -151,8 +151,8 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
 
     private static Task<HttpResponseMessage> PostDeleteCommentMutation(
         HttpClient client, long id) =>
-        client.PostQuery(
-            @"mutation($id: Long!) {
+        client.PostQuery("""
+            mutation($id: Long!) {
                 deleteComment(input: { id: $id }) {
                     deleted
                     comment {
@@ -161,6 +161,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
                         deletedByUser { id name }
                     }
                 }
-            }",
+            }
+            """,
             new { id });
 }

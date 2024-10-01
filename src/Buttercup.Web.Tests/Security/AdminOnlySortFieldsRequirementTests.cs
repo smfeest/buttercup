@@ -22,7 +22,13 @@ public sealed class AdminOnlySortFieldsRequirementTests
 
     [Theory]
     [InlineData("{ foos(order: { field1: ASC, bar1: { field4: DESC } }) { field1 } }")]
-    [InlineData("{ foos(order: [{ field1: ASC, bar1: { field4: DESC } }, { field2: ASC }]) { field1 } }")]
+    [InlineData("""
+        {
+            foos(
+                order: [{ field1: ASC, bar1: { field4: DESC } }, { field2: ASC }]
+            ) { field1 }
+        }
+        """)]
     public async Task OrderArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
@@ -33,7 +39,13 @@ public sealed class AdminOnlySortFieldsRequirementTests
     [InlineData("{ foos(order: { field3: DESC }) { field1 } }")]
     [InlineData("{ foos(order: { field1: ASC, bar1: { field6: DESC } }) { field1 } }")]
     [InlineData("{ foos(order: { field1: ASC, bar2: { field4: DESC } }) { field1 } }")]
-    [InlineData("{ foos(order: [{ field1: ASC, field2: DESC }, { field3: ASC }]) { field1 } }")]
+    [InlineData("""
+        {
+            foos(
+                order: [{ field1: ASC, field2: DESC }, { field3: ASC }]
+            ) { field1 }
+        }
+        """)]
     public async Task OrderArgumentWithAdminOnlyFieldsWhenNotAnAdmin_IsNotAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
@@ -45,8 +57,18 @@ public sealed class AdminOnlySortFieldsRequirementTests
     [Fact]
     public async Task OrderArgumentWithAdminOnlyFieldsWhenAnAdmin_IsAuthorized()
     {
-        var result = await Execute(
-            "{ foos(order: { field1: ASC, field3: DESC, bar1: { field6: DESC }, bar2: { field4: DESC } }) { field1 } }",
+        var result = await Execute("""
+            {
+                foos(
+                    order: {
+                        field1: ASC,
+                        field3: DESC,
+                        bar1: { field6: DESC },
+                        bar2: { field4: DESC }
+                    }
+                ) { field1 }
+            }
+            """,
             isAdmin: true);
         Assert.Null(result.ExpectQueryResult().Errors);
     }

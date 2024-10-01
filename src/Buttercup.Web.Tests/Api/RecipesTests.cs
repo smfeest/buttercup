@@ -6,8 +6,8 @@ namespace Buttercup.Web.Api;
 
 public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
-    private const string RecipesQuery =
-        @"query {
+    private const string RecipesQuery = """
+        query {
             recipes {
                 id
                 title
@@ -25,7 +25,8 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
                 modifiedByUser { id name }
                 revision
             }
-        }";
+        }
+        """;
 
     [Fact]
     public async Task QueryingRecipes()
@@ -92,9 +93,11 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
         await this.DatabaseFixture.InsertEntities(currentUser, recipes);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await client.PostQuery(@"query {
-            recipes(order: [{ title: DESC, id: ASC }]) { id title }
-        }");
+        using var response = await client.PostQuery("""
+            query {
+                recipes(order: [{ title: DESC, id: ASC }]) { id title }
+            }
+            """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -114,9 +117,11 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await client.PostQuery(@"query {
-            recipes(order: { createdByUser: { email: ASC } }) { id }
-        }");
+        using var response = await client.PostQuery("""
+            query {
+                recipes(order: { createdByUser: { email: ASC } }) { id }
+            }
+            """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));

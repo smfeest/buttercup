@@ -7,8 +7,8 @@ namespace Buttercup.Web.Api;
 
 public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
-    private const string UsersQuery =
-        @"query {
+    private const string UsersQuery = """
+        query {
             users {
                 id
                 name
@@ -19,7 +19,8 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
                 modified
                 revision
             }
-        }";
+        }
+        """;
 
     [Fact]
     public async Task QueryingUsers()
@@ -73,9 +74,11 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
         await this.DatabaseFixture.InsertEntities(users);
 
         using var client = await this.AppFactory.CreateClientForApiUser(users[0]);
-        using var response = await client.PostQuery(@"query {
-            users(order: [{ name: ASC, id: DESC }]) { id name }
-        }");
+        using var response = await client.PostQuery("""
+            query {
+                users(order: [{ name: ASC, id: DESC }]) { id name }
+            }
+            """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -105,9 +108,11 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
         await this.DatabaseFixture.InsertEntities(users);
 
         using var client = await this.AppFactory.CreateClientForApiUser(users[0]);
-        using var response = await client.PostQuery(@"query {
-            users(order: [{ email: ASC }]) { id }
-        }");
+        using var response = await client.PostQuery("""
+            query {
+                users(order: [{ email: ASC }]) { id }
+            }
+            """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var dataElement = ApiAssert.SuccessResponse(document);
@@ -124,9 +129,11 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
-        using var response = await client.PostQuery(@"query {
-            users(order: [{ name: ASC, email: DESC }]) { id }
-        }");
+        using var response = await client.PostQuery("""
+            query {
+                users(order: [{ name: ASC, email: DESC }]) { id }
+            }
+            """);
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
