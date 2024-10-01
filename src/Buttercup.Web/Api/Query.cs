@@ -20,6 +20,7 @@ public sealed class Query
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]
+    [UseFiltering]
     [UseSorting]
     public IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereSoftDeleted();

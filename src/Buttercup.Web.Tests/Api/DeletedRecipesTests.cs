@@ -87,6 +87,36 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
     }
 
     [Fact]
+    public async Task FilteringDeletedRecipes()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var recipes = new[]
+        {
+            this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 1, CookingMinutes = 30 },
+            this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 2, CookingMinutes = 60 },
+            this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 3, CookingMinutes = 20 },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, recipes);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                deletedRecipes(
+                    order: { id: ASC },
+                    where: { cookingMinutes: { lt: 35 } }
+                ) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+        var filteredIds = dataElement.GetProperty("deletedRecipes").EnumerateArray().Select(
+            u => u.GetProperty("id").GetInt64());
+
+        Assert.Equal([1, 3], filteredIds);
+    }
+
+    [Fact]
     public async Task SortingDeletedRecipes()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
