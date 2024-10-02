@@ -46,6 +46,7 @@ services.AddGraphQLServer()
     .AddApiTypes()
     .AddAuthorization()
     .AddDirectiveType<AdminOnlyDirectiveType>()
+    .AddFiltering()
     .AddMutationConventions()
     .AddProjections()
     .AddSorting()
@@ -83,8 +84,8 @@ services
 services.AddAuthorizationBuilder()
     .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
     .AddPolicy(
-        AuthorizationPolicyNames.AdminOnlySortFields,
-        policy => policy.AddRequirements(new AdminOnlySortFieldsRequirement()))
+        AuthorizationPolicyNames.AdminOnlyFilterAndSortFields,
+        policy => policy.AddRequirements(new AdminOnlyFilterAndSortFieldsRequirement()))
     .AddPolicy(
         AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted,
         policy =>

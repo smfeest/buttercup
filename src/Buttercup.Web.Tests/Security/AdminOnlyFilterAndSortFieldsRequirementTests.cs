@@ -4,6 +4,7 @@ using Buttercup.Web.Api;
 using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Data;
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -11,10 +12,10 @@ using Xunit;
 
 namespace Buttercup.Web.Security;
 
-public sealed class AdminOnlySortFieldsRequirementTests
+public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
 {
     [Fact]
-    public async Task NoOrderArgumentWhenNotAnAdmin_IsAuthorized()
+    public async Task NoOrderOrWhereArgumentWhenNotAnAdmin_IsAuthorized()
     {
         var result = await Execute("{ foos { field1 } }", isAdmin: false);
         Assert.Null(result.ExpectQueryResult().Errors);
@@ -73,13 +74,103 @@ public sealed class AdminOnlySortFieldsRequirementTests
         Assert.Null(result.ExpectQueryResult().Errors);
     }
 
+    [Theory]
+    [InlineData("""
+        {
+            foos(
+                where: {
+                    or: [
+                        { field2: { eq: "baz" } },
+                        { bar2: { field5: { eq: "qux" } } }
+                    ]
+                }
+            ) { field1 }
+        }
+        """)]
+    [InlineData("""
+        {
+            foos(
+                where: {
+                    bar2: {
+                        and: [
+                            { field5: { eq: "baz" } },
+                            { field6: { in: ["qux", "thud"] } }
+                        ]
+                    }
+                }
+            ) { field1 }
+        }
+        """)]
+    public async Task WhereArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
+    {
+        var result = await Execute(query, isAdmin: false);
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Theory]
+    [InlineData("""{ foos(where: { field1: { eq: "baz" } }) { field1 } }""")]
+    [InlineData("""{ foos(where: { bar1: { field5: { eq: "baz" } } }) { field1 } }""")]
+    [InlineData("""
+        {
+            foos(
+                where: {
+                    or: [
+                        { field2: { eq: "baz" } },
+                        { bar2: { field4: { eq: "qux" } } }
+                    ]
+                }
+            ) { field1 }
+        }
+        """)]
+    [InlineData("""
+        {
+            foos(
+                where: {
+                    bar2: {
+                        and: [
+                            { field4: { eq: "baz" } },
+                            { field6: { in: ["qux", "thud"] } }
+                        ]
+                    }
+                }
+            ) { field1 }
+        }
+        """)]
+    public async Task WhereArgumentWithAdminOnlyFieldsWhenNotAnAdmin_IsNotAuthorized(string query)
+    {
+        var result = await Execute(query, isAdmin: false);
+        var errors = result.ExpectQueryResult().Errors;
+        Assert.NotNull(errors);
+        Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
+    }
+
+    [Fact]
+    public async Task WhereArgumentWithAdminOnlyFieldsWhenAnAdmin_IsAuthorized()
+    {
+        var result = await Execute(
+            """
+            {
+                foos(
+                    where: {
+                        or: [
+                            { field1: { eq: "baz" } },
+                            { bar1: { field4: { eq: "qux" } } }
+                        ]
+                    }
+                ) { field1 }
+            }
+            """,
+            isAdmin: true);
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
     [Fact]
     public async Task ResourceIsNotMiddlewareContext_IsNotAuthorized() =>
         Assert.False(await Authorize(new(), isAdmin: true));
 
     private static async Task<bool> Authorize(object resource, bool isAdmin)
     {
-        var requirement = new AdminOnlySortFieldsRequirement();
+        var requirement = new AdminOnlyFilterAndSortFieldsRequirement();
         var principal = new ClaimsPrincipal(
             new ClaimsIdentity(isAdmin ? [new Claim(ClaimTypes.Role, RoleNames.Admin)] : []));
         var context = new Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext(
@@ -97,6 +188,10 @@ public sealed class AdminOnlySortFieldsRequirementTests
             .AddAuthorizationHandler(_ => new AuthorizationHandler(isAdmin))
             .AddDirectiveType<AdminOnlyDirectiveType>()
             .AddQueryType<Query>()
+            .AddFiltering(convention => convention
+                .AddDefaults()
+                .BindRuntimeType<Bar, BarFilterType>()
+                .BindRuntimeType<Foo, FooFilterType>())
             .AddSorting(convention => convention
                 .AddDefaults()
                 .BindRuntimeType<Bar, BarSortType>()
@@ -111,6 +206,12 @@ public sealed class AdminOnlySortFieldsRequirementTests
 
     public sealed record Bar(string Field4, string Field5, string Field6);
 
+    public sealed class BarFilterType : FilterInputType<Bar>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Bar> descriptor) =>
+            descriptor.Field(x => x.Field4).Directive(AdminOnlyDirectiveType.DirectiveName);
+    }
+
     public sealed class BarSortType : SortInputType<Bar>
     {
         protected override void Configure(ISortInputTypeDescriptor<Bar> descriptor) =>
@@ -118,6 +219,15 @@ public sealed class AdminOnlySortFieldsRequirementTests
     }
 
     public sealed record Foo(string Field1, string Field2, string Field3, Bar Bar1, Bar Bar2);
+
+    public sealed class FooFilterType : FilterInputType<Foo>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Field(x => x.Field1).Directive(AdminOnlyDirectiveType.DirectiveName);
+            descriptor.Field(x => x.Bar1).Directive(AdminOnlyDirectiveType.DirectiveName);
+        }
+    }
 
     public sealed class FooSortType : SortInputType<Foo>
     {
@@ -131,6 +241,7 @@ public sealed class AdminOnlySortFieldsRequirementTests
     public sealed class Query
     {
         [Authorize]
+        [UseFiltering]
         [UseSorting]
         public IEnumerable<Foo> Foos() => [];
     }

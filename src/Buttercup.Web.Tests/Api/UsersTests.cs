@@ -62,6 +62,53 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
     }
 
     [Fact]
+    public async Task FilteringUsersByUnrestrictedFieldsWhenNotAdmin()
+    {
+        var users = new[]
+        {
+            this.ModelFactory.BuildUser() with { Id = 1, Name = "Anna", IsAdmin = false },
+            this.ModelFactory.BuildUser() with { Id = 2, Name = "Ben" },
+            this.ModelFactory.BuildUser() with { Id = 3, Name = "Adam" },
+        };
+        await this.DatabaseFixture.InsertEntities(users);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(users[0]);
+        using var response = await client.PostQuery("""
+            query {
+                users(
+                    order: { id: ASC },
+                    where: { name: { startsWith: "A" } }
+                ) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+        var filteredIds = dataElement.GetProperty("users").EnumerateArray().Select(
+            u => u.GetProperty("id").GetInt64());
+
+        Assert.Equal([1, 3], filteredIds);
+    }
+
+    [Fact]
+    public async Task FilteringUsersByEmailWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                users(where: { email: { contains: "a" } }) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+    }
+
+    [Fact]
     public async Task SortingUsersByUnrestrictedFieldsWhenNotAnAdmin()
     {
         var users = new[]

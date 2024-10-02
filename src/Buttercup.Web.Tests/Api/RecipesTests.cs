@@ -80,6 +80,64 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
     }
 
     [Fact]
+    public async Task FilteringRecipes()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { Name = "Auguste Gusteau" };
+        var recipes = new[]
+        {
+            this.ModelFactory.BuildRecipe() with { Id = 1, Servings = 8 },
+            this.ModelFactory.BuildRecipe() with { Id = 2, Servings = 4 },
+            this.ModelFactory.BuildRecipe() with { Id = 3, Servings = 6 },
+            this.ModelFactory.BuildRecipe() with {
+                Id = 4,
+                Servings = 2,
+                CreatedByUser = currentUser
+            },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, recipes);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                recipes(
+                    order: { id: ASC },
+                    where: {
+                        or: [
+                            { servings: { gt: 7 } },
+                            { createdByUser: { name: { eq: "Auguste Gusteau" } } }
+                        ]
+                    }
+                ) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+        var filteredIds = dataElement.GetProperty("recipes").EnumerateArray().Select(
+            u => u.GetProperty("id").GetInt64());
+
+        Assert.Equal([1, 4], filteredIds);
+    }
+
+    [Fact]
+    public async Task FilteringRecipesByAdminOnlyUserFieldWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                recipes(where: { createdByUser: { email: { eq: "foo@example.com" } } }) { id }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+    }
+
+    [Fact]
     public async Task SortingRecipes()
     {
         var currentUser = this.ModelFactory.BuildUser();
