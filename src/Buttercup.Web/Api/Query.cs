@@ -13,6 +13,7 @@ public sealed class Query
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
     [UseProjection]
     [UseFiltering]
+    [UseSortById<Comment>]
     [UseSorting]
     public IQueryable<Comment> Comments(AppDbContext dbContext) =>
         dbContext.Comments.WhereNotSoftDeleted();
