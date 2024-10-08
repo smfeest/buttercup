@@ -14,6 +14,7 @@ public sealed class Query
     [UsePaging(MaxPageSize = 500)]
     [UseProjection]
     [UseFiltering]
+    [UseTieBreakSortById<Comment>]
     [UseSorting]
     public IQueryable<Comment> Comments(AppDbContext dbContext) =>
         dbContext.Comments.WhereNotSoftDeleted();
