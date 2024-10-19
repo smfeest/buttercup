@@ -51,6 +51,7 @@ services.AddGraphQLServer()
     .AddProjections()
     .AddSorting()
     .AllowIntrospection(isDevelopment)
+    .ModifyOptions(options => options.UseXmlDocumentation = false)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
     .RegisterDbContext<AppDbContext>(DbContextKind.Pooled);
 
