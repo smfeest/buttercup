@@ -9,6 +9,13 @@ namespace Buttercup.Web.Api;
 [QueryType]
 public sealed class Query
 {
+    [Authorize(
+        AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted, ApplyPolicy.AfterResolver)]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Comment> Comment(AppDbContext dbContext, long id) =>
+        dbContext.Comments.Where(c => c.Id == id);
+
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
     [UsePaging(MaxPageSize = 500)]
