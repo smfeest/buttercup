@@ -36,6 +36,15 @@ public sealed class Query
     }
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [UsePaging(MaxPageSize = 500)]
+    [UseProjection]
+    [UseFiltering]
+    [UseTieBreakSortById<Comment>]
+    [UseSorting]
+    public IQueryable<Comment> DeletedComments(AppDbContext dbContext) =>
+        dbContext.Comments.WhereSoftDeleted();
+
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
