@@ -13,7 +13,7 @@
     "@urql/core": "^5.0.6",
     "@urql/exchange-auth": "^2.2.0",
     "del": "^7.1.0",
-    "eslint": "^9.10.0",
+    "eslint": "^9.13.0",
     "gulp": "^5.0.0",
     "gulp-clean-css": "^4.3.0",
     "gulp-less": "^5.0.0",
