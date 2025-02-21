@@ -15,7 +15,7 @@ public sealed class UseTieBreakSortByIdAttributeTests
     public async Task TieBreaksSortById(string query, long[] expectedOrderedIds)
     {
         var result = await Execute(query);
-        var actualOrderedIds = ((ListResult)result.ExpectQueryResult().Data!["foos"]!).Select(
+        var actualOrderedIds = ((ListResult)result.ExpectOperationResult().Data!["foos"]!).Select(
             listItem => (long)((IReadOnlyDictionary<string, object?>)listItem!)["id"]!);
         Assert.Equal(expectedOrderedIds, actualOrderedIds);
     }

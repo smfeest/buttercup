@@ -18,7 +18,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task NoOrderOrWhereArgumentWhenNotAnAdmin_IsAuthorized()
     {
         var result = await Execute("{ foos { field1 } }", isAdmin: false);
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -33,7 +33,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task OrderArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -50,7 +50,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task OrderArgumentWithAdminOnlyFieldsWhenNotAnAdmin_IsNotAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
-        var errors = result.ExpectQueryResult().Errors;
+        var errors = result.ExpectOperationResult().Errors;
         Assert.NotNull(errors);
         Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
     }
@@ -71,7 +71,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
             }
             """,
             isAdmin: true);
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -104,7 +104,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task WhereArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -139,7 +139,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task WhereArgumentWithAdminOnlyFieldsWhenNotAnAdmin_IsNotAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
-        var errors = result.ExpectQueryResult().Errors;
+        var errors = result.ExpectOperationResult().Errors;
         Assert.NotNull(errors);
         Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
     }
@@ -161,7 +161,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
             }
             """,
             isAdmin: true);
-        Assert.Null(result.ExpectQueryResult().Errors);
+        Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
