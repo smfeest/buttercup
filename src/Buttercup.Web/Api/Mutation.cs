@@ -145,6 +145,7 @@ public sealed class Mutation
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    [Authorize]
     public async Task<DeleteCommentPayload> DeleteComment(
         [Service] IAuthorizationService authorizationService,
         [Service] ICommentManager commentManager,
