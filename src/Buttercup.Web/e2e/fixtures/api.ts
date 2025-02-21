@@ -98,7 +98,7 @@ export const api = (baseUrl: string, username: string) => {
           },
           didAuthError(error) {
             return error.graphQLErrors.some(
-              (e) => e.extensions?.code === 'AUTH_NOT_AUTHORIZED',
+              (e) => e.extensions?.code === 'AUTH_NOT_AUTHENTICATED',
             );
           },
           async refreshAuth() {

@@ -4,7 +4,6 @@ using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.Localization;
 using IAuthorizationService = Microsoft.AspNetCore.Authorization.IAuthorizationService;
@@ -64,7 +63,7 @@ public sealed class Mutation
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<MutationResult<CreateCommentPayload>> CreateComment(
+    public async Task<FieldResult<CreateCommentPayload>> CreateComment(
         [Service] IInputObjectValidatorFactory validatorFactory,
         [Service] ICommentManager commentManager,
         ClaimsPrincipal claimsPrincipal,
@@ -103,7 +102,7 @@ public sealed class Mutation
     /// The recipe attributes.
     /// </param>
     [Authorize]
-    public async Task<MutationResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
+    public async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
         [Service] IInputObjectValidatorFactory validatorFactory,
         [Service] IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,
@@ -162,7 +161,7 @@ public sealed class Mutation
 
         return authorizationResult.Succeeded
             ? new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()))
-            : throw new QueryException(
+            : throw new GraphQLException(
                 resolverContext.CreateError(
                     ErrorCodes.Authentication.NotAuthorized,
                     localizer["Error_DeleteCommentNotAuthorized"]));
@@ -242,7 +241,7 @@ public sealed class Mutation
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<MutationResult<UpdateRecipePayload>> UpdateRecipe(
+    public async Task<FieldResult<UpdateRecipePayload>> UpdateRecipe(
         [Service] IInputObjectValidatorFactory validatorFactory,
         [Service] IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,

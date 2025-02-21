@@ -80,7 +80,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("comment"));
 
-        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthenticated, document);
     }
 
     [Fact]

@@ -145,7 +145,7 @@ public sealed class InputObjectValidatorTests
 
     private static ISchema CreateSchema() =>
         new SchemaBuilder()
-            .SetOptions(new SchemaOptions { StrictValidation = false })
+            .ModifyOptions(options => options.StrictValidation = false)
             .AddInputObjectType<Galaxy>()
             .AddInputObjectType<Planet>()
             .AddInputObjectType<Star>()
