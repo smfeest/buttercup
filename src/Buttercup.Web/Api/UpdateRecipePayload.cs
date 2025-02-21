@@ -10,5 +10,5 @@ public sealed class UpdateRecipePayload(long recipeId)
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Recipe> Recipe(AppDbContext dbContext) =>
-        dbContext.Recipes.Where(r => r.Id == recipeId);
+        dbContext.Recipes.Where(r => r.Id == recipeId).OrderBy(r => r.Id);
 }
