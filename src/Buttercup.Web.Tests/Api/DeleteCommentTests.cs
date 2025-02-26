@@ -99,7 +99,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
         {
             Author = currentUser
         };
-        await this.DatabaseFixture.InsertEntities(currentUser, comment);
+        await this.DatabaseFixture.InsertEntities(comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostDeleteCommentMutation(client, comment.Id);
