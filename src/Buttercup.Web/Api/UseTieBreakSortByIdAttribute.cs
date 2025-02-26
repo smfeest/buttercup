@@ -1,8 +1,7 @@
-
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Buttercup.EntityModel;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Types.Descriptors;
 
 namespace Buttercup.Web.Api;
@@ -15,36 +14,18 @@ public class UseTieBreakSortByIdAttribute<T> : ObjectFieldDescriptorAttribute wh
         IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member) =>
         descriptor.Use(next => async middlewareContext =>
         {
+            var sortingContext = middlewareContext.GetSortingContext();
+
+            if (sortingContext is not null)
+            {
+                sortingContext.Handled(false);
+                sortingContext.OnAfterSortingApplied<IQueryable<T>>(
+                    static (sortingApplied, queryable) =>
+                        sortingApplied && queryable is IOrderedQueryable<T> orderedQueryable
+                            ? orderedQueryable.ThenBy(e => e.Id)
+                            : queryable.OrderBy(e => e.Id));
+            }
+
             await next(middlewareContext);
-
-            if (middlewareContext.Result is IOrderedQueryable<T> queryable)
-            {
-                var visitor = new IsOrderedVisitor();
-                visitor.Visit(queryable.Expression);
-
-                middlewareContext.Result = visitor.HasOrderBy ?
-                    queryable.ThenBy(e => e.Id) :
-                    queryable.OrderBy(e => e.Id);
-            }
         });
-
-    private sealed class IsOrderedVisitor : ExpressionVisitor
-    {
-        public bool HasOrderBy { get; private set; }
-
-        protected override Expression VisitMethodCall(MethodCallExpression node)
-        {
-            if (!this.HasOrderBy && node.Method.Name switch
-            {
-                nameof(Enumerable.OrderBy) => true,
-                nameof(Enumerable.OrderByDescending) => true,
-                _ => false,
-            })
-            {
-                this.HasOrderBy = true;
-            }
-
-            return base.VisitMethodCall(node);
-        }
-    }
 }
