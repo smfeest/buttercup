@@ -10,5 +10,5 @@ public sealed class CreateCommentPayload(long recipeId)
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Comment> Comment(AppDbContext dbContext) =>
-        dbContext.Comments.Where(r => r.Id == recipeId);
+        dbContext.Comments.Where(r => r.Id == recipeId).OrderBy(c => c.Id);
 }

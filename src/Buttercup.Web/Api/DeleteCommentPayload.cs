@@ -16,5 +16,5 @@ public sealed class DeleteCommentPayload(long commentId, bool deleted)
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Comment> Comment(AppDbContext dbContext) =>
-        dbContext.Comments.Where(r => r.Id == commentId);
+        dbContext.Comments.Where(r => r.Id == commentId).OrderBy(c => c.Id);
 }

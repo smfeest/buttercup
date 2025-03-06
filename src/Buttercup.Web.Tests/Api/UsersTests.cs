@@ -58,7 +58,7 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
-        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthenticated, document);
     }
 
     [Fact]

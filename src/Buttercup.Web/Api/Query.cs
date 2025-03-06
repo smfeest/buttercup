@@ -14,7 +14,7 @@ public sealed class Query
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Comment> Comment(AppDbContext dbContext, long id) =>
-        dbContext.Comments.Where(c => c.Id == id);
+        dbContext.Comments.Where(c => c.Id == id).OrderBy(c => c.Id);
 
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
@@ -32,7 +32,9 @@ public sealed class Query
     {
         var userId = principal.TryGetUserId();
 
-        return userId.HasValue ? dbContext.Users.Where(u => u.Id == userId) : null;
+        return userId.HasValue ?
+            dbContext.Users.Where(u => u.Id == userId).OrderBy(u => u.Id) :
+            null;
     }
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
@@ -55,7 +57,7 @@ public sealed class Query
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Recipe> Recipe(AppDbContext dbContext, long id) =>
-        dbContext.Recipes.Where(r => r.Id == id);
+        dbContext.Recipes.Where(r => r.Id == id).OrderBy(r => r.Id);
 
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
@@ -69,7 +71,7 @@ public sealed class Query
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<User> User(AppDbContext dbContext, long id) =>
-        dbContext.Users.Where(u => u.Id == id);
+        dbContext.Users.Where(u => u.Id == id).OrderBy(u => u.Id);
 
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]

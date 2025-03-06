@@ -140,7 +140,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data").GetProperty("user"));
 
-        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthenticated, document);
     }
 
     private static Task<HttpResponseMessage> PostPublicFieldsQuery(HttpClient client, long id) =>

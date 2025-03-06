@@ -76,7 +76,7 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
-        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+        ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthenticated, document);
     }
 
     [Fact]

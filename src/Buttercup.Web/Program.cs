@@ -5,11 +5,11 @@ using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web;
 using Buttercup.Web.Api;
-using Buttercup.Web.Security;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
+using Buttercup.Web.Security;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -50,10 +50,10 @@ services.AddGraphQLServer()
     .AddMutationConventions()
     .AddProjections()
     .AddSorting()
-    .AllowIntrospection(isDevelopment)
+    .DisableIntrospection(!isDevelopment)
     .ModifyOptions(options => options.UseXmlDocumentation = false)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
-    .RegisterDbContext<AppDbContext>(DbContextKind.Pooled);
+    .RegisterDbContextFactory<AppDbContext>();
 
 services.Configure<ForwardedHeadersOptions>(
     options => options.ForwardedHeaders =

@@ -4,7 +4,6 @@ using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.Localization;
 using IAuthorizationService = Microsoft.AspNetCore.Authorization.IAuthorizationService;
@@ -15,10 +14,10 @@ namespace Buttercup.Web.Api;
 public sealed class Mutation
 {
     public async Task<AuthenticatePayload> Authenticate(
-        [Service] IHttpContextAccessor httpContextAccessor,
-        [Service] IPasswordAuthenticationService passwordAuthenticationService,
-        [Service] ITokenAuthenticationService tokenAuthenticationService,
-        [Service] IClaimsIdentityFactory claimsIdentityFactory,
+        IHttpContextAccessor httpContextAccessor,
+        IPasswordAuthenticationService passwordAuthenticationService,
+        ITokenAuthenticationService tokenAuthenticationService,
+        IClaimsIdentityFactory claimsIdentityFactory,
         ClaimsPrincipal claimsPrincipal,
         string email,
         string password)
@@ -64,9 +63,9 @@ public sealed class Mutation
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<MutationResult<CreateCommentPayload>> CreateComment(
-        [Service] IInputObjectValidatorFactory validatorFactory,
-        [Service] ICommentManager commentManager,
+    public async Task<FieldResult<CreateCommentPayload>> CreateComment(
+        IInputObjectValidatorFactory validatorFactory,
+        ICommentManager commentManager,
         ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         long recipeId,
@@ -103,9 +102,9 @@ public sealed class Mutation
     /// The recipe attributes.
     /// </param>
     [Authorize]
-    public async Task<MutationResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
-        [Service] IInputObjectValidatorFactory validatorFactory,
-        [Service] IRecipeManager recipeManager,
+    public async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
+        IInputObjectValidatorFactory validatorFactory,
+        IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         RecipeAttributes attributes)
@@ -146,10 +145,11 @@ public sealed class Mutation
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    [Authorize]
     public async Task<DeleteCommentPayload> DeleteComment(
-        [Service] IAuthorizationService authorizationService,
-        [Service] ICommentManager commentManager,
-        [Service] IStringLocalizer<Mutation> localizer,
+        IAuthorizationService authorizationService,
+        ICommentManager commentManager,
+        IStringLocalizer<Mutation> localizer,
         AppDbContext dbContext,
         ClaimsPrincipal claimsPrincipal,
         IResolverContext resolverContext,
@@ -162,7 +162,7 @@ public sealed class Mutation
 
         return authorizationResult.Succeeded
             ? new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()))
-            : throw new QueryException(
+            : throw new GraphQLException(
                 resolverContext.CreateError(
                     ErrorCodes.Authentication.NotAuthorized,
                     localizer["Error_DeleteCommentNotAuthorized"]));
@@ -182,7 +182,7 @@ public sealed class Mutation
     /// </param>
     [Authorize]
     public async Task<DeleteRecipePayload> DeleteRecipe(
-        [Service] IRecipeManager recipeManager, ClaimsPrincipal claimsPrincipal, long id) =>
+        IRecipeManager recipeManager, ClaimsPrincipal claimsPrincipal, long id) =>
         new(id, await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId()));
 
     /// <summary>
@@ -196,7 +196,7 @@ public sealed class Mutation
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<HardDeleteCommentPayload> HardDeleteComment(
-        [Service] ICommentManager commentManager, long id) =>
+        ICommentManager commentManager, long id) =>
         new(await commentManager.HardDeleteComment(id));
 
     /// <summary>
@@ -210,7 +210,7 @@ public sealed class Mutation
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
-        [Service] IRecipeManager recipeManager, long id) =>
+        IRecipeManager recipeManager, long id) =>
         new(await recipeManager.HardDeleteRecipe(id));
 
     /// <summary>
@@ -242,9 +242,9 @@ public sealed class Mutation
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<MutationResult<UpdateRecipePayload>> UpdateRecipe(
-        [Service] IInputObjectValidatorFactory validatorFactory,
-        [Service] IRecipeManager recipeManager,
+    public async Task<FieldResult<UpdateRecipePayload>> UpdateRecipe(
+        IInputObjectValidatorFactory validatorFactory,
+        IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         long id,
