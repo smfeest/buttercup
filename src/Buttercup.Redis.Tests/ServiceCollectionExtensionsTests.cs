@@ -1,3 +1,4 @@
+using Buttercup.Redis.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,6 +29,15 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.ServiceType == typeof(IRedisConnectionManager) &&
                 serviceDescriptor.ImplementationType == typeof(RedisConnectionManager) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Singleton);
+
+    [Fact]
+    public void AddRedisServices_AddsSlidingWindowRateLimiter() =>
+        Assert.Contains(
+            new ServiceCollection().AddRedisServices(ConfigureRedisConnectionOptions),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(ISlidingWindowRateLimiter) &&
+                serviceDescriptor.ImplementationType == typeof(SlidingWindowRateLimiter) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
     public void AddRedisServices_WithConfigureActionConfiguresOptions()

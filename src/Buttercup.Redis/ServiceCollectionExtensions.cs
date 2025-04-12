@@ -1,3 +1,4 @@
+using Buttercup.Redis.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -49,6 +50,7 @@ public static class ServiceCollectionExtensions
 
         return services
             .AddTransient<IRedisConnectionFactory, RedisConnectionFactory>()
-            .AddSingleton<IRedisConnectionManager, RedisConnectionManager>();
+            .AddSingleton<IRedisConnectionManager, RedisConnectionManager>()
+            .AddTransient<ISlidingWindowRateLimiter, SlidingWindowRateLimiter>();
     }
 }
