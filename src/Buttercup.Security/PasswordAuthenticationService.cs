@@ -11,6 +11,7 @@ internal sealed partial class PasswordAuthenticationService(
     IAuthenticationMailer authenticationMailer,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<PasswordAuthenticationService> logger,
+    IPasswordAuthenticationRateLimiter passwordAuthenticationRateLimiter,
     IPasswordHasher<User> passwordHasher,
     IRandomTokenGenerator randomTokenGenerator,
     TimeProvider timeProvider)
@@ -21,6 +22,8 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly IAuthenticationMailer authenticationMailer = authenticationMailer;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<PasswordAuthenticationService> logger = logger;
+    private readonly IPasswordAuthenticationRateLimiter passwordAuthenticationRateLimiter =
+        passwordAuthenticationRateLimiter;
     private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
@@ -29,6 +32,16 @@ internal sealed partial class PasswordAuthenticationService(
         string email, string password, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        if (!await this.passwordAuthenticationRateLimiter.IsAllowed(email))
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "authentication_failure:rate_limit_exceeded", ipAddress);
+
+            this.LogAuthenticationFailedRateLimitExceeded(email);
+
+            return new(PasswordAuthenticationFailure.TooManyAttempts);
+        }
 
         var user = await FindByEmailAsync(dbContext.Users.AsTracking(), email);
 
@@ -296,6 +309,13 @@ internal sealed partial class PasswordAuthenticationService(
         Level = LogLevel.Information,
         Message = "Authentication failed; no password set for user {UserId} ({Email})")]
     private partial void LogAuthenticationFailedNoPasswordSet(long userId, string email);
+
+    [LoggerMessage(
+        EventId = 220,
+        EventName = "AuthenticationFailedRateLimitExceeded",
+        Level = LogLevel.Information,
+        Message = "Authentication failed; rate limit exceeded for email {Email}")]
+    private partial void LogAuthenticationFailedRateLimitExceeded(string email);
 
     [LoggerMessage(
         EventId = 203,

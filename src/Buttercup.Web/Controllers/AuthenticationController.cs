@@ -83,12 +83,22 @@ public sealed class AuthenticationController(
 
         if (!result.IsSuccess)
         {
-            this.ModelState.AddModelError(
-                string.Empty, this.localizer["Error_WrongEmailOrPassword"]!);
+            var message = result.Failure switch
+            {
+                PasswordAuthenticationFailure.TooManyAttempts =>
+                    this.localizer["Error_TooManyAttempts"],
+                PasswordAuthenticationFailure.IncorrectCredentials =>
+                    this.localizer["Error_WrongEmailOrPassword"],
+                _ => null,
+            };
+
+            if (message is not null)
+            {
+                this.ModelState.AddModelError(string.Empty, message);
+            }
 
             return this.View(model);
         }
-
         await this.cookieAuthenticationService.SignIn(this.HttpContext, result.User);
 
         return this.Url.IsLocalUrl(returnUrl) ?

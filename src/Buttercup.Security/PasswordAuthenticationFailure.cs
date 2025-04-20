@@ -10,4 +10,10 @@ public enum PasswordAuthenticationFailure
     /// to set a password.
     /// </summary>
     IncorrectCredentials,
+
+    /// <summary>
+    /// Indicates that the request has been blocked due to too many failed attempts. The user must
+    /// either reset their password or wait a while before trying again.
+    /// </summary>
+    TooManyAttempts,
 }

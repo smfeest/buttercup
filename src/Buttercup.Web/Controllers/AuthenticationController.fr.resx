@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Error_TooManyAttempts">
+    <value>Trop de tentatives échouées. Réinitialisez votre mot de passe ou réessayez plus tard.</value>
+  </data>
   <data name="Error_WrongEmailOrPassword">
     <value>L'adresse e-mail ou mot de passe est incorrect</value>
   </data>

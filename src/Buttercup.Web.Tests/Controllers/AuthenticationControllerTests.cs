@@ -199,7 +199,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_InvalidModel_ReturnsViewResult()
     {
-        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.InvalidCredentials));
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.IncorrectCredentials));
         this.authenticationController.ModelState.AddModelError("test", "test");
 
         var result = await this.authenticationController.SignIn(viewModel);
@@ -208,10 +208,13 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.Same(viewModel, viewResult.Model);
     }
 
-    [Fact]
-    public async Task SignIn_Post_AuthenticationFailure_AddsError()
+    [Theory]
+    [InlineData(PasswordAuthenticationFailure.IncorrectCredentials, "translated-wrong-email-or-password-error")]
+    [InlineData(PasswordAuthenticationFailure.TooManyAttempts, "translated-too-many-attempts-error")]
+    public async Task SignIn_Post_AuthenticationFailure_AddsError(
+        PasswordAuthenticationFailure failure, string expectedMessage)
     {
-        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.InvalidCredentials));
+        var viewModel = this.SetupSignInPost(new(failure));
 
         await this.authenticationController.SignIn(viewModel);
 
@@ -219,13 +222,13 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.NotNull(formState);
 
         var error = Assert.Single(formState.Errors);
-        Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
+        Assert.Equal(expectedMessage, error.ErrorMessage);
     }
 
     [Fact]
     public async Task SignIn_Post_AuthenticationFailure_ReturnsViewResult()
     {
-        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.InvalidCredentials));
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.IncorrectCredentials));
 
         var result = await this.authenticationController.SignIn(viewModel);
 
@@ -275,8 +278,9 @@ public sealed class AuthenticationControllerTests : IDisposable
         var password = this.modelFactory.NextString("password");
         var ipAddress = this.SetupRemoteIpAddress();
 
-        this.localizer.Add(
-            "Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
+        this.localizer
+            .Add("Error_TooManyAttempts", "translated-too-many-attempts-error")
+            .Add("Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
         this.passwordAuthenticationServiceMock
             .Setup(x => x.Authenticate(email, password, ipAddress))
