@@ -15,4 +15,11 @@ public interface ISlidingWindowRateLimiter
     /// within the specified rate limit; otherwise, <b>false</b>.
     /// </returns>
     Task<bool> IsAllowed(string key, SlidingWindowRateLimit rateLimit);
+
+    /// <summary>
+    /// Resets the counters for a specific rate limit key.
+    /// </summary>
+    /// <param name="key">The rate limit key.</param>
+    /// <returns>A task for the operation.</returns>
+    Task Reset(string key);
 }

@@ -11,7 +11,7 @@ internal sealed class SlidingWindowRateLimiter(
 
     public async Task<bool> IsAllowed(string key, SlidingWindowRateLimit rateLimit)
     {
-        var redisKey = $"rate_limit:sliding_window:{key}";
+        var redisKey = RedisKey(key);
 
         await this.redisConnectionManager.EnsureInitialized();
 
@@ -57,4 +57,22 @@ internal sealed class SlidingWindowRateLimiter(
             throw;
         }
     }
+
+    public async Task Reset(string key)
+    {
+        await this.redisConnectionManager.EnsureInitialized();
+
+        try
+        {
+            var database = this.redisConnectionManager.CurrentConnection.GetDatabase();
+            await database.KeyDeleteAsync(RedisKey(key));
+        }
+        catch (Exception e)
+        {
+            await this.redisConnectionManager.CheckException(e);
+            throw;
+        }
+    }
+
+    private static string RedisKey(string key) => $"rate_limit:sliding_window:{key}";
 }
