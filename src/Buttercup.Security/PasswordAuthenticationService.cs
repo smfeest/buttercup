@@ -195,6 +195,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
+        await this.passwordAuthenticationRateLimiter.Reset(user.Email);
+
         return user;
     }
 

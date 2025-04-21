@@ -733,6 +733,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.authenticationMailerMock.Verify(
             x => x.SendPasswordChangeNotification(userBefore.Email));
 
+        // Resets the rate limit counters
+        this.passwordAuthenticationRateLimiterMock.Verify(x => x.Reset(userBefore.Email));
+
         // Returns updated user
         Assert.Equal(expectedUserAfter, result);
     }
