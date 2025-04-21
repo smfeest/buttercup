@@ -66,8 +66,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             203,
             $"Authentication failed; no user with email {args.Email}");
 
-        // Returns null
-        Assert.Null(result);
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
     }
 
     [Fact]
@@ -95,8 +95,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             201,
             $"Authentication failed; no password set for user {user.Id} ({user.Email})");
 
-        // Returns null
-        Assert.Null(result);
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
     }
 
     [Fact]
@@ -132,8 +132,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             200,
             $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
 
-        // Returns null
-        Assert.Null(result);
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.passwordHasherMock.Verify(x => x.HashPassword(user, args.Password), Times.Never);
 
         // Returns user
-        Assert.Equal(user, result);
+        Assert.Equal(user, result.User);
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             $"Password hash upgraded for user {userBefore.Id} ({userBefore.Email})");
 
         // Returns updated user
-        Assert.Equal(expectedUserAfter, result);
+        Assert.Equal(expectedUserAfter, result.User);
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             $"Upgraded password hash not persisted for user {userBefore.Id} ({userBefore.Email}); concurrent changed detected");
 
         // Returns unmodified user
-        Assert.Equal(userBefore, result);
+        Assert.Equal(userBefore, result.User);
     }
 
     private sealed record AuthenticateArgs(string Email, string Password, IPAddress IpAddress);

@@ -24,18 +24,18 @@ public sealed class Mutation
     {
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
 
-        var user = await passwordAuthenticationService.Authenticate(email, password, ipAddress);
+        var result = await passwordAuthenticationService.Authenticate(email, password, ipAddress);
 
-        if (user == null)
+        if (!result.IsSuccess)
         {
             return new(false);
         }
 
-        var accessToken = await tokenAuthenticationService.IssueAccessToken(user, ipAddress);
+        var accessToken = await tokenAuthenticationService.IssueAccessToken(result.User, ipAddress);
 
-        claimsPrincipal.AddIdentity(claimsIdentityFactory.CreateIdentityForUser(user));
+        claimsPrincipal.AddIdentity(claimsIdentityFactory.CreateIdentityForUser(result.User));
 
-        return new(true, accessToken, user);
+        return new(true, accessToken, result.User);
     }
 
     /// <summary>

@@ -1,5 +1,4 @@
 using System.Net;
-using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models.Authentication;
@@ -200,7 +199,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_InvalidModel_ReturnsViewResult()
     {
-        var viewModel = this.SetupSignInPost(this.modelFactory.BuildUser());
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.InvalidCredentials));
         this.authenticationController.ModelState.AddModelError("test", "test");
 
         var result = await this.authenticationController.SignIn(viewModel);
@@ -212,7 +211,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_AuthenticationFailure_AddsError()
     {
-        var viewModel = this.SetupSignInPost(null);
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.InvalidCredentials));
 
         await this.authenticationController.SignIn(viewModel);
 
@@ -226,7 +225,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_AuthenticationFailure_ReturnsViewResult()
     {
-        var viewModel = this.SetupSignInPost(null);
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.InvalidCredentials));
 
         var result = await this.authenticationController.SignIn(viewModel);
 
@@ -238,7 +237,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     public async Task SignIn_Post_Success_SignsInUser()
     {
         var user = this.modelFactory.BuildUser();
-        var viewModel = this.SetupSignInPost(user);
+        var viewModel = this.SetupSignInPost(new(user));
 
         await this.authenticationController.SignIn(viewModel);
 
@@ -248,7 +247,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_Success_RedirectsToInternalUrl()
     {
-        var viewModel = this.SetupSignInPost(this.modelFactory.BuildUser());
+        var viewModel = this.SetupSignInPost(new(this.modelFactory.BuildUser()));
         this.urlHelperMock.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
         var result = await this.authenticationController.SignIn(viewModel, "/sample/redirect");
@@ -260,7 +259,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_Success_RedirectsDoesNotRedirectToExternalUrl()
     {
-        var viewModel = this.SetupSignInPost(this.modelFactory.BuildUser());
+        var viewModel = this.SetupSignInPost(new(this.modelFactory.BuildUser()));
         this.urlHelperMock.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
         var result = await this.authenticationController.SignIn(viewModel, "https://evil.com/");
@@ -270,7 +269,7 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
     }
 
-    private SignInViewModel SetupSignInPost(User? user)
+    private SignInViewModel SetupSignInPost(PasswordAuthenticationResult authenticationResult)
     {
         var email = this.modelFactory.NextEmail();
         var password = this.modelFactory.NextString("password");
@@ -281,7 +280,7 @@ public sealed class AuthenticationControllerTests : IDisposable
 
         this.passwordAuthenticationServiceMock
             .Setup(x => x.Authenticate(email, password, ipAddress))
-            .ReturnsAsync(user);
+            .ReturnsAsync(authenticationResult);
 
         return new() { Email = email, Password = password };
     }

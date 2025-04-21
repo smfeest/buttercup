@@ -78,10 +78,10 @@ public sealed class AuthenticationController(
             return this.View(model);
         }
 
-        var user = await this.passwordAuthenticationService.Authenticate(
+        var result = await this.passwordAuthenticationService.Authenticate(
             model.Email, model.Password, this.HttpContext.Connection.RemoteIpAddress);
 
-        if (user == null)
+        if (!result.IsSuccess)
         {
             this.ModelState.AddModelError(
                 string.Empty, this.localizer["Error_WrongEmailOrPassword"]!);
@@ -89,7 +89,7 @@ public sealed class AuthenticationController(
             return this.View(model);
         }
 
-        await this.cookieAuthenticationService.SignIn(this.HttpContext, user);
+        await this.cookieAuthenticationService.SignIn(this.HttpContext, result.User);
 
         return this.Url.IsLocalUrl(returnUrl) ?
             this.Redirect(returnUrl) :

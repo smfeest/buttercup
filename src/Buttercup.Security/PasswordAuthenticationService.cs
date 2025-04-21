@@ -25,7 +25,8 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
 
-    public async Task<User?> Authenticate(string email, string password, IPAddress? ipAddress)
+    public async Task<PasswordAuthenticationResult> Authenticate(
+        string email, string password, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -38,7 +39,7 @@ internal sealed partial class PasswordAuthenticationService(
 
             this.LogAuthenticationFailedUnrecognizedEmail(email);
 
-            return null;
+            return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
 
         if (user.HashedPassword == null)
@@ -48,7 +49,7 @@ internal sealed partial class PasswordAuthenticationService(
 
             this.LogAuthenticationFailedNoPasswordSet(user.Id, user.Email);
 
-            return null;
+            return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
 
         var verificationResult = this.passwordHasher.VerifyHashedPassword(
@@ -61,7 +62,7 @@ internal sealed partial class PasswordAuthenticationService(
 
             this.LogAuthenticationFailedIncorrectPassword(user.Id, user.Email);
 
-            return null;
+            return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
 
         await this.InsertSecurityEvent(dbContext, "authentication_success", ipAddress, user.Id);
@@ -90,7 +91,7 @@ internal sealed partial class PasswordAuthenticationService(
             }
         }
 
-        return user;
+        return new(user);
     }
 
     public async Task<bool> ChangePassword(
