@@ -10,7 +10,7 @@ namespace Buttercup.Security;
 public interface IPasswordAuthenticationService
 {
     /// <summary>
-    /// Authenticate a user with an email address and password.
+    /// Authenticates a user with an email address and password.
     /// </summary>
     /// <param name="email">
     /// The email address.
