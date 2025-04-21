@@ -65,7 +65,7 @@ services
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddEmailServices(configuration.GetSection("Email"))
     .AddRedisServices(configuration.GetSection("Redis"))
-    .AddSecurityServices();
+    .AddSecurityServices(configuration.GetSection("Security"));
 
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
