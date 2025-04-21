@@ -82,6 +82,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         this.LogAuthenticated(user.Id, user.Email);
 
+        await this.passwordAuthenticationRateLimiter.Reset(user.Email);
+
         if (verificationResult == PasswordVerificationResult.SuccessRehashNeeded)
         {
             var unmodifiedUser = user with { };

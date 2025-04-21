@@ -199,6 +199,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             await this.SecurityEventExists(
                 dbContext, "authentication_success", args.IpAddress, user.Id));
 
+        // Resets the rate limit counters
+        this.passwordAuthenticationRateLimiterMock.Verify(x => x.Reset(user.Email));
+
         // Logs successfully authenticated message
         LogAssert.HasEntry(
             this.logger,
