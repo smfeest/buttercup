@@ -3,4 +3,10 @@
   <data name="Error_DeleteCommentNotAuthorized">
     <value>The current user is not authorized to delete this comment</value>
   </data>
+  <data name="Error_TooManyAttempts">
+    <value>Too many failed attempts. Reset your password or try again later.</value>
+  </data>
+  <data name="Error_WrongEmailOrPassword">
+    <value>Wrong email address or password</value>
+  </data>
 </root>
