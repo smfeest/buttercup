@@ -263,7 +263,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
 
         // Updates user in database
-        Assert.Equal(expectedUserAfter, await dbContext.Users.FindAsync(userBefore.Id));
+        Assert.Equal(
+            expectedUserAfter,
+            await dbContext.Users.FindAsync(
+                [userBefore.Id], TestContext.Current.CancellationToken));
 
         // Logs password hash upgraded message
         LogAssert.HasEntry(
@@ -328,7 +331,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Does not update user in database
         Assert.Equal(
-            userAfterConcurrentModification, await dbContext.Users.FindAsync(userBefore.Id));
+            userAfterConcurrentModification,
+            await dbContext.Users.FindAsync(
+                [userBefore.Id], TestContext.Current.CancellationToken));
 
         // Logs upgraded password hash not persisted message
         LogAssert.HasEntry(
@@ -459,12 +464,18 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
 
         // Updates user in database
-        Assert.Equal(expectedUserAfter, await dbContext.Users.FindAsync(userBefore.Id));
+        Assert.Equal(
+            expectedUserAfter,
+            await dbContext.Users.FindAsync(
+                [userBefore.Id], TestContext.Current.CancellationToken));
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
             passwordResetTokenForOtherUser.Token,
-            await dbContext.PasswordResetTokens.Select(t => t.Token).SingleAsync());
+            await dbContext
+                .PasswordResetTokens
+                .Select(t => t.Token)
+                .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts security event
         Assert.True(
@@ -710,12 +721,18 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
 
         // Updates user in database
-        Assert.Equal(expectedUserAfter, await dbContext.Users.FindAsync(userBefore.Id));
+        Assert.Equal(
+            expectedUserAfter,
+            await dbContext.Users.FindAsync(
+                [userBefore.Id], TestContext.Current.CancellationToken));
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
             passwordResetTokenForOtherUser.Token,
-            await dbContext.PasswordResetTokens.Select(t => t.Token).SingleAsync());
+            await dbContext
+                .PasswordResetTokens
+                .Select(t => t.Token)
+                .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts security event
         Assert.True(

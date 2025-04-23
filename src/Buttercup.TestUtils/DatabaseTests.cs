@@ -30,8 +30,19 @@ public abstract class DatabaseTests<T>(DatabaseFixture<T> databaseFixture) : IAs
     protected DatabaseFixture<T> DatabaseFixture => databaseFixture;
 
     /// <inheritdoc/>
-    public virtual Task InitializeAsync() => this.DatabaseFixture.ClearDatabase();
+    public virtual async ValueTask InitializeAsync() => await this.DatabaseFixture.ClearDatabase();
 
     /// <inheritdoc/>
-    public virtual Task DisposeAsync() => Task.CompletedTask;
+    public async ValueTask DisposeAsync()
+    {
+        await this.DisposeAsyncCore();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting managed
+    /// resources asynchronously.
+    /// </summary>
+    /// <returns>A task for the operation.</returns>
+    protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
 }

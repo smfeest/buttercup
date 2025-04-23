@@ -129,8 +129,8 @@ public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFac
     }
 
     /// <inheritdoc/>
-    public Task InitializeAsync() => this.RecreateDatabase();
+    public async ValueTask InitializeAsync() => await this.RecreateDatabase();
 
     /// <inheritdoc/>
-    public Task DisposeAsync() => this.DeleteDatabase();
+    public async ValueTask DisposeAsync() => await this.DeleteDatabase();
 }

@@ -63,7 +63,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = original.Revision + 1,
         };
-        var actual = await dbContext.Users.FindAsync(original.Id);
+        var actual = await dbContext.Users.FindAsync(
+            [original.Id], TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
     }
 

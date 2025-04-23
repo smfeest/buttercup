@@ -57,7 +57,11 @@ public sealed class AppFactory : WebApplicationFactory<HomeController>, IAsyncLi
     public T GetOptions<T>() where T : class =>
         this.Services.GetRequiredService<IOptions<T>>().Value;
 
-    Task IAsyncLifetime.InitializeAsync() => this.DatabaseFixture.InitializeAsync();
+    public ValueTask InitializeAsync() => this.DatabaseFixture.InitializeAsync();
 
-    Task IAsyncLifetime.DisposeAsync() => this.DatabaseFixture.DisposeAsync();
+    public override async ValueTask DisposeAsync()
+    {
+        await this.DatabaseFixture.DisposeAsync();
+        await base.DisposeAsync();
+    }
 }

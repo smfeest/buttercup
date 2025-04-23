@@ -37,10 +37,11 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
             this.tokenAuthenticationServiceMock.Object);
     }
 
-    public Task InitializeAsync() => this.tokenAuthenticationHandler.InitializeAsync(
-        new(SchemeName, null, typeof(TokenAuthenticationHandler)), this.httpContext);
+    public async ValueTask InitializeAsync() =>
+        await this.tokenAuthenticationHandler.InitializeAsync(
+            new(SchemeName, null, typeof(TokenAuthenticationHandler)), this.httpContext);
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     private void SetAuthorizationHeader(string value) =>
         this.httpContext.Request.Headers[HeaderNames.Authorization] = value;

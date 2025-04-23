@@ -48,7 +48,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             DeletedByUserId = null,
             Revision = 0,
         };
-        var actualComment = await dbContext.Comments.FindAsync(id);
+        var actualComment = await dbContext.Comments.FindAsync(
+            [id], TestContext.Current.CancellationToken);
         Assert.Equivalent(expectedComment, actualComment);
 
         var expectedRevision = new CommentRevision
@@ -61,7 +62,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         var actualRevision = await dbContext
             .CommentRevisions
             .Where(r => r.CommentId == id)
-            .SingleAsync();
+            .SingleAsync(TestContext.Current.CancellationToken);
         Assert.Equal(expectedRevision, actualRevision);
     }
 
@@ -116,7 +117,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             Deleted = this.timeProvider.GetUtcDateTimeNow(),
             DeletedByUserId = currentUser.Id,
         };
-        var actual = await dbContext.Comments.FindAsync(original.Id);
+        var actual = await dbContext.Comments.FindAsync(
+            [original.Id], TestContext.Current.CancellationToken);
         Assert.Equivalent(expected, actual);
     }
 
@@ -131,7 +133,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var actual = await dbContext.Comments.FindAsync(original.Id);
+        var actual = await dbContext.Comments.FindAsync(
+            [original.Id], TestContext.Current.CancellationToken);
         Assert.Equivalent(original with { Recipe = null }, actual);
     }
 
@@ -160,7 +163,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        Assert.False(await dbContext.Comments.AnyAsync());
+        Assert.False(await dbContext.Comments.AnyAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

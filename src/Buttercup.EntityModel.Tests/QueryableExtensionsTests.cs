@@ -17,12 +17,13 @@ public sealed class QueryableExtensionsTests(
     public async Task FindAsync_EntityFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
 
         var expected = this.modelFactory.BuildRecipe();
 
         dbContext.Recipes.Add(expected);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
         var actual = await dbContext.Recipes.AsQueryable().FindAsync(expected.Id);
@@ -34,10 +35,11 @@ public sealed class QueryableExtensionsTests(
     public async Task FindAsync_EntityNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
 
         dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
         Assert.Null(await dbContext.Recipes.AsQueryable().FindAsync(this.modelFactory.NextInt()));
@@ -51,12 +53,13 @@ public sealed class QueryableExtensionsTests(
     public async Task GetAsync_EntityFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
 
         var expected = this.modelFactory.BuildRecipe();
 
         dbContext.Recipes.Add(expected);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
         var actual = await dbContext.Recipes.GetAsync(expected.Id);
@@ -68,10 +71,11 @@ public sealed class QueryableExtensionsTests(
     public async Task GetAsync_EntityNotFound()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
 
         dbContext.Recipes.Add(this.modelFactory.BuildRecipe());
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
         var id = this.modelFactory.NextInt();
@@ -90,19 +94,28 @@ public sealed class QueryableExtensionsTests(
     public async Task WhereSoftDeleted_IncludesOnlySoftDeleted_WhereNotSoftDeleted_ExcludesSoftDeleted()
     {
         using var dbContext = this.databaseFixture.CreateDbContext();
-        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
 
         var visibleRecipe = this.modelFactory.BuildRecipe(softDeleted: false);
         var deletedRecipe = this.modelFactory.BuildRecipe(softDeleted: true);
 
         dbContext.Recipes.AddRange(visibleRecipe, deletedRecipe);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
         Assert.Equivalent(
-            deletedRecipe, await dbContext.Recipes.WhereSoftDeleted().SingleAsync());
+            deletedRecipe,
+            await dbContext
+                .Recipes
+                .WhereSoftDeleted()
+                .SingleAsync(TestContext.Current.CancellationToken));
         Assert.Equivalent(
-            visibleRecipe, await dbContext.Recipes.WhereNotSoftDeleted().SingleAsync());
+            visibleRecipe,
+            await dbContext
+                .Recipes
+                .WhereNotSoftDeleted()
+                .SingleAsync(TestContext.Current.CancellationToken));
     }
 
     #endregion

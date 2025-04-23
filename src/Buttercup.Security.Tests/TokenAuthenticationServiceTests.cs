@@ -60,7 +60,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
                     securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
                     securityEvent.Event == "access_token_issued" &&
                     securityEvent.IpAddress == ipAddress &&
-                    securityEvent.UserId == user.Id));
+                    securityEvent.UserId == user.Id,
+                TestContext.Current.CancellationToken));
 
         // Logs token issued message
         LogAssert.HasEntry(
