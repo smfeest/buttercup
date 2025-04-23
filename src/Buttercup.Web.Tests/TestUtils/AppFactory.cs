@@ -3,6 +3,7 @@ using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Controllers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Buttercup.Web.TestUtils;
@@ -47,6 +48,14 @@ public sealed class AppFactory : WebApplicationFactory<HomeController>, IAsyncLi
 
         return client;
     }
+
+    /// <summary>
+    /// Gets a configured <typeparamref name="T"/> instance.
+    /// </summary>
+    /// <typeparam name="T">The options type.</typeparam>
+    /// <returns>The configured <typeparamref name="T"/> instance.</returns>
+    public T GetOptions<T>() where T : class =>
+        this.Services.GetRequiredService<IOptions<T>>().Value;
 
     Task IAsyncLifetime.InitializeAsync() => this.DatabaseFixture.InitializeAsync();
 

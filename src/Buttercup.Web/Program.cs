@@ -2,6 +2,7 @@ using Bugsnag.AspNet.Core;
 using Buttercup.Application;
 using Buttercup.Email;
 using Buttercup.EntityModel;
+using Buttercup.Redis;
 using Buttercup.Security;
 using Buttercup.Web;
 using Buttercup.Web.Api;
@@ -46,10 +47,13 @@ services.AddGraphQLServer()
     .AddApiTypes()
     .AddAuthorization()
     .AddDirectiveType<AdminOnlyDirectiveType>()
+    .AddErrorInterfaceType<IMutationError>()
     .AddFiltering()
     .AddMutationConventions()
     .AddProjections()
     .AddSorting()
+    .AddType<IncorrectCredentialsError>()
+    .AddType<TooManyAttemptsError>()
     .DisableIntrospection(!isDevelopment)
     .ModifyOptions(options => options.UseXmlDocumentation = false)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
@@ -63,7 +67,8 @@ services
     .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddEmailServices(configuration.GetSection("Email"))
-    .AddSecurityServices();
+    .AddRedisServices(configuration.GetSection("Redis"))
+    .AddSecurityServices(configuration.GetSection("Security"));
 
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

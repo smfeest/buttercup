@@ -15,6 +15,7 @@ public sealed class Mutation
 {
     public async Task<AuthenticatePayload> Authenticate(
         IHttpContextAccessor httpContextAccessor,
+        IStringLocalizer<Mutation> localizer,
         IPasswordAuthenticationService passwordAuthenticationService,
         ITokenAuthenticationService tokenAuthenticationService,
         IClaimsIdentityFactory claimsIdentityFactory,
@@ -24,18 +25,23 @@ public sealed class Mutation
     {
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
 
-        var user = await passwordAuthenticationService.Authenticate(email, password, ipAddress);
+        var result = await passwordAuthenticationService.Authenticate(email, password, ipAddress);
 
-        if (user == null)
+        if (!result.IsSuccess)
         {
-            return new(false);
+            AuthenticateError error =
+                result.Failure == PasswordAuthenticationFailure.TooManyAttempts ?
+                new TooManyAttemptsError(localizer["Error_TooManyAttempts"]) :
+                new IncorrectCredentialsError(localizer["Error_WrongEmailOrPassword"]);
+
+            return new(error);
         }
 
-        var accessToken = await tokenAuthenticationService.IssueAccessToken(user, ipAddress);
+        var accessToken = await tokenAuthenticationService.IssueAccessToken(result.User, ipAddress);
 
-        claimsPrincipal.AddIdentity(claimsIdentityFactory.CreateIdentityForUser(user));
+        claimsPrincipal.AddIdentity(claimsIdentityFactory.CreateIdentityForUser(result.User));
 
-        return new(true, accessToken, user);
+        return new(accessToken, result.User);
     }
 
     /// <summary>

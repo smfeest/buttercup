@@ -1,5 +1,4 @@
 using System.Net;
-using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Models.Authentication;
@@ -200,7 +199,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_InvalidModel_ReturnsViewResult()
     {
-        var viewModel = this.SetupSignInPost(this.modelFactory.BuildUser());
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.IncorrectCredentials));
         this.authenticationController.ModelState.AddModelError("test", "test");
 
         var result = await this.authenticationController.SignIn(viewModel);
@@ -209,10 +208,13 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.Same(viewModel, viewResult.Model);
     }
 
-    [Fact]
-    public async Task SignIn_Post_AuthenticationFailure_AddsError()
+    [Theory]
+    [InlineData(PasswordAuthenticationFailure.IncorrectCredentials, "translated-wrong-email-or-password-error")]
+    [InlineData(PasswordAuthenticationFailure.TooManyAttempts, "translated-too-many-attempts-error")]
+    public async Task SignIn_Post_AuthenticationFailure_AddsError(
+        PasswordAuthenticationFailure failure, string expectedMessage)
     {
-        var viewModel = this.SetupSignInPost(null);
+        var viewModel = this.SetupSignInPost(new(failure));
 
         await this.authenticationController.SignIn(viewModel);
 
@@ -220,13 +222,13 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.NotNull(formState);
 
         var error = Assert.Single(formState.Errors);
-        Assert.Equal("translated-wrong-email-or-password-error", error.ErrorMessage);
+        Assert.Equal(expectedMessage, error.ErrorMessage);
     }
 
     [Fact]
     public async Task SignIn_Post_AuthenticationFailure_ReturnsViewResult()
     {
-        var viewModel = this.SetupSignInPost(null);
+        var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.IncorrectCredentials));
 
         var result = await this.authenticationController.SignIn(viewModel);
 
@@ -238,7 +240,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     public async Task SignIn_Post_Success_SignsInUser()
     {
         var user = this.modelFactory.BuildUser();
-        var viewModel = this.SetupSignInPost(user);
+        var viewModel = this.SetupSignInPost(new(user));
 
         await this.authenticationController.SignIn(viewModel);
 
@@ -248,7 +250,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_Success_RedirectsToInternalUrl()
     {
-        var viewModel = this.SetupSignInPost(this.modelFactory.BuildUser());
+        var viewModel = this.SetupSignInPost(new(this.modelFactory.BuildUser()));
         this.urlHelperMock.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
         var result = await this.authenticationController.SignIn(viewModel, "/sample/redirect");
@@ -260,7 +262,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task SignIn_Post_Success_RedirectsDoesNotRedirectToExternalUrl()
     {
-        var viewModel = this.SetupSignInPost(this.modelFactory.BuildUser());
+        var viewModel = this.SetupSignInPost(new(this.modelFactory.BuildUser()));
         this.urlHelperMock.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
         var result = await this.authenticationController.SignIn(viewModel, "https://evil.com/");
@@ -270,18 +272,19 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
     }
 
-    private SignInViewModel SetupSignInPost(User? user)
+    private SignInViewModel SetupSignInPost(PasswordAuthenticationResult authenticationResult)
     {
         var email = this.modelFactory.NextEmail();
         var password = this.modelFactory.NextString("password");
         var ipAddress = this.SetupRemoteIpAddress();
 
-        this.localizer.Add(
-            "Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
+        this.localizer
+            .Add("Error_TooManyAttempts", "translated-too-many-attempts-error")
+            .Add("Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
         this.passwordAuthenticationServiceMock
             .Setup(x => x.Authenticate(email, password, ipAddress))
-            .ReturnsAsync(user);
+            .ReturnsAsync(authenticationResult);
 
         return new() { Email = email, Password = password };
     }

@@ -1,18 +1,23 @@
 using Buttercup.EntityModel;
+using Buttercup.Redis.RateLimiting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Buttercup.Security;
 
 public sealed class ServiceCollectionExtensionsTests
 {
+    private readonly SlidingWindowRateLimit passwordAuthenticationRateLimit = new(1, 100);
+
     #region AddSecurityServices
 
     [Fact]
     public void AddSecurityServices_AddsPasswordHasher() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IPasswordHasher<User>) &&
                 serviceDescriptor.ImplementationType == typeof(PasswordHasher<User>) &&
@@ -21,7 +26,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsAccessTokenEncoder() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IAccessTokenEncoder) &&
                 serviceDescriptor.ImplementationType == typeof(AccessTokenEncoder) &&
@@ -30,7 +35,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsAccessTokenSerializer() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IAccessTokenSerializer) &&
                 serviceDescriptor.ImplementationType == typeof(AccessTokenSerializer) &&
@@ -39,7 +44,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsAuthenticationMailer() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IAuthenticationMailer) &&
                 serviceDescriptor.ImplementationType == typeof(AuthenticationMailer) &&
@@ -48,7 +53,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsClaimsIdentityFactory() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IClaimsIdentityFactory) &&
                 serviceDescriptor.ImplementationType == typeof(ClaimsIdentityFactory) &&
@@ -57,16 +62,25 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsCookieAuthenticationService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(ICookieAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(CookieAuthenticationService) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
+    public void AddSecurityServices_AddsPasswordAuthenticationRateLimiter() =>
+        Assert.Contains(
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IPasswordAuthenticationRateLimiter) &&
+                serviceDescriptor.ImplementationType == typeof(PasswordAuthenticationRateLimiter) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddSecurityServices_AddsPasswordAuthenticationService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IPasswordAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(PasswordAuthenticationService) &&
@@ -75,7 +89,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsRandomNumberGeneratorFactory() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IRandomNumberGeneratorFactory) &&
                 serviceDescriptor.ImplementationType == typeof(RandomNumberGeneratorFactory) &&
@@ -84,7 +98,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsRandomTokenGenerator() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IRandomTokenGenerator) &&
                 serviceDescriptor.ImplementationType == typeof(RandomTokenGenerator) &&
@@ -93,11 +107,59 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsTokenAuthenticationService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(),
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(ITokenAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(TokenAuthenticationService) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
+    public void AddSecurityServices_WithConfigureActionConfiguresOptions()
+    {
+        var options = new ServiceCollection()
+            .AddSecurityServices(this.ConfigureOptions)
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<SecurityOptions>>();
+
+        Assert.Equal(
+            this.passwordAuthenticationRateLimit,
+            options.Value.PasswordAuthenticationRateLimit);
+    }
+
+    [Fact]
+    public void AddSecurityServices_WithConfigurationBindsConfiguration()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>()
+            {
+                ["PasswordAuthenticationRateLimit:Limit"] = "1",
+                ["PasswordAuthenticationRateLimit:Window"] = "00:00:00.100",
+            })
+            .Build();
+
+        var options = new ServiceCollection()
+            .AddSecurityServices(configuration)
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<SecurityOptions>>();
+
+        Assert.Equal(
+            this.passwordAuthenticationRateLimit,
+            options.Value.PasswordAuthenticationRateLimit);
+    }
+
+    [Fact]
+    public void AddSecurityServices_ValidatesOptions()
+    {
+        var options = new ServiceCollection()
+            .AddSecurityServices(options => { })
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<SecurityOptions>>();
+
+        Assert.Throws<OptionsValidationException>(() => options.Value);
+    }
+
+    private void ConfigureOptions(SecurityOptions options) =>
+        options.PasswordAuthenticationRateLimit = this.passwordAuthenticationRateLimit;
 
     #endregion
 }

@@ -20,6 +20,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
     private readonly Mock<IAuthenticationMailer> authenticationMailerMock = new();
     private readonly ListLogger<PasswordAuthenticationService> logger = new();
+    private readonly Mock<IPasswordAuthenticationRateLimiter> passwordAuthenticationRateLimiterMock
+        = new();
     private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
     private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
@@ -35,6 +37,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             this.authenticationMailerMock.Object,
             this.DatabaseFixture,
             this.logger,
+            this.passwordAuthenticationRateLimiterMock.Object,
             this.passwordHasherMock.Object,
             this.randomTokenGeneratorMock.Object,
             this.timeProvider);
@@ -43,11 +46,41 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     #region Authenticate
 
     [Fact]
+    public async Task Authenticate_RateLimitExceeded()
+    {
+        var args = this.BuildAuthenticateArgs();
+
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, false);
+
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "authentication_failure:rate_limit_exceeded", args.IpAddress));
+
+        // Logs rate limit exceeded message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            220,
+            $"Authentication failed; rate limit exceeded for email {args.Email}");
+
+        // Returns 'too many requests' failure
+        Assert.Equal(PasswordAuthenticationFailure.TooManyAttempts, result.Failure);
+    }
+
+    [Fact]
     public async Task Authenticate_EmailUnrecognized()
     {
         var args = this.BuildAuthenticateArgs();
 
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
+
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
 
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
@@ -66,8 +99,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             203,
             $"Authentication failed; no user with email {args.Email}");
 
-        // Returns null
-        Assert.Null(result);
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
     }
 
     [Fact]
@@ -77,6 +110,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         var user = this.modelFactory.BuildUser() with { Email = args.Email, HashedPassword = null };
         await this.DatabaseFixture.InsertEntities(user);
+
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
 
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
@@ -95,8 +130,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             201,
             $"Authentication failed; no password set for user {user.Id} ({user.Email})");
 
-        // Returns null
-        Assert.Null(result);
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
     }
 
     [Fact]
@@ -112,6 +147,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user);
 
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
         this.SetupVerifyHashedPassword(
             user, hashedPassword, args.Password, PasswordVerificationResult.Failed);
 
@@ -132,8 +168,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             200,
             $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
 
-        // Returns null
-        Assert.Null(result);
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
     }
 
     [Fact]
@@ -149,6 +185,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user);
 
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
         this.SetupVerifyHashedPassword(
             user, hashedPassword, args.Password, PasswordVerificationResult.Success);
 
@@ -162,6 +199,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             await this.SecurityEventExists(
                 dbContext, "authentication_success", args.IpAddress, user.Id));
 
+        // Resets the rate limit counters
+        this.passwordAuthenticationRateLimiterMock.Verify(x => x.Reset(user.Email));
+
         // Logs successfully authenticated message
         LogAssert.HasEntry(
             this.logger,
@@ -173,7 +213,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.passwordHasherMock.Verify(x => x.HashPassword(user, args.Password), Times.Never);
 
         // Returns user
-        Assert.Equal(user, result);
+        Assert.Equal(user, result.User);
     }
 
     [Fact]
@@ -190,6 +230,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(userBefore);
 
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
         this.SetupVerifyHashedPassword(
             userBefore,
             hashedPassword,
@@ -232,7 +273,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             $"Password hash upgraded for user {userBefore.Id} ({userBefore.Email})");
 
         // Returns updated user
-        Assert.Equal(expectedUserAfter, result);
+        Assert.Equal(expectedUserAfter, result.User);
     }
 
     [Fact]
@@ -251,6 +292,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         var userAfterConcurrentModification = userBefore with { };
 
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
         this.SetupVerifyHashedPassword(
             userBefore,
             hashedPassword,
@@ -266,7 +308,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 userAfterConcurrentModification.Revision++;
                 dbContext.SaveChanges();
             });
-
 
         var result = await this.passwordAuthenticationService.Authenticate(
             args.Email, args.Password, args.IpAddress);
@@ -297,7 +338,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             $"Upgraded password hash not persisted for user {userBefore.Id} ({userBefore.Email}); concurrent changed detected");
 
         // Returns unmodified user
-        Assert.Equal(userBefore, result);
+        Assert.Equal(userBefore, result.User);
     }
 
     private sealed record AuthenticateArgs(string Email, string Password, IPAddress IpAddress);
@@ -306,6 +347,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.modelFactory.NextEmail(),
         this.modelFactory.NextString("password"),
         new(this.modelFactory.NextInt()));
+
+    private void SetPasswordAuthenticationRateLimiterResult(string email, bool isAllowed) =>
+        this.passwordAuthenticationRateLimiterMock
+            .Setup(x => x.IsAllowed(email))
+            .ReturnsAsync(isAllowed);
 
     #endregion
 
@@ -686,6 +732,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Sends password change notification
         this.authenticationMailerMock.Verify(
             x => x.SendPasswordChangeNotification(userBefore.Email));
+
+        // Resets the rate limit counters
+        this.passwordAuthenticationRateLimiterMock.Verify(x => x.Reset(userBefore.Email));
 
         // Returns updated user
         Assert.Equal(expectedUserAfter, result);

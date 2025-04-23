@@ -22,10 +22,9 @@ public interface IPasswordAuthenticationService
     /// The client IP address.
     /// </param>
     /// <returns>
-    /// A task for the operation. The result is the user if successfully authenticated, or a null
-    /// reference otherwise.
+    /// A task for the operation.
     /// </returns>
-    Task<User?> Authenticate(string email, string password, IPAddress? ipAddress);
+    Task<PasswordAuthenticationResult> Authenticate(string email, string password, IPAddress? ipAddress);
 
     /// <summary>
     /// Changes a user's password.
