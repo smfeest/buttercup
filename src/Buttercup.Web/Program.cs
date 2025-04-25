@@ -11,7 +11,6 @@ using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
 using Buttercup.Web.Security;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -116,7 +115,6 @@ services
     .AddTransient<IAssetHelper, AssetHelper>()
     .AddTransient<IAssetManifestReader, AssetManifestReader>()
     .AddSingleton<IAssetManifestSource, AssetManifestSource>()
-    .AddSingleton<ITelemetryInitializer, UserIdTelemetryInitializer>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
     .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
