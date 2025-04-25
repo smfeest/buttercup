@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Bugsnag.AspNet.Core;
 using Buttercup.Application;
 using Buttercup.Email;
@@ -27,7 +28,7 @@ var configuration = builder.Configuration;
 
 if (configuration.GetValue<bool>("EnableTelemetry"))
 {
-    services.AddApplicationInsightsTelemetry();
+    services.AddOpenTelemetry().UseAzureMonitor();
 }
 
 services
