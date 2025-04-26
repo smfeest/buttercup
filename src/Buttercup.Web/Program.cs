@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Bugsnag.AspNet.Core;
 using Buttercup.Application;
 using Buttercup.Email;
@@ -25,7 +26,10 @@ var isDevelopment = builder.Environment.IsDevelopment();
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddApplicationInsightsTelemetry();
+if (configuration.GetValue<bool>("EnableTelemetry"))
+{
+    services.AddOpenTelemetry().UseAzureMonitor();
+}
 
 services
     .AddRouting(options => options.LowercaseUrls = true)
