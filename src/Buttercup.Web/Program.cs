@@ -25,7 +25,10 @@ var isDevelopment = builder.Environment.IsDevelopment();
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddApplicationInsightsTelemetry();
+if (configuration.GetValue<bool>("EnableTelemetry"))
+{
+    services.AddApplicationInsightsTelemetry();
+}
 
 services
     .AddRouting(options => options.LowercaseUrls = true)
