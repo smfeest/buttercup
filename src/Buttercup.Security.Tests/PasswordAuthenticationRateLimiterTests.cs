@@ -15,7 +15,11 @@ public sealed class PasswordAuthenticationRateLimiterTests
     public PasswordAuthenticationRateLimiterTests()
     {
         var options = Options.Create(
-            new SecurityOptions { PasswordAuthenticationRateLimit = this.rateLimit });
+            new SecurityOptions
+            {
+                PasswordAuthenticationRateLimit = this.rateLimit,
+                PasswordResetRateLimits = null!
+            });
 
         this.passwordAuthenticationRateLimiter = new(
             options, this.slidingWindowRateLimiterMock.Object);

@@ -50,7 +50,17 @@ public sealed class AuthenticationControllerTests : IDisposable
     #region RequestPasswordReset (POST)
 
     [Fact]
-    public async Task RequestPasswordReset_Post_ReturnsViewResultWhenModelIsInvalid()
+    public async Task RequestPasswordReset_Post_InvalidModel_DoesNotRequestPasswordReset()
+    {
+        this.authenticationController.ModelState.AddModelError("test", "test");
+
+        await this.authenticationController.RequestPasswordReset(new());
+
+        this.passwordAuthenticationServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task RequestPasswordReset_Post_InvalidModel_ReturnsViewResult()
     {
         this.authenticationController.ModelState.AddModelError("test", "test");
 
@@ -58,31 +68,63 @@ public sealed class AuthenticationControllerTests : IDisposable
         var result = await this.authenticationController.RequestPasswordReset(viewModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Null(viewResult.ViewName);
         Assert.Same(viewModel, viewResult.Model);
     }
 
     [Fact]
-    public async Task RequestPasswordReset_Post_SendsPasswordResetLink()
+    public async Task RequestPasswordReset_Post_OutsideRateLimits_AddsError()
     {
-        var email = this.modelFactory.NextEmail();
-        var viewModel = new RequestPasswordResetViewModel { Email = email };
-        var ipAddress = this.SetupRemoteIpAddress();
+        var viewModel = this.SetupRequestPasswordReset(false);
 
-        var result = await this.authenticationController.RequestPasswordReset(viewModel);
+        this.localizer.Add(
+            "Error_TooManyPasswordResetRequests",
+            "translated-too-many-password-reset-attempts-error");
 
-        this.passwordAuthenticationServiceMock.Verify(
-            x => x.SendPasswordResetLink(email, ipAddress, this.urlHelperMock.Object));
+        await this.authenticationController.RequestPasswordReset(viewModel);
+
+        var formState = this.authenticationController.ModelState[string.Empty];
+        Assert.NotNull(formState);
+
+        var error = Assert.Single(formState.Errors);
+        Assert.Equal("translated-too-many-password-reset-attempts-error", error.ErrorMessage);
     }
 
     [Fact]
-    public async Task RequestPasswordReset_Post_ReturnsViewResult()
+    public async Task RequestPasswordReset_Post_OutsideRateLimits_ReturnsFormViewResult()
     {
-        var viewModel = new RequestPasswordResetViewModel();
+        var viewModel = this.SetupRequestPasswordReset(false);
+
+        var result = await this.authenticationController.RequestPasswordReset(viewModel);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Null(viewResult.ViewName);
+        Assert.Same(viewModel, viewResult.Model);
+    }
+
+    [Fact]
+    public async Task RequestPasswordReset_Post_WithinRateLimits_ReturnsConfirmationViewResult()
+    {
+        var viewModel = this.SetupRequestPasswordReset(true);
+
         var result = await this.authenticationController.RequestPasswordReset(viewModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("RequestPasswordResetConfirmation", viewResult.ViewName);
         Assert.Same(viewModel, viewResult.Model);
+    }
+
+    private RequestPasswordResetViewModel SetupRequestPasswordReset(bool withinRateLimits)
+    {
+        var email = this.modelFactory.NextEmail();
+        var viewModel = new RequestPasswordResetViewModel { Email = email };
+        var ipAddress = this.SetupRemoteIpAddress();
+
+        this.passwordAuthenticationServiceMock
+            .Setup(x => x.SendPasswordResetLink(email, ipAddress, this.urlHelperMock.Object))
+            .ReturnsAsync(withinRateLimits);
+
+        return viewModel;
     }
 
     #endregion

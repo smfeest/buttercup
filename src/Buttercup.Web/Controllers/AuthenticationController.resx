@@ -3,6 +3,9 @@
   <data name="Error_TooManySignInAttempts">
     <value>Too many failed attempts. Reset your password or try again later.</value>
   </data>
+  <data name="Error_TooManyPasswordResetRequests">
+    <value>Too many requests. Try again later.</value>
+  </data>
   <data name="Error_WrongEmailOrPassword">
     <value>Wrong email address or password</value>
   </data>
