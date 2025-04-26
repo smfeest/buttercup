@@ -105,7 +105,8 @@ public interface IPasswordAuthenticationService
     /// The URL helper.
     /// </param>
     /// <returns>
-    /// A task for the operation.
+    /// A task for the operation. The result is <b>true</b> if the request was within rate limits,
+    /// <b>false</b> if it wasn't.
     /// </returns>
-    Task SendPasswordResetLink(string email, IPAddress? ipAddress, IUrlHelper urlHelper);
+    Task<bool> SendPasswordResetLink(string email, IPAddress? ipAddress, IUrlHelper urlHelper);
 }

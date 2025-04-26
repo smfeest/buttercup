@@ -23,6 +23,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     private readonly Mock<IPasswordAuthenticationRateLimiter> passwordAuthenticationRateLimiterMock
         = new();
     private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
+    private readonly Mock<IPasswordResetRateLimiter> passwordResetRateLimiterMock = new();
     private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
 
@@ -39,6 +40,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             this.logger,
             this.passwordAuthenticationRateLimiterMock.Object,
             this.passwordHasherMock.Object,
+            this.passwordResetRateLimiterMock.Object,
             this.randomTokenGeneratorMock.Object,
             this.timeProvider);
     }
@@ -769,13 +771,43 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     #region SendPasswordResetLink
 
     [Fact]
+    public async Task SendPasswordResetLink_RateLimitExceeded()
+    {
+        var args = this.BuildSendPasswordResetLinkArgs();
+
+        this.SetPasswordResetRateLimiterResult(args.Email, false);
+
+        var result = await this.passwordAuthenticationService.SendPasswordResetLink(
+            args.Email, args.IpAddress, Mock.Of<IUrlHelper>());
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "password_reset_failure:rate_limit_exceeded", args.IpAddress));
+
+        // Logs rate limit exceeded message
+        LogAssert.HasEntry(
+            this.logger,
+            LogLevel.Information,
+            221,
+            $"Unable to send password reset link to {args.Email}; rate limit exceeded");
+
+        // Return false
+        Assert.False(result);
+    }
+
+    [Fact]
     public async Task SendPasswordResetLink_EmailUnrecognized()
     {
         var args = this.BuildSendPasswordResetLinkArgs();
 
+        this.SetPasswordResetRateLimiterResult(args.Email, true);
+
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
 
-        await this.passwordAuthenticationService.SendPasswordResetLink(
+        var result = await this.passwordAuthenticationService.SendPasswordResetLink(
             args.Email, args.IpAddress, Mock.Of<IUrlHelper>());
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
@@ -791,6 +823,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             LogLevel.Information,
             211,
             $"Unable to send password reset link; No user with email {args.Email}");
+
+        // Returns true
+        Assert.True(result);
     }
 
     [Fact]
@@ -800,6 +835,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var token = this.modelFactory.NextString("token");
         var link = this.modelFactory.NextString("https://example.com/reset-password/token");
         var urlHelperMock = new Mock<IUrlHelper>();
+
+        this.SetPasswordResetRateLimiterResult(args.Email, true);
 
         var user = this.modelFactory.BuildUser() with { Email = args.Email };
         await this.DatabaseFixture.InsertEntities(user);
@@ -812,7 +849,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                     It.Is<object>(o => token.Equals(new RouteValueDictionary(o)["token"]))))
             .Returns(link);
 
-        await this.passwordAuthenticationService.SendPasswordResetLink(
+        var result = await this.passwordAuthenticationService.SendPasswordResetLink(
             args.Email, args.IpAddress, urlHelperMock.Object);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
@@ -841,12 +878,18 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             LogLevel.Information,
             210,
             $"Password reset link sent to user {user.Id} ({user.Email})");
+
+        // Returns true
+        Assert.True(result);
     }
 
     private sealed record SendPasswordResetLinkArgs(string Email, IPAddress IpAddress);
 
     private SendPasswordResetLinkArgs BuildSendPasswordResetLinkArgs() =>
         new(this.modelFactory.NextEmail(), new(this.modelFactory.NextInt()));
+
+    private void SetPasswordResetRateLimiterResult(string email, bool isAllowed) =>
+        this.passwordResetRateLimiterMock.Setup(x => x.IsAllowed(email)).ReturnsAsync(isAllowed);
 
     #endregion
 

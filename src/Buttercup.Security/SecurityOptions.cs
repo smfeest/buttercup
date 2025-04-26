@@ -13,4 +13,10 @@ public sealed class SecurityOptions
     /// </summary>
     [Required]
     public required SlidingWindowRateLimit PasswordAuthenticationRateLimit { get; set; }
+
+    /// <summary>
+    /// The rate limits for password reset requests.
+    /// </summary>
+    [Required]
+    public required PasswordResetRateLimits PasswordResetRateLimits { get; set; }
 }

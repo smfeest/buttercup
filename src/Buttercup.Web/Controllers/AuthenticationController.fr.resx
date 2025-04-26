@@ -3,6 +3,9 @@
   <data name="Error_TooManySignInAttempts">
     <value>Trop de tentatives échouées. Réinitialisez votre mot de passe ou réessayez plus tard.</value>
   </data>
+  <data name="Error_TooManyPasswordResetRequests">
+    <value>La réinitialisation des mots de passe est temporairement suspendue. Veuillez réessayer plus tard.</value>
+  </data>
   <data name="Error_WrongEmailOrPassword">
     <value>L'adresse e-mail ou mot de passe est incorrect</value>
   </data>

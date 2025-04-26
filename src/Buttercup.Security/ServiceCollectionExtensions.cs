@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
             .AddTransient<IClaimsIdentityFactory, ClaimsIdentityFactory>()
             .AddTransient<IPasswordAuthenticationRateLimiter, PasswordAuthenticationRateLimiter>()
             .AddTransient<IPasswordAuthenticationService, PasswordAuthenticationService>()
+            .AddTransient<IPasswordResetRateLimiter, PasswordResetRateLimiter>()
             .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
             .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>()
             .AddTransient<ITokenAuthenticationService, TokenAuthenticationService>();
