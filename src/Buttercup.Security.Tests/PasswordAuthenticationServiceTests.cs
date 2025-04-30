@@ -822,7 +822,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             this.logger,
             LogLevel.Information,
             211,
-            $"Unable to send password reset link; No user with email {args.Email}");
+            $"Unable to send password reset link to {args.Email}; no matching user");
 
         // Returns true
         Assert.True(result);

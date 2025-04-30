@@ -388,7 +388,7 @@ internal sealed partial class PasswordAuthenticationService(
         EventId = 211,
         EventName = "PasswordResetLinkNotSentUnrecognizedEmail",
         Level = LogLevel.Information,
-        Message = "Unable to send password reset link; No user with email {Email}")]
+        Message = "Unable to send password reset link to {Email}; no matching user")]
     private partial void LogPasswordResetLinkNotSentUnrecognizedEmail(string email);
 
     [LoggerMessage(
