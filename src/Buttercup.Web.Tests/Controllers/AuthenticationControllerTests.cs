@@ -210,7 +210,7 @@ public sealed class AuthenticationControllerTests : IDisposable
 
     [Theory]
     [InlineData(PasswordAuthenticationFailure.IncorrectCredentials, "translated-wrong-email-or-password-error")]
-    [InlineData(PasswordAuthenticationFailure.TooManyAttempts, "translated-too-many-attempts-error")]
+    [InlineData(PasswordAuthenticationFailure.TooManyAttempts, "translated-too-many-sign-in-attempts-error")]
     public async Task SignIn_Post_AuthenticationFailure_AddsError(
         PasswordAuthenticationFailure failure, string expectedMessage)
     {
@@ -279,7 +279,7 @@ public sealed class AuthenticationControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.localizer
-            .Add("Error_TooManyAttempts", "translated-too-many-attempts-error")
+            .Add("Error_TooManySignInAttempts", "translated-too-many-sign-in-attempts-error")
             .Add("Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
         this.passwordAuthenticationServiceMock
