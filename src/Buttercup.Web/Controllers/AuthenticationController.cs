@@ -86,7 +86,7 @@ public sealed class AuthenticationController(
             var message = result.Failure switch
             {
                 PasswordAuthenticationFailure.TooManyAttempts =>
-                    this.localizer["Error_TooManyAttempts"],
+                    this.localizer["Error_TooManySignInAttempts"],
                 PasswordAuthenticationFailure.IncorrectCredentials =>
                     this.localizer["Error_WrongEmailOrPassword"],
                 _ => null,

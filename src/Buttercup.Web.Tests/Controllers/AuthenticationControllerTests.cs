@@ -279,7 +279,7 @@ public sealed class AuthenticationControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.localizer
-            .Add("Error_TooManyAttempts", "translated-too-many-attempts-error")
+            .Add("Error_TooManySignInAttempts", "translated-too-many-attempts-error")
             .Add("Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
         this.passwordAuthenticationServiceMock
