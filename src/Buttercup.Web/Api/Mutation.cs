@@ -31,7 +31,7 @@ public sealed class Mutation
         {
             AuthenticateError error =
                 result.Failure == PasswordAuthenticationFailure.TooManyAttempts ?
-                new TooManyAttemptsError(localizer["Error_TooManyAttempts"]) :
+                new TooManyAttemptsError(localizer["Error_TooManyAuthenticationAttempts"]) :
                 new IncorrectCredentialsError(localizer["Error_WrongEmailOrPassword"]);
 
             return new(error);
