@@ -13,6 +13,7 @@ internal sealed partial class PasswordAuthenticationService(
     ILogger<PasswordAuthenticationService> logger,
     IPasswordAuthenticationRateLimiter passwordAuthenticationRateLimiter,
     IPasswordHasher<User> passwordHasher,
+    IPasswordResetRateLimiter passwordResetRateLimiter,
     IRandomTokenGenerator randomTokenGenerator,
     TimeProvider timeProvider)
     : IPasswordAuthenticationService
@@ -25,6 +26,7 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly IPasswordAuthenticationRateLimiter passwordAuthenticationRateLimiter =
         passwordAuthenticationRateLimiter;
     private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
+    private readonly IPasswordResetRateLimiter passwordResetRateLimiter = passwordResetRateLimiter;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
 
@@ -200,10 +202,20 @@ internal sealed partial class PasswordAuthenticationService(
         return user;
     }
 
-    public async Task SendPasswordResetLink(
+    public async Task<bool> SendPasswordResetLink(
         string email, IPAddress? ipAddress, IUrlHelper urlHelper)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        if (!await this.passwordResetRateLimiter.IsAllowed(email))
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "password_reset_failure:rate_limit_exceeded", ipAddress);
+
+            this.LogPasswordResetLinkNotSentRateLimitExceeded(email);
+
+            return false;
+        }
 
         var user = await FindByEmailAsync(dbContext.Users, email);
 
@@ -214,7 +226,7 @@ internal sealed partial class PasswordAuthenticationService(
 
             this.LogPasswordResetLinkNotSentUnrecognizedEmail(email);
 
-            return;
+            return true;
         }
 
         email = user.Email;
@@ -237,6 +249,8 @@ internal sealed partial class PasswordAuthenticationService(
         await this.InsertSecurityEvent(dbContext, "password_reset_link_sent", ipAddress, user.Id);
 
         this.LogPasswordResetLinkSent(user.Id, email);
+
+        return true;
     }
 
     private static Task<User?> FindByEmailAsync(IQueryable<User> queryable, string email) =>
@@ -364,10 +378,17 @@ internal sealed partial class PasswordAuthenticationService(
     private partial void LogPasswordResetFailedInvalidToken(string token);
 
     [LoggerMessage(
+        EventId = 221,
+        EventName = "PasswordResetLinkNotSentRateLimitExceeded",
+        Level = LogLevel.Information,
+        Message = "Unable to send password reset link to {Email}; rate limit exceeded")]
+    private partial void LogPasswordResetLinkNotSentRateLimitExceeded(string email);
+
+    [LoggerMessage(
         EventId = 211,
         EventName = "PasswordResetLinkNotSentUnrecognizedEmail",
         Level = LogLevel.Information,
-        Message = "Unable to send password reset link; No user with email {Email}")]
+        Message = "Unable to send password reset link to {Email}; no matching user")]
     private partial void LogPasswordResetLinkNotSentUnrecognizedEmail(string email);
 
     [LoggerMessage(

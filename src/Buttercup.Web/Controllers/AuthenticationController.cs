@@ -29,8 +29,13 @@ public sealed class AuthenticationController(
             return this.View(model);
         }
 
-        await this.passwordAuthenticationService.SendPasswordResetLink(
-            model.Email, this.HttpContext.Connection.RemoteIpAddress, this.Url);
+        if (!await this.passwordAuthenticationService.SendPasswordResetLink(
+            model.Email, this.HttpContext.Connection.RemoteIpAddress, this.Url))
+        {
+            this.ModelState.AddModelError(
+                string.Empty, this.localizer["Error_TooManyPasswordResetRequests"]);
+            return this.View(model);
+        }
 
         return this.View("RequestPasswordResetConfirmation", model);
     }
@@ -86,7 +91,7 @@ public sealed class AuthenticationController(
             var message = result.Failure switch
             {
                 PasswordAuthenticationFailure.TooManyAttempts =>
-                    this.localizer["Error_TooManyAttempts"],
+                    this.localizer["Error_TooManySignInAttempts"],
                 PasswordAuthenticationFailure.IncorrectCredentials =>
                     this.localizer["Error_WrongEmailOrPassword"],
                 _ => null,

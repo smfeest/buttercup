@@ -87,6 +87,15 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
+    public void AddSecurityServices_AddsPasswordResetRateLimiter() =>
+        Assert.Contains(
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IPasswordResetRateLimiter) &&
+                serviceDescriptor.ImplementationType == typeof(PasswordResetRateLimiter) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddSecurityServices_AddsRandomNumberGeneratorFactory() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
@@ -134,6 +143,10 @@ public sealed class ServiceCollectionExtensionsTests
             {
                 ["PasswordAuthenticationRateLimit:Limit"] = "1",
                 ["PasswordAuthenticationRateLimit:Window"] = "00:00:00.100",
+                ["PasswordResetRateLimits:Global:Limit"] = "2",
+                ["PasswordResetRateLimits:Global:Window"] = "00:00:00.200",
+                ["PasswordResetRateLimits:PerEmail:Limit"] = "3",
+                ["PasswordResetRateLimits:PerEmail:Window"] = "00:00:00.300",
             })
             .Build();
 
@@ -158,8 +171,11 @@ public sealed class ServiceCollectionExtensionsTests
         Assert.Throws<OptionsValidationException>(() => options.Value);
     }
 
-    private void ConfigureOptions(SecurityOptions options) =>
+    private void ConfigureOptions(SecurityOptions options)
+    {
         options.PasswordAuthenticationRateLimit = this.passwordAuthenticationRateLimit;
+        options.PasswordResetRateLimits = new() { Global = new(2, 200), PerEmail = new(3, 300) };
+    }
 
     #endregion
 }
