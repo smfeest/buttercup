@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using Xunit;
@@ -16,13 +18,18 @@ public sealed class RedisConnectionFactoryTests
             ConnectionString = "localhost,abortConnect=false",
         };
 
-        var connectionFactory = new RedisConnectionFactory(Options.Create(options));
+        var fakeLoggerProvider = new FakeLoggerProvider();
+
+        var connectionFactory = new RedisConnectionFactory(
+            new LoggerFactory([fakeLoggerProvider]), Options.Create(options));
 
         var connection = await connectionFactory.NewConnection();
 
         Assert.Equal(
             ConfigurationOptions.Parse(options.ConnectionString).ToString(),
             connection.Configuration);
+
+        Assert.True(fakeLoggerProvider.Collector.Count > 0);
     }
 
     #endregion
