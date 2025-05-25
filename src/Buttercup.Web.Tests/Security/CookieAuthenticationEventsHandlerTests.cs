@@ -6,6 +6,7 @@ using Buttercup.Security;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Logging.Testing;
 using Moq;
 using Xunit;
 
@@ -17,7 +18,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
     private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
-    private readonly ListLogger<CookieAuthenticationEventsHandler> logger = new();
+    private readonly FakeLogger<CookieAuthenticationEventsHandler> logger = new();
     private readonly Mock<IUserManager> userManagerMock = new();
 
     private readonly CookieAuthenticationEventsHandler cookieAuthenticationEventsHandler;

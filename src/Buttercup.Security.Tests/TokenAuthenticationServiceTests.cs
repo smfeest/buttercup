@@ -4,6 +4,7 @@ using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -16,7 +17,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAccessTokenEncoder> accessTokenEncoderMock = new();
-    private readonly ListLogger<TokenAuthenticationService> logger = new();
+    private readonly FakeLogger<TokenAuthenticationService> logger = new();
     private readonly FakeTimeProvider timeProvider;
 
     private readonly TokenAuthenticationService tokenAuthenticationService;

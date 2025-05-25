@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -19,7 +20,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IAuthenticationMailer> authenticationMailerMock = new();
-    private readonly ListLogger<PasswordAuthenticationService> logger = new();
+    private readonly FakeLogger<PasswordAuthenticationService> logger = new();
     private readonly Mock<IPasswordAuthenticationRateLimiter> passwordAuthenticationRateLimiterMock
         = new();
     private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();

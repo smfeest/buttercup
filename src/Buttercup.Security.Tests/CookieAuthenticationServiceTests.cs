@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -21,7 +22,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
     private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
-    private readonly ListLogger<CookieAuthenticationService> logger = new();
+    private readonly FakeLogger<CookieAuthenticationService> logger = new();
     private readonly FakeTimeProvider timeProvider;
 
     private readonly CookieAuthenticationService cookieAuthenticationService;
@@ -189,7 +190,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
 
         // Does not log
-        Assert.Empty(this.logger.Entries);
+        Assert.Equal(0, this.logger.Collector.Count);
     }
 
     #endregion

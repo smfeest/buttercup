@@ -1,5 +1,6 @@
 using Buttercup.TestUtils;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging.Testing;
 using Moq;
 using Xunit;
 
@@ -9,7 +10,7 @@ public sealed class AssetManifestSourceTests
 {
     private readonly Dictionary<string, string> expectedManifest =
         new() { ["foo.js"] = "foo-80bef72723.js" };
-    private readonly ListLogger<AssetManifestSource> logger = new();
+    private readonly FakeLogger<AssetManifestSource> logger = new();
     private readonly string manifestPath = Path.Combine("prod-assets", "manifest.json");
     private readonly Mock<IAssetManifestReader> manifestReaderMock = new();
 
