@@ -1,4 +1,7 @@
 using Buttercup.Redis.TestUtils;
+using Buttercup.TestUtils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using StackExchange.Redis;
@@ -8,6 +11,7 @@ namespace Buttercup.Redis.RateLimiting;
 
 public sealed class SlidingWindowRateLimiterTests
 {
+    private readonly FakeLogger<SlidingWindowRateLimiter> logger = new();
     private readonly FakeTimeProvider timeProvider = new();
 
     #region IsAllowed
@@ -16,8 +20,8 @@ public sealed class SlidingWindowRateLimiterTests
     public async Task IsAllowed_ReturnsTrueOrFalseBasedOnLimit()
     {
         var connection = await RedisConnection.GetConnection();
-        var connectionManager = new FakeRedisConnectionManager(connection);
-        var rateLimiter = new SlidingWindowRateLimiter(connectionManager, this.timeProvider);
+        var rateLimiter = new SlidingWindowRateLimiter(
+            this.logger, new FakeRedisConnectionManager(connection), this.timeProvider);
 
         var keySuffix = Random.Shared.Next();
         var key1 = $"Foo{keySuffix}";
@@ -52,6 +56,12 @@ public sealed class SlidingWindowRateLimiterTests
         Assert.False(await rateLimiter.IsAllowed(key1, rateLimit));
         Assert.True(await rateLimiter.IsAllowed(key2, rateLimit));
 
+        LogAssert.SingleEntry(this.logger)
+            .HasId(1)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Rate limit exceeded for {key1}");
+        this.logger.Collector.Clear();
+
         this.timeProvider.Advance(TimeSpan.FromMilliseconds(20));
 
         for (var i = 0; i < 2; i++)
@@ -68,7 +78,8 @@ public sealed class SlidingWindowRateLimiterTests
     {
         var connectionMock = new Mock<IConnectionMultiplexer>();
         var connectionManager = new FakeRedisConnectionManager(connectionMock.Object);
-        var rateLimiter = new SlidingWindowRateLimiter(connectionManager, this.timeProvider);
+        var rateLimiter = new SlidingWindowRateLimiter(
+            this.logger, connectionManager, this.timeProvider);
 
         var expectedException = new RedisException("Fake exception");
         connectionMock.Setup(x => x.GetDatabase(-1, null)).Throws(expectedException);
@@ -88,8 +99,8 @@ public sealed class SlidingWindowRateLimiterTests
     public async Task Reset_ResetsCountersForSpecifiedKeyOnly()
     {
         var connection = await RedisConnection.GetConnection();
-        var connectionManager = new FakeRedisConnectionManager(connection);
-        var rateLimiter = new SlidingWindowRateLimiter(connectionManager, this.timeProvider);
+        var rateLimiter = new SlidingWindowRateLimiter(
+            this.logger, new FakeRedisConnectionManager(connection), this.timeProvider);
 
         var keySuffix = Random.Shared.Next();
         var key1 = $"Foo{keySuffix}";
@@ -103,6 +114,10 @@ public sealed class SlidingWindowRateLimiterTests
 
         Assert.False(await rateLimiter.IsAllowed(key1, rateLimit));
         Assert.True(await rateLimiter.IsAllowed(key2, rateLimit));
+
+        LogAssert.SingleEntry(this.logger, 2)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Counters reset for {key2}");
     }
 
     [Fact]
@@ -110,7 +125,8 @@ public sealed class SlidingWindowRateLimiterTests
     {
         var connectionMock = new Mock<IConnectionMultiplexer>();
         var connectionManager = new FakeRedisConnectionManager(connectionMock.Object);
-        var rateLimiter = new SlidingWindowRateLimiter(connectionManager, this.timeProvider);
+        var rateLimiter = new SlidingWindowRateLimiter(
+            this.logger, connectionManager, this.timeProvider);
 
         var expectedException = new RedisException("Fake exception");
         connectionMock.Setup(x => x.GetDatabase(-1, null)).Throws(expectedException);

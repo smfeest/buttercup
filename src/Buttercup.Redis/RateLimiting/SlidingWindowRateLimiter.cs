@@ -1,11 +1,15 @@
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
 namespace Buttercup.Redis.RateLimiting;
 
-internal sealed class SlidingWindowRateLimiter(
-    IRedisConnectionManager redisConnectionManager, TimeProvider timeProvider)
+internal sealed partial class SlidingWindowRateLimiter(
+    ILogger<SlidingWindowRateLimiter> logger,
+    IRedisConnectionManager redisConnectionManager,
+    TimeProvider timeProvider)
     : ISlidingWindowRateLimiter
 {
+    private readonly ILogger<SlidingWindowRateLimiter> logger = logger;
     private readonly IRedisConnectionManager redisConnectionManager = redisConnectionManager;
     private readonly TimeProvider timeProvider = timeProvider;
 
@@ -30,6 +34,7 @@ internal sealed class SlidingWindowRateLimiter(
 
             if (totalCountAcrossWindow >= rateLimit.Limit)
             {
+                this.LogLimitExceeded(key);
                 return false;
             }
 
@@ -66,6 +71,7 @@ internal sealed class SlidingWindowRateLimiter(
         {
             var database = this.redisConnectionManager.CurrentConnection.GetDatabase();
             await database.KeyDeleteAsync(RedisKey(key));
+            this.LogReset(key);
         }
         catch (Exception e)
         {
@@ -75,4 +81,18 @@ internal sealed class SlidingWindowRateLimiter(
     }
 
     private static string RedisKey(string key) => $"rate_limit:sliding_window:{key}";
+
+    [LoggerMessage(
+        EventId = 1,
+        EventName = "LimitExceeded",
+        Level = LogLevel.Information,
+        Message = "Rate limit exceeded for {key}")]
+    private partial void LogLimitExceeded(string key);
+
+    [LoggerMessage(
+        EventId = 2,
+        EventName = "CountersReset",
+        Level = LogLevel.Information,
+        Message = "Counters reset for {key}")]
+    private partial void LogReset(string key);
 }
