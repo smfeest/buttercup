@@ -65,11 +65,10 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
                 TestContext.Current.CancellationToken));
 
         // Logs token issued message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            300,
-            $"Issued access token for user {user.Id} ({user.Email})");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(300)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Issued access token for user {user.Id} ({user.Email})");
 
         // Returns token
         Assert.Equal(accessToken, returnedToken);
@@ -91,12 +90,11 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         // Logs incorrect encoding message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Warning,
-            301,
-            "Access token failed validation; not base64url encoded",
-            exception);
+        LogAssert.SingleEntry(this.logger)
+            .HasId(301)
+            .HasLevel(LogLevel.Warning)
+            .HasMessage("Access token failed validation; not base64url encoded")
+            .HasException(exception);
     }
 
     [Fact]
@@ -111,12 +109,11 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         // Logs malformed message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Warning,
-            302,
-            "Access token failed validation; malformed or encrypted with wrong key",
-            exception);
+        LogAssert.SingleEntry(this.logger)
+            .HasId(302)
+            .HasLevel(LogLevel.Warning)
+            .HasMessage("Access token failed validation; malformed or encrypted with wrong key")
+            .HasException(exception);
     }
 
     [Fact]
@@ -131,11 +128,10 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         // Logs expired message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            303,
-            $"Access token failed validation for user {user.Id}; expired");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(303)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Access token failed validation for user {user.Id}; expired");
     }
 
     [Fact]
@@ -150,11 +146,10 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         // Logs user does not exist message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Warning,
-            304,
-            $"Access token failed validation for user {user.Id}; user does not exist");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(304)
+            .HasLevel(LogLevel.Warning)
+            .HasMessage($"Access token failed validation for user {user.Id}; user does not exist");
     }
 
     [Fact]
@@ -171,11 +166,11 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         // Logs stale security stamp message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            305,
-            $"Access token failed validation for user {user.Id}; contains stale security stamp");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(305)
+            .HasLevel(LogLevel.Information)
+            .HasMessage(
+                $"Access token failed validation for user {user.Id}; contains stale security stamp");
     }
 
     [Fact]
@@ -192,11 +187,10 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         Assert.Equal(user, await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
 
         // Logs successfully validated message
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            306,
-            $"Access token successfully validated for user {user.Id}");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(306)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Access token successfully validated for user {user.Id}");
     }
 
     private void SetupDecodeFailure(string accessToken, Exception exception) =>

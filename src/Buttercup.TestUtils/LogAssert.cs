@@ -6,31 +6,46 @@ using Xunit.Sdk;
 namespace Buttercup.TestUtils;
 
 /// <summary>
-/// Contains static methods that can be used to verify logging.
+/// Contains static methods that can be used to verify the events logged to a <see
+/// cref="FakeLogger"/>.
 /// </summary>
 public static class LogAssert
 {
     /// <summary>
-    /// Verifies that a fake logger has an entry with the specified log level, event ID, message and
-    /// exception.
+    /// Verifies that the collector associated with a fake logger contains exactly one record.
     /// </summary>
-    /// <typeparam name="T">The type whose name is used for the logger category name.</typeparam>
-    /// <param name="fakeLogger">The fake logger.</param>
-    /// <param name="logLevel">The expected log level.</param>
-    /// <param name="eventId">The expected event ID.</param>
-    /// <param name="message">The expected message.</param>
-    /// <param name="exception">The expected exception.</param>
-    /// <exception cref="ContainsException">When no matching entry is found.</exception>
-    public static void HasEntry<T>(
-        FakeLogger<T> fakeLogger,
-        LogLevel logLevel,
-        EventId eventId,
-        string message,
-        Exception? exception = null) =>
-        Assert.Contains(
-            fakeLogger.Collector.GetSnapshot(),
-            record => record.Level == logLevel &&
-                record.Id == eventId &&
-                record.Message == message &&
-                record.Exception == exception);
+    /// <param name="logger">The fake logger.</param>
+    /// <returns>
+    /// An instance of <see cref="FakeLogRecordAssert"/> that can be used to make assertions about
+    /// the record.
+    /// </returns>
+    /// <exception cref="SingleException">
+    /// When the collector associated with the fake logger does not contain exactly one record with
+    /// the specified ID.
+    /// </exception>
+    public static FakeLogRecordAssert SingleEntry(FakeLogger logger)
+    {
+        var record = Assert.Single(logger.Collector.GetSnapshot());
+        return new(record);
+    }
+
+    /// <summary>
+    /// Verifies that the collector associated with a fake logger contains exactly one record with a
+    /// particular event ID.
+    /// </summary>
+    /// <param name="logger">The fake logger.</param>
+    /// <param name="id">The event ID</param>
+    /// <returns>
+    /// An instance of <see cref="FakeLogRecordAssert"/> that can be used to make assertions about
+    /// the record.
+    /// </returns>
+    /// <exception cref="SingleException">
+    /// When the collector associated with the fake logger does not contain exactly one record with
+    /// the specified ID.
+    /// </exception>
+    public static FakeLogRecordAssert SingleEntry(FakeLogger logger, EventId id)
+    {
+        var record = Assert.Single(logger.Collector.GetSnapshot(), r => r.Id == id);
+        return new(record);
+    }
 }

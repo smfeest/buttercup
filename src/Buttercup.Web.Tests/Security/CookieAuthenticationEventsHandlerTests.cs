@@ -52,8 +52,10 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        LogAssert.HasEntry(
-            this.logger, LogLevel.Information, 219, $"User {user.Id} no longer exists");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(219)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"User {user.Id} no longer exists");
     }
 
     [Fact]
@@ -91,11 +93,10 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            214,
-            $"Incorrect security stamp for user {user.Id} ({user.Email})");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(214)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Incorrect security stamp for user {user.Id} ({user.Email})");
     }
 
     [Theory]
@@ -131,11 +132,11 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Debug,
-            215,
-            $"Successfully validated claims principal for user {user.Id} ({user.Email})");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(215)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage(
+                $"Successfully validated claims principal for user {user.Id} ({user.Email})");
     }
 
     [Theory]
@@ -177,11 +178,9 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        LogAssert.HasEntry(
-            this.logger,
-            LogLevel.Information,
-            216,
-            $"Refreshed claims principal for user {user.Id} ({user.Email})");
+        LogAssert.SingleEntry(this.logger, 216)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"Refreshed claims principal for user {user.Id} ({user.Email})");
     }
 
     [Fact]

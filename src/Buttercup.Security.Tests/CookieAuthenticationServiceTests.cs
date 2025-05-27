@@ -135,8 +135,10 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         Assert.True(await this.SecurityEventExists(dbContext, "sign_in", ipAddress, user.Id));
 
         // Logs signed in message
-        LogAssert.HasEntry(
-            this.logger, LogLevel.Information, 212, $"User {user.Id} ({user.Email}) signed in");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(212)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"User {user.Id} ({user.Email}) signed in");
     }
 
     #endregion
@@ -173,8 +175,10 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         Assert.True(await this.SecurityEventExists(dbContext, "sign_out", ipAddress, user.Id));
 
         // Logs signed out message
-        LogAssert.HasEntry(
-            this.logger, LogLevel.Information, 213, $"User {user.Id} ({email}) signed out");
+        LogAssert.SingleEntry(this.logger)
+            .HasId(213)
+            .HasLevel(LogLevel.Information)
+            .HasMessage($"User {user.Id} ({email}) signed out");
     }
 
     [Fact]
