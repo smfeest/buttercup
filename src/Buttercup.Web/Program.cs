@@ -28,7 +28,7 @@ var configuration = builder.Configuration;
 
 if (configuration.GetValue<bool>("EnableTelemetry"))
 {
-    services.AddOpenTelemetry().UseAzureMonitor();
+    services.AddOpenTelemetry().UseAzureMonitor().WithTracing();
 }
 
 services
