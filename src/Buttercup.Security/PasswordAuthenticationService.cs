@@ -308,112 +308,112 @@ internal sealed partial class PasswordAuthenticationService(
     }
 
     [LoggerMessage(
-        EventId = 202,
+        EventId = 1,
         EventName = "Authenticated",
         Level = LogLevel.Information,
         Message = "User {UserId} ({Email}) successfully authenticated")]
     private partial void LogAuthenticated(long userId, string email);
 
     [LoggerMessage(
-        EventId = 200,
+        EventId = 2,
         EventName = "AuthenticationFailedIncorrectPassword",
         Level = LogLevel.Information,
         Message = "Authentication failed; incorrect password for user {UserId} ({Email})")]
     private partial void LogAuthenticationFailedIncorrectPassword(long userId, string email);
 
     [LoggerMessage(
-        EventId = 201,
+        EventId = 3,
         EventName = "AuthenticationFailedNoPasswordSet",
         Level = LogLevel.Information,
         Message = "Authentication failed; no password set for user {UserId} ({Email})")]
     private partial void LogAuthenticationFailedNoPasswordSet(long userId, string email);
 
     [LoggerMessage(
-        EventId = 220,
+        EventId = 4,
         EventName = "AuthenticationFailedRateLimitExceeded",
         Level = LogLevel.Information,
         Message = "Authentication failed; rate limit exceeded for email {Email}")]
     private partial void LogAuthenticationFailedRateLimitExceeded(string email);
 
     [LoggerMessage(
-        EventId = 203,
+        EventId = 5,
         EventName = "AuthenticationFailedUnrecognizedEmail",
         Level = LogLevel.Information,
         Message = "Authentication failed; no user with email {Email}")]
     private partial void LogAuthenticationFailedUnrecognizedEmail(string email);
 
     [LoggerMessage(
-        EventId = 205,
+        EventId = 6,
         EventName = "PasswordChanged",
         Level = LogLevel.Information,
         Message = "Password successfully changed for user {UserId} ({Email})")]
     private partial void LogPasswordChanged(long userId, string email);
 
     [LoggerMessage(
-        EventId = 204,
+        EventId = 7,
         EventName = "PasswordChangeFailedIncorrectPassword",
         Level = LogLevel.Information,
         Message = "Password change denied for user {UserId} ({Email}); current password is incorrect")]
     private partial void LogPasswordChangeFailedIncorrectPassword(long userId, string email);
 
     [LoggerMessage(
-        EventId = 217,
+        EventId = 8,
         EventName = "PasswordHashUpgraded",
         Level = LogLevel.Information,
         Message = "Password hash upgraded for user {UserId} ({Email})")]
     private partial void LogPasswordHashUpgraded(long userId, string email);
 
     [LoggerMessage(
-        EventId = 209,
+        EventId = 9,
         EventName = "PasswordReset",
         Level = LogLevel.Information,
         Message = "Password reset for user {UserId} using token {Token}")]
     private partial void LogPasswordReset(long userId, string token);
 
     [LoggerMessage(
-        EventId = 208,
+        EventId = 10,
         EventName = "PasswordResetFailedInvalidToken",
         Level = LogLevel.Information,
         Message = "Unable to reset password; password reset token {Token} is invalid")]
     private partial void LogPasswordResetFailedInvalidToken(string token);
 
     [LoggerMessage(
-        EventId = 221,
+        EventId = 11,
         EventName = "PasswordResetLinkNotSentRateLimitExceeded",
         Level = LogLevel.Information,
         Message = "Unable to send password reset link to {Email}; rate limit exceeded")]
     private partial void LogPasswordResetLinkNotSentRateLimitExceeded(string email);
 
     [LoggerMessage(
-        EventId = 211,
+        EventId = 12,
         EventName = "PasswordResetLinkNotSentUnrecognizedEmail",
         Level = LogLevel.Information,
         Message = "Unable to send password reset link to {Email}; no matching user")]
     private partial void LogPasswordResetLinkNotSentUnrecognizedEmail(string email);
 
     [LoggerMessage(
-        EventId = 210,
+        EventId = 13,
         EventName = "PasswordResetLinkSent",
         Level = LogLevel.Information,
         Message = "Password reset link sent to user {UserId} ({Email})")]
     private partial void LogPasswordResetLinkSent(long userId, string email);
 
     [LoggerMessage(
-        EventId = 206,
+        EventId = 14,
         EventName = "PasswordResetTokenInvalid",
         Level = LogLevel.Debug,
         Message = "Password reset token '{Token}' is no longer valid")]
     private partial void LogPasswordResetTokenInvalid(string token);
 
     [LoggerMessage(
-        EventId = 207,
+        EventId = 15,
         EventName = "PasswordResetTokenValid",
         Level = LogLevel.Debug,
         Message = "Password reset token '{Token}' is valid and belongs to user {UserId}")]
     private partial void LogPasswordResetTokenValid(string token, long userId);
 
     [LoggerMessage(
-        EventId = 218,
+        EventId = 16,
         EventName = "UpgradedPasswordHashNotPersisted",
         Level = LogLevel.Information,
         Message = "Upgraded password hash not persisted for user {UserId} ({Email}); concurrent changed detected")]

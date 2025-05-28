@@ -63,14 +63,14 @@ internal sealed partial class E2eDatabaseInitializer(
     }
 
     [LoggerMessage(
-        EventId = 400,
+        EventId = 1,
         EventName = "DatabaseAlreadyExists",
         Level = LogLevel.Information,
         Message = "End-to-end test database already exists")]
     private partial void LogDatabaseAlreadyExists();
 
     [LoggerMessage(
-        EventId = 401,
+        EventId = 2,
         EventName = "DatabaseSuccessfullyInitialized",
         Level = LogLevel.Information,
         Message = "End-to-end test database successfully initialized")]

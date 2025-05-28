@@ -22,7 +22,7 @@ public sealed partial class AssetManifestSource(
     public IReadOnlyDictionary<string, string> ProductionManifest => this.productionManifest.Value;
 
     [LoggerMessage(
-        EventId = 100,
+        EventId = 1,
         EventName = "LoadingManifest",
         Level = LogLevel.Information,
         Message = "Loading asset manifest {Path}")]

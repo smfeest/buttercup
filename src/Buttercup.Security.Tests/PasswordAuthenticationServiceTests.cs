@@ -67,7 +67,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
-            .HasId(220)
+            .HasId(4)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Authentication failed; rate limit exceeded for email {args.Email}");
 
@@ -96,7 +96,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
-            .HasId(203)
+            .HasId(5)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Authentication failed; no user with email {args.Email}");
 
@@ -126,7 +126,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs no password set message
         LogAssert.SingleEntry(this.logger)
-            .HasId(201)
+            .HasId(3)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Authentication failed; no password set for user {user.Id} ({user.Email})");
@@ -164,7 +164,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs incorrect password message
         LogAssert.SingleEntry(this.logger)
-            .HasId(200)
+            .HasId(2)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Authentication failed; incorrect password for user {user.Id} ({user.Email})");
@@ -205,7 +205,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs successfully authenticated message
         LogAssert.SingleEntry(this.logger)
-            .HasId(202)
+            .HasId(1)
             .HasLevel(LogLevel.Information)
             .HasMessage($"User {user.Id} ({user.Email}) successfully authenticated");
 
@@ -249,7 +249,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 dbContext, "authentication_success", args.IpAddress, userBefore.Id));
 
         // Logs successfully authenticated message
-        LogAssert.SingleEntry(this.logger, 202)
+        LogAssert.SingleEntry(this.logger, 1)
             .HasLevel(LogLevel.Information)
             .HasMessage($"User {userBefore.Id} ({userBefore.Email}) successfully authenticated");
 
@@ -267,7 +267,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 [userBefore.Id], TestContext.Current.CancellationToken));
 
         // Logs password hash upgraded message
-        LogAssert.SingleEntry(this.logger, 217)
+        LogAssert.SingleEntry(this.logger, 8)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Password hash upgraded for user {userBefore.Id} ({userBefore.Email})");
 
@@ -319,7 +319,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 dbContext, "authentication_success", args.IpAddress, userBefore.Id));
 
         // Logs successfully authenticated message
-        LogAssert.SingleEntry(this.logger, 202)
+        LogAssert.SingleEntry(this.logger, 1)
             .HasLevel(LogLevel.Information)
             .HasMessage($"User {userBefore.Id} ({userBefore.Email}) successfully authenticated");
 
@@ -330,7 +330,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 [userBefore.Id], TestContext.Current.CancellationToken));
 
         // Logs upgraded password hash not persisted message
-        LogAssert.SingleEntry(this.logger, 218)
+        LogAssert.SingleEntry(this.logger, 16)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Upgraded password hash not persisted for user {userBefore.Id} ({userBefore.Email}); concurrent changed detected");
@@ -407,7 +407,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs password incorrect message
         LogAssert.SingleEntry(this.logger)
-            .HasId(204)
+            .HasId(7)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Password change denied for user {user.Id} ({user.Email}); current password is incorrect");
@@ -477,7 +477,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs password changed message
         LogAssert.SingleEntry(this.logger)
-            .HasId(205)
+            .HasId(6)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Password successfully changed for user {userBefore.Id} ({userBefore.Email})");
@@ -522,7 +522,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs valid token message
         LogAssert.SingleEntry(this.logger)
-            .HasId(207)
+            .HasId(15)
             .HasLevel(LogLevel.Debug)
             .HasMessage(
                 $"Password reset token '{args.Token[..6]}…' is valid and belongs to user {user.Id}");
@@ -557,7 +557,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
-            .HasId(206)
+            .HasId(14)
             .HasLevel(LogLevel.Debug)
             .HasMessage($"Password reset token '{args.Token[..6]}…' is no longer valid");
 
@@ -591,7 +591,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
-            .HasId(206)
+            .HasId(14)
             .HasLevel(LogLevel.Debug)
             .HasMessage($"Password reset token '{args.Token[..6]}…' is no longer valid");
 
@@ -636,7 +636,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
-            .HasId(208)
+            .HasId(10)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Unable to reset password; password reset token {args.Token[..6]}… is invalid");
@@ -670,7 +670,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
-            .HasId(208)
+            .HasId(10)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Unable to reset password; password reset token {args.Token[..6]}… is invalid");
@@ -732,7 +732,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs password reset message
         LogAssert.SingleEntry(this.logger)
-            .HasId(209)
+            .HasId(9)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Password reset for user {userBefore.Id} using token {args.Token[..6]}…");
 
@@ -777,7 +777,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
-            .HasId(221)
+            .HasId(11)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Unable to send password reset link to {args.Email}; rate limit exceeded");
 
@@ -806,7 +806,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
-            .HasId(211)
+            .HasId(12)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Unable to send password reset link to {args.Email}; no matching user");
 
@@ -860,7 +860,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Logs password reset link sent message
         LogAssert.SingleEntry(this.logger)
-            .HasId(210)
+            .HasId(13)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Password reset link sent to user {user.Id} ({user.Email})");
 

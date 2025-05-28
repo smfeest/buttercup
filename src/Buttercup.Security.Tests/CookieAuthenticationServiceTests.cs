@@ -136,7 +136,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         // Logs signed in message
         LogAssert.SingleEntry(this.logger)
-            .HasId(212)
+            .HasId(1)
             .HasLevel(LogLevel.Information)
             .HasMessage($"User {user.Id} ({user.Email}) signed in");
     }
@@ -176,7 +176,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         // Logs signed out message
         LogAssert.SingleEntry(this.logger)
-            .HasId(213)
+            .HasId(2)
             .HasLevel(LogLevel.Information)
             .HasMessage($"User {user.Id} ({email}) signed out");
     }

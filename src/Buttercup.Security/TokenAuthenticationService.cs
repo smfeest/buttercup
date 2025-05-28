@@ -89,49 +89,49 @@ internal sealed partial class TokenAuthenticationService(
     }
 
     [LoggerMessage(
-        EventId = 302,
+        EventId = 1,
         EventName = "EncryptionError",
         Level = LogLevel.Warning,
         Message = "Access token failed validation; malformed or encrypted with wrong key")]
     private partial void LogEncryptionError(Exception exception);
 
     [LoggerMessage(
-        EventId = 301,
+        EventId = 2,
         EventName = "IncorrectEncoding",
         Level = LogLevel.Warning,
         Message = "Access token failed validation; not base64url encoded")]
     private partial void LogIncorrectEncoding(Exception exception);
 
     [LoggerMessage(
-        EventId = 305,
+        EventId = 3,
         EventName = "StaleSecurityStamp",
         Level = LogLevel.Information,
         Message = "Access token failed validation for user {UserId}; contains stale security stamp")]
     private partial void LogStaleSecurityStamp(long userId);
 
     [LoggerMessage(
-        EventId = 303,
+        EventId = 4,
         EventName = "TokenExpired",
         Level = LogLevel.Information,
         Message = "Access token failed validation for user {UserId}; expired")]
     private partial void LogTokenExpired(long userId);
 
     [LoggerMessage(
-        EventId = 300,
+        EventId = 5,
         EventName = "TokenIssued",
         Level = LogLevel.Information,
         Message = "Issued access token for user {UserId} ({Email})")]
     private partial void LogTokenIssued(long userId, string email);
 
     [LoggerMessage(
-        EventId = 306,
+        EventId = 6,
         EventName = "TokenValidated",
         Level = LogLevel.Information,
         Message = "Access token successfully validated for user {UserId}")]
     private partial void LogTokenValidated(long userId);
 
     [LoggerMessage(
-        EventId = 304,
+        EventId = 7,
         EventName = "UserDoesNotExist",
         Level = LogLevel.Warning,
         Message = "Access token failed validation for user {UserId}; user does not exist")]

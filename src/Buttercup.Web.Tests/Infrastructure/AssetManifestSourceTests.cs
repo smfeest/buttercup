@@ -40,7 +40,7 @@ public sealed class AssetManifestSourceTests
         _ = this.manifestSource.ProductionManifest;
 
         LogAssert.SingleEntry(this.logger)
-            .HasId(100)
+            .HasId(1)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Loading asset manifest {this.manifestPath}");
     }

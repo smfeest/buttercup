@@ -77,28 +77,28 @@ public sealed partial class CookieAuthenticationEventsHandler(
     }
 
     [LoggerMessage(
-        EventId = 214,
+        EventId = 1,
         EventName = "IncorrectSecurityStamp",
         Level = LogLevel.Information,
         Message = "Incorrect security stamp for user {UserId} ({Email})")]
     private partial void LogIncorrectSecurityStamp(long userId, string email);
 
     [LoggerMessage(
-        EventId = 216,
+        EventId = 2,
         EventName = "RefreshedPrincipal",
         Level = LogLevel.Information,
         Message = "Refreshed claims principal for user {UserId} ({Email})")]
     private partial void LogRefreshedPrincipal(long userId, string email);
 
     [LoggerMessage(
-        EventId = 219,
+        EventId = 3,
         EventName = "UserNoLongerExists",
         Level = LogLevel.Information,
         Message = "User {UserId} no longer exists")]
     private partial void LogUserNoLongerExists(long userId);
 
     [LoggerMessage(
-        EventId = 215,
+        EventId = 4,
         EventName = "ValidatedPrincipal",
         Level = LogLevel.Debug,
         Message = "Successfully validated claims principal for user {UserId} ({Email})")]

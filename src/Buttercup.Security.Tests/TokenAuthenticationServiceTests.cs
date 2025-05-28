@@ -66,7 +66,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs token issued message
         LogAssert.SingleEntry(this.logger)
-            .HasId(300)
+            .HasId(5)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Issued access token for user {user.Id} ({user.Email})");
 
@@ -91,7 +91,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs incorrect encoding message
         LogAssert.SingleEntry(this.logger)
-            .HasId(301)
+            .HasId(2)
             .HasLevel(LogLevel.Warning)
             .HasMessage("Access token failed validation; not base64url encoded")
             .HasException(exception);
@@ -110,7 +110,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs malformed message
         LogAssert.SingleEntry(this.logger)
-            .HasId(302)
+            .HasId(1)
             .HasLevel(LogLevel.Warning)
             .HasMessage("Access token failed validation; malformed or encrypted with wrong key")
             .HasException(exception);
@@ -129,7 +129,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs expired message
         LogAssert.SingleEntry(this.logger)
-            .HasId(303)
+            .HasId(4)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Access token failed validation for user {user.Id}; expired");
     }
@@ -147,7 +147,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs user does not exist message
         LogAssert.SingleEntry(this.logger)
-            .HasId(304)
+            .HasId(7)
             .HasLevel(LogLevel.Warning)
             .HasMessage($"Access token failed validation for user {user.Id}; user does not exist");
     }
@@ -167,7 +167,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs stale security stamp message
         LogAssert.SingleEntry(this.logger)
-            .HasId(305)
+            .HasId(3)
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Access token failed validation for user {user.Id}; contains stale security stamp");
@@ -188,7 +188,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         // Logs successfully validated message
         LogAssert.SingleEntry(this.logger)
-            .HasId(306)
+            .HasId(6)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Access token successfully validated for user {user.Id}");
     }

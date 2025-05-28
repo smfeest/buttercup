@@ -53,7 +53,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
         LogAssert.SingleEntry(this.logger)
-            .HasId(219)
+            .HasId(3)
             .HasLevel(LogLevel.Information)
             .HasMessage($"User {user.Id} no longer exists");
     }
@@ -94,7 +94,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
         LogAssert.SingleEntry(this.logger)
-            .HasId(214)
+            .HasId(1)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Incorrect security stamp for user {user.Id} ({user.Email})");
     }
@@ -133,7 +133,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
         LogAssert.SingleEntry(this.logger)
-            .HasId(215)
+            .HasId(4)
             .HasLevel(LogLevel.Debug)
             .HasMessage(
                 $"Successfully validated claims principal for user {user.Id} ({user.Email})");
@@ -178,7 +178,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
         await this.cookieAuthenticationEventsHandler.ValidatePrincipal(context);
 
-        LogAssert.SingleEntry(this.logger, 216)
+        LogAssert.SingleEntry(this.logger, 2)
             .HasLevel(LogLevel.Information)
             .HasMessage($"Refreshed claims principal for user {user.Id} ({user.Email})");
     }

@@ -101,14 +101,14 @@ internal sealed partial class CookieAuthenticationService(
             httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null);
 
     [LoggerMessage(
-        EventId = 212,
+        EventId = 1,
         EventName = "SignedIn",
         Level = LogLevel.Information,
         Message = "User {UserId} ({Email}) signed in")]
     private partial void LogSignedIn(long userId, string email);
 
     [LoggerMessage(
-        EventId = 213,
+        EventId = 2,
         EventName = "SignedOut",
         Level = LogLevel.Information,
         Message = "User {UserId} ({Email}) signed out")]
