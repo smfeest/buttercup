@@ -39,8 +39,8 @@
 
         cd src/Buttercup.Web
 
-2.  Create a [SendGrid API key](https://app.sendgrid.com/settings/api_keys) with
-    full access to _Mail Send_ > _Mail Send_ only, and add it as a user secret:
+2.  Create a [MailerSend API key](https://app.mailersend.com/domains/) with sending access only, and
+    add it as a user secret:
 
         dotnet user-secrets set "Email:ApiKey" "<replace-with-api-key>"
 

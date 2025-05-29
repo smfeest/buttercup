@@ -13,22 +13,19 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddEmailServices
 
     [Fact]
-    public void AddEmailServices_AddsEmailSender() =>
+    public void AddEmailServices_AddsEmailSender()
+    {
+        var collection = new ServiceCollection().AddEmailServices(ConfigureOptions);
+
         Assert.Contains(
-            new ServiceCollection().AddEmailServices(ConfigureOptions),
+            collection,
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IEmailSender) &&
-                serviceDescriptor.ImplementationType == typeof(EmailSender) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
-    [Fact]
-    public void AddEmailServices_AddsSendGridClientAccessor() =>
-        Assert.Contains(
-            new ServiceCollection().AddEmailServices(ConfigureOptions),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(ISendGridClientAccessor) &&
-                serviceDescriptor.ImplementationType == typeof(SendGridClientAccessor) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+        Assert.IsType<EmailSender>(
+            collection.BuildServiceProvider().GetRequiredService<IEmailSender>());
+    }
 
     [Fact]
     public void AddEmailServices_WithConfigureActionConfiguresOptions()

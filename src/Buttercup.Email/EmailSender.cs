@@ -1,26 +1,29 @@
+using System.Net.Http.Json;
+using Buttercup.Email.MailerSendApi;
 using Microsoft.Extensions.Options;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+using Microsoft.Net.Http.Headers;
 
 namespace Buttercup.Email;
 
-internal sealed class EmailSender(
-    ISendGridClientAccessor sendGridClientAccessor, IOptions<EmailOptions> optionsAccessor)
-    : IEmailSender
+internal sealed class EmailSender : IEmailSender
 {
-    private readonly string fromAddress = optionsAccessor.Value.FromAddress;
-    private readonly ISendGridClient sendGridClient = sendGridClientAccessor.SendGridClient;
+    private readonly HttpClient httpClient;
+    private readonly string fromAddress;
 
-    public Task Send(string toAddress, string subject, string body)
+    public EmailSender(HttpClient httpClient, IOptions<EmailOptions> optionsAccessor)
     {
-        var message = new SendGridMessage()
-        {
-            From = new(this.fromAddress),
-            Subject = subject,
-            PlainTextContent = body,
-        };
-        message.AddTo(new EmailAddress(toAddress));
+        this.fromAddress = optionsAccessor.Value.FromAddress;
+        this.httpClient = httpClient;
 
-        return this.sendGridClient.SendEmailAsync(message);
+        httpClient.BaseAddress = new("https://api.mailersend.com/v1/");
+        httpClient.DefaultRequestHeaders.Add(
+            HeaderNames.Authorization, $"Bearer {optionsAccessor.Value.ApiKey}");
+    }
+
+    public async Task Send(string toAddress, string subject, string body)
+    {
+        var message = new EmailRequestBody(new(this.fromAddress), [new(toAddress)], subject, body);
+        using var response = await this.httpClient.PostAsJsonAsync("email", message);
+        response.EnsureSuccessStatusCode();
     }
 }

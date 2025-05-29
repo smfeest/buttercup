@@ -1,13 +1,14 @@
+using System.Net;
+using System.Net.Http.Json;
+using Buttercup.Email.MailerSendApi;
 using Microsoft.Extensions.Options;
-using Moq;
-using SendGrid;
-using SendGrid.Helpers.Mail;
 using Xunit;
 
 namespace Buttercup.Email;
 
 public sealed class EmailSenderTests
 {
+    private const string ApiKey = "fake-api-key";
     private const string FromAddress = "from@example.com";
     private const string ToAddress = "to@example.com";
     private const string Subject = "message-subject";
@@ -16,58 +17,89 @@ public sealed class EmailSenderTests
     #region Send
 
     [Fact]
-    public async Task Send_SetsFromAddress()
+    public async Task Send_PostsToMailerSendEmailEndpoint()
     {
-        var message = await Send();
+        var calls = 0;
 
-        Assert.Equal(FromAddress, message.From.Email);
+        using var httpMessageHandler = new FakeHttpMessageHandler(request =>
+        {
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal(new Uri("https://api.mailersend.com/v1/email"), request.RequestUri);
+
+            calls++;
+        });
+
+        await Send(httpMessageHandler);
+
+        Assert.Equal(1, calls);
     }
 
     [Fact]
-    public async Task Send_SetsToAddress()
+    public async Task Send_IncludesAuthorizationHeader()
     {
-        var message = await Send();
+        using var httpMessageHandler = new FakeHttpMessageHandler(request =>
+        {
+            var authorizationHeader = request.Headers.Authorization;
 
-        var personalization = Assert.Single(message.Personalizations);
-        var to = Assert.Single(personalization.Tos);
-        Assert.Equal(ToAddress, to.Email);
+            Assert.NotNull(authorizationHeader);
+            Assert.Equal("Bearer", authorizationHeader.Scheme);
+            Assert.Equal(ApiKey, authorizationHeader.Parameter);
+        });
+
+        await Send(httpMessageHandler);
     }
 
     [Fact]
-    public async Task Send_SetsSubject()
+    public async Task Send_IncludesEmailDetailsAsJsonContent()
     {
-        var message = await Send();
+        using var httpMessageHandler = new FakeHttpMessageHandler(request =>
+        {
+            var jsonContent = Assert.IsType<JsonContent>(request.Content);
+            var emailRequest = Assert.IsType<EmailRequestBody>(jsonContent.Value);
 
-        Assert.Equal(Subject, message.Subject);
+            Assert.Equal(FromAddress, emailRequest.From.Email);
+            Assert.Equal(ToAddress, Assert.Single(emailRequest.To).Email);
+            Assert.Equal(Subject, emailRequest.Subject);
+            Assert.Equal(Body, emailRequest.Text);
+        });
+
+        await Send(httpMessageHandler);
     }
 
     [Fact]
-    public async Task Send_SetsBody()
+    public async Task Send_ThrowsOnUnsuccessfulResponse()
     {
-        var message = await Send();
+        using var httpMessageHandler = new FakeHttpMessageHandler(HttpStatusCode.Unauthorized);
 
-        Assert.Equal(Body, message.PlainTextContent);
+        await Assert.ThrowsAsync<HttpRequestException>(() => Send(httpMessageHandler));
     }
 
-    private static async Task<SendGridMessage> Send()
+    private static async Task Send(HttpMessageHandler httpMessageHandler)
     {
-        var mockClient = new Mock<ISendGridClient>();
-        var clientAccessor = Mock.Of<ISendGridClientAccessor>(
-            x => x.SendGridClient == mockClient.Object);
-        var options = Options.Create(
-            new EmailOptions { ApiKey = string.Empty, FromAddress = FromAddress });
-        var emailSender = new EmailSender(clientAccessor, options);
+        using var httpClient = new HttpClient(httpMessageHandler);
+        var options = new EmailOptions { ApiKey = ApiKey, FromAddress = FromAddress };
 
-        SendGridMessage? sentMessage = null;
-
-        mockClient
-            .Setup(x => x.SendEmailAsync(It.IsAny<SendGridMessage>(), CancellationToken.None))
-            .Callback<SendGridMessage, CancellationToken>((message, _) => sentMessage = message);
+        var emailSender = new EmailSender(httpClient, Options.Create(options));
 
         await emailSender.Send(ToAddress, Subject, Body);
-
-        return sentMessage!;
     }
 
     #endregion
+
+    private sealed class FakeHttpMessageHandler(
+        HttpStatusCode responseStatusCode, Action<HttpRequestMessage>? onSend = null)
+        : HttpMessageHandler
+    {
+        public FakeHttpMessageHandler(Action<HttpRequestMessage> onSend)
+            : this(HttpStatusCode.OK, onSend)
+        {
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            onSend?.Invoke(request);
+            return Task.FromResult(new HttpResponseMessage(responseStatusCode));
+        }
+    }
 }
