@@ -7,7 +7,6 @@ namespace Buttercup.Email;
 
 public sealed class ServiceCollectionExtensionsTests
 {
-    private const string FakeApiKey = "fake-api-key";
     private const string FakeFromAddress = "fake-from@example.com";
 
     #region AddEmailServices
@@ -22,15 +21,6 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddEmailServices_AddsSendGridClientAccessor() =>
-        Assert.Contains(
-            new ServiceCollection().AddEmailServices(ConfigureOptions),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(ISendGridClientAccessor) &&
-                serviceDescriptor.ImplementationType == typeof(SendGridClientAccessor) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-    [Fact]
     public void AddEmailServices_WithConfigureActionConfiguresOptions()
     {
         var options = new ServiceCollection()
@@ -38,7 +28,6 @@ public sealed class ServiceCollectionExtensionsTests
             .BuildServiceProvider()
             .GetRequiredService<IOptions<EmailOptions>>();
 
-        Assert.Equal(FakeApiKey, options.Value.ApiKey);
         Assert.Equal(FakeFromAddress, options.Value.FromAddress);
     }
 
@@ -48,7 +37,6 @@ public sealed class ServiceCollectionExtensionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>()
             {
-                ["ApiKey"] = FakeApiKey,
                 ["FromAddress"] = FakeFromAddress,
             })
             .Build();
@@ -58,7 +46,6 @@ public sealed class ServiceCollectionExtensionsTests
             .BuildServiceProvider()
             .GetRequiredService<IOptions<EmailOptions>>();
 
-        Assert.Equal(FakeApiKey, options.Value.ApiKey);
         Assert.Equal(FakeFromAddress, options.Value.FromAddress);
     }
 
@@ -73,11 +60,8 @@ public sealed class ServiceCollectionExtensionsTests
         Assert.Throws<OptionsValidationException>(() => options.Value);
     }
 
-    private static void ConfigureOptions(EmailOptions options)
-    {
-        options.ApiKey = FakeApiKey;
+    private static void ConfigureOptions(EmailOptions options) =>
         options.FromAddress = FakeFromAddress;
-    }
 
     #endregion
 }

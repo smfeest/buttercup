@@ -1,7 +1,7 @@
+using Azure;
+using Azure.Communication.Email;
 using Microsoft.Extensions.Options;
 using Moq;
-using SendGrid;
-using SendGrid.Helpers.Mail;
 using Xunit;
 
 namespace Buttercup.Email;
@@ -16,11 +16,11 @@ public sealed class EmailSenderTests
     #region Send
 
     [Fact]
-    public async Task Send_SetsFromAddress()
+    public async Task Send_SetsSenderAddress()
     {
         var message = await Send();
 
-        Assert.Equal(FromAddress, message.From.Email);
+        Assert.Equal(FromAddress, message.SenderAddress);
     }
 
     [Fact]
@@ -28,9 +28,8 @@ public sealed class EmailSenderTests
     {
         var message = await Send();
 
-        var personalization = Assert.Single(message.Personalizations);
-        var to = Assert.Single(personalization.Tos);
-        Assert.Equal(ToAddress, to.Email);
+        var to = Assert.Single(message.Recipients.To);
+        Assert.Equal(ToAddress, to.Address);
     }
 
     [Fact]
@@ -38,7 +37,7 @@ public sealed class EmailSenderTests
     {
         var message = await Send();
 
-        Assert.Equal(Subject, message.Subject);
+        Assert.Equal(Subject, message.Content.Subject);
     }
 
     [Fact]
@@ -46,23 +45,22 @@ public sealed class EmailSenderTests
     {
         var message = await Send();
 
-        Assert.Equal(Body, message.PlainTextContent);
+        Assert.Equal(Body, message.Content.PlainText);
     }
 
-    private static async Task<SendGridMessage> Send()
+    private static async Task<EmailMessage> Send()
     {
-        var mockClient = new Mock<ISendGridClient>();
-        var clientAccessor = Mock.Of<ISendGridClientAccessor>(
-            x => x.SendGridClient == mockClient.Object);
+        var emailClientMock = new Mock<EmailClient>();
         var options = Options.Create(
-            new EmailOptions { ApiKey = string.Empty, FromAddress = FromAddress });
-        var emailSender = new EmailSender(clientAccessor, options);
+            new EmailOptions { FromAddress = FromAddress });
+        var emailSender = new EmailSender(emailClientMock.Object, options);
 
-        SendGridMessage? sentMessage = null;
+        EmailMessage? sentMessage = null;
 
-        mockClient
-            .Setup(x => x.SendEmailAsync(It.IsAny<SendGridMessage>(), CancellationToken.None))
-            .Callback<SendGridMessage, CancellationToken>((message, _) => sentMessage = message);
+        emailClientMock
+            .Setup(x => x.SendAsync(WaitUntil.Started, It.IsAny<EmailMessage>(), default))
+            .Callback<WaitUntil, EmailMessage, CancellationToken>(
+                (_, message, _) => sentMessage = message);
 
         await emailSender.Send(ToAddress, Subject, Body);
 

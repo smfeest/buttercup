@@ -47,8 +47,6 @@ public static class ServiceCollectionExtensions
     {
         buildOptionsAction(services.AddOptions<EmailOptions>().ValidateDataAnnotations());
 
-        return services
-            .AddTransient<IEmailSender, EmailSender>()
-            .AddTransient<ISendGridClientAccessor, SendGridClientAccessor>();
+        return services.AddTransient<IEmailSender, EmailSender>();
     }
 }

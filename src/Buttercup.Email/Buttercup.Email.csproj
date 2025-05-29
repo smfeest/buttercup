@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Sendgrid" Version="9.29.3" />
+    <PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
   </ItemGroup>
 </Project>
