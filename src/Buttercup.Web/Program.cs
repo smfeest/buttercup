@@ -1,3 +1,4 @@
+using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Bugsnag.AspNet.Core;
@@ -38,7 +39,21 @@ services.AddAzureClients(clientBuilder =>
     clientBuilder.ConfigureDefaults(configuration.GetSection("Azure:Defaults"));
     clientBuilder.AddEmailClient(configuration.GetSection("Azure:Email"));
 
-    clientBuilder.UseCredential(new EnvironmentCredential());
+    var credentials = new List<TokenCredential>();
+
+    var clientCredentialsSection = configuration.GetSection("Azure:ClientCredentials");
+    if (clientCredentialsSection.Exists())
+    {
+        credentials.Add(
+            new ClientSecretCredential(
+                clientCredentialsSection["TenantId"],
+                clientCredentialsSection["ClientId"],
+                clientCredentialsSection["ClientSecret"]));
+    }
+
+    credentials.Add(new EnvironmentCredential());
+
+    clientBuilder.UseCredential(new ChainedTokenCredential([.. credentials]));
 });
 
 services
