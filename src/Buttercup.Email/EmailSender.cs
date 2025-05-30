@@ -23,7 +23,8 @@ internal sealed class EmailSender : IEmailSender
     public async Task Send(string toAddress, string subject, string body)
     {
         var message = new EmailRequestBody(new(this.fromAddress), [new(toAddress)], subject, body);
-        using var response = await this.httpClient.PostAsJsonAsync("email", message);
+        using var response = await this.httpClient.PostAsJsonAsync(
+            "email", message, SerializerContext.Default.EmailRequestBody);
         response.EnsureSuccessStatusCode();
     }
 }
