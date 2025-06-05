@@ -53,6 +53,12 @@ services.AddAzureClients(clientBuilder =>
 
     credentials.Add(new EnvironmentCredential());
 
+    var managedIdentityClientId = configuration["Azure:ManagedIdentity:ClientId"];
+    var managedIdentityId = string.IsNullOrEmpty(managedIdentityClientId) ?
+        ManagedIdentityId.SystemAssigned :
+        ManagedIdentityId.FromUserAssignedClientId(managedIdentityClientId);
+    credentials.Add(new ManagedIdentityCredential(managedIdentityId));
+
     clientBuilder.UseCredential(new ChainedTokenCredential([.. credentials]));
 });
 
