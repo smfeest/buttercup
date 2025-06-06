@@ -1,3 +1,5 @@
+using Azure.Core;
+using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Bugsnag.AspNet.Core;
 using Buttercup.Application;
@@ -18,6 +20,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,34 @@ if (configuration.GetValue<bool>("EnableTelemetry"))
 {
     services.AddOpenTelemetry().UseAzureMonitor().WithTracing();
 }
+
+services.AddAzureClients(clientBuilder =>
+{
+    clientBuilder.ConfigureDefaults(configuration.GetSection("Azure:Defaults"));
+    clientBuilder.AddEmailClient(configuration.GetSection("Azure:Email"));
+
+    var credentials = new List<TokenCredential>();
+
+    var clientCredentialsSection = configuration.GetSection("Azure:ClientCredentials");
+    if (clientCredentialsSection.Exists())
+    {
+        credentials.Add(
+            new ClientSecretCredential(
+                clientCredentialsSection["TenantId"],
+                clientCredentialsSection["ClientId"],
+                clientCredentialsSection["ClientSecret"]));
+    }
+
+    credentials.Add(new EnvironmentCredential());
+
+    var managedIdentityClientId = configuration["Azure:ManagedIdentity:ClientId"];
+    var managedIdentityId = string.IsNullOrEmpty(managedIdentityClientId) ?
+        ManagedIdentityId.SystemAssigned :
+        ManagedIdentityId.FromUserAssignedClientId(managedIdentityClientId);
+    credentials.Add(new ManagedIdentityCredential(managedIdentityId));
+
+    clientBuilder.UseCredential(new ChainedTokenCredential([.. credentials]));
+});
 
 services
     .AddRouting(options => options.LowercaseUrls = true)

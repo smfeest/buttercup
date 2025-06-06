@@ -8,15 +8,6 @@ namespace Buttercup.Email;
 public sealed class EmailOptions
 {
     /// <summary>
-    /// Gets or sets the SendGrid API key.
-    /// </summary>
-    /// <value>
-    /// The SendGrid API key.
-    /// </value>
-    [Required]
-    public required string ApiKey { get; set; }
-
-    /// <summary>
     /// Gets or sets the from address.
     /// </summary>
     /// <value>

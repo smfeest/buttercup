@@ -22,7 +22,6 @@ public sealed class AppFactory : WebApplicationFactory<HomeController>, IAsyncLi
     protected override void ConfigureWebHost(IWebHostBuilder builder) =>
         builder
             .UseSetting("ConnectionStrings:AppDb", this.DatabaseFixture.ConnectionString)
-            .UseSetting("Email:ApiKey", "fake-key")
             .UseSetting("HostBuilder:ReloadConfigOnChange", bool.FalseString)
             .UseSetting("Logging:LogLevel:Default", "Warning")
             .UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning");

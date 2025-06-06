@@ -39,10 +39,11 @@
 
         cd src/Buttercup.Web
 
-2.  Create a [SendGrid API key](https://app.sendgrid.com/settings/api_keys) with
-    full access to _Mail Send_ > _Mail Send_ only, and add it as a user secret:
+2.  Add the client credentials for the 'buttercup-dev' Azure service principal as user secrets:
 
-        dotnet user-secrets set "Email:ApiKey" "<replace-with-api-key>"
+        dotnet user-secrets set "Azure:ClientCredentials:TenantId" "<replace-with-tenant-id>"
+        dotnet user-secrets set "Azure:ClientCredentials:ClientId" "<replace-with-client-id>"
+        dotnet user-secrets set "Azure:ClientCredentials:ClientSecret" "<replace-with-client-secret>"
 
 3.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
     add the corresponding notifier API key as a user secret:
