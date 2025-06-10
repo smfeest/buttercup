@@ -276,7 +276,7 @@ internal sealed partial class PasswordAuthenticationService(
             t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(PasswordResetTokenExpiry) &&
             t.Token == token);
 
-    private static string RedactToken(string token) => $"{token[..6]}…";
+    private static string RedactToken(string token) => token.Length > 6 ? $"{token[..6]}…" : token;
 
     private async Task SetPassword(
         AppDbContext dbContext,

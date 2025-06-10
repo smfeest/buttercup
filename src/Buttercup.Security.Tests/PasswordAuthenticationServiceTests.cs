@@ -599,6 +599,24 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.False(result);
     }
 
+    [Fact]
+    public async Task PasswordResetTokenIsValid_ShortNonExistant()
+    {
+        var args = this.BuildPasswordResetTokenIsValidArgs() with { Token = "ABC" };
+
+        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
+            args.Token, args.IpAddress);
+
+        // Logs invalid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(14)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage($"Password reset token 'ABC' is no longer valid");
+
+        // Returns false
+        Assert.False(result);
+    }
+
     private sealed record PasswordResetTokenIsValidArgs(string Token, IPAddress IpAddress);
 
     private PasswordResetTokenIsValidArgs BuildPasswordResetTokenIsValidArgs() => new(
@@ -674,6 +692,22 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Unable to reset password; password reset token {args.Token[..6]}… is invalid");
+    }
+
+    [Fact]
+    public async Task ResetPassword_ShortNonExistantToken()
+    {
+        var args = this.BuildResetPasswordArgs() with { Token = "ABC" };
+
+        await Assert.ThrowsAsync<InvalidTokenException>(
+            () => this.passwordAuthenticationService.ResetPassword(
+                args.Token, args.NewPassword, args.IpAddress));
+
+        // Logs invalid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(10)
+            .HasLevel(LogLevel.Information)
+            .HasMessage("Unable to reset password; password reset token ABC is invalid");
     }
 
     [Fact]
