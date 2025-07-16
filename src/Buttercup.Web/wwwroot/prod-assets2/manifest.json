@@ -1,0 +1,44 @@
+{
+  "scripts/main.ts": {
+    "file": "main-DrgQKP1U.js",
+    "name": "main",
+    "src": "scripts/main.ts",
+    "isEntry": true
+  },
+  "styles/fonts/lora-v12-latin-700.woff2": {
+    "file": "lora-v12-latin-700-BhnBxW5t.woff2",
+    "src": "styles/fonts/lora-v12-latin-700.woff2"
+  },
+  "styles/fonts/roboto-v18-latin-700.woff2": {
+    "file": "roboto-v18-latin-700-nq4Um7Vn.woff2",
+    "src": "styles/fonts/roboto-v18-latin-700.woff2"
+  },
+  "styles/fonts/roboto-v18-latin-regular.woff2": {
+    "file": "roboto-v18-latin-regular-Ct7gR90z.woff2",
+    "src": "styles/fonts/roboto-v18-latin-regular.woff2"
+  },
+  "styles/fonts/roboto-v20-latin-500.woff2": {
+    "file": "roboto-v20-latin-500-Dxdx3aXO.woff2",
+    "src": "styles/fonts/roboto-v20-latin-500.woff2"
+  },
+  "styles/main.less": {
+    "file": "main-CtEBhcG7.css",
+    "src": "styles/main.less",
+    "isEntry": true,
+    "names": [
+      "main.css"
+    ]
+  },
+  "styles/print.less": {
+    "file": "print-BOlwNC_5.css",
+    "src": "styles/print.less",
+    "isEntry": true,
+    "names": [
+      "print.css"
+    ]
+  },
+  "wwwroot/assets/images/icon-16.png": {
+    "file": "icon-16-cBrnITHQ.png",
+    "src": "wwwroot/assets/images/icon-16.png"
+  }
+}
