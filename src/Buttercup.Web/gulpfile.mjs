@@ -58,7 +58,10 @@ function revisionAssetsInStream(stream) {
 
 function revisionStaticAssets() {
   return revisionAssetsInStream(
-    src(`${paths.assets}/{images,fonts}/**/*`, { base: paths.assets }),
+    src(`${paths.assets}/{images,fonts}/**/*`, {
+      base: paths.assets,
+      encoding: false,
+    }),
   );
 }
 
