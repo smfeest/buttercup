@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web;
 
-internal sealed class E2eDatabaseSeeder(
+internal sealed class DevelopmentDatabaseSeeder(
     IPasswordHasher<User> passwordHasher,
     IRandomTokenGenerator randomTokenGenerator,
     TimeProvider timeProvider) : IDatabaseSeeder
