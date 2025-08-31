@@ -25,6 +25,17 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, string connectionString) => services
             .AddSingleton(ServerVersion.AutoDetect(connectionString))
             .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) =>
-                options.UseAppDbOptions(connectionString,
-                serviceProvider.GetRequiredService<ServerVersion>()));
+            {
+                options.UseAppDbOptions(
+                    connectionString, serviceProvider.GetRequiredService<ServerVersion>());
+
+                var seeder = serviceProvider.GetService<IDatabaseSeeder>();
+
+                if (seeder is not null)
+                {
+                    options.UseSeeding((context, _) => seeder.SeedDatabase(context));
+                    options.UseAsyncSeeding((context, _, cancellationToken) =>
+                        seeder.SeedDatabaseAsync(context, cancellationToken));
+                }
+            });
 }
