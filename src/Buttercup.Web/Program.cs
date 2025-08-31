@@ -20,13 +20,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var isDevelopment = builder.Environment.IsDevelopment();
-var isE2e = builder.Environment.IsEnvironment("E2E");
 
 var services = builder.Services;
 var configuration = builder.Configuration;
@@ -156,9 +154,9 @@ services
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
     .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
 
-if (isE2e)
+if (isDevelopment)
 {
-    services.AddTransient<IDatabaseSeeder, E2eDatabaseSeeder>();
+    services.AddTransient<IDatabaseSeeder, DevelopmentDatabaseSeeder>();
 }
 
 var app = builder.Build();
@@ -195,12 +193,5 @@ app.MapGraphQL()
         AuthenticationSchemes = TokenAuthenticationDefaults.AuthenticationScheme
     })
     .AllowAnonymous();
-
-if (isE2e)
-{
-    var dbContextFactory = app.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    using var dbContext = dbContextFactory.CreateDbContext();
-    await dbContext.Database.EnsureCreatedAsync();
-}
 
 app.Run();

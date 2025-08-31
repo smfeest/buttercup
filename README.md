@@ -120,20 +120,6 @@
 
         npx playwright test --ui
 
-#### Notes
-
-- Before running any tests, Playwright will automatically start an instance of the app on
-  http://localhost:5005. However, the app can also be started manually first:
-
-        cd src/Buttercup.Web
-        dotnet run --environment E2E --urls http://localhost:5005
-
-- End-to-end tests should be designed to clean up any database records they create, even on failure.
-  However, if necessary, the database can be deleted, ready to be recreated on the next run:
-
-        cd src/Buttercup.Web
-        DOTNET_ENVIRONMENT=E2E dotnet ef database drop
-
 ## Checking test coverage
 
 - To generate and open the .NET coverage report:

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = 'http://localhost:5005';
+const baseURL = 'http://localhost:5000';
 
 export default defineConfig({
   outputDir: './.playwright/results',
@@ -41,7 +41,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `dotnet run --environment E2E --urls ${baseURL} ${
+    command: `dotnet run --urls ${baseURL} ${
       process.env.CI ? '--configuration Release --no-build' : ''
     }`,
     url: baseURL,
