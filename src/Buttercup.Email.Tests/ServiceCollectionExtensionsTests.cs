@@ -17,7 +17,7 @@ public sealed class ServiceCollectionExtensionsTests
             new ServiceCollection().AddEmailServices(ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IEmailSender) &&
-                serviceDescriptor.ImplementationType == typeof(EmailSender) &&
+                serviceDescriptor.ImplementationType == typeof(AzureEmailSender) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]

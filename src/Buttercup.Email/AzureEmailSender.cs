@@ -4,7 +4,8 @@ using Microsoft.Extensions.Options;
 
 namespace Buttercup.Email;
 
-internal sealed class EmailSender(EmailClient emailClient, IOptions<EmailOptions> optionsAccessor)
+internal sealed class AzureEmailSender(
+    EmailClient emailClient, IOptions<EmailOptions> optionsAccessor)
     : IEmailSender
 {
     private readonly EmailClient emailClient = emailClient;
