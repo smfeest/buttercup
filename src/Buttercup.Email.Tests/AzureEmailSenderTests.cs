@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Buttercup.Email;
 
-public sealed class EmailSenderTests
+public sealed class AzureEmailSenderTests
 {
     private const string FromAddress = "from@example.com";
     private const string ToAddress = "to@example.com";
@@ -53,7 +53,7 @@ public sealed class EmailSenderTests
         var emailClientMock = new Mock<EmailClient>();
         var options = Options.Create(
             new EmailOptions { FromAddress = FromAddress });
-        var emailSender = new EmailSender(emailClientMock.Object, options);
+        var emailSender = new AzureEmailSender(emailClientMock.Object, options);
 
         EmailMessage? sentMessage = null;
 

@@ -47,6 +47,6 @@ public static class ServiceCollectionExtensions
     {
         buildOptionsAction(services.AddOptions<EmailOptions>().ValidateDataAnnotations());
 
-        return services.AddTransient<IEmailSender, EmailSender>();
+        return services.AddTransient<IEmailSender, AzureEmailSender>();
     }
 }

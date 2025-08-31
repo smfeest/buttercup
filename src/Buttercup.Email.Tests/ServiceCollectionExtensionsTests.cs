@@ -12,12 +12,12 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddEmailServices
 
     [Fact]
-    public void AddEmailServices_AddsEmailSender() =>
+    public void AddEmailServices_AddsAzureEmailSender() =>
         Assert.Contains(
             new ServiceCollection().AddEmailServices(ConfigureOptions),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IEmailSender) &&
-                serviceDescriptor.ImplementationType == typeof(EmailSender) &&
+                serviceDescriptor.ImplementationType == typeof(AzureEmailSender) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
