@@ -53,6 +53,9 @@ jobs:
       - name: Run Jest tests
         run: npx jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Initialize application database
+        run: dotnet ef database update --no-build --configuration Release
+        working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
         working-directory: ${{env.WEB_PROJECT_PATH}}

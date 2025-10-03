@@ -154,6 +154,11 @@ services
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
     .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
 
+if (isDevelopment)
+{
+    services.AddTransient<IDatabaseSeeder, DevelopmentDatabaseSeeder>();
+}
+
 var app = builder.Build();
 
 if (!isDevelopment)
@@ -188,11 +193,5 @@ app.MapGraphQL()
         AuthenticationSchemes = TokenAuthenticationDefaults.AuthenticationScheme
     })
     .AllowAnonymous();
-
-if (builder.Environment.IsEnvironment("E2E"))
-{
-    var dbInitializer = ActivatorUtilities.CreateInstance<E2eDatabaseInitializer>(app.Services);
-    await dbInitializer.EnsureInitialized();
-}
 
 app.Run();

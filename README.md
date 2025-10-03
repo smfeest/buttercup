@@ -23,16 +23,6 @@
 
         dotnet ef database update -s src/Buttercup.Web
 
-4.  Insert a user account:
-
-        mysql -u buttercup_dev buttercup_app << SQL
-          INSERT users (name, email, security_stamp, time_zone, created, modified, revision)
-          VALUES ('<your-name>', '<your-email>', '', 'Etc/UTC', UTC_TIMESTAMP, UTC_TIMESTAMP, 0)
-        SQL
-
-    Once the application is running, you'll be able to use the password reset
-    flow to set a password.
-
 ## Setting user secrets
 
 1.  Change to the web project directory
@@ -71,6 +61,9 @@
 4.  Run the app:
 
         dotnet run
+
+5.  Navigate to https://localhost:5000 and sign in using email 'dev@example.com' and password
+    'dev-pass'
 
 ## Running tests
 
@@ -119,20 +112,6 @@
     Or run the tests in UI mode:
 
         npx playwright test --ui
-
-#### Notes
-
-- Before running any tests, Playwright will automatically start an instance of the app on
-  http://localhost:5005. However, the app can also be started manually first:
-
-        cd src/Buttercup.Web
-        dotnet run --environment E2E --urls http://localhost:5005
-
-- End-to-end tests should be designed to clean up any database records they create, even on failure.
-  However, if necessary, the database can be deleted, ready to be recreated on the next run:
-
-        cd src/Buttercup.Web
-        DOTNET_ENVIRONMENT=E2E dotnet ef database drop
 
 ## Checking test coverage
 
