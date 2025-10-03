@@ -38,6 +38,7 @@ internal sealed class DevelopmentDatabaseSeeder(
 
     private void AddUsers(DbContext dbContext) =>
         dbContext.Set<User>().AddRange(
+            this.BuildUser("Developer", "dev", true),
             this.BuildUser("E2E Admin", "e2e-admin", true),
             this.BuildUser("E2E User", "e2e-user", false));
 

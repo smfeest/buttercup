@@ -23,16 +23,6 @@
 
         dotnet ef database update -s src/Buttercup.Web
 
-4.  Insert a user account:
-
-        mysql -u buttercup_dev buttercup_app << SQL
-          INSERT users (name, email, security_stamp, time_zone, created, modified, revision)
-          VALUES ('<your-name>', '<your-email>', '', 'Etc/UTC', UTC_TIMESTAMP, UTC_TIMESTAMP, 0)
-        SQL
-
-    Once the application is running, you'll be able to use the password reset
-    flow to set a password.
-
 ## Setting user secrets
 
 1.  Change to the web project directory
@@ -71,6 +61,9 @@
 4.  Run the app:
 
         dotnet run
+
+5.  Navigate to https://localhost:5000 and sign in using email 'dev@example.com' and password
+    'dev-pass'
 
 ## Running tests
 
