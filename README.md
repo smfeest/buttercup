@@ -5,6 +5,7 @@
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
 - [Node.js 20](https://nodejs.org)
+- [Redis](https://redis.io/open-source/) or [Valkey](https://valkey.io/download/)
 - [Visual Studio Code](https://code.visualstudio.com/) with [recommended
   extensions](.vscode/extensions.json)
 
