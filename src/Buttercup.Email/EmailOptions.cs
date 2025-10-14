@@ -23,4 +23,12 @@ public sealed class EmailOptions
     /// The Mailpit server URL.
     /// </value>
     public Uri MailpitServer { get; set; } = new("http://localhost:8025");
+
+    /// <summary>
+    /// Gets or sets a value indicating how emails are sent.
+    /// </summary>
+    /// <value>
+    /// A value indicating how emails are sent.
+    /// </value>
+    public EmailProvider Provider { get; set; } = EmailProvider.Azure;
 }
