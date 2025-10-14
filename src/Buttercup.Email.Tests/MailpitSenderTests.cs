@@ -91,7 +91,8 @@ public sealed class MailpitSenderTests : IDisposable
 
     private static HttpResponseMessage SuccessResponse() => new(HttpStatusCode.OK)
     {
-        Content = JsonContent.Create(new SendResponseBody("test-message-id")),
+        Content = JsonContent.Create(
+            new("test-message-id"), SerializerContext.Default.SendResponseBody),
     };
 
     #endregion
