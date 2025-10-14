@@ -15,4 +15,12 @@ public sealed class EmailOptions
     /// </value>
     [Required]
     public required string FromAddress { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Mailpit server URL.
+    /// </summary>
+    /// <value>
+    /// The Mailpit server URL.
+    /// </value>
+    public Uri MailpitServer { get; set; } = new("http://localhost:8025");
 }
