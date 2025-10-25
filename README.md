@@ -1,40 +1,34 @@
 # Buttercup
 
-## Required software
+## Setting up a dev environment
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Mailpit](https://mailpit.axllent.org/)
-- [MySQL Server](https://dev.mysql.com/downloads/mysql/)
-- [Node.js 20](https://nodejs.org)
-- [Redis](https://redis.io/open-source/) or [Valkey](https://valkey.io/download/)
-- [Visual Studio Code](https://code.visualstudio.com/) with [recommended
-  extensions](.vscode/extensions.json)
+1.  Install required tools and dependencies:
 
-## Setting up the database
+    - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+    - [Mailpit](https://mailpit.axllent.org/)
+    - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
+    - [Node.js 20](https://nodejs.org)
+    - [Redis](https://redis.io/open-source/) or [Valkey](https://valkey.io/download/)
+    - [Visual Studio Code](https://code.visualstudio.com/) with [recommended
+      extensions](.vscode/extensions.json)
 
-1.  Restore .NET tools:
+2.  Restore .NET tools:
 
         dotnet tool restore
 
-2.  Create the _buttercup_dev_ user that will be used to connect to the
+3.  Create the _buttercup_dev_ user that will be used to connect to the
     application and test databases:
 
         mysql -u root -p < scripts/create-dev-user.sql
 
-3.  Create the application database:
+4.  Create the application database:
 
         dotnet ef database update -s src/Buttercup.Web
 
-## Setting user secrets
+5.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and use the ASP.NET
+    Core Secret Manager to add the project's API key as a user secret:
 
-1.  Change to the web project directory
-
-        cd src/Buttercup.Web
-
-2.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
-    add the corresponding notifier API key as a user secret:
-
-        dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>"
+        dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>" -p src/Buttercup.Web
 
 ## Running the app
 
