@@ -31,13 +31,7 @@
 
         cd src/Buttercup.Web
 
-2.  Add the client credentials for the 'buttercup-dev' Azure service principal as user secrets:
-
-        dotnet user-secrets set "Azure:ClientCredentials:TenantId" "<replace-with-tenant-id>"
-        dotnet user-secrets set "Azure:ClientCredentials:ClientId" "<replace-with-client-id>"
-        dotnet user-secrets set "Azure:ClientCredentials:ClientSecret" "<replace-with-client-secret>"
-
-3.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
+2.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and
     add the corresponding notifier API key as a user secret:
 
         dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>"
@@ -150,3 +144,41 @@
 - To run all pending database migrations:
 
       dotnet ef database update -s src/Buttercup.Web
+
+## Sending emails with Azure Communication Services
+
+In development, emails are sent to [Mailpit](https://mailpit.axllent.org/) by default.
+
+To send emails using Azure Communication Services:
+
+1.  Create an Azure Communication Service for Buttercup and set it up with an email domain.
+
+2.  Create an Entra ID app registration for Buttercup development. Keep a copy of the Application
+    (client) ID and Directory (tenant) ID for use later on.
+
+3.  Create a client secret for the Buttercup development app. Keep a copy of the client secret value
+    for use later on.
+
+4.  Create an Entra ID security group for Buttercup development and add the service principal for
+    the Buttercup development app as member.
+
+5.  Assign the Communication and Email Service Owner role for the Buttercup communication service to
+    the Buttercup development group.
+
+6.  Use the ASP.NET Core Secret Manager to set the service principal's tenant ID, client ID and
+    client secret as user secrets:
+
+        dotnet user-secrets set "Azure:ClientCredentials:TenantId" "<replace-with-tenant-id>" -p src/Buttercup.Web
+        dotnet user-secrets set "Azure:ClientCredentials:ClientId" "<replace-with-client-id>" -p src/Buttercup.Web
+        dotnet user-secrets set "Azure:ClientCredentials:ClientSecret" "<replace-with-client-secret>" -p src/Buttercup.Web
+
+7.  Set the Email > Provider config value to 'Azure'.
+
+    Using an environment variable:
+
+        export EMAIL__PROVIDER=Azure
+        dotnet run
+
+    Or using a command line argument:
+
+        dotnet run Email:Provider=Azure
