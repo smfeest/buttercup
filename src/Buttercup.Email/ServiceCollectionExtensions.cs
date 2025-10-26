@@ -47,6 +47,20 @@ public static class ServiceCollectionExtensions
     {
         buildOptionsAction(services.AddOptions<EmailOptions>().ValidateDataAnnotations());
 
-        return services.AddTransient<IEmailSender, EmailSender>();
+        services.AddTransient<AzureEmailSender>();
+        services.AddHttpClient<MailpitSender>();
+        services.AddTransient<IEmailSender>(provider =>
+        {
+            var options = provider.GetRequiredService<IOptions<EmailOptions>>().Value;
+            return options.Provider switch
+            {
+                EmailProvider.Azure => provider.GetRequiredService<AzureEmailSender>(),
+                EmailProvider.Mailpit => provider.GetRequiredService<MailpitSender>(),
+                _ => throw new InvalidOperationException(
+                    $"'{options.Provider}' is not a valid {nameof(EmailProvider)} value"),
+            };
+        });
+
+        return services;
     }
 }
