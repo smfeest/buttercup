@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
         services
             .AddTransient<ICommentManager, CommentManager>()
             .AddTransient<IRecipeManager, RecipeManager>()
+            .AddTransient<ISecurityEventManager, SecurityEventManager>()
             .AddTransient<IUserManager, UserManager>()
             .AddTransient(typeof(IValidationErrorLocalizer<>), typeof(ValidationErrorLocalizer<>))
             .AddSingleton(typeof(IValidator<>), typeof(Validator<>));

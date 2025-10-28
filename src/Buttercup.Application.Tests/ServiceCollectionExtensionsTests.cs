@@ -27,6 +27,15 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
+    public void AddApplicationServices_AddsSecurityEventManager() =>
+        Assert.Contains(
+            new ServiceCollection().AddApplicationServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(ISecurityEventManager) &&
+                serviceDescriptor.ImplementationType == typeof(SecurityEventManager) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddApplicationServices_AddsUserManager() =>
         Assert.Contains(
             new ServiceCollection().AddApplicationServices(),
