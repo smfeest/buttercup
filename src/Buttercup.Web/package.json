@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
+    "@eslint/js": "^9.38.0",
     "@playwright/test": "^1.54.1",
     "@tsconfig/recommended": "^1.0.10",
     "@types/jest": "^29.5.14",
@@ -12,7 +12,7 @@
     "@urql/core": "^5.2.0",
     "@urql/exchange-auth": "^2.2.1",
     "del": "^8.0.0",
-    "eslint": "^9.32.0",
+    "eslint": "^9.38.0",
     "gulp": "^5.0.1",
     "gulp-clean-css": "^4.3.0",
     "gulp-less": "^5.0.0",
