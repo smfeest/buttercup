@@ -1,8 +1,6 @@
 import { Client, fetchExchange, gql } from '@urql/core';
 import { authExchange } from '@urql/exchange-auth';
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 const AUTHENTICATE_QUERY = gql`
   mutation ($input: AuthenticateInput!) {
     authenticate(input: $input) {
@@ -41,8 +39,6 @@ const HARD_DELETE_RECIPE_QUERY = gql`
     }
   }
 `;
-
-/* eslint-enable */
 
 const DEFAULT_COMMENT_ATTRIBUTES: CommentAttributes = {
   body: 'Everything tastes better with a spoonful of marmite.',
