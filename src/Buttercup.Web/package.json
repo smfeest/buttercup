@@ -8,7 +8,7 @@
     "@playwright/test": "^1.56.1",
     "@tsconfig/recommended": "^1.0.11",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.9.2",
     "@urql/core": "^5.2.0",
     "@urql/exchange-auth": "^2.2.1",
     "del": "^8.0.0",
