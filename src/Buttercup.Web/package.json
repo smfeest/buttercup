@@ -6,7 +6,7 @@
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@playwright/test": "^1.56.1",
-    "@tsconfig/recommended": "^1.0.10",
+    "@tsconfig/recommended": "^1.0.11",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.1.0",
     "@urql/core": "^5.2.0",
