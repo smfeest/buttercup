@@ -47,7 +47,7 @@ public sealed class RecipesController(
             return this.View(model);
         }
 
-        var id = await this.recipeManager.AddRecipe(model, this.User.GetUserId());
+        var id = await this.recipeManager.CreateRecipe(model, this.User.GetUserId());
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }

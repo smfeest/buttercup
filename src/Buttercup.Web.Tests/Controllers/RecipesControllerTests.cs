@@ -104,7 +104,7 @@ public sealed class RecipesControllerTests : IDisposable
         long recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
-            .Setup(x => x.AddRecipe(attributes, currentUserId))
+            .Setup(x => x.CreateRecipe(attributes, currentUserId))
             .ReturnsAsync(recipeId);
 
         var result = await this.recipesController.New(attributes);

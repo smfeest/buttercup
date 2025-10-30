@@ -21,17 +21,17 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         this.recipeManager = new(databaseFixture, this.timeProvider);
     }
 
-    #region AddRecipe
+    #region CreateRecipe
 
     [Fact]
-    public async Task AddRecipe_InsertsRecipeAndRevisionAndReturnsId()
+    public async Task CreateRecipe_InsertsRecipeAndRevisionAndReturnsId()
     {
         var currentUser = this.modelFactory.BuildUser();
         var attributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: true));
         await this.DatabaseFixture.InsertEntities(currentUser);
 
-        var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
+        var id = await this.recipeManager.CreateRecipe(attributes, currentUser.Id);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -79,14 +79,14 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
-    public async Task AddRecipe_AcceptsNullForOptionalAttributes()
+    public async Task CreateRecipe_AcceptsNullForOptionalAttributes()
     {
         var currentUser = this.modelFactory.BuildUser();
         var attributes = new RecipeAttributes(
             this.modelFactory.BuildRecipe(setOptionalAttributes: false));
         await this.DatabaseFixture.InsertEntities(currentUser);
 
-        var id = await this.recipeManager.AddRecipe(attributes, currentUser.Id);
+        var id = await this.recipeManager.CreateRecipe(attributes, currentUser.Id);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
