@@ -1,4 +1,5 @@
 using System.Net;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ internal sealed partial class PasswordAuthenticationService(
     IPasswordHasher<User> passwordHasher,
     IPasswordResetRateLimiter passwordResetRateLimiter,
     IRandomTokenGenerator randomTokenGenerator,
+    ISecurityEventManager securityEventManager,
     TimeProvider timeProvider)
     : IPasswordAuthenticationService
 {
@@ -28,6 +30,7 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
     private readonly IPasswordResetRateLimiter passwordResetRateLimiter = passwordResetRateLimiter;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
+    private readonly ISecurityEventManager securityEventManager = securityEventManager;
     private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<PasswordAuthenticationResult> Authenticate(
@@ -37,8 +40,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (!await this.passwordAuthenticationRateLimiter.IsAllowed(email))
         {
-            await this.InsertSecurityEvent(
-                dbContext, "authentication_failure:rate_limit_exceeded", ipAddress);
+            await this.securityEventManager.CreateSecurityEvent(
+                "authentication_failure:rate_limit_exceeded", ipAddress, null);
 
             this.LogAuthenticationFailedRateLimitExceeded(email);
 
@@ -49,8 +52,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user == null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "authentication_failure:unrecognized_email", ipAddress);
+            await this.securityEventManager.CreateSecurityEvent(
+                "authentication_failure:unrecognized_email", ipAddress, null);
 
             this.LogAuthenticationFailedUnrecognizedEmail(email);
 
@@ -59,8 +62,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user.HashedPassword == null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "authentication_failure:no_password_set", ipAddress, user.Id);
+            await this.securityEventManager.CreateSecurityEvent(
+                "authentication_failure:no_password_set", ipAddress, user.Id);
 
             this.LogAuthenticationFailedNoPasswordSet(user.Id, user.Email);
 
@@ -72,15 +75,16 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "authentication_failure:incorrect_password", ipAddress, user.Id);
+            await this.securityEventManager.CreateSecurityEvent(
+                "authentication_failure:incorrect_password", ipAddress, user.Id);
 
             this.LogAuthenticationFailedIncorrectPassword(user.Id, user.Email);
 
             return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
 
-        await this.InsertSecurityEvent(dbContext, "authentication_success", ipAddress, user.Id);
+        await this.securityEventManager.CreateSecurityEvent(
+            "authentication_success", ipAddress, user.Id);
 
         this.LogAuthenticated(user.Id, user.Email);
 
@@ -120,8 +124,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user.HashedPassword == null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_change_failure:no_password_set", ipAddress, user.Id);
+            await this.securityEventManager.CreateSecurityEvent(
+                "password_change_failure:no_password_set", ipAddress, user.Id);
 
             throw new InvalidOperationException(
                 $"User {user.Id} ({user.Email}) does not have a password.");
@@ -132,8 +136,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id);
+            await this.securityEventManager.CreateSecurityEvent(
+                "password_change_failure:incorrect_password", ipAddress, user.Id);
 
             this.LogPasswordChangeFailedIncorrectPassword(user.Id, user.Email);
 
@@ -163,8 +167,8 @@ internal sealed partial class PasswordAuthenticationService(
         }
         else
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:invalid_token", ipAddress);
+            await this.securityEventManager.CreateSecurityEvent(
+                "password_reset_failure:invalid_token", ipAddress, null);
 
             this.LogPasswordResetTokenInvalid(RedactToken(token));
         }
@@ -183,8 +187,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user is null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:invalid_token", ipAddress);
+            await this.securityEventManager.CreateSecurityEvent(
+                "password_reset_failure:invalid_token", ipAddress, null);
 
             this.LogPasswordResetFailedInvalidToken(RedactToken(token));
 
@@ -205,24 +209,24 @@ internal sealed partial class PasswordAuthenticationService(
     public async Task<bool> SendPasswordResetLink(
         string email, IPAddress? ipAddress, IUrlHelper urlHelper)
     {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
         if (!await this.passwordResetRateLimiter.IsAllowed(email))
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:rate_limit_exceeded", ipAddress);
+            await this.securityEventManager.CreateSecurityEvent(
+                "password_reset_failure:rate_limit_exceeded", ipAddress, null);
 
             this.LogPasswordResetLinkNotSentRateLimitExceeded(email);
 
             return false;
         }
 
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
         var user = await FindByEmailAsync(dbContext.Users, email);
 
         if (user == null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:unrecognized_email", ipAddress);
+            await this.securityEventManager.CreateSecurityEvent(
+                "password_reset_failure:unrecognized_email", ipAddress, null);
 
             this.LogPasswordResetLinkNotSentUnrecognizedEmail(email);
 
@@ -246,7 +250,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         await this.authenticationMailer.SendPasswordResetLink(email, link);
 
-        await this.InsertSecurityEvent(dbContext, "password_reset_link_sent", ipAddress, user.Id);
+        await this.securityEventManager.CreateSecurityEvent(
+            "password_reset_link_sent", ipAddress, user.Id);
 
         this.LogPasswordResetLinkSent(user.Id, email);
 
@@ -255,20 +260,6 @@ internal sealed partial class PasswordAuthenticationService(
 
     private static Task<User?> FindByEmailAsync(IQueryable<User> queryable, string email) =>
         queryable.Where(u => u.Email == email).FirstOrDefaultAsync();
-
-    private async Task InsertSecurityEvent(
-        AppDbContext dbContext, string eventName, IPAddress? ipAddress, long? userId = null)
-    {
-        dbContext.SecurityEvents.Add(new()
-        {
-            Time = this.timeProvider.GetUtcDateTimeNow(),
-            Event = eventName,
-            IpAddress = ipAddress,
-            UserId = userId,
-        });
-
-        await dbContext.SaveChangesAsync();
-    }
 
     private IQueryable<PasswordResetToken> ValidPasswordResetToken(
         AppDbContext dbContext, string token) =>
@@ -293,14 +284,8 @@ internal sealed partial class PasswordAuthenticationService(
         user.Modified = timestamp;
         user.Revision++;
 
-        dbContext.SecurityEvents.Add(
-            new()
-            {
-                Time = timestamp,
-                Event = securityEventName,
-                IpAddress = ipAddress,
-                UserId = user.Id
-            });
+        await this.securityEventManager.CreateSecurityEvent(
+            timestamp, securityEventName, ipAddress, user.Id);
 
         await dbContext.SaveChangesAsync();
 
