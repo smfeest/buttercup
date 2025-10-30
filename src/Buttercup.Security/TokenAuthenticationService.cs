@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Cryptography;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,12 +11,14 @@ internal sealed partial class TokenAuthenticationService(
     IAccessTokenEncoder accessTokenEncoder,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<TokenAuthenticationService> logger,
+    ISecurityEventManager securityEventManager,
     TimeProvider timeProvider)
     : ITokenAuthenticationService
 {
     private readonly IAccessTokenEncoder accessTokenEncoder = accessTokenEncoder;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<TokenAuthenticationService> logger = logger;
+    private readonly ISecurityEventManager securityEventManager = securityEventManager;
     private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
@@ -23,18 +26,8 @@ internal sealed partial class TokenAuthenticationService(
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var token = this.accessTokenEncoder.Encode(new(user.Id, user.SecurityStamp, timestamp));
 
-        using (var dbContext = this.dbContextFactory.CreateDbContext())
-        {
-            dbContext.SecurityEvents.Add(new()
-            {
-                Time = timestamp,
-                Event = "access_token_issued",
-                IpAddress = ipAddress,
-                UserId = user.Id,
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
+        await this.securityEventManager.CreateSecurityEvent(
+            timestamp, "access_token_issued", ipAddress, user.Id);
 
         this.LogTokenIssued(user.Id, user.Email);
 

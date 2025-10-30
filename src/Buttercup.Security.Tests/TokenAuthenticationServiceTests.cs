@@ -1,8 +1,8 @@
 using System.Net;
 using System.Security.Cryptography;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
@@ -18,6 +18,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
     private readonly Mock<IAccessTokenEncoder> accessTokenEncoderMock = new();
     private readonly FakeLogger<TokenAuthenticationService> logger = new();
+    private readonly Mock<ISecurityEventManager> securityEventManagerMock = new();
     private readonly FakeTimeProvider timeProvider;
 
     private readonly TokenAuthenticationService tokenAuthenticationService;
@@ -31,6 +32,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
             this.accessTokenEncoderMock.Object,
             this.DatabaseFixture,
             this.logger,
+            this.securityEventManagerMock.Object,
             this.timeProvider);
     }
 
@@ -52,17 +54,10 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(user, ipAddress);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Inserts security event
-        Assert.True(
-            await dbContext.SecurityEvents.AnyAsync(
-                securityEvent =>
-                    securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
-                    securityEvent.Event == "access_token_issued" &&
-                    securityEvent.IpAddress == ipAddress &&
-                    securityEvent.UserId == user.Id,
-                TestContext.Current.CancellationToken));
+        this.securityEventManagerMock.Verify(
+            x => x.CreateSecurityEvent(
+                this.timeProvider.GetUtcDateTimeNow(), "access_token_issued", ipAddress, user.Id));
 
         // Logs token issued message
         LogAssert.SingleEntry(this.logger)
