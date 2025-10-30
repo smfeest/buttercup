@@ -8,7 +8,7 @@ namespace Buttercup.Application;
 public interface IRecipeManager
 {
     /// <summary>
-    /// Adds a new recipe.
+    /// Creates a new recipe.
     /// </summary>
     /// <param name="attributes">
     /// The recipe attributes.
@@ -19,7 +19,7 @@ public interface IRecipeManager
     /// <returns>
     /// A task for the operation. The task result is the ID of the new recipe.
     /// </returns>
-    Task<long> AddRecipe(RecipeAttributes attributes, long currentUserId);
+    Task<long> CreateRecipe(RecipeAttributes attributes, long currentUserId);
 
     /// <summary>
     /// Soft-deletes a recipe.

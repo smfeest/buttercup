@@ -104,7 +104,7 @@ public sealed class RecipesControllerTests : IDisposable
         long recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
-            .Setup(x => x.AddRecipe(attributes, currentUserId))
+            .Setup(x => x.CreateRecipe(attributes, currentUserId))
             .ReturnsAsync(recipeId);
 
         var result = await this.recipesController.New(attributes);
@@ -322,7 +322,7 @@ public sealed class RecipesControllerTests : IDisposable
         var commentId = this.modelFactory.NextInt();
 
         this.commentManagerMock
-            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .Setup(x => x.CreateComment(recipeId, commentAttributes, currentUserId))
             .ReturnsAsync(commentId);
 
         var result = await this.recipesController.AddComment(recipeId, commentAttributes);
@@ -376,7 +376,7 @@ public sealed class RecipesControllerTests : IDisposable
         var commentAttributes = this.BuildCommentAttributes();
 
         this.commentManagerMock
-            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .Setup(x => x.CreateComment(recipeId, commentAttributes, currentUserId))
             .ThrowsAsync(new NotFoundException());
 
         var result = await this.recipesController.AddComment(recipeId, commentAttributes);
@@ -392,7 +392,7 @@ public sealed class RecipesControllerTests : IDisposable
         var commentAttributes = this.BuildCommentAttributes();
 
         this.commentManagerMock
-            .Setup(x => x.AddComment(recipeId, commentAttributes, currentUserId))
+            .Setup(x => x.CreateComment(recipeId, commentAttributes, currentUserId))
             .ThrowsAsync(new SoftDeletedException());
 
         var result = await this.recipesController.AddComment(recipeId, commentAttributes);

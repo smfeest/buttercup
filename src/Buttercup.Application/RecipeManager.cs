@@ -10,7 +10,7 @@ internal sealed class RecipeManager(
     private readonly TimeProvider timeProvider = timeProvider;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
-    public async Task<long> AddRecipe(RecipeAttributes attributes, long currentUserId)
+    public async Task<long> CreateRecipe(RecipeAttributes attributes, long currentUserId)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var recipe = new Recipe()

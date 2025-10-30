@@ -44,7 +44,7 @@ public sealed class RecipeMutations
             return new(validationErrors);
         }
 
-        var id = await recipeManager.AddRecipe(attributes, claimsPrincipal.GetUserId());
+        var id = await recipeManager.CreateRecipe(attributes, claimsPrincipal.GetUserId());
         return new CreateRecipePayload(id);
     }
 

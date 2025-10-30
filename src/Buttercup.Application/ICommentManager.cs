@@ -8,7 +8,7 @@ namespace Buttercup.Application;
 public interface ICommentManager
 {
     /// <summary>
-    /// Adds a new comment.
+    /// Creates a new comment.
     /// </summary>
     /// <param name="recipeId">
     /// The recipe ID.
@@ -28,7 +28,7 @@ public interface ICommentManager
     /// <exception cref="SoftDeletedException">
     /// Recipe is soft-deleted.
     /// </exception>
-    Task<long> AddComment(long recipeId, CommentAttributes attributes, long currentUserId);
+    Task<long> CreateComment(long recipeId, CommentAttributes attributes, long currentUserId);
 
     /// <summary>
     /// Soft-deletes a comment.

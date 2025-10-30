@@ -47,7 +47,7 @@ public sealed class RecipesController(
             return this.View(model);
         }
 
-        var id = await this.recipeManager.AddRecipe(model, this.User.GetUserId());
+        var id = await this.recipeManager.CreateRecipe(model, this.User.GetUserId());
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
@@ -113,7 +113,7 @@ public sealed class RecipesController(
 
         try
         {
-            commentId = await this.commentManager.AddComment(
+            commentId = await this.commentManager.CreateComment(
                 id, newCommentAttributes, this.User.GetUserId());
         }
         catch (Exception e) when (e is NotFoundException or SoftDeletedException)

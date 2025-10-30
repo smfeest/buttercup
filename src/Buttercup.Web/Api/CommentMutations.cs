@@ -54,7 +54,7 @@ public sealed class CommentMutations
             return new(validationErrors);
         }
 
-        var id = await commentManager.AddComment(recipeId, attributes, claimsPrincipal.GetUserId());
+        var id = await commentManager.CreateComment(recipeId, attributes, claimsPrincipal.GetUserId());
         return new CreateCommentPayload(id);
     }
 
