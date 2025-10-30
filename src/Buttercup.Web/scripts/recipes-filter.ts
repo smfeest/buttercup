@@ -14,7 +14,7 @@ export default (filterInput: HTMLInputElement, table: HTMLTableElement) => {
   table.querySelectorAll('tbody > tr').forEach((element) =>
     rows.push({
       element,
-      text: element.firstElementChild!.textContent!.toLocaleLowerCase(),
+      text: element.firstElementChild!.textContent.toLocaleLowerCase(),
     }),
   );
 
