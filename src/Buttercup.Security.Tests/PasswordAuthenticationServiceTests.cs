@@ -600,7 +600,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
-    public async Task PasswordResetTokenIsValid_ShortNonExistant()
+    public async Task PasswordResetTokenIsValid_ShortNonExistent()
     {
         var args = this.BuildPasswordResetTokenIsValidArgs() with { Token = "ABC" };
 
@@ -661,7 +661,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
-    public async Task ResetPassword_NonExistantToken()
+    public async Task ResetPassword_NonExistentToken()
     {
         var args = this.BuildResetPasswordArgs();
 
@@ -695,7 +695,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
-    public async Task ResetPassword_ShortNonExistantToken()
+    public async Task ResetPassword_ShortNonExistentToken()
     {
         var args = this.BuildResetPasswordArgs() with { Token = "ABC" };
 
