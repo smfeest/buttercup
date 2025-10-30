@@ -1,15 +1,13 @@
 using System.Net;
 using System.Security.Claims;
-using Buttercup.EntityModel;
+using Buttercup.Application;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
-using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
 
@@ -23,22 +21,18 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     private readonly Mock<IAuthenticationService> authenticationServiceMock = new();
     private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
     private readonly FakeLogger<CookieAuthenticationService> logger = new();
-    private readonly FakeTimeProvider timeProvider;
+    private readonly Mock<ISecurityEventManager> securityEventManagerMock = new();
 
     private readonly CookieAuthenticationService cookieAuthenticationService;
 
     public CookieAuthenticationServiceTests(DatabaseFixture<DatabaseCollection> databaseFixture)
-        : base(databaseFixture)
-    {
-        this.timeProvider = new(this.modelFactory.NextDateTime());
-
+        : base(databaseFixture) =>
         this.cookieAuthenticationService = new(
             this.authenticationServiceMock.Object,
             this.claimsIdentityFactoryMock.Object,
             this.DatabaseFixture,
             this.logger,
-            this.timeProvider);
-    }
+            this.securityEventManagerMock.Object);
 
     #region RefreshPrincipal
 
@@ -121,8 +115,6 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         await this.cookieAuthenticationService.SignIn(httpContext, user);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Signs in principal
         this.authenticationServiceMock.Verify(
             x => x.SignInAsync(
@@ -132,7 +124,8 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
                 null));
 
         // Inserts security event
-        Assert.True(await this.SecurityEventExists(dbContext, "sign_in", ipAddress, user.Id));
+        this.securityEventManagerMock.Verify(
+            x => x.CreateSecurityEvent("sign_in", ipAddress, user.Id));
 
         // Logs signed in message
         LogAssert.SingleEntry(this.logger)
@@ -164,15 +157,14 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         await this.cookieAuthenticationService.SignOut(httpContext);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Signs out user
         this.authenticationServiceMock.Verify(
             x => x.SignOutAsync(
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
 
         // Inserts security event
-        Assert.True(await this.SecurityEventExists(dbContext, "sign_out", ipAddress, user.Id));
+        this.securityEventManagerMock.Verify(
+            x => x.CreateSecurityEvent("sign_out", ipAddress, user.Id));
 
         // Logs signed out message
         LogAssert.SingleEntry(this.logger)
@@ -198,13 +190,4 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
     }
 
     #endregion
-
-    private async Task<bool> SecurityEventExists(
-        AppDbContext dbContext, string eventName, IPAddress ipAddress, long? userId = null) =>
-        await dbContext.SecurityEvents.AnyAsync(
-            securityEvent =>
-                securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
-                securityEvent.Event == eventName &&
-                securityEvent.IpAddress == ipAddress &&
-                securityEvent.UserId == userId);
 }

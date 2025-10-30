@@ -1,5 +1,5 @@
-using System.Net;
 using System.Security.Claims;
+using Buttercup.Application;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,14 +14,14 @@ internal sealed partial class CookieAuthenticationService(
     IClaimsIdentityFactory claimsIdentityFactory,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<CookieAuthenticationService> logger,
-    TimeProvider timeProvider)
+    ISecurityEventManager securityEventManager)
     : ICookieAuthenticationService
 {
     private readonly IAuthenticationService authenticationService = authenticationService;
     private readonly IClaimsIdentityFactory claimsIdentityFactory = claimsIdentityFactory;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<CookieAuthenticationService> logger = logger;
-    private readonly TimeProvider timeProvider = timeProvider;
+    private readonly ISecurityEventManager securityEventManager = securityEventManager;
 
     public async Task<bool> RefreshPrincipal(HttpContext httpContext)
     {
@@ -46,7 +46,8 @@ internal sealed partial class CookieAuthenticationService(
     {
         await this.SignInUser(httpContext, user);
 
-        await this.InsertSecurityEvent("sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
+        await this.securityEventManager.CreateSecurityEvent(
+            "sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
 
         this.LogSignedIn(user.Id, user.Email);
     }
@@ -59,28 +60,13 @@ internal sealed partial class CookieAuthenticationService(
 
         if (userId.HasValue)
         {
-            await this.InsertSecurityEvent(
+            await this.securityEventManager.CreateSecurityEvent(
                 "sign_out", httpContext.Connection.RemoteIpAddress, userId.Value);
 
             var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
             this.LogSignedOut(userId.Value, email);
         }
-    }
-
-    private async Task InsertSecurityEvent(string eventName, IPAddress? ipAddress, long userId)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        dbContext.SecurityEvents.Add(new()
-        {
-            Time = this.timeProvider.GetUtcDateTimeNow(),
-            Event = eventName,
-            IpAddress = ipAddress,
-            UserId = userId,
-        });
-
-        await dbContext.SaveChangesAsync();
     }
 
     private async Task SignInUser(
