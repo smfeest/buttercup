@@ -10,7 +10,7 @@ internal sealed class CommentManager(
     private readonly TimeProvider timeProvider = timeProvider;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
-    public async Task<long> AddComment(
+    public async Task<long> CreateComment(
         long recipeId, CommentAttributes attributes, long currentUserId)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

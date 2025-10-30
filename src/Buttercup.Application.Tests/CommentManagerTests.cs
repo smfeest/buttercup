@@ -21,17 +21,17 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         this.commentManager = new(databaseFixture, this.timeProvider);
     }
 
-    #region AddComment
+    #region CreateComment
 
     [Fact]
-    public async Task AddComment_InsertsCommentAndRevisionAndReturnsId()
+    public async Task CreateComment_InsertsCommentAndRevisionAndReturnsId()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
         var attributes = this.BuildCommentAttributes();
-        var id = await this.commentManager.AddComment(recipe.Id, attributes, currentUser.Id);
+        var id = await this.commentManager.CreateComment(recipe.Id, attributes, currentUser.Id);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -67,7 +67,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
-    public async Task AddComment_ThrowsIfRecipeNotFound()
+    public async Task CreateComment_ThrowsIfRecipeNotFound()
     {
         var otherRecipe = this.modelFactory.BuildRecipe();
         var currentUser = this.modelFactory.BuildUser();
@@ -76,21 +76,21 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         var recipeId = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.commentManager.AddComment(
+            () => this.commentManager.CreateComment(
                 recipeId, this.BuildCommentAttributes(), currentUser.Id));
 
         Assert.Equal($"Recipe/{recipeId} not found", exception.Message);
     }
 
     [Fact]
-    public async Task AddComment_ThrowsIfRecipeSoftDeleted()
+    public async Task CreateComment_ThrowsIfRecipeSoftDeleted()
     {
         var recipe = this.modelFactory.BuildRecipe(softDeleted: true);
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
         var exception = await Assert.ThrowsAsync<SoftDeletedException>(
-            () => this.commentManager.AddComment(
+            () => this.commentManager.CreateComment(
                 recipe.Id, this.BuildCommentAttributes(), currentUser.Id));
 
         Assert.Equal($"Cannot add comment to soft-deleted recipe {recipe.Id}", exception.Message);
