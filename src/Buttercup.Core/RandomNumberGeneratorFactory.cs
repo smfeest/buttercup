@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Buttercup.Security;
+namespace Buttercup;
 
 internal sealed class RandomNumberGeneratorFactory : IRandomNumberGeneratorFactory
 {
