@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Xunit;
 
-namespace Buttercup.Security;
+namespace Buttercup;
 
 public sealed class RandomNumberGeneratorFactoryTests
 {

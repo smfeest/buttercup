@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Buttercup.Security;
+namespace Buttercup;
 
 /// <summary>
 /// Defines the contract for the random number generator factory.

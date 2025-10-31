@@ -2,6 +2,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Bugsnag.AspNet.Core;
+using Buttercup;
 using Buttercup.Application;
 using Buttercup.Email;
 using Buttercup.EntityModel;
@@ -100,6 +101,7 @@ services.Configure<ForwardedHeadersOptions>(
 services
     .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
+    .AddCoreServices()
     .AddEmailServices(configuration.GetSection("Email"))
     .AddRedisServices(configuration.GetSection("Redis"))
     .AddSecurityServices(configuration.GetSection("Security"));
