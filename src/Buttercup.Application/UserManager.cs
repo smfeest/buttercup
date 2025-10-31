@@ -6,11 +6,35 @@ using Microsoft.EntityFrameworkCore.Query;
 namespace Buttercup.Application;
 
 internal sealed class UserManager(
-    IDbContextFactory<AppDbContext> dbContextFactory, TimeProvider timeProvider)
+    IDbContextFactory<AppDbContext> dbContextFactory,
+    IRandomTokenGenerator randomTokenGenerator,
+    TimeProvider timeProvider)
     : IUserManager
 {
-    private readonly TimeProvider timeProvider = timeProvider;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
+    private readonly TimeProvider timeProvider = timeProvider;
+
+    public async Task<long> CreateUser(NewUserAttributes attributes)
+    {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+        var user = new User
+        {
+            Name = attributes.Name,
+            Email = attributes.Email,
+            SecurityStamp = this.randomTokenGenerator.Generate(2),
+            TimeZone = attributes.TimeZone,
+            IsAdmin = attributes.IsAdmin,
+            Created = timestamp,
+            Modified = timestamp,
+        };
+
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        return user.Id;
+    }
 
     public async Task<User?> FindUser(long id)
     {

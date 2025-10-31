@@ -8,6 +8,17 @@ namespace Buttercup.Application;
 public interface IUserManager
 {
     /// <summary>
+    /// Creates a new user.
+    /// </summary>
+    /// <param name="attributes">
+    /// The user attributes.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The task result is the ID of the new user.
+    /// </returns>
+    Task<long> CreateUser(NewUserAttributes attributes);
+
+    /// <summary>
     /// Finds a user.
     /// </summary>
     /// <param name="id">

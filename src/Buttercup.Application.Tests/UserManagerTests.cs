@@ -1,6 +1,7 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 using Xunit;
 
 namespace Buttercup.Application;
@@ -10,6 +11,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
     private readonly UserManager userManager;
 
@@ -17,7 +19,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         : base(databaseFixture)
     {
         this.timeProvider = new(this.modelFactory.NextDateTime());
-        this.userManager = new(this.DatabaseFixture, this.timeProvider);
+        this.userManager = new(this.DatabaseFixture, this.randomTokenGeneratorMock.Object, this.timeProvider);
     }
 
     #region GetUser
