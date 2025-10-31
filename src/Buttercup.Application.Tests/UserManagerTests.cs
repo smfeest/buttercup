@@ -1,6 +1,7 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 using Xunit;
 
 namespace Buttercup.Application;
@@ -10,6 +11,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
     private readonly UserManager userManager;
 
@@ -17,8 +19,49 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         : base(databaseFixture)
     {
         this.timeProvider = new(this.modelFactory.NextDateTime());
-        this.userManager = new(this.DatabaseFixture, this.timeProvider);
+        this.userManager = new(this.DatabaseFixture, this.randomTokenGeneratorMock.Object, this.timeProvider);
     }
+
+    #region CreateUser
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateUser_InsertsUserAndReturnsId(bool isAdmin)
+    {
+        var securityStamp = this.modelFactory.NextToken(8);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(securityStamp);
+
+        var attributes = new NewUserAttributes
+        {
+            Name = this.modelFactory.NextString("name"),
+            Email = this.modelFactory.NextEmail(),
+            TimeZone = this.modelFactory.NextString("time-zone"),
+            IsAdmin = isAdmin,
+        };
+
+        var id = await this.userManager.CreateUser(attributes);
+
+        var expected = new User
+        {
+            Id = id,
+            Name = attributes.Name,
+            Email = attributes.Email,
+            HashedPassword = null,
+            PasswordCreated = null,
+            SecurityStamp = securityStamp,
+            TimeZone = attributes.TimeZone,
+            IsAdmin = attributes.IsAdmin,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Revision = 0,
+        };
+        var actual = await this.userManager.FindUser(id);
+
+        Assert.Equal(expected, actual);
+    }
+
+    #endregion
 
     #region FindUser
 
