@@ -18,5 +18,6 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddCoreServices(this IServiceCollection services) =>
         services
-            .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>();
+            .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
+            .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>();
 }

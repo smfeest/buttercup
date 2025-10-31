@@ -16,5 +16,14 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.ImplementationType == typeof(RandomNumberGeneratorFactory) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
+    [Fact]
+    public void AddCoreServices_AddsRandomTokenGenerator() =>
+        Assert.Contains(
+            new ServiceCollection().AddCoreServices(),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IRandomTokenGenerator) &&
+                serviceDescriptor.ImplementationType == typeof(RandomTokenGenerator) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
     #endregion
 }

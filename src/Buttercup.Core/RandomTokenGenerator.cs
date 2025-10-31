@@ -1,4 +1,4 @@
-namespace Buttercup.Security;
+namespace Buttercup;
 
 internal sealed class RandomTokenGenerator(
     IRandomNumberGeneratorFactory randomNumberGeneratorFactory)
