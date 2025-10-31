@@ -1,5 +1,4 @@
 using Buttercup.EntityModel;
-using Buttercup.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

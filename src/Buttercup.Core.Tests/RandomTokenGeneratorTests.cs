@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Moq;
 using Xunit;
 
-namespace Buttercup.Security;
+namespace Buttercup;
 
 public sealed class RandomTokenGeneratorTests
 {

@@ -1,4 +1,4 @@
-namespace Buttercup.Security;
+namespace Buttercup;
 
 /// <summary>
 /// Defines the contract for the random token generator.
