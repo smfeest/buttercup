@@ -20,10 +20,10 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         this.userManager = new(this.DatabaseFixture, this.timeProvider);
     }
 
-    #region GetUser
+    #region FindUser
 
     [Fact]
-    public async Task GetUser_ReturnsUser()
+    public async Task FindUser_ReturnsUser()
     {
         var expected = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(expected);
@@ -33,7 +33,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
-    public async Task GetUser_UserDoesNotExist()
+    public async Task FindUser_UserDoesNotExist()
     {
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
 
