@@ -6,6 +6,10 @@ namespace Buttercup.Web.Api;
 public enum ValidationErrorCode
 {
     /// <summary>
+    /// Indicates that the string value provided is not in a valid format for the field.
+    /// </summary>
+    InvalidFormat,
+    /// <summary>
     /// Indicates that the string value provided is too long or too short for the field.
     /// </summary>
     InvalidStringLength,

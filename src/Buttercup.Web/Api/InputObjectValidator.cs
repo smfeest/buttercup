@@ -54,6 +54,7 @@ public sealed class InputObjectValidator<T>(ISchema schema, IValidator<T> valida
     private static ValidationErrorCode ResolveCode(ValidationAttribute attribute) =>
         attribute switch
         {
+            EmailAddressAttribute => ValidationErrorCode.InvalidFormat,
             RangeAttribute => ValidationErrorCode.OutOfRange,
             RequiredAttribute required => ValidationErrorCode.Required,
             StringLengthAttribute length => ValidationErrorCode.InvalidStringLength,
