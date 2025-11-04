@@ -41,6 +41,29 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     }
 
     [Fact]
+    public async Task CreatingUserWithDefaultValues()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+
+        var attributes = new
+        {
+            Name = this.ModelFactory.NextString("name"),
+            Email = this.ModelFactory.NextEmail(),
+            TimeZone = "America/New_York",
+        };
+
+        using var response = await PostCreateUserMutation(client, attributes);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var createUserElement = ApiAssert.SuccessResponse(document).GetProperty("createUser");
+        Assert.False(createUserElement.GetProperty("user").GetProperty("isAdmin").GetBoolean());
+        JsonAssert.ValueIsNull(createUserElement.GetProperty("errors"));
+    }
+
+    [Fact]
     public async Task CreatingUserWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
@@ -112,7 +135,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     };
 
     private static Task<HttpResponseMessage> PostCreateUserMutation(
-        HttpClient client, NewUserAttributes attributes) =>
+        HttpClient client, object attributes) =>
         client.PostQuery("""
             mutation($attributes: NewUserAttributesInput!) {
                 createUser(input: { attributes: $attributes }) {
