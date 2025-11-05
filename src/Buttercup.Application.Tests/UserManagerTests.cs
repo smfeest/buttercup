@@ -61,6 +61,27 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public async Task CreateUser_EmailNotUnique()
+    {
+        var existing = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(existing);
+
+        var attributes = new NewUserAttributes
+        {
+            Name = this.modelFactory.NextString("name"),
+            Email = existing.Email,
+            TimeZone = this.modelFactory.NextString("time-zone"),
+        };
+
+        var exception = await Assert.ThrowsAsync<NotUniqueException>(
+            () => this.userManager.CreateUser(attributes));
+        Assert.Equal(nameof(attributes.Email), exception.PropertyName);
+        Assert.Equal(
+            $"Another user already exists with email '{attributes.Email}'",
+            exception.Message);
+    }
+
     #endregion
 
     #region FindUser

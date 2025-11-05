@@ -31,7 +31,18 @@ internal sealed class UserManager(
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (dbContext.Users.Any(u => u.Email == attributes.Email))
+        {
+            throw new NotUniqueException(
+                nameof(attributes.Email),
+                $"Another user already exists with email '{attributes.Email}'",
+                ex);
+        }
 
         return user.Id;
     }
