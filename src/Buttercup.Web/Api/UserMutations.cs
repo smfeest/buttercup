@@ -1,6 +1,7 @@
 using Buttercup.Application;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
+using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Api;
 
@@ -19,6 +20,9 @@ public sealed class UserMutations
     /// <param name="schema">
     /// The GraphQL schema.
     /// </param>
+    /// <param name="localizer">
+    /// The string localizer.
+    /// </param>
     /// <param name="attributes">
     /// The new user attributes.
     /// </param>
@@ -27,6 +31,7 @@ public sealed class UserMutations
         IInputObjectValidatorFactory validatorFactory,
         IUserManager userManager,
         ISchema schema,
+        IStringLocalizer<UserMutations> localizer,
         NewUserAttributes attributes)
     {
         var validator = validatorFactory.CreateValidator<NewUserAttributes>(schema);
@@ -37,7 +42,17 @@ public sealed class UserMutations
             return new(validationErrors);
         }
 
-        var id = await userManager.CreateUser(attributes);
-        return new CreateUserPayload(id);
+        try
+        {
+            var id = await userManager.CreateUser(attributes);
+            return new CreateUserPayload(id);
+        }
+        catch (NotUniqueException ex) when (ex.PropertyName == nameof(NewUserAttributes.Email))
+        {
+            return new(new InputObjectValidationError(
+                localizer["Error_EmailNotUnique"],
+                ["input", "attributes", "email"],
+                ValidationErrorCode.NotUnique));
+        }
     }
 }

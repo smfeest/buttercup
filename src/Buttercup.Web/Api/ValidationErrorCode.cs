@@ -14,6 +14,10 @@ public enum ValidationErrorCode
     /// </summary>
     InvalidStringLength,
     /// <summary>
+    /// Indicates that the value provided is not unique.
+    /// </summary>
+    NotUnique,
+    /// <summary>
     /// Indicates that the value provided is out of range for the field.
     /// </summary>
     OutOfRange,

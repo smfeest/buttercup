@@ -64,6 +64,35 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     }
 
     [Fact]
+    public async Task CreatingUserWithNonUniqueEmail()
+    {
+        var existingUser = this.ModelFactory.BuildUser();
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        await this.DatabaseFixture.InsertEntities(existingUser, currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+
+        using var response = await PostCreateUserMutation(
+            client, this.BuildNewUserAttributes() with { Email = existingUser.Email });
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var createUserElement = ApiAssert.SuccessResponse(document).GetProperty("createUser");
+
+        JsonAssert.ValueIsNull(createUserElement.GetProperty("user"));
+
+        var expectedErrors = new[]
+        {
+            new
+            {
+                Message = "A user already exists with this email address",
+                Path = new string[] { "input", "attributes", "email" },
+                Code = "NOT_UNIQUE",
+            },
+        };
+        JsonAssert.Equivalent(expectedErrors, createUserElement.GetProperty("errors"));
+    }
+
+    [Fact]
     public async Task CreatingUserWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
