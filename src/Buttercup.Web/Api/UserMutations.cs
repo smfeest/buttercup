@@ -55,4 +55,20 @@ public sealed class UserMutations
                 ValidationErrorCode.NotUnique));
         }
     }
+
+    /// <summary>
+    /// Creates a test user.
+    /// </summary>
+    /// <remarks>
+    /// This mutation is available in development environments only.
+    /// </remarks>
+    /// <param name="userManager">
+    /// The user manager.
+    /// </param>
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    public async Task<FieldResult<CreateTestUserPayload>> CreateTestUser(IUserManager userManager)
+    {
+        var (id, password) = await userManager.CreateTestUser();
+        return new CreateTestUserPayload(id, password);
+    }
 }

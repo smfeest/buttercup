@@ -89,6 +89,13 @@ services.AddGraphQLServer()
     .AddSorting()
     .AddType<IncorrectCredentialsError>()
     .AddType<TooManyAttemptsError>()
+    .AddObjectTypeExtension<UserMutations>(descriptor =>
+    {
+        if (!isDevelopment)
+        {
+            descriptor.Field("createTestUser").Ignore();
+        }
+    })
     .DisableIntrospection(!isDevelopment)
     .ModifyOptions(options => options.UseXmlDocumentation = false)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)
