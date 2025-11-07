@@ -55,4 +55,50 @@ public sealed class UserMutations
                 ValidationErrorCode.NotUnique));
         }
     }
+
+    /// <summary>
+    /// Creates a test user.
+    /// </summary>
+    /// <remarks>
+    /// This mutation is available in development environments only.
+    /// </remarks>
+    /// <param name="randomTokenGenerator">
+    /// The random token generator.
+    /// </param>
+    /// <param name="userManager">
+    /// The user manager.
+    /// </param>
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    public async Task<FieldResult<CreateTestUserPayload>> CreateTestUser(
+        IRandomTokenGenerator randomTokenGenerator,
+        IUserManager userManager)
+    {
+        var password = randomTokenGenerator.Generate(4);
+
+        async Task<long> CreateUniqueUser()
+        {
+            var suffix = randomTokenGenerator.Generate(2);
+
+            var attributes = new NewUserAttributes
+            {
+                Name = $"Test User {suffix}",
+                Email = $"test+{suffix}@example.com",
+                Password = password,
+                TimeZone = "Etc/UTC",
+            };
+
+            try
+            {
+                return await userManager.CreateUser(attributes);
+            }
+            catch (NotUniqueException ex) when (ex.PropertyName == nameof(NewUserAttributes.Email))
+            {
+                return await CreateUniqueUser();
+            }
+        }
+
+        var id = await CreateUniqueUser();
+
+        return new CreateTestUserPayload(id, password);
+    }
 }
