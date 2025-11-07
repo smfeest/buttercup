@@ -85,6 +85,19 @@ public sealed class InputObjectValidatorTests
     }
 
     [Fact]
+    public void Validate_SetsCodeToInvalidFormatWhenErrorIsFromEmailAddressAttribute()
+    {
+        this.SetupInvalid(attribute: new EmailAddressAttribute());
+        var inputObjectValidator = this.CreateInputObjectValidator();
+        var errors = new List<InputObjectValidationError>();
+
+        inputObjectValidator.Validate(this.planet, [], errors);
+
+        var error = Assert.Single(errors);
+        Assert.Equal(ValidationErrorCode.InvalidFormat, error.Code);
+    }
+
+    [Fact]
     public void Validate_SetsCodeToOutOfRangeWhenErrorIsFromRangeAttribute()
     {
         this.SetupInvalid(attribute: new RangeAttribute(1, 2));

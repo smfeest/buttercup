@@ -119,7 +119,7 @@ public sealed class ModelFactory
         Email = this.NextEmail(),
         HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
         PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
-        SecurityStamp = this.NextInt().ToString("X8", CultureInfo.InvariantCulture),
+        SecurityStamp = this.NextToken(8),
         TimeZone = this.NextString("time-zone"),
         IsAdmin = this.NextBoolean(),
         Created = this.NextDateTime(),
@@ -159,4 +159,12 @@ public sealed class ModelFactory
     /// <param name="prefix">The prefix to be included in the string.</param>
     /// <returns>The generated string value.</returns>
     public string NextString(string prefix) => $"{prefix}-{this.NextInt()}";
+
+    /// <summary>
+    /// Generates a unique token string of the specified length.
+    /// </summary>
+    /// <param name="length">The token length.</param>
+    /// <returns>The generated token.</returns>
+    public string NextToken(int length) =>
+        this.NextInt().ToString($"X{length}", CultureInfo.InvariantCulture);
 }

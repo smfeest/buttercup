@@ -96,24 +96,6 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServices_AddsRandomNumberGeneratorFactory() =>
-        Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IRandomNumberGeneratorFactory) &&
-                serviceDescriptor.ImplementationType == typeof(RandomNumberGeneratorFactory) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-    [Fact]
-    public void AddSecurityServices_AddsRandomTokenGenerator() =>
-        Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
-            serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IRandomTokenGenerator) &&
-                serviceDescriptor.ImplementationType == typeof(RandomTokenGenerator) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
-
-    [Fact]
     public void AddSecurityServices_AddsTokenAuthenticationService() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
