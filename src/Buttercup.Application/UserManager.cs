@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Buttercup.EntityModel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -7,11 +8,13 @@ namespace Buttercup.Application;
 
 internal sealed class UserManager(
     IDbContextFactory<AppDbContext> dbContextFactory,
+    IPasswordHasher<User> passwordHasher,
     IRandomTokenGenerator randomTokenGenerator,
     TimeProvider timeProvider)
     : IUserManager
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
 
@@ -28,6 +31,12 @@ internal sealed class UserManager(
             Created = timestamp,
             Modified = timestamp,
         };
+
+        if (attributes.Password is not null)
+        {
+            user.HashedPassword = this.passwordHasher.HashPassword(user, attributes.Password);
+            user.PasswordCreated = timestamp;
+        }
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Users.Add(user);

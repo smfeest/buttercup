@@ -1,5 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -11,6 +12,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
     private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
     private readonly UserManager userManager;
@@ -19,7 +21,11 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         : base(databaseFixture)
     {
         this.timeProvider = new(this.modelFactory.NextDateTime());
-        this.userManager = new(this.DatabaseFixture, this.randomTokenGeneratorMock.Object, this.timeProvider);
+        this.userManager = new(
+            this.DatabaseFixture,
+            this.passwordHasherMock.Object,
+            this.randomTokenGeneratorMock.Object,
+            this.timeProvider);
     }
 
     #region CreateUser
@@ -27,18 +33,12 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CreateUser_InsertsUserAndReturnsId(bool isAdmin)
+    public async Task CreateUser_WithoutPassword(bool isAdmin)
     {
         var securityStamp = this.modelFactory.NextToken(8);
         this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(securityStamp);
 
-        var attributes = new NewUserAttributes
-        {
-            Name = this.modelFactory.NextString("name"),
-            Email = this.modelFactory.NextEmail(),
-            TimeZone = this.modelFactory.NextString("time-zone"),
-            IsAdmin = isAdmin,
-        };
+        var attributes = this.BuildNewUserAttributes(isAdmin);
 
         var id = await this.userManager.CreateUser(attributes);
 
@@ -62,17 +62,47 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
+    public async Task CreateUser_WithPassword()
+    {
+        var password = this.modelFactory.NextString("password");
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        var securityStamp = this.modelFactory.NextToken(8);
+
+        this.passwordHasherMock
+            .Setup(x => x.HashPassword(It.IsAny<User>(), password))
+            .Returns(hashedPassword);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(securityStamp);
+
+        var attributes = this.BuildNewUserAttributes() with { Password = password };
+
+        var id = await this.userManager.CreateUser(attributes);
+
+        var expected = new User
+        {
+            Id = id,
+            Name = attributes.Name,
+            Email = attributes.Email,
+            HashedPassword = hashedPassword,
+            PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
+            SecurityStamp = securityStamp,
+            TimeZone = attributes.TimeZone,
+            IsAdmin = attributes.IsAdmin,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Revision = 0,
+        };
+        var actual = await this.userManager.FindUser(id);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public async Task CreateUser_EmailNotUnique()
     {
         var existing = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(existing);
 
-        var attributes = new NewUserAttributes
-        {
-            Name = this.modelFactory.NextString("name"),
-            Email = existing.Email,
-            TimeZone = this.modelFactory.NextString("time-zone"),
-        };
+        var attributes = this.BuildNewUserAttributes() with { Email = existing.Email };
 
         var exception = await Assert.ThrowsAsync<NotUniqueException>(
             () => this.userManager.CreateUser(attributes));
@@ -81,6 +111,14 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             $"Another user already exists with email '{attributes.Email}'",
             exception.Message);
     }
+
+    private NewUserAttributes BuildNewUserAttributes(bool isAdmin = false) => new()
+    {
+        Name = this.modelFactory.NextString("name"),
+        Email = this.modelFactory.NextEmail(),
+        TimeZone = this.modelFactory.NextString("time-zone"),
+        IsAdmin = isAdmin,
+    };
 
     #endregion
 

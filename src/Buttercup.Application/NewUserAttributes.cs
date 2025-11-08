@@ -29,6 +29,19 @@ public sealed record NewUserAttributes
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the user's initial password.
+    /// </summary>
+    /// <remarks>
+    /// This property should only be specified when creating test users for automated end-to-end
+    /// tests in development. In production, new users should set their own password via the
+    /// password reset flow instead.
+    /// </remarks>
+    /// <value>
+    /// The user's initial password, or null to create the user without a password.
+    /// </value>
+    public string? Password { get; init; }
+
+    /// <summary>
     /// Gets or sets the user's time zone.
     /// </summary>
     /// <value>
