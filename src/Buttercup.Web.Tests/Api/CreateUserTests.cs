@@ -1,4 +1,3 @@
-using Buttercup.Application;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -17,7 +16,13 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        var attributes = this.BuildNewUserAttributes() with { IsAdmin = isAdmin };
+        var attributes = new
+        {
+            Name = this.ModelFactory.NextString("name"),
+            Email = this.ModelFactory.NextEmail(),
+            TimeZone = "Europe/Prague",
+            IsAdmin = isAdmin,
+        };
 
         using var response = await PostCreateUserMutation(client, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
@@ -72,8 +77,14 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        using var response = await PostCreateUserMutation(
-            client, this.BuildNewUserAttributes() with { Email = existingUser.Email });
+        var attributes = new
+        {
+            Name = this.ModelFactory.NextString("name"),
+            existingUser.Email,
+            TimeZone = "Europe/London",
+        };
+
+        using var response = await PostCreateUserMutation(client, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var createUserElement = ApiAssert.SuccessResponse(document).GetProperty("createUser");
@@ -100,7 +111,12 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        var attributes = this.BuildNewUserAttributes();
+        var attributes = new
+        {
+            Name = this.ModelFactory.NextString("name"),
+            Email = this.ModelFactory.NextEmail(),
+            TimeZone = "Africa/Cairo",
+        };
 
         using var response = await PostCreateUserMutation(client, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
@@ -117,9 +133,9 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        var attributes = new NewUserAttributes
+        var attributes = new
         {
-            Name = new('a', 251),
+            Name = new string('a', 251),
             Email = "example.com",
             TimeZone = "",
         };
@@ -154,14 +170,6 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
         };
         JsonAssert.Equivalent(expectedErrors, createUserElement.GetProperty("errors"));
     }
-
-    private NewUserAttributes BuildNewUserAttributes() => new()
-    {
-        Name = this.ModelFactory.NextString("name"),
-        Email = this.ModelFactory.NextEmail(),
-        TimeZone = "Europe/Prague",
-        IsAdmin = true,
-    };
 
     private static Task<HttpResponseMessage> PostCreateUserMutation(
         HttpClient client, object attributes) =>
