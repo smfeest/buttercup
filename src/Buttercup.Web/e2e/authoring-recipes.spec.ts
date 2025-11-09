@@ -1,7 +1,8 @@
+import { expect } from '@playwright/test';
 import { authStatePath } from './auth-state';
 import { Navigation } from './helpers/navigation';
 import { RecipeForm } from './helpers/recipe-form';
-import { expect, test } from './test';
+import { test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 

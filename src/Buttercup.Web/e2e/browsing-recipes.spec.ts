@@ -1,7 +1,8 @@
+import { expect } from '@playwright/test';
 import { authStatePath } from './auth-state';
 import { Navigation } from './helpers/navigation';
 import { randomString } from './helpers/random';
-import { expect, test } from './test';
+import { test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
