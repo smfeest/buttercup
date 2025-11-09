@@ -1,11 +1,10 @@
 import { expect } from '@playwright/test';
 import { authStatePath } from './auth-state';
-import { RecipeForm } from './helpers/recipe-form';
 import { test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can add a recipe', async ({ page, api, navigation }) => {
+test('can add a recipe', async ({ page, api, navigation, recipeForm }) => {
   const { hardDeleteRecipe } = api('e2e-admin');
 
   await page.goto('/');
@@ -18,7 +17,6 @@ test('can add a recipe', async ({ page, api, navigation }) => {
     'Cook for one minute on each side until golden',
   ];
 
-  const recipeForm = new RecipeForm(page);
   await recipeForm.titleInput.fill('Pancakes');
   await recipeForm.ingredientsInput.fill(ingredients.join('\n'));
   await recipeForm.methodInput.fill(steps.join('\n'));
@@ -36,7 +34,7 @@ test('can add a recipe', async ({ page, api, navigation }) => {
   }
 });
 
-test('can edit a recipe', async ({ page, api }) => {
+test('can edit a recipe', async ({ page, api, recipeForm }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const { id } = await createRecipe({ title: 'Glorious cheese sandwich' });
@@ -44,8 +42,6 @@ test('can edit a recipe', async ({ page, api }) => {
   try {
     await page.goto(`recipes/${id}`);
     await page.getByRole('link', { name: 'Edit' }).click();
-
-    const recipeForm = new RecipeForm(page);
 
     await expect(recipeForm.titleInput).toHaveValue('Glorious cheese sandwich');
 
