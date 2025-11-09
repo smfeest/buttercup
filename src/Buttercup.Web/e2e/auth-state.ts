@@ -1,2 +1,4 @@
+import { join } from 'path';
+
 export const authStatePath = (username: string) =>
-  `.playwright/auth/${username}.json`;
+  join(__dirname, `../.playwright/auth/${username}.json`);
