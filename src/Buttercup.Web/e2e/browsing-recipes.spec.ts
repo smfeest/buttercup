@@ -1,12 +1,11 @@
 import { expect } from '@playwright/test';
 import { authStatePath } from './auth-state';
-import { Navigation } from './helpers/navigation';
 import { randomString } from './helpers/random';
 import { test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can view a recipe', async ({ page, api }) => {
+test('can view a recipe', async ({ page, api, navigation }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const title = `${randomString()} Cheese on toast`;
@@ -26,7 +25,6 @@ test('can view a recipe', async ({ page, api }) => {
   try {
     await page.goto('/');
 
-    const navigation = new Navigation(page);
     await navigation.allRecipesButton.click();
 
     await page.getByRole('link', { name: title }).click();
@@ -39,7 +37,7 @@ test('can view a recipe', async ({ page, api }) => {
   }
 });
 
-test('can find recipes by title', async ({ page, api }) => {
+test('can find recipes by title', async ({ page, api, navigation }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
   const prefix = randomString();
@@ -54,7 +52,6 @@ test('can find recipes by title', async ({ page, api }) => {
   try {
     await page.goto('/');
 
-    const navigation = new Navigation(page);
     await navigation.allRecipesButton.click();
 
     await page.getByLabel('Find a recipe').fill(`${prefix} kie choc`);

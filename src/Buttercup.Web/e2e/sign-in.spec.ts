@@ -1,17 +1,16 @@
-import { expect, test } from '@playwright/test';
-import { Navigation } from './helpers/navigation';
+import { expect } from '@playwright/test';
 import { SignInForm } from './helpers/sign-in-form';
+import { test } from './test';
 
 const userEmail = 'e2e-user@example.com';
 
-test('can sign in with valid credentials', async ({ page }) => {
+test('can sign in with valid credentials', async ({ page, navigation }) => {
   await page.goto('/sign-in');
 
   const signInForm = new SignInForm(page);
   await signInForm.fill(userEmail, 'e2e-user-pass');
   await signInForm.submit();
 
-  const navigation = new Navigation(page);
   await navigation.menuButton.click();
 
   await expect(page.getByText('Signed in as E2E User')).toBeVisible();
