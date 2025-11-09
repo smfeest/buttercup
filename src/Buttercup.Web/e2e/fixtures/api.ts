@@ -22,6 +22,8 @@ export type ApiUserFixture = {
   createRecipe: (
     explicitAttributes?: Partial<RecipeAttributes>,
   ) => Promise<Recipe>;
+  /** Creates a test user. */
+  createTestUser(): Promise<TestUser>;
   /** Hard deletes a recipe. */
   hardDeleteRecipe: (id: number) => Promise<void>;
 };
@@ -53,6 +55,19 @@ const CREATE_RECIPE_QUERY = gql`
       recipe {
         id
       }
+    }
+  }
+`;
+
+const CREATE_TEST_USER_QUERY = gql`
+  mutation CreateTestUser {
+    createTestUser {
+      user {
+        id
+        name
+        email
+      }
+      password
     }
   }
 `;
@@ -183,6 +198,22 @@ export const api: TestFixture<Api, PlaywrightTestOptions> = (
         const id = result.data.createRecipe.recipe.id;
         return { id, ...attributes };
       },
+      async createTestUser() {
+        const result = await client.mutation<{
+          createTestUser: {
+            user: { id: number; email: string; name: string };
+            password: string;
+          };
+        }>(CREATE_TEST_USER_QUERY, {});
+
+        if (!result.data) {
+          throw new Error('Failed to create test user');
+        }
+
+        const { user, password } = result.data.createTestUser;
+
+        return { ...user, password };
+      },
       async hardDeleteRecipe(id) {
         await client.mutation(HARD_DELETE_RECIPE_QUERY, { id });
       },
@@ -211,4 +242,11 @@ export type RecipeAttributes = {
 
 export type Recipe = RecipeAttributes & {
   id: number;
+};
+
+export type TestUser = {
+  id: number;
+  email: string;
+  name: string;
+  password: string;
 };
