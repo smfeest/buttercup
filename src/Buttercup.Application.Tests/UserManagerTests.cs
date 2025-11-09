@@ -1,5 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -11,6 +12,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
     private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
     private readonly UserManager userManager;
@@ -19,7 +21,11 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         : base(databaseFixture)
     {
         this.timeProvider = new(this.modelFactory.NextDateTime());
-        this.userManager = new(this.DatabaseFixture, this.randomTokenGeneratorMock.Object, this.timeProvider);
+        this.userManager = new(
+            this.DatabaseFixture,
+            this.passwordHasherMock.Object,
+            this.randomTokenGeneratorMock.Object,
+            this.timeProvider);
     }
 
     #region CreateUser
@@ -80,6 +86,97 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         Assert.Equal(
             $"Another user already exists with email '{attributes.Email}'",
             exception.Message);
+    }
+
+    #endregion
+
+    #region CreateTestUser
+
+    [Fact]
+    public async Task CreateTestUser()
+    {
+        var suffix = this.modelFactory.NextString("suffix");
+        var securityStamp = this.modelFactory.NextToken(8);
+        this.randomTokenGeneratorMock.SetupSequence(x => x.Generate(2))
+            .Returns(suffix)
+            .Returns(securityStamp);
+
+        var password = this.modelFactory.NextString("password");
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(4)).Returns(password);
+
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        this.passwordHasherMock
+            .Setup(x => x.HashPassword(It.IsAny<User>(), password))
+            .Returns(hashedPassword);
+
+        var (id, returnedPassword) = await this.userManager.CreateTestUser();
+
+        Assert.Equal(password, returnedPassword);
+
+        var expected = new User
+        {
+            Id = id,
+            Name = $"Test User {suffix}",
+            Email = $"test+{suffix}@example.com",
+            HashedPassword = hashedPassword,
+            PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
+            SecurityStamp = securityStamp,
+            TimeZone = "Etc/UTC",
+            IsAdmin = false,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Revision = 0,
+        };
+        var actual = await this.userManager.FindUser(id);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task CreateTestUser_RetriesIfEmailNotUnique()
+    {
+        var firstSuffix = this.modelFactory.NextString("suffix");
+        var secondSuffix = this.modelFactory.NextString("suffix");
+        var firstSecurityStamp = this.modelFactory.NextToken(8);
+        var secondSecurityStamp = this.modelFactory.NextToken(8);
+        this.randomTokenGeneratorMock.SetupSequence(x => x.Generate(2))
+            .Returns(firstSuffix)
+            .Returns(firstSecurityStamp)
+            .Returns(secondSuffix)
+            .Returns(secondSecurityStamp);
+
+        var password = this.modelFactory.NextString("password");
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(4)).Returns(password);
+
+        var hashedPassword = this.modelFactory.NextString("hashed-password");
+        this.passwordHasherMock
+            .Setup(x => x.HashPassword(It.IsAny<User>(), password))
+            .Returns(hashedPassword);
+
+        await this.DatabaseFixture.InsertEntities(
+            this.modelFactory.BuildUser() with { Email = $"test+{firstSuffix}@example.com" });
+
+        var (id, returnedPassword) = await this.userManager.CreateTestUser();
+
+        Assert.Equal(password, returnedPassword);
+
+        var expected = new User
+        {
+            Id = id,
+            Name = $"Test User {secondSuffix}",
+            Email = $"test+{secondSuffix}@example.com",
+            HashedPassword = hashedPassword,
+            PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
+            SecurityStamp = secondSecurityStamp,
+            TimeZone = "Etc/UTC",
+            IsAdmin = false,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Revision = 0,
+        };
+        var actual = await this.userManager.FindUser(id);
+
+        Assert.Equal(expected, actual);
     }
 
     #endregion

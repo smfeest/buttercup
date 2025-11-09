@@ -19,6 +19,18 @@ public interface IUserManager
     Task<long> CreateUser(NewUserAttributes attributes);
 
     /// <summary>
+    /// Creates a new user for automated end-to-end testing.
+    /// </summary>
+    /// <remarks>
+    /// This method creates a new user with a unique email address and randomly generated password.
+    /// It should only be used to set up users for automated end-to-end testing in development.
+    /// </remarks>
+    /// <returns>
+    /// A task for the operation. The task result is the ID and password of the new user.
+    /// </returns>
+    Task<(long Id, string Password)> CreateTestUser();
+
+    /// <summary>
     /// Finds a user.
     /// </summary>
     /// <param name="id">

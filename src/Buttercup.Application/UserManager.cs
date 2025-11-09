@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Buttercup.EntityModel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -7,11 +8,13 @@ namespace Buttercup.Application;
 
 internal sealed class UserManager(
     IDbContextFactory<AppDbContext> dbContextFactory,
+    IPasswordHasher<User> passwordHasher,
     IRandomTokenGenerator randomTokenGenerator,
     TimeProvider timeProvider)
     : IUserManager
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
 
@@ -45,6 +48,41 @@ internal sealed class UserManager(
         }
 
         return user.Id;
+    }
+
+    public async Task<(long Id, string Password)> CreateTestUser()
+    {
+        var suffix = this.randomTokenGenerator.Generate(2);
+        var password = this.randomTokenGenerator.Generate(4);
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
+        var user = new User
+        {
+            Name = $"Test User {suffix}",
+            Email = $"test+{suffix}@example.com",
+            PasswordCreated = timestamp,
+            SecurityStamp = this.randomTokenGenerator.Generate(2),
+            TimeZone = "Etc/UTC",
+            IsAdmin = false,
+            Created = timestamp,
+            Modified = timestamp,
+        };
+
+        user.HashedPassword = this.passwordHasher.HashPassword(user, password);
+
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+        dbContext.Users.Add(user);
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException) when (dbContext.Users.Any(u => u.Email == user.Email))
+        {
+            return await this.CreateTestUser();
+        }
+
+        return (user.Id, password);
     }
 
     public async Task<User?> FindUser(long id)
