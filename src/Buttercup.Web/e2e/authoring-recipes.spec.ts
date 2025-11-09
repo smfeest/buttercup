@@ -1,17 +1,15 @@
 import { expect } from '@playwright/test';
 import { authStatePath } from './auth-state';
-import { Navigation } from './helpers/navigation';
 import { RecipeForm } from './helpers/recipe-form';
 import { test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can add a recipe', async ({ page, api }) => {
+test('can add a recipe', async ({ page, api, navigation }) => {
   const { hardDeleteRecipe } = api('e2e-admin');
 
   await page.goto('/');
 
-  const navigation = new Navigation(page);
   await navigation.newRecipeButton.click();
 
   const ingredients = ['2 eggs', '100g plain flour', '300ml milk'];
