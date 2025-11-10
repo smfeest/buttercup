@@ -1,10 +1,8 @@
 import { test as base } from '@playwright/test';
-import { api } from './fixtures/api';
+import { api, ApiFixture } from './fixtures/api';
 
 export const test = base.extend<{
-  api: (username: string) => ReturnType<typeof api>;
+  api: ApiFixture;
 }>({
-  async api({ baseURL }, use) {
-    await use((username) => api(baseURL!, username));
-  },
+  api: ({ baseURL }, use) => use(api(baseURL)),
 });
