@@ -8,8 +8,9 @@ test('can sign in with valid credentials', async ({ page, navigation }) => {
   await page.goto('/sign-in');
 
   const signInForm = new SignInForm(page);
-  await signInForm.fill(userEmail, 'e2e-user-pass');
-  await signInForm.submit();
+  await signInForm.emailInput.fill(userEmail);
+  await signInForm.passwordInput.fill('e2e-user-pass');
+  await signInForm.signInButton.click();
 
   await navigation.menuButton.click();
 
@@ -20,8 +21,9 @@ test('cannot sign in with incorrect password', async ({ page }) => {
   await page.goto('/sign-in');
 
   const signInForm = new SignInForm(page);
-  await signInForm.fill(userEmail, 'incorrect-password');
-  await signInForm.submit();
+  await signInForm.emailInput.fill(userEmail);
+  await signInForm.passwordInput.fill('incorrect-password');
+  await signInForm.signInButton.click();
 
   await expect(page.getByText('Wrong email address or password')).toBeVisible();
   await expect(signInForm.emailInput).toHaveValue(userEmail);
@@ -32,8 +34,9 @@ test.describe('when redirected to sign in from protected page', () => {
     await page.goto('/account');
 
     const signInForm = new SignInForm(page);
-    await signInForm.fill(userEmail, 'e2e-user-pass');
-    await signInForm.submit();
+    await signInForm.emailInput.fill(userEmail);
+    await signInForm.passwordInput.fill('e2e-user-pass');
+    await signInForm.signInButton.click();
 
     await expect(page).toHaveTitle(/Your account/);
   });
