@@ -1,13 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { authStatePath } from './auth-state';
-import { Navigation } from './helpers/navigation';
+import { test } from './test';
 
 test.use({ storageState: authStatePath('e2e-user') });
 
-test('can view own profile and preferences', async ({ page }) => {
+test('can view own profile and preferences', async ({ page, navigation }) => {
   await page.goto('/');
 
-  const navigation = new Navigation(page);
   await navigation.menuButton.click();
   await navigation.yourAccountLink.click();
 
