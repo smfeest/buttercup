@@ -8,13 +8,4 @@ export class SignInForm {
   public readonly signInButton = this.page.getByRole('button', {
     name: 'Sign in',
   });
-
-  public async fill(email: string, password: string) {
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-  }
-
-  public async submit() {
-    await this.signInButton.click();
-  }
 }

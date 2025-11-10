@@ -6,8 +6,9 @@ const storeAuthenticatedState = async (page: Page, username: string) => {
   await page.goto('/sign-in');
 
   const signInForm = new SignInForm(page);
-  await signInForm.fill(`${username}@example.com`, `${username}-pass`);
-  await signInForm.submit();
+  await signInForm.emailInput.fill(`${username}@example.com`);
+  await signInForm.passwordInput.fill(`${username}-pass`);
+  await signInForm.signInButton.click();
 
   await page.waitForURL('/');
   await page.context().storageState({ path: authStatePath(username) });
