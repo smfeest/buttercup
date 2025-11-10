@@ -2,17 +2,27 @@ import { PlaywrightTestOptions, TestFixture } from '@playwright/test';
 import { Client, fetchExchange, gql } from '@urql/core';
 import { authExchange } from '@urql/exchange-auth';
 
+/**
+ * Initializes an {@link ApiUserFixture} that can be used to make API requests as a specified user.
+ *
+ * @param username The username portion of the user's email address (e.g. 'e2e-user' to make
+ *                 authenticate as e2e-user@example.com).
+ */
 export type Api = (username: string) => ApiUserFixture;
 
 export type ApiUserFixture = {
+  /** A GraphQL client that is authenticated as the specified user. */
   client: Client;
+  /** Adds a comment to a recipe. */
   createComment: (
     recipeId: number,
     explicitAttributes?: Partial<CommentAttributes>,
   ) => Promise<Comment>;
+  /** Creates a new recipe. */
   createRecipe: (
     explicitAttributes?: Partial<RecipeAttributes>,
   ) => Promise<Recipe>;
+  /** Hard deletes a recipe. */
   hardDeleteRecipe: (id: number) => Promise<void>;
 };
 
