@@ -165,15 +165,15 @@ export const api = (baseUrl: string, username: string) => {
   };
 };
 
-export interface CommentAttributes {
+export type CommentAttributes = {
   body: string;
-}
+};
 
-export interface Comment extends CommentAttributes {
+export type Comment = CommentAttributes & {
   id: number;
-}
+};
 
-export interface RecipeAttributes {
+export type RecipeAttributes = {
   title: string;
   preparationMinutes?: number;
   cookingMinutes?: number;
@@ -183,8 +183,8 @@ export interface RecipeAttributes {
   suggestions?: string;
   remarks?: string;
   source?: string;
-}
+};
 
-export interface Recipe extends RecipeAttributes {
+export type Recipe = RecipeAttributes & {
   id: number;
-}
+};
