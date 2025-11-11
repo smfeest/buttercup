@@ -92,6 +92,15 @@ internal sealed class UserManager(
         return await dbContext.Users.FindAsync(id);
     }
 
+    public async Task<bool> HardDeleteTestUser(long id)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        await dbContext.SecurityEvents.Where(e => e.UserId == id).ExecuteDeleteAsync();
+
+        return await dbContext.Users.Where(u => u.Id == id).ExecuteDeleteAsync() != 0;
+    }
+
     public async Task SetTimeZone(long userId, string timeZone)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

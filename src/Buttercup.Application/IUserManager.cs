@@ -42,6 +42,22 @@ public interface IUserManager
     Task<User?> FindUser(long id);
 
     /// <summary>
+    /// Hard-deletes a user and associated records.
+    /// </summary>
+    /// <remarks>
+    /// This method should only be used to clean-up users that have been specifically created for
+    /// testing in development.
+    /// </remarks>
+    /// <param name="id">
+    /// The user ID.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
+    /// user does not exist.
+    /// </returns>
+    Task<bool> HardDeleteTestUser(long id);
+
+    /// <summary>
     /// Sets a user's time zone.
     /// </summary>
     /// <param name="userId">
