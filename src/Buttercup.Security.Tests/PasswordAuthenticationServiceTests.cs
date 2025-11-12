@@ -430,10 +430,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             HashedPassword = currentPasswordHash,
         };
         var otherUser = this.modelFactory.BuildUser();
-        var passwordResetTokenForUser =
-            this.modelFactory.BuildPasswordResetToken() with { UserId = userBefore.Id };
-        var passwordResetTokenForOtherUser =
-            this.modelFactory.BuildPasswordResetToken() with { UserId = otherUser.Id };
+        var passwordResetTokenForUser = this.modelFactory.BuildPasswordResetToken(userBefore);
+        var passwordResetTokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
         await this.DatabaseFixture.InsertEntities(
             userBefore, otherUser, passwordResetTokenForUser, passwordResetTokenForOtherUser);
 
@@ -723,8 +721,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             UserId = userBefore.Id,
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(23, 59, 59))
         };
-        var passwordResetTokenForOtherUser =
-            this.modelFactory.BuildPasswordResetToken() with { UserId = otherUser.Id };
+        var passwordResetTokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
         await this.DatabaseFixture.InsertEntities(
             userBefore, otherUser, passwordResetTokenForUser, passwordResetTokenForOtherUser);
 
