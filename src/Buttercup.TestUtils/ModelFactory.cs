@@ -53,12 +53,17 @@ public sealed class ModelFactory
     /// <summary>
     /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
     /// </summary>
+    /// <param name="user">
+    /// The user for <see cref="PasswordResetToken.User"/> and <see
+    /// cref="PasswordResetToken.UserId"/>.
+    /// </param>
     /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
-    public PasswordResetToken BuildPasswordResetToken() =>
+    public PasswordResetToken BuildPasswordResetToken(User user) =>
         new()
         {
             Token = this.NextString("token"),
-            UserId = this.NextInt(),
+            User = user,
+            UserId = user.Id,
             Created = this.NextDateTime(),
         };
 
