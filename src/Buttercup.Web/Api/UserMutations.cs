@@ -71,4 +71,22 @@ public sealed class UserMutations
         var (id, password) = await userManager.CreateTestUser();
         return new CreateTestUserPayload(id, password);
     }
+
+    /// <summary>
+    /// Hard-deletes a test user.
+    /// </summary>
+    /// <remarks>
+    /// This mutation is available in development environments only.
+    /// </remarks>
+    /// <param name="userManager">
+    /// The user manager.
+    /// </param>
+    /// <param name="id">
+    /// The user ID.
+    /// </param>
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
+    public async Task<HardDeletePayload> HardDeleteTestUser(
+        IUserManager userManager, long id) =>
+        new(await userManager.HardDeleteTestUser(id));
 }
