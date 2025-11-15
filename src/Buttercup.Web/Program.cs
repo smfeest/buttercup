@@ -94,6 +94,7 @@ services.AddGraphQLServer()
         if (!isDevelopment)
         {
             descriptor.Field("createTestUser").Ignore();
+            descriptor.Field("deleteTestUser").Ignore();
         }
     })
     .DisableIntrospection(!isDevelopment)
