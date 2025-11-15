@@ -75,8 +75,8 @@ public sealed class RecipeMutations
     /// The recipe ID.
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    public async Task<HardDeleteRecipePayload> HardDeleteRecipe(
-        IRecipeManager recipeManager, long id) =>
+    [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
+    public async Task<HardDeletePayload> HardDeleteRecipe(IRecipeManager recipeManager, long id) =>
         new(await recipeManager.HardDeleteRecipe(id));
 
     /// <summary>

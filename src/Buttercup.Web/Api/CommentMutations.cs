@@ -115,7 +115,8 @@ public sealed class CommentMutations
     /// The comment ID.
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    public async Task<HardDeleteCommentPayload> HardDeleteComment(
+    [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
+    public async Task<HardDeletePayload> HardDeleteComment(
         ICommentManager commentManager, long id) =>
         new(await commentManager.HardDeleteComment(id));
 }
