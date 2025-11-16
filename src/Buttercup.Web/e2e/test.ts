@@ -1,10 +1,17 @@
 import { test as base } from '@playwright/test';
-import { api } from './fixtures/api';
+import { api, Api } from './fixtures/api';
+import { navigation, Navigation } from './fixtures/navigation';
+import { recipeForm, RecipeForm } from './fixtures/recipe-form';
+import { signInForm, SignInForm } from './fixtures/sign-in-form';
 
 export const test = base.extend<{
-  api: (username: string) => ReturnType<typeof api>;
+  api: Api;
+  navigation: Navigation;
+  recipeForm: RecipeForm;
+  signInForm: SignInForm;
 }>({
-  async api({ baseURL }, use) {
-    await use((username) => api(baseURL!, username));
-  },
+  api,
+  navigation,
+  recipeForm,
+  signInForm,
 });

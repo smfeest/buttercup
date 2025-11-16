@@ -1,5 +1,30 @@
+import { PlaywrightTestOptions, TestFixture } from '@playwright/test';
 import { Client, fetchExchange, gql } from '@urql/core';
 import { authExchange } from '@urql/exchange-auth';
+
+/**
+ * Initializes an {@link ApiUserFixture} that can be used to make API requests as a specified user.
+ *
+ * @param username The username portion of the user's email address (e.g. 'e2e-user' to make
+ *                 authenticate as e2e-user@example.com).
+ */
+export type Api = (username: string) => ApiUserFixture;
+
+export type ApiUserFixture = {
+  /** A GraphQL client that is authenticated as the specified user. */
+  client: Client;
+  /** Adds a comment to a recipe. */
+  createComment: (
+    recipeId: number,
+    explicitAttributes?: Partial<CommentAttributes>,
+  ) => Promise<Comment>;
+  /** Creates a new recipe. */
+  createRecipe: (
+    explicitAttributes?: Partial<RecipeAttributes>,
+  ) => Promise<Recipe>;
+  /** Hard deletes a recipe. */
+  hardDeleteRecipe: (id: number) => Promise<void>;
+};
 
 const AUTHENTICATE_QUERY = gql`
   mutation ($input: AuthenticateInput!) {
@@ -75,105 +100,104 @@ const DEFAULT_RECIPE_ATTRIBUTES: RecipeAttributes = {
     "The cook's Decameron : a study in taste, containing over two hundred recipes for Italian dishes",
 };
 
-export const api = (baseUrl: string, username: string) => {
-  const client = new Client({
-    url: `${baseUrl}/graphql`,
-    exchanges: [
-      authExchange((utils) => {
-        let token: string | undefined;
+export const api: TestFixture<Api, PlaywrightTestOptions> = (
+  { baseURL },
+  use,
+) =>
+  use((username) => {
+    const client = new Client({
+      url: `${baseURL}/graphql`,
+      exchanges: [
+        authExchange((utils) => {
+          let token: string | undefined;
 
-        return Promise.resolve({
-          addAuthToOperation(operation) {
-            if (!token) {
-              return operation;
-            }
+          return Promise.resolve({
+            addAuthToOperation(operation) {
+              if (!token) {
+                return operation;
+              }
 
-            return utils.appendHeaders(operation, {
-              Authorization: `Bearer ${token}`,
-            });
-          },
-          didAuthError(error) {
-            return error.graphQLErrors.some(
-              (e) => e.extensions?.code === 'AUTH_NOT_AUTHENTICATED',
-            );
-          },
-          async refreshAuth() {
-            const result = await utils.mutate<{
-              authenticate: { accessToken?: string };
-            }>(AUTHENTICATE_QUERY, {
-              input: {
-                email: `${username}@example.com`,
-                password: `${username}-pass`,
-              },
-            });
+              return utils.appendHeaders(operation, {
+                Authorization: `Bearer ${token}`,
+              });
+            },
+            didAuthError(error) {
+              return error.graphQLErrors.some(
+                (e) => e.extensions?.code === 'AUTH_NOT_AUTHENTICATED',
+              );
+            },
+            async refreshAuth() {
+              const result = await utils.mutate<{
+                authenticate: { accessToken?: string };
+              }>(AUTHENTICATE_QUERY, {
+                input: {
+                  email: `${username}@example.com`,
+                  password: `${username}-pass`,
+                },
+              });
 
-            token = result.data?.authenticate.accessToken;
-          },
-          willAuthError() {
-            return !token;
-          },
-        });
-      }),
-      fetchExchange,
-    ],
+              token = result.data?.authenticate.accessToken;
+            },
+            willAuthError() {
+              return !token;
+            },
+          });
+        }),
+        fetchExchange,
+      ],
+    });
+
+    return {
+      client,
+      async createComment(recipeId, explicitAttributes = {}) {
+        const attributes = {
+          ...DEFAULT_COMMENT_ATTRIBUTES,
+          ...explicitAttributes,
+        };
+
+        const result = await client.mutation<{
+          createComment: { comment: { id: number } };
+        }>(CREATE_COMMENT_QUERY, { recipeId, attributes });
+
+        if (!result.data) {
+          throw new Error('Failed to insert comment');
+        }
+
+        const id = result.data.createComment.comment.id;
+        return { id, ...attributes };
+      },
+      async createRecipe(explicitAttributes = {}) {
+        const attributes = {
+          ...DEFAULT_RECIPE_ATTRIBUTES,
+          ...explicitAttributes,
+        };
+
+        const result = await client.mutation<{
+          createRecipe: { recipe: { id: number } };
+        }>(CREATE_RECIPE_QUERY, { attributes });
+
+        if (!result.data) {
+          throw new Error('Failed to insert recipe');
+        }
+
+        const id = result.data.createRecipe.recipe.id;
+        return { id, ...attributes };
+      },
+      async hardDeleteRecipe(id) {
+        await client.mutation(HARD_DELETE_RECIPE_QUERY, { id });
+      },
+    };
   });
 
-  return {
-    client,
-    async createComment(
-      recipeId: number,
-      explicitAttributes: Partial<CommentAttributes> = {},
-    ): Promise<Comment> {
-      const attributes = {
-        ...DEFAULT_COMMENT_ATTRIBUTES,
-        ...explicitAttributes,
-      };
-
-      const result = await client.mutation<{
-        createComment: { comment: { id: number } };
-      }>(CREATE_COMMENT_QUERY, { recipeId, attributes });
-
-      if (!result.data) {
-        throw new Error('Failed to insert comment');
-      }
-
-      const id = result.data.createComment.comment.id;
-      return { id, ...attributes };
-    },
-    async createRecipe(
-      explicitAttributes: Partial<RecipeAttributes> = {},
-    ): Promise<Recipe> {
-      const attributes = {
-        ...DEFAULT_RECIPE_ATTRIBUTES,
-        ...explicitAttributes,
-      };
-
-      const result = await client.mutation<{
-        createRecipe: { recipe: { id: number } };
-      }>(CREATE_RECIPE_QUERY, { attributes });
-
-      if (!result.data) {
-        throw new Error('Failed to insert recipe');
-      }
-
-      const id = result.data.createRecipe.recipe.id;
-      return { id, ...attributes };
-    },
-    async hardDeleteRecipe(id: number) {
-      await client.mutation(HARD_DELETE_RECIPE_QUERY, { id });
-    },
-  };
+export type CommentAttributes = {
+  body: string;
 };
 
-export interface CommentAttributes {
-  body: string;
-}
-
-export interface Comment extends CommentAttributes {
+export type Comment = CommentAttributes & {
   id: number;
-}
+};
 
-export interface RecipeAttributes {
+export type RecipeAttributes = {
   title: string;
   preparationMinutes?: number;
   cookingMinutes?: number;
@@ -183,8 +207,8 @@ export interface RecipeAttributes {
   suggestions?: string;
   remarks?: string;
   source?: string;
-}
+};
 
-export interface Recipe extends RecipeAttributes {
+export type Recipe = RecipeAttributes & {
   id: number;
-}
+};
