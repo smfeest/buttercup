@@ -1,6 +1,7 @@
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -200,6 +201,57 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         // Returns null
         Assert.Null(await this.userManager.FindUser(this.modelFactory.NextInt()));
+    }
+
+    #endregion
+
+    #region HardDeleteTestUser
+
+    [Fact]
+    public async Task HardDeleteTestUser_UserExists()
+    {
+        var user = this.modelFactory.BuildUser();
+        var otherUser = this.modelFactory.BuildUser();
+        var passwordResetTokenForUser = this.modelFactory.BuildPasswordResetToken(user);
+        var passwordResetTokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
+        var securityEventForUser = this.modelFactory.BuildSecurityEvent(user);
+        var securityEventForOtherUser = this.modelFactory.BuildSecurityEvent(otherUser);
+
+        await this.DatabaseFixture.InsertEntities(
+            user,
+            otherUser,
+            passwordResetTokenForUser,
+            passwordResetTokenForOtherUser,
+            securityEventForUser,
+            securityEventForOtherUser);
+
+        Assert.True(await this.userManager.HardDeleteTestUser(user.Id));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        Assert.Equal(
+            otherUser,
+            await dbContext.Users.SingleAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(
+            passwordResetTokenForOtherUser.Token,
+            await dbContext
+                .PasswordResetTokens
+                .Select(t => t.Token)
+                .SingleAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(
+            securityEventForOtherUser.Id,
+            await dbContext
+                .SecurityEvents
+                .Select(e => e.Id)
+                .SingleAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task HardDeleteTestUser_UserDoesNotExist()
+    {
+        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
+
+        Assert.False(await this.userManager.HardDeleteTestUser(this.modelFactory.NextInt()));
     }
 
     #endregion

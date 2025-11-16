@@ -53,12 +53,17 @@ public sealed class ModelFactory
     /// <summary>
     /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
     /// </summary>
+    /// <param name="user">
+    /// The user for <see cref="PasswordResetToken.User"/> and <see
+    /// cref="PasswordResetToken.UserId"/>.
+    /// </param>
     /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
-    public PasswordResetToken BuildPasswordResetToken() =>
+    public PasswordResetToken BuildPasswordResetToken(User user) =>
         new()
         {
             Token = this.NextString("token"),
-            UserId = this.NextInt(),
+            User = user,
+            UserId = user.Id,
             Created = this.NextDateTime(),
         };
 
@@ -103,6 +108,24 @@ public sealed class ModelFactory
             Revision = this.NextInt(),
         };
     }
+
+    /// <summary>
+    /// Instantiates a new <see cref="SecurityEvent" /> object with unique property values.
+    /// </summary>
+    /// <param name="user">
+    /// The user for <see cref="SecurityEvent.User"/> and <see cref="SecurityEvent.UserId"/>.
+    /// </param>
+    /// <returns>The new <see cref="SecurityEvent" /> object.</returns>
+    public SecurityEvent BuildSecurityEvent(User? user) =>
+        new()
+        {
+            Id = this.NextInt(),
+            Time = this.NextDateTime(),
+            Event = this.NextString("security-event"),
+            User = user,
+            UserId = user?.Id,
+            IpAddress = new(this.NextInt()),
+        };
 
     /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.
