@@ -40,8 +40,8 @@ public interface IRedisConnectionManager : IAsyncDisposable
     /// The exception.
     /// </param>
     /// <returns>
-    /// A task for the operation. The value is <c>true</c> if <paramref name="exception"/> indicates
-    /// a possible dropped connection (so the caller may wish to retry the operation), <c>false</c>
+    /// A task for the operation. The value is <b>true</b> if <paramref name="exception"/> indicates
+    /// a possible dropped connection (so the caller may wish to retry the operation), <b>false</b>
     /// otherwise.
     /// </returns>
     Task<bool> CheckException(Exception exception);

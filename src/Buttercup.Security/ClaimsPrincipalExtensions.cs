@@ -28,7 +28,7 @@ public static class ClaimsPrincipalExtensions
     /// specified user ID.
     /// </summary>
     /// <returns>
-    /// <c>true</c> if the principal has a matching claim; <c>false</c> otherwise.
+    /// <b>true</b> if the principal has a matching claim; <b>false</b> otherwise.
     /// </returns>
     public static bool HasUserId(this ClaimsPrincipal principal, long userId) =>
         principal.HasClaim(

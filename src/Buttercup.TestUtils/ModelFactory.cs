@@ -14,16 +14,16 @@ public sealed class ModelFactory
     /// Instantiates a new <see cref="Comment" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">
-    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
     /// null.
     /// </param>
     /// <param name="setRecipe">
-    /// <c>true</c> if a <see cref="Comment.Recipe"/> should be populated and <see
-    /// cref="Comment.RecipeId"/> set to match; <c>false</c> if <see cref="Comment.Recipe"/> and
+    /// <b>true</b> if a <see cref="Comment.Recipe"/> should be populated and <see
+    /// cref="Comment.RecipeId"/> set to match; <b>false</b> if <see cref="Comment.Recipe"/> and
     /// <see cref="Comment.RecipeId"/> should be left null and zero.
     /// </param>
     /// <param name="softDeleted">
-    /// <c>true</c> if the commend should be marked as soft-deleted; <c>false</c> otherwise.
+    /// <b>true</b> if the commend should be marked as soft-deleted; <b>false</b> otherwise.
     /// </param>
     /// <returns>The new <see cref="Comment" /> object.</returns>
     public Comment BuildComment(
@@ -71,11 +71,11 @@ public sealed class ModelFactory
     /// Instantiates a new <see cref="Recipe" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">
-    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
     /// null.
     /// </param>
     /// <param name="softDeleted">
-    /// <c>true</c> if the recipe should be marked as soft-deleted; <c>false</c> otherwise.
+    /// <b>true</b> if the recipe should be marked as soft-deleted; <b>false</b> otherwise.
     /// </param>
     /// <returns>The new <see cref="Recipe" /> object.</returns>
     public Recipe BuildRecipe(bool setOptionalAttributes = false, bool softDeleted = false)
@@ -131,7 +131,7 @@ public sealed class ModelFactory
     /// Instantiates a new <see cref="User" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">
-    /// <c>true</c> if optional properties should be populated; <c>false</c> if they should be left
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
     /// null.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
