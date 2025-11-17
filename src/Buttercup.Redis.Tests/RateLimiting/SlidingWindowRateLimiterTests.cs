@@ -31,7 +31,7 @@ public sealed class SlidingWindowRateLimiterTests
         {
             Limit = 6,
             SegmentsPerWindow = 5,
-            Window = TimeSpan.FromMilliseconds(50),
+            Window = TimeSpan.FromSeconds(50),
         };
 
         for (var i = 0; i < 2; i++)
@@ -39,14 +39,14 @@ public sealed class SlidingWindowRateLimiterTests
             Assert.True(await rateLimiter.IsAllowed(key1, rateLimit));
         }
 
-        this.timeProvider.Advance(TimeSpan.FromMilliseconds(10));
+        this.timeProvider.Advance(TimeSpan.FromSeconds(10));
 
         for (var i = 0; i < 2; i++)
         {
             Assert.True(await rateLimiter.IsAllowed(key1, rateLimit));
         }
 
-        this.timeProvider.Advance(TimeSpan.FromMilliseconds(20));
+        this.timeProvider.Advance(TimeSpan.FromSeconds(20));
 
         for (var i = 0; i < 2; i++)
         {
@@ -62,7 +62,7 @@ public sealed class SlidingWindowRateLimiterTests
             .HasMessage($"Rate limit exceeded for {key1}");
         this.logger.Collector.Clear();
 
-        this.timeProvider.Advance(TimeSpan.FromMilliseconds(20));
+        this.timeProvider.Advance(TimeSpan.FromSeconds(20));
 
         for (var i = 0; i < 2; i++)
         {
@@ -105,7 +105,7 @@ public sealed class SlidingWindowRateLimiterTests
         var keySuffix = Random.Shared.Next();
         var key1 = $"Foo{keySuffix}";
         var key2 = $"Bar{keySuffix}";
-        var rateLimit = new SlidingWindowRateLimit(1, 100);
+        var rateLimit = new SlidingWindowRateLimit(1, 1000);
 
         await rateLimiter.IsAllowed(key1, rateLimit);
         await rateLimiter.IsAllowed(key2, rateLimit);
