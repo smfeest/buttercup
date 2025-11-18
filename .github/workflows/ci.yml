@@ -9,6 +9,10 @@ jobs:
     env:
       WEB_PROJECT_PATH: src/Buttercup.Web
     services:
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 8025:8025
       redis:
         image: redis
         ports:
