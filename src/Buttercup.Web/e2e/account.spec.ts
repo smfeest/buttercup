@@ -48,3 +48,28 @@ test('can change own password', async ({ page, api, session: { signIn } }) => {
     await hardDeleteTestUser(user.id);
   }
 });
+
+test('can change time zone', async ({ page, api, session: { signIn } }) => {
+  const { createTestUser, hardDeleteTestUser } = api('e2e-admin');
+  const user = await createTestUser();
+
+  try {
+    await signIn(user.email, user.password);
+
+    await page.goto('/account');
+    await page.getByRole('link', { name: 'Time zone' }).click();
+
+    await page.getByLabel('Time zone').selectOption('GMT+07:00 - Jakarta');
+    await page.getByRole('button', { name: 'Save' }).click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Your account' }),
+    ).toBeVisible();
+
+    await expect(page.getByRole('link', { name: 'Time zone' })).toContainText(
+      'GMT+07:00 - Jakarta',
+    );
+  } finally {
+    await hardDeleteTestUser(user.id);
+  }
+});
