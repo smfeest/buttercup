@@ -70,6 +70,7 @@ public sealed class Query
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UsePaging]
     [UseProjection]
+    [UseFiltering]
     [UseTieBreakSortById<SecurityEvent>]
     [UseSorting]
     public IQueryable<SecurityEvent> SecurityEvents(AppDbContext dbContext) =>

@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,63 @@ public sealed class SecurityEventsTests(AppFactory appFactory) : EndToEndTests(a
         JsonAssert.ValueIsNull(
             document.RootElement.GetProperty("data").GetProperty("securityEvents"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
+    }
+
+    [Fact]
+    public async Task FilteringSecurityEvents()
+    {
+        var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
+        var dorothy = this.ModelFactory.BuildUser() with { Email = "dorthy@example.com" };
+        var otherUser = this.ModelFactory.BuildUser();
+        var securityEvents = new[]
+        {
+            this.ModelFactory.BuildSecurityEvent(otherUser) with
+            {
+                Id = 1,
+                IpAddress = IPAddress.Parse("10.20.30.40"),
+            },
+            this.ModelFactory.BuildSecurityEvent(dorothy) with
+            {
+                Id = 2,
+                IpAddress = IPAddress.Parse("10.20.30.40"),
+            },
+            this.ModelFactory.BuildSecurityEvent(dorothy) with
+            {
+                Id = 3,
+                IpAddress = IPAddress.Parse("192.168.0.2"),
+            },
+            this.ModelFactory.BuildSecurityEvent(dorothy) with
+            {
+                Id = 4,
+                IpAddress = IPAddress.Parse("10.20.30.40"),
+            },
+        };
+        await this.DatabaseFixture.InsertEntities(currentUser, securityEvents);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await client.PostQuery("""
+            query {
+                securityEvents(
+                    where: {
+                        and: [
+                            { ipAddress: { eq: "10.20.30.40" } },
+                            { user: { email: { eq: "dorthy@example.com" } } }
+                        ]
+                    }
+                ) { nodes { id } }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var actualOrderedIds = dataElement
+            .GetProperty("securityEvents")
+            .GetProperty("nodes")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("id").GetInt64());
+
+        Assert.Equal([2, 4], actualOrderedIds);
     }
 
     [Fact]
