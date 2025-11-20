@@ -1,3 +1,4 @@
+using System.Net;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
@@ -89,6 +90,9 @@ services.AddGraphQLServer()
     .AddSorting()
     .AddType<IncorrectCredentialsError>()
     .AddType<TooManyAttemptsError>()
+    .BindRuntimeType<IPAddress, StringType>()
+    .AddTypeConverter<IPAddress, string>(ipAddress => ipAddress.ToString())
+    .AddTypeConverter<string, IPAddress>(IPAddress.Parse)
     .AddObjectTypeExtension<UserMutations>(descriptor =>
     {
         if (!isDevelopment)
