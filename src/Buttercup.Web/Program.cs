@@ -97,6 +97,7 @@ services.AddGraphQLServer()
             descriptor.Field("deleteTestUser").Ignore();
         }
     })
+    .ModifyPagingOptions(options => options.MaxPageSize = 500)
     .DisableIntrospection(!isDevelopment)
     .ModifyOptions(options => options.UseXmlDocumentation = false)
     .ModifyRequestOptions(options => options.IncludeExceptionDetails = isDevelopment)

@@ -18,7 +18,7 @@ public sealed class Query
 
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
-    [UsePaging(MaxPageSize = 500)]
+    [UsePaging]
     [UseProjection]
     [UseFiltering]
     [UseTieBreakSortById<Comment>]
@@ -38,7 +38,7 @@ public sealed class Query
     }
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    [UsePaging(MaxPageSize = 500)]
+    [UsePaging]
     [UseProjection]
     [UseFiltering]
     [UseTieBreakSortById<Comment>]
