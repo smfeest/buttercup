@@ -70,8 +70,10 @@ public sealed class Query
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UsePaging]
     [UseProjection]
+    [UseTieBreakSortById<SecurityEvent>]
+    [UseSorting]
     public IQueryable<SecurityEvent> SecurityEvents(AppDbContext dbContext) =>
-        dbContext.SecurityEvents.OrderBy(e => e.Id);
+        dbContext.SecurityEvents;
 
     [Authorize]
     [UseSingleOrDefault]

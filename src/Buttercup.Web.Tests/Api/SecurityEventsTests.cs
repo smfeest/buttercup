@@ -72,4 +72,43 @@ public sealed class SecurityEventsTests(AppFactory appFactory) : EndToEndTests(a
             document.RootElement.GetProperty("data").GetProperty("securityEvents"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
+
+    [Fact]
+    public async Task SortingSecurityEvents()
+    {
+        var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+
+        using var dbContext = this.AppFactory.DatabaseFixture.CreateDbContext();
+        await dbContext.SecurityEvents.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
+
+        var securityEvents = new[]
+        {
+            this.ModelFactory.BuildSecurityEvent() with { Id = 1 },
+            this.ModelFactory.BuildSecurityEvent() with { Id = 3 },
+            this.ModelFactory.BuildSecurityEvent() with { Id = 2 },
+        };
+        await this.DatabaseFixture.InsertEntities(securityEvents);
+
+        using var response = await client.PostQuery("""
+            query {
+                securityEvents(order: { id: DESC }) {
+                    nodes { id }
+                }
+            }
+            """);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var actualOrderedIds = dataElement
+            .GetProperty("securityEvents")
+            .GetProperty("nodes")
+            .EnumerateArray()
+            .Select(e => e.GetProperty("id").GetInt64());
+
+        Assert.Equal([3, 2, 1], actualOrderedIds);
+    }
 }
