@@ -67,6 +67,15 @@ public sealed class Query
     public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereNotSoftDeleted();
 
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [UsePaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseTieBreakSortById<SecurityEvent>]
+    [UseSorting]
+    public IQueryable<SecurityEvent> SecurityEvents(AppDbContext dbContext) =>
+        dbContext.SecurityEvents;
+
     [Authorize]
     [UseSingleOrDefault]
     [UseProjection]

@@ -115,8 +115,14 @@ public sealed class ModelFactory
     /// <param name="user">
     /// The user for <see cref="SecurityEvent.User"/> and <see cref="SecurityEvent.UserId"/>.
     /// </param>
+    /// <param name="setOptionalAttributes">
+    /// <b>true</b> if optional properties (other than <see cref="SecurityEvent.User"/> and <see
+    /// cref="SecurityEvent.UserId"/>) should be populated; <b>false</b> if they should be left
+    /// null.
+    /// </param>
     /// <returns>The new <see cref="SecurityEvent" /> object.</returns>
-    public SecurityEvent BuildSecurityEvent(User? user) =>
+    public SecurityEvent BuildSecurityEvent(
+        User? user = null, bool setOptionalAttributes = false) =>
         new()
         {
             Id = this.NextInt(),
@@ -124,7 +130,7 @@ public sealed class ModelFactory
             Event = this.NextString("security-event"),
             User = user,
             UserId = user?.Id,
-            IpAddress = new(this.NextInt()),
+            IpAddress = setOptionalAttributes ? new(this.NextInt()) : null,
         };
 
     /// <summary>
