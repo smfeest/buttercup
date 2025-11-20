@@ -73,12 +73,12 @@ public static class ApiAssert
     /// </returns>
     public static JsonElement SuccessResponse(JsonDocument document)
     {
-        Assert.True(
-            document.RootElement.TryGetProperty("data", out var dataElement),
-            $"Response does not include data field: {document.RootElement}");
         Assert.False(
             document.RootElement.TryGetProperty("errors", out var errorsElement),
             $"Response includes errors field: {errorsElement}");
+        Assert.True(
+            document.RootElement.TryGetProperty("data", out var dataElement),
+            $"Response does not include data field: {document.RootElement}");
 
         return dataElement;
     }
