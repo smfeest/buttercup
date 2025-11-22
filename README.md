@@ -4,7 +4,7 @@
 
 1.  Install required tools and dependencies:
 
-    - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+    - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
     - [Mailpit](https://mailpit.axllent.org/)
     - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
     - [Node.js 20](https://nodejs.org)
