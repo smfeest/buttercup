@@ -8,5 +8,5 @@ public interface IEntityId
     /// <summary>
     /// Gets the primary key of the entity.
     /// </summary>
-    public long Id { get; }
+    long Id { get; }
 }
