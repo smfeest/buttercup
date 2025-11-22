@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
@@ -149,6 +150,10 @@ internal sealed partial class PasswordAuthenticationService(
         return true;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
     public async Task<bool> PasswordResetTokenIsValid(string token, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -172,6 +177,10 @@ internal sealed partial class PasswordAuthenticationService(
         return userId.HasValue;
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
     public async Task<User> ResetPassword(string token, string newPassword, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

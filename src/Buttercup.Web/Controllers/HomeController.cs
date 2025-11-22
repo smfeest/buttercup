@@ -21,7 +21,7 @@ public sealed class HomeController(
 
         var recentlyAdded = await this.queries.GetRecentlyAddedRecipes(dbContext);
         var recentlyUpdated = await this.queries.GetRecentlyUpdatedRecipes(
-            dbContext, recentlyAdded.Select(r => r.Id).ToArray());
+            dbContext, [.. recentlyAdded.Select(r => r.Id)]);
 
         return this.View(new HomePageViewModel(recentlyAdded, recentlyUpdated));
     }

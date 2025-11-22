@@ -37,7 +37,7 @@ internal sealed class Validator<T>(IValidationErrorLocalizer<T> errorLocalizer)
     }
 
     private static List<ValidationAttribute> GetObjectAttributes() =>
-        TypeDescriptor.GetAttributes(typeof(T)).OfType<ValidationAttribute>().ToList();
+        [.. TypeDescriptor.GetAttributes(typeof(T)).OfType<ValidationAttribute>()];
 
     private static List<ValidatedProperty> GetValidatedProperties()
     {

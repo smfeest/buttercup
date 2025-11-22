@@ -9,5 +9,5 @@ public interface ISoftDeletable
     /// Gets or sets the date and time at which the entity was soft-deleted, or null if the entity
     /// has not been soft-deleted.
     /// </summary>
-    public DateTime? Deleted { get; set; }
+    DateTime? Deleted { get; set; }
 }
