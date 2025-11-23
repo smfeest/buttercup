@@ -21,8 +21,37 @@ jobs:
         with:
           dotnet-version: 10.0.1xx
           dotnet-quality: ga
-      - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=$IMAGE_NAME -p LocalRegistry=Podman
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{env.WEB_PROJECT_PATH}}/package-lock.json
+      - name: Restore Node.js dependencies
+        run: npm ci
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Check digest
-        run: podman images $IMAGE_NAME --format "{{.Digest}}"
+      - name: Build assets
+        run: npx gulp build
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Publish
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 --target:PublishContainer -p ContainerRepository=$IMAGE_NAME -p LocalRegistry=Podman
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Login to GitHub Container Registry
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push
+        run: |
+          podman push $IMAGE_NAME $REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
+          podman push $IMAGE_NAME $REGISTRY/$IMAGE_NAME:latest
+      - name: Get digest
+        id: get-digest
+        run: echo "IMAGE_DIGEST=$(podman images $IMAGE_NAME --format "{{.Digest}}")" >> "$GITHUB_OUTPUT"
+      - name: Attest
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.get-digest.outputs.IMAGE_DIGEST }}
+          push-to-registry: true
