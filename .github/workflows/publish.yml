@@ -22,24 +22,7 @@ jobs:
           dotnet-version: 10.0.1xx
           dotnet-quality: ga
       - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=$IMAGE_NAME
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=$IMAGE_NAME -p LocalRegistry=Podman
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Inspect image
-        run: docker image inspect $IMAGE_NAME:latest
-      - name: Push
-        run: |
-          docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:latest
-          docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
-          docker push --all-tags $REGISTRY/$IMAGE_NAME
-      - name: Inspect image again
-        run: |
-          PREFIXED_DIGEST=$(podman inspect --format '{{index .RepoDigests 0}}' $IMAGE_NAME:latest)
-          DIGEST="${PREFIXED_DIGEST##*@}"
-          echo "Full: $PREFIXED_DIGEST"
-          echo "Digest only: $DIGEST"
+      - name: Check digest
+        run: podman images $IMAGE_NAME --format "{{.Digest}}"
