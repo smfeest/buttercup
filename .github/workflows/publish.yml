@@ -36,3 +36,5 @@ jobs:
       - name: Publish
         run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRegistry=ghcr.io -p ContainerRepository=${{ github.repository }}
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: View local images
+        run: docker image ls
