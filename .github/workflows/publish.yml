@@ -27,19 +27,18 @@ jobs:
       - name: Build assets
         run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Publish
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=buttercup-web
+        working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=buttercup-web
-        working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: View local images
-        run: docker image ls
       - name: Push
         run: |
           docker image tag buttercup-web ghcr.io/${{ github.repository }}:latest
           docker image tag buttercup-web ghcr.io/${{ github.repository }}:commit-${{ github.sha }}
-          docker image push --all-tags ghcr.io/${{ github.repository }}
+      - name: View local images
+        run: docker image ls
