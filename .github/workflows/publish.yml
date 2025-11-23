@@ -45,7 +45,10 @@ jobs:
           docker push --all-tags $REGISTRY/$IMAGE_NAME
       - name: Get digest
         id: get-digest
-        run: echo "IMAGE_DIGEST=$(docker images --filter reference=$IMAGE_NAME --format "{{.Digest}}")" >> "$GITHUB_OUTPUT"
+        run: |
+          IMAGE_DIGEST=$(docker images --filter reference=$IMAGE_NAME --format "{{.Digest}}")
+          echo $IMAGE_DIGEST
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
       - name: Attest
         uses: actions/attest-build-provenance@v3
         with:
