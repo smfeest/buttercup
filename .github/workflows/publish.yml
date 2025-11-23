@@ -30,16 +30,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Inspect image
+        run: docker image inspect $IMAGE_NAME:latest
       - name: Push
         run: |
           docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:latest
           docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
           docker push --all-tags $REGISTRY/$IMAGE_NAME
-      - name: Get digest
-        id: get-digest
-        run: |
-          IMAGE_DIGEST=$(docker images $REGISTRY/$IMAGE_NAME:latest --format "{{.Digest}}")
-          echo $IMAGE_DIGEST
-          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
       - name: More debug
         run: docker images $REGISTRY/$IMAGE_NAME:latest --digests
