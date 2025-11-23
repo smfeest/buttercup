@@ -33,25 +33,27 @@ jobs:
       - name: Build assets
         run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 --target:PublishContainer -p ContainerRepository=$IMAGE_NAME -p LocalRegistry=Podman
+      - name: Build container
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 --target:PublishContainer -p LocalRegistry=Podman -p ContainerRepository=$IMAGE_NAME -p ContainerImageTags='"latest;commit-'"$GITHUB_SHA"'"'
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Push container
+        id: push
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: latest commit-${{ github.sha }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to GitHub Container Registry
-        uses: redhat-actions/podman-login@v1
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push
-        run: |
-          podman push $IMAGE_NAME $REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
-          podman push $IMAGE_NAME $REGISTRY/$IMAGE_NAME:latest
-      - name: Get digest
-        id: get-digest
-        run: echo "IMAGE_DIGEST=$(podman images $IMAGE_NAME --format "{{.Digest}}")" >> "$GITHUB_OUTPUT"
-      - name: Attest
+      - name: Attest provenance
         uses: actions/attest-build-provenance@v3
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.get-digest.outputs.IMAGE_DIGEST }}
+          subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
