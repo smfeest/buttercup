@@ -6,6 +6,8 @@ jobs:
     name: Publish
     runs-on: ubuntu-24.04
     env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
       WEB_PROJECT_PATH: src/Buttercup.Web
     steps:
       - name: Checkout
@@ -28,17 +30,24 @@ jobs:
         run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=buttercup-web
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=${{ env.IMAGE_NAME }}
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push
         run: |
-          docker image tag buttercup-web ghcr.io/${{ github.repository }}:latest
-          docker image tag buttercup-web ghcr.io/${{ github.repository }}:commit-${{ github.sha }}
-      - name: View local images
-        run: docker image ls
+          docker tag ${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker tag ${{ env.IMAGE_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:commit-${{ github.sha }}
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Obtain digest
+        run: echo "IMAGE_DIGEST=$(docker images --filter reference=${{ env.IMAGE_NAME }} --format "{{.Digest}}")" >> "$GITHUB_ENV"
+      - name: Attest
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ env.IMAGE_DIGEST }}
+          push-to-registry: true
