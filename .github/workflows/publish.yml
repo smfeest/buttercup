@@ -22,7 +22,7 @@ jobs:
           dotnet-version: 10.0.1xx
           dotnet-quality: ga
       - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=$IMAGE_NAME
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=$IMAGE_NAME --getProperty:GeneratedContainerDigest
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
