@@ -21,18 +21,6 @@ jobs:
         with:
           dotnet-version: 10.0.1xx
           dotnet-quality: ga
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ${{env.WEB_PROJECT_PATH}}/package-lock.json
-      - name: Restore Node.js dependencies
-        run: npm ci
-        working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Build assets
-        run: npx gulp build
-        working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Publish
         run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=$IMAGE_NAME
         working-directory: ${{env.WEB_PROJECT_PATH}}
@@ -54,10 +42,4 @@ jobs:
           echo $IMAGE_DIGEST
           echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
       - name: More debug
-        run: docker images --digests
-      - name: Attest
-        uses: actions/attest-build-provenance@v3
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.get-digest.outputs.IMAGE_DIGEST }}
-          push-to-registry: true
+        run: docker images $REGISTRY/$IMAGE_NAME:latest --digests
