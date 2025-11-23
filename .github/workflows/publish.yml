@@ -9,6 +9,10 @@ jobs:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
       WEB_PROJECT_PATH: src/Buttercup.Web
+    permissions:
+      attestations: write
+      id-token: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -46,9 +50,11 @@ jobs:
       - name: Get digest
         id: get-digest
         run: |
-          IMAGE_DIGEST=$(docker images --filter reference=$IMAGE_NAME --format "{{.Digest}}")
+          IMAGE_DIGEST=$(docker images $REGISTRY/$IMAGE_NAME:latest --format "{{.Digest}}")
           echo $IMAGE_DIGEST
           echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
+      - name: More debug
+        run: docker images --digests
       - name: Attest
         uses: actions/attest-build-provenance@v3
         with:
