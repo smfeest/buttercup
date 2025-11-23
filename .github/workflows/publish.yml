@@ -37,5 +37,7 @@ jobs:
           docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:latest
           docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
           docker push --all-tags $REGISTRY/$IMAGE_NAME
+      - name: Inspect image again
+        run: docker image inspect $IMAGE_NAME:latest
       - name: More debug
         run: docker images $REGISTRY/$IMAGE_NAME:latest --digests
