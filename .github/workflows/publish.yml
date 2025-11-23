@@ -34,7 +34,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRegistry=ghcr.io -p ContainerRepository=${{ github.repository }}
+        run: dotnet publish Buttercup.Web.csproj --configuration Release --os linux --arch x64 /t:PublishContainer -p ContainerRepository=buttercup-web
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: View local images
         run: docker image ls
+      - name: Push
+        run: |
+          docker image tag buttercup-web ghcr.io/${{ github.repository }}:latest
+          docker image tag buttercup-web ghcr.io/${{ github.repository }}:commit-${{ github.sha }}
+          docker image push --all-tags ghcr.io/${{ github.repository }}
