@@ -1,7 +1,6 @@
 using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.TestUtils;
-using Buttercup.Web.Controllers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -11,7 +10,7 @@ namespace Buttercup.Web.TestUtils;
 /// <summary>
 /// A fixture for bootstrapping the application in memory for end-to-end tests.
 /// </summary>
-public sealed class AppFactory : WebApplicationFactory<HomeController>, IAsyncLifetime
+public sealed class AppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     /// <summary>
     /// Gets the database fixture.
