@@ -7,7 +7,7 @@
     - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
     - [Mailpit](https://mailpit.axllent.org/)
     - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
-    - [Node.js 20](https://nodejs.org)
+    - [Node.js 24](https://nodejs.org)
     - [Redis](https://redis.io/open-source/) or [Valkey](https://valkey.io/download/)
     - [Visual Studio Code](https://code.visualstudio.com/) with [recommended
       extensions](.vscode/extensions.json)
