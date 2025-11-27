@@ -190,12 +190,12 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = [new("en-GB"), new("fr")],
 });
 
-app.UseStaticFiles();
+app.MapStaticAssets();
 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().WithStaticAssets();
 
 app.MapGraphQL()
     .WithOptions(new()
