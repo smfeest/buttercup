@@ -13,7 +13,6 @@ using Buttercup.Web;
 using Buttercup.Web.Api;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
-using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
 using Buttercup.Web.Security;
 using Microsoft.AspNetCore.Authentication;
@@ -162,9 +161,6 @@ services
     .AddTransient<ICommentsControllerQueries, CommentsControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
     .AddTransient<CookieAuthenticationEventsHandler>()
-    .AddTransient<IAssetHelper, AssetHelper>()
-    .AddTransient<IAssetManifestReader, AssetManifestReader>()
-    .AddSingleton<IAssetManifestSource, AssetManifestSource>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
     .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
