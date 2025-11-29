@@ -1,5 +1,4 @@
-﻿@inject IAssetHelper Asset
-@inject IViewLocalizer Localizer
+﻿@inject IViewLocalizer Localizer
 @inject ITimeZoneOptionsHelper TimeZoneOptions
 @model User
 @{
@@ -25,7 +24,7 @@
       <div class="account-overview__item-label">@Localizer["Label_Password"]</div>
       <div class="account-overview__item-data">@Localizer["Label_PasswordLastChanged", ViewContext.HttpContext.ToUserTime(Model.PasswordCreated!.Value)]</div>
     </div>
-    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" alt="" />
+    <img class="account-overview__item-disclosure" src="~/assets/images/disclosure.svg" alt="" />
   </a>
 </section>
 <section>
@@ -35,6 +34,6 @@
       <div class="account-overview__item-label">@Localizer["Label_TimeZone"]</div>
       <div class="account-overview__item-data">@TimeZoneOptions.OptionForTimeZone(Model.TimeZone).Description</div>
     </div>
-    <img class="account-overview__item-disclosure" src="@Asset.Url(ViewContext, "images/disclosure.svg")" alt="" />
+    <img class="account-overview__item-disclosure" src="~/assets/images/disclosure.svg" alt="" />
   </a>
 </section>

@@ -3,7 +3,6 @@ import { deleteAsync } from 'del';
 import gulp from 'gulp';
 import less from 'gulp-less';
 import rev from 'gulp-rev';
-import revReplace from 'gulp-rev-replace';
 import webpack from 'webpack';
 import webpackStream from 'webpack-stream';
 
@@ -53,20 +52,9 @@ function revisionAssetsInStream(stream) {
     .pipe(dest(paths.prodAssets));
 }
 
-function revisionStaticAssets() {
-  return revisionAssetsInStream(
-    src(`${paths.assets}/{images,fonts}/**/*`, {
-      base: paths.assets,
-      encoding: false,
-    }),
-  );
-}
-
 function revisionStyles() {
   return revisionAssetsInStream(
-    src(`${paths.styleAssets}/*.css`, { base: paths.assets })
-      .pipe(revReplace({ manifest: src(paths.prodAssetManifest) }))
-      .pipe(cleanCss()),
+    src(`${paths.styleAssets}/*.css`, { base: paths.assets }).pipe(cleanCss()),
   );
 }
 
@@ -117,11 +105,7 @@ function webpackScripts(config) {
 
 const build = parallel(
   bundleDevelopmentScripts,
-  series(
-    parallel(bundleStyles, revisionStaticAssets),
-    bundleAndRevisionProductionScripts,
-    revisionStyles,
-  ),
+  series(bundleStyles, bundleAndRevisionProductionScripts, revisionStyles),
 );
 
 const rebuild = series(clean, build);
