@@ -2,8 +2,7 @@ import cleanCss from 'gulp-clean-css';
 import { deleteAsync } from 'del';
 import gulp from 'gulp';
 import less from 'gulp-less';
-import rev from 'gulp-rev';
-import revReplace from 'gulp-rev-replace';
+import rename from 'gulp-rename';
 import webpack from 'webpack';
 import webpackStream from 'webpack-stream';
 
@@ -15,11 +14,12 @@ paths.styles = 'styles';
 paths.assets = 'wwwroot/assets';
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
-paths.prodAssets = 'wwwroot/prod-assets';
-paths.prodAssetManifest = `${paths.prodAssets}/manifest.json`;
 
-function bundleAndRevisionProductionScripts() {
-  return revisionAssetsInStream(webpackScripts({ mode: 'production' }));
+function bundleProductionScripts() {
+  return webpackScripts({
+    mode: 'production',
+    output: { filename: 'scripts/[name].prod.js' },
+  }).pipe(dest(paths.assets));
 }
 
 function bundleDevelopmentScripts() {
@@ -29,6 +29,9 @@ function bundleDevelopmentScripts() {
 function bundleStyles() {
   return src(`${paths.styles}/{main,print}.less`)
     .pipe(less({ math: 'parens-division' }))
+    .pipe(dest(paths.styleAssets))
+    .pipe(rename({ suffix: '.prod' }))
+    .pipe(cleanCss())
     .pipe(dest(paths.styleAssets));
 }
 
@@ -36,38 +39,7 @@ function clean() {
   return deleteAsync([
     `${paths.scriptAssets}/**/*`,
     `${paths.styleAssets}/**/*`,
-    `${paths.prodAssets}/**/*`,
   ]);
-}
-
-function revisionAssetsInStream(stream) {
-  return stream
-    .pipe(rev())
-    .pipe(dest(paths.prodAssets))
-    .pipe(
-      rev.manifest(paths.prodAssetManifest, {
-        base: paths.assets,
-        merge: true,
-      }),
-    )
-    .pipe(dest(paths.prodAssets));
-}
-
-function revisionStaticAssets() {
-  return revisionAssetsInStream(
-    src(`${paths.assets}/{images,fonts}/**/*`, {
-      base: paths.assets,
-      encoding: false,
-    }),
-  );
-}
-
-function revisionStyles() {
-  return revisionAssetsInStream(
-    src(`${paths.styleAssets}/*.css`, { base: paths.assets })
-      .pipe(revReplace({ manifest: src(paths.prodAssetManifest) }))
-      .pipe(cleanCss()),
-  );
 }
 
 function watchScripts() {
@@ -87,6 +59,7 @@ function webpackDevScripts(config) {
   return webpackScripts({
     mode: 'development',
     devtool: 'eval-cheap-module-source-map',
+    output: { filename: 'scripts/[name].js' },
     ...config,
   });
 }
@@ -107,7 +80,6 @@ function webpackScripts(config) {
             },
           ],
         },
-        output: { filename: 'scripts/[name].js' },
         ...config,
       },
       webpack,
@@ -117,11 +89,8 @@ function webpackScripts(config) {
 
 const build = parallel(
   bundleDevelopmentScripts,
-  series(
-    parallel(bundleStyles, revisionStaticAssets),
-    bundleAndRevisionProductionScripts,
-    revisionStyles,
-  ),
+  bundleProductionScripts,
+  bundleStyles,
 );
 
 const rebuild = series(clean, build);

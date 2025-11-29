@@ -13,7 +13,6 @@ using Buttercup.Web;
 using Buttercup.Web.Api;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
-using Buttercup.Web.Infrastructure;
 using Buttercup.Web.Localization;
 using Buttercup.Web.Security;
 using Microsoft.AspNetCore.Authentication;
@@ -162,9 +161,6 @@ services
     .AddTransient<ICommentsControllerQueries, CommentsControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
     .AddTransient<CookieAuthenticationEventsHandler>()
-    .AddTransient<IAssetHelper, AssetHelper>()
-    .AddTransient<IAssetManifestReader, AssetManifestReader>()
-    .AddSingleton<IAssetManifestSource, AssetManifestSource>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
     .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
@@ -190,12 +186,12 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = [new("en-GB"), new("fr")],
 });
 
-app.UseStaticFiles();
+app.MapStaticAssets();
 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().WithStaticAssets();
 
 app.MapGraphQL()
     .WithOptions(new()
