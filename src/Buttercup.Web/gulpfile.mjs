@@ -3,6 +3,7 @@ import { deleteAsync } from 'del';
 import gulp from 'gulp';
 import less from 'gulp-less';
 import rev from 'gulp-rev';
+import rename from 'gulp-rename';
 import webpack from 'webpack';
 import webpackStream from 'webpack-stream';
 
@@ -28,6 +29,9 @@ function bundleDevelopmentScripts() {
 function bundleStyles() {
   return src(`${paths.styles}/{main,print}.less`)
     .pipe(less({ math: 'parens-division' }))
+    .pipe(dest(paths.styleAssets))
+    .pipe(rename({ suffix: '.prod' }))
+    .pipe(cleanCss())
     .pipe(dest(paths.styleAssets));
 }
 
@@ -50,12 +54,6 @@ function revisionAssetsInStream(stream) {
       }),
     )
     .pipe(dest(paths.prodAssets));
-}
-
-function revisionStyles() {
-  return revisionAssetsInStream(
-    src(`${paths.styleAssets}/*.css`, { base: paths.assets }).pipe(cleanCss()),
-  );
 }
 
 function watchScripts() {
@@ -105,7 +103,8 @@ function webpackScripts(config) {
 
 const build = parallel(
   bundleDevelopmentScripts,
-  series(bundleStyles, bundleAndRevisionProductionScripts, revisionStyles),
+  bundleStyles,
+  bundleAndRevisionProductionScripts,
 );
 
 const rebuild = series(clean, build);
