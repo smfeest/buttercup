@@ -77,12 +77,3 @@ jobs:
       - name: Lint styles
         run: npx stylelint --max-warnings 0 styles/
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Publish
-        run: dotnet publish Buttercup.Web.csproj --no-build --no-restore --configuration Release --output publish-output
-        working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
-          path: ${{env.WEB_PROJECT_PATH}}/publish-output
-          retention-days: 3
