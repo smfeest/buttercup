@@ -4,7 +4,6 @@ import gulp from 'gulp';
 import less from 'gulp-less';
 import rev from 'gulp-rev';
 import revReplace from 'gulp-rev-replace';
-import sourcemaps from 'gulp-sourcemaps';
 import webpack from 'webpack';
 import webpackStream from 'webpack-stream';
 
@@ -29,9 +28,7 @@ function bundleDevelopmentScripts() {
 
 function bundleStyles() {
   return src(`${paths.styles}/{main,print}.less`)
-    .pipe(sourcemaps.init())
     .pipe(less({ math: 'parens-division' }))
-    .pipe(sourcemaps.write('./'))
     .pipe(dest(paths.styleAssets));
 }
 
