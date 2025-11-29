@@ -32,14 +32,20 @@ jobs:
       - name: Build assets
         run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Build container
+      - name: Build architecture-specific images
         run: |
           dotnet publish Buttercup.Web.csproj \
             -t PublishContainer \
             -p ContainerFamily=noble-chiseled-extra \
             -p ContainerRepository=$IMAGE_NAME \
+            -p RuntimeIdentifiers='"linux-x64;linux-arm64"' \
             -p LocalRegistry=Podman
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Build multi-architecture image
+        run: |
+          podman manifest create $IMAGE_NAME:latest
+          podman manifest add $IMAGE_NAME:latest containers-storage:localhost/$IMAGE_NAME:latest-linux-arm64
+          podman manifest add $IMAGE_NAME:latest containers-storage:localhost/$IMAGE_NAME:latest-linux-x64
       - name: Log in to container registry
         uses: redhat-actions/podman-login@v1
         with:
@@ -49,11 +55,27 @@ jobs:
       - name: Push to container registry
         id: push
         run: |
-          podman push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
-          podman push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest --digestfile digest
-          echo "digest=$(cat digest)" >> "$GITHUB_OUTPUT"
-      - name: Attest provenance
+          podman push $IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA-linux-arm64
+          podman push $IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-arm64 --digestfile digest
+          echo "arm64-digest=$(cat digest)" >> "$GITHUB_OUTPUT"
+          podman push $IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA-linux-x64
+          podman push $IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-x64 --digestfile digest
+          echo "x64-digest=$(cat digest)" >> "$GITHUB_OUTPUT"
+          podman manifest push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
+          podman manifest push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest --digestfile digest
+          echo "multi-arch-digest=$(cat digest)" >> "$GITHUB_OUTPUT"
+      - name: Attest arm64 image
         uses: actions/attest-build-provenance@v3
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.push.outputs.digest }}
+          subject-digest: ${{ steps.push.outputs.arm64-digest }}
+      - name: Attest x64 image
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.x64-digest }}
+      - name: Attest multi-architecture image
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.multi-arch-digest }}
