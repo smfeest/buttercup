@@ -38,6 +38,8 @@ jobs:
             -t PublishContainer \
             -p ContainerFamily=noble-chiseled-extra \
             -p ContainerRepository=$IMAGE_NAME \
+            -p RuntimeIdentifiers='"linux-x64;linux-arm64"' \
+            -p ContainerRuntimeIdentifiers='"linux-x64;linux-arm64"' \
             -p ContainerImageTags='"latest;commit-'"$GITHUB_SHA"'"' \
             -p LocalRegistry=Podman
         working-directory: ${{env.WEB_PROJECT_PATH}}
