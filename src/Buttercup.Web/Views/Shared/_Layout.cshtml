@@ -1,16 +1,16 @@
-﻿@inject IAssetHelper Asset
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#2c6877" />
-  <script src="@Asset.Url(ViewContext, "scripts/main.js")" defer></script>
   <environment include="Development">
+    <script src="~/assets/scripts/main.js" defer></script>
     <link rel="stylesheet" href="~/assets/styles/main.css")">
     <link rel="stylesheet" media="print" href="~/assets/styles/print.css">
   </environment>
   <environment exclude="Development">
+    <script src="~/assets/scripts/main.prod.js" defer></script>
     <link rel="stylesheet" href="~/assets/styles/main.prod.css")">
     <link rel="stylesheet" media="print" href="~/assets/styles/print.prod.css">
   </environment>
