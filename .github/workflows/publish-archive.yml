@@ -1,0 +1,48 @@
+name: Publish Archive
+on: workflow_dispatch
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-24.04
+    env:
+      WEB_PROJECT_PATH: src/Buttercup.Web
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.1xx
+          dotnet-quality: ga
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ${{env.WEB_PROJECT_PATH}}/package-lock.json
+      - name: Set SHORT_COMMIT_SHA
+        run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Restore Node.js dependencies
+        run: npm ci
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Build assets
+        run: npx gulp build
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Publish web app
+        run: dotnet publish Buttercup.Web.csproj --output publish-output
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Upload
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
+          path: ${{env.WEB_PROJECT_PATH}}/publish-output
+          retention-days: 3
+      - name: Attest provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
+          subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
