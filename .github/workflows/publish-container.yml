@@ -44,8 +44,8 @@ jobs:
       - name: Create multi-architecture manifest
         run: |
           podman manifest create $IMAGE_NAME:latest
-          podman manifest add $IMAGE_NAME:latest containers-storage:$IMAGE_NAME:latest-linux-arm64
-          podman manifest add $IMAGE_NAME:latest containers-storage:$IMAGE_NAME:latest-linux-x64
+          podman manifest add $IMAGE_NAME:latest containers-storage:localhost/$IMAGE_NAME:latest-linux-arm64
+          podman manifest add $IMAGE_NAME:latest containers-storage:localhost/$IMAGE_NAME:latest-linux-x64
       - name: Log in GitHub Container Registry
         uses: redhat-actions/podman-login@v1
         with:
@@ -54,14 +54,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push to GitHub Container Registry
         run: |
-          podman push $IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-arm64 --digestfile digest
-          podman push $IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:$GITHUB_SHA-linux-arm64
+          podman push localhost/$IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-arm64 --digestfile digest
+          podman push localhost/$IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:$GITHUB_SHA-linux-arm64
           echo "$(cat digest | sed 's/sha256://')  $REGISTRY/$IMAGE_NAME" >> digests
-          podman push $IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-x64 --digestfile digest
-          podman push $IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:$GITHUB_SHA-linux-x64
+          podman push localhost/$IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-x64 --digestfile digest
+          podman push localhost/$IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:$GITHUB_SHA-linux-x64
           echo "$(cat digest | sed 's/sha256://')  $REGISTRY/$IMAGE_NAME" >> digests
-          podman push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest --digestfile digest
-          podman push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:$GITHUB_SHA
+          podman push localhost/$IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest --digestfile digest
+          podman push localhost/$IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:$GITHUB_SHA
           echo "$(cat digest | sed 's/sha256://')  $REGISTRY/$IMAGE_NAME" >> digests
       - name: Attest provenance
         uses: actions/attest-build-provenance@v3
