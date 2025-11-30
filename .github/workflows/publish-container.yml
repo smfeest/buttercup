@@ -38,18 +38,20 @@ jobs:
             -t PublishContainer \
             -p ContainerFamily=noble-chiseled-extra \
             -p ContainerRepository=$IMAGE_NAME \
-            -p ContainerImageTags='"latest;commit-'"$GITHUB_SHA"'"' \
             -p LocalRegistry=Podman
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Push container
-        id: push
-        uses: redhat-actions/push-to-registry@v2
+      - name: Log in to container registry
+        uses: redhat-actions/podman-login@v1
         with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: latest commit-${{ github.sha }}
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push to container registry
+        id: push
+        run: |
+          podman push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
+          podman push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest --digestfile digest
+          echo "digest=$(cat digest)" >> "$GITHUB_OUTPUT"
       - name: Attest provenance
         uses: actions/attest-build-provenance@v3
         with:
