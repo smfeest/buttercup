@@ -55,11 +55,11 @@ jobs:
       - name: Push to container registry
         id: push
         run: |
-          podman push localhost/$IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-arm64 --digestfile digest
-          podman push localhost/$IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA-linux-arm64
+          podman push $IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-arm64 --digestfile digest
+          podman push $IMAGE_NAME:latest-linux-arm64 docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA-linux-arm64
           echo "arm64-digest=$(cat digest)" >> "$GITHUB_OUTPUT"
-          podman push localhost/$IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-x64 --digestfile digest
-          podman push localhost/$IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA-linux-x64
+          podman push $IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:latest-linux-x64 --digestfile digest
+          podman push $IMAGE_NAME:latest-linux-x64 docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA-linux-x64
           echo "x64-digest=$(cat digest)" >> "$GITHUB_OUTPUT"
           podman manifest push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest
           podman manifest push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:commit-$GITHUB_SHA
