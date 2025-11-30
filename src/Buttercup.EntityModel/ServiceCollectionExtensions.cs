@@ -23,11 +23,15 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddAppDbContextFactory(
         this IServiceCollection services, string connectionString) => services
-            .AddSingleton(ServerVersion.AutoDetect(connectionString))
+            .AddSingleton(
+                new Lazy<ServerVersion>(
+                    () => ServerVersion.AutoDetect(connectionString),
+                    LazyThreadSafetyMode.PublicationOnly))
             .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) =>
             {
                 options.UseAppDbOptions(
-                    connectionString, serviceProvider.GetRequiredService<ServerVersion>());
+                    connectionString,
+                    serviceProvider.GetRequiredService<Lazy<ServerVersion>>().Value);
 
                 var seeder = serviceProvider.GetService<IDatabaseSeeder>();
 
