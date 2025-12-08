@@ -1,0 +1,6 @@
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled
+WORKDIR /App
+ENV ASPNETCORE_ENVIRONMENT=Production
+COPY efbundle appsettings.json .
+ENTRYPOINT ["./efbundle"]

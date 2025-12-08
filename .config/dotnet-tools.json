@@ -4,11 +4,17 @@
   "tools": {
     "dotnet-reportgenerator-globaltool": {
       "version": "5.4.4",
-      "commands": ["reportgenerator"]
+      "commands": [
+        "reportgenerator"
+      ],
+      "rollForward": false
     },
     "dotnet-ef": {
       "version": "9.0.11",
-      "commands": ["dotnet-ef"]
+      "commands": [
+        "dotnet-ef"
+      ],
+      "rollForward": false
     }
   }
 }
