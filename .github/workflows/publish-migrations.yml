@@ -1,0 +1,41 @@
+name: Publish Migrations Bundle
+on: push
+jobs:
+  publish-arm64:
+    name: Publish (ARM64)
+    runs-on: ubuntu-24.04-arm
+    env:
+      WEB_PROJECT_PATH: src/Buttercup.Web
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.1xx
+          dotnet-quality: ga
+      - name: Restore .NET tools
+        run: dotnet tool restore
+      - name: Start MySQL Server
+        run: sudo systemctl start mysql.service
+      - name: Create MySQL user
+        run: mysql -uroot -proot < scripts/create-dev-user.sql
+      - name: Publish migrations bundle
+        run: dotnet ef migrations bundle --output ./buttercup-migrations
+        working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Set ARTIFACT_NAME
+        run: echo "ARTIFACT_NAME=buttercup-migrations-$(git rev-parse --short HEAD)-arm64" >> $GITHUB_ENV
+      - name: Upload migrations bundle
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.ARTIFACT_NAME}}
+          path: ${{env.WEB_PROJECT_PATH}}/buttercup-migrations
+      - name: Attest provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{env.ARTIFACT_NAME}}
+          subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
