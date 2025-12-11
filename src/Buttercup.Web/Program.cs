@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -204,5 +205,12 @@ app.MapGraphQL()
         AuthenticationSchemes = TokenAuthenticationDefaults.AuthenticationScheme
     })
     .AllowAnonymous();
+
+if (configuration.GetValue<bool>("CreateDatabaseOnStartup"))
+{
+    var dbContextFactory = app.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    using var dbContext = dbContextFactory.CreateDbContext();
+    await dbContext.Database.EnsureCreatedAsync();
+}
 
 app.Run();
