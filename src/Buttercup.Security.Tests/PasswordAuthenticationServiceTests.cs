@@ -468,10 +468,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .Select(t => t.Token)
                 .SingleAsync(TestContext.Current.CancellationToken));
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_change_success", args.IpAddress, userBefore.Id));
+        // Inserts user audit entry
+        var userAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        Assert.Equal(this.timeProvider.GetUtcDateTimeNow(), userAuditEntry.Time);
+        Assert.Equal(UserOperation.ChangePassword, userAuditEntry.Operation);
+        Assert.Equal(userBefore.Id, userAuditEntry.TargetId);
+        Assert.Equal(userBefore.Id, userAuditEntry.ActorId);
+        Assert.Equal(args.IpAddress, userAuditEntry.IpAddress);
 
         // Logs password changed message
         LogAssert.SingleEntry(this.logger)
@@ -756,10 +760,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .Select(t => t.Token)
                 .SingleAsync(TestContext.Current.CancellationToken));
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_success", args.IpAddress, userBefore.Id));
+        // Inserts user audit entry
+        var userAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        Assert.Equal(this.timeProvider.GetUtcDateTimeNow(), userAuditEntry.Time);
+        Assert.Equal(UserOperation.ResetPassword, userAuditEntry.Operation);
+        Assert.Equal(userBefore.Id, userAuditEntry.TargetId);
+        Assert.Equal(userBefore.Id, userAuditEntry.ActorId);
+        Assert.Equal(args.IpAddress, userAuditEntry.IpAddress);
 
         // Logs password reset message
         LogAssert.SingleEntry(this.logger)

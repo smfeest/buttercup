@@ -141,7 +141,8 @@ internal sealed partial class PasswordAuthenticationService(
             return false;
         }
 
-        await this.SetPassword(dbContext, user, newPassword, "password_change_success", ipAddress);
+        await this.SetPassword(
+            dbContext, user, newPassword, UserOperation.ChangePassword, ipAddress);
 
         this.LogPasswordChanged(user.Id, user.Email);
 
@@ -200,7 +201,8 @@ internal sealed partial class PasswordAuthenticationService(
             throw new InvalidTokenException("Password reset token is invalid");
         }
 
-        await this.SetPassword(dbContext, user, newPassword, "password_reset_success", ipAddress);
+        await this.SetPassword(
+            dbContext, user, newPassword, UserOperation.ResetPassword, ipAddress);
 
         this.LogPasswordReset(user.Id, RedactToken(token));
 
@@ -291,7 +293,7 @@ internal sealed partial class PasswordAuthenticationService(
         AppDbContext dbContext,
         User user,
         string newPassword,
-        string securityEventName,
+        UserOperation operation,
         IPAddress? ipAddress)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
@@ -302,13 +304,14 @@ internal sealed partial class PasswordAuthenticationService(
         user.Modified = timestamp;
         user.Revision++;
 
-        dbContext.SecurityEvents.Add(
+        dbContext.UserAuditEntries.Add(
             new()
             {
                 Time = timestamp,
-                Event = securityEventName,
-                IpAddress = ipAddress,
-                UserId = user.Id
+                Operation = operation,
+                TargetId = user.Id,
+                ActorId = user.Id,
+                IpAddress = ipAddress
             });
 
         await dbContext.SaveChangesAsync();
