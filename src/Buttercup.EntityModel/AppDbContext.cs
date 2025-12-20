@@ -57,10 +57,27 @@ public sealed class AppDbContext : DbContext
     /// </summary>
     public DbSet<User> Users => this.Set<User>();
 
+    /// <summary>
+    /// Gets the set of all user audit entries.
+    /// </summary>
+    public DbSet<UserAuditEntry> UserAuditEntries => this.Set<UserAuditEntry>();
+
     /// <inheritdoc/>
-    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
         modelBuilder
             .Entity<SecurityEvent>()
             .Property(u => u.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
+
+        modelBuilder
+            .Entity<UserAuditEntry>()
+            .Property(e => e.Operation)
+            .HasConversion<UserOperationToStringConverter>()
+            .HasMaxLength(15);
+        modelBuilder
+            .Entity<UserAuditEntry>()
+            .Property(e => e.IpAddress)
+            .HasConversion<IPAddressToBytesConverter>();
+    }
 }
