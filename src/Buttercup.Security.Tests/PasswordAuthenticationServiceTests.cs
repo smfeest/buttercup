@@ -344,7 +344,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     private AuthenticateArgs BuildAuthenticateArgs() => new(
         this.modelFactory.NextEmail(),
         this.modelFactory.NextString("password"),
-        new(this.modelFactory.NextInt()));
+        this.modelFactory.NextIpAddress());
 
     private void SetPasswordAuthenticationRateLimiterResult(string email, bool isAllowed) =>
         this.passwordAuthenticationRateLimiterMock
@@ -495,7 +495,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.modelFactory.NextInt(),
         this.modelFactory.NextString("current-password"),
         this.modelFactory.NextString("new-password"),
-        new(this.modelFactory.NextInt()));
+        this.modelFactory.NextIpAddress());
 
     #endregion
 
@@ -618,7 +618,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     private sealed record PasswordResetTokenIsValidArgs(string Token, IPAddress IpAddress);
 
     private PasswordResetTokenIsValidArgs BuildPasswordResetTokenIsValidArgs() => new(
-        this.modelFactory.NextString("token"), new(this.modelFactory.NextInt()));
+        this.modelFactory.NextString("token"), this.modelFactory.NextIpAddress());
 
     #endregion
 
@@ -783,7 +783,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     private ResetPasswordArgs BuildResetPasswordArgs() => new(
         this.modelFactory.NextString("token"),
         this.modelFactory.NextString("new-password"),
-        new(this.modelFactory.NextInt()));
+        this.modelFactory.NextIpAddress());
 
     #endregion
 
@@ -902,7 +902,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     private sealed record SendPasswordResetLinkArgs(string Email, IPAddress IpAddress);
 
     private SendPasswordResetLinkArgs BuildSendPasswordResetLinkArgs() =>
-        new(this.modelFactory.NextEmail(), new(this.modelFactory.NextInt()));
+        new(this.modelFactory.NextEmail(), this.modelFactory.NextIpAddress());
 
     private void SetPasswordResetRateLimiterResult(string email, bool isAllowed) =>
         this.passwordResetRateLimiterMock.Setup(x => x.IsAllowed(email)).ReturnsAsync(isAllowed);
