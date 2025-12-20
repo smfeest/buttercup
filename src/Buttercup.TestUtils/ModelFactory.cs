@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using Buttercup.EntityModel;
 
 namespace Buttercup.TestUtils;
@@ -130,7 +131,7 @@ public sealed class ModelFactory
             Event = this.NextString("security-event"),
             User = user,
             UserId = user?.Id,
-            IpAddress = setOptionalAttributes ? new(this.NextInt()) : null,
+            IpAddress = setOptionalAttributes ? this.NextIpAddress() : null,
         };
 
     /// <summary>
@@ -181,6 +182,12 @@ public sealed class ModelFactory
     /// </summary>
     /// <returns>The generated integer value.</returns>
     public int NextInt() => this.nextInt++;
+
+    /// <summary>
+    /// Generates a unique IP address.
+    /// </summary>
+    /// <returns>The generated IP address.</returns>
+    public IPAddress NextIpAddress() => new(this.NextInt());
 
     /// <summary>
     /// Generates a unique string value.

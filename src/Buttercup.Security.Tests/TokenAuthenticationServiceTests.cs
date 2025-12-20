@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Cryptography;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
@@ -40,7 +39,7 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
     public async Task IssueAccessToken()
     {
         var accessToken = this.modelFactory.NextString("access-token");
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        var ipAddress = this.modelFactory.NextIpAddress();
         var user = this.modelFactory.BuildUser();
 
         await this.DatabaseFixture.InsertEntities(user);

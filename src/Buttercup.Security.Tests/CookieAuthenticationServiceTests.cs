@@ -109,7 +109,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         await this.DatabaseFixture.InsertEntities(user);
 
         var httpContext = new DefaultHttpContext();
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        var ipAddress = this.modelFactory.NextIpAddress();
         var identity = new ClaimsIdentity([new Claim(ClaimTypes.Name, "user-identity")]);
 
         httpContext.Features.Set<IHttpConnectionFeature>(
@@ -152,7 +152,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         await this.DatabaseFixture.InsertEntities(user);
 
         var email = this.modelFactory.NextString("email");
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        var ipAddress = this.modelFactory.NextIpAddress();
 
         var httpContext = new DefaultHttpContext()
         {
