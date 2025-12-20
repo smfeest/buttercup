@@ -239,7 +239,7 @@ public sealed class AccountControllerTests : IDisposable
 
     private IPAddress SetupRemoteIpAddress()
     {
-        var ipAddress = new IPAddress(this.modelFactory.NextInt());
+        var ipAddress = this.modelFactory.NextIpAddress();
         this.httpContext.Features.Set<IHttpConnectionFeature>(
             new HttpConnectionFeature { RemoteIpAddress = ipAddress });
         return ipAddress;

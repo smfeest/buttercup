@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Buttercup.Application;
+using Buttercup.Security;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
 using Microsoft.Extensions.Localization;
@@ -11,6 +13,12 @@ public sealed class UserMutations
     /// <summary>
     /// Creates a user.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
     /// </param>
@@ -28,6 +36,8 @@ public sealed class UserMutations
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<FieldResult<CreateUserPayload, InputObjectValidationError>> CreateUser(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IUserManager userManager,
         ISchema schema,
@@ -42,9 +52,12 @@ public sealed class UserMutations
             return new(validationErrors);
         }
 
+        var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
+
         try
         {
-            var id = await userManager.CreateUser(attributes);
+            var id = await userManager.CreateUser(
+                attributes, claimsPrincipal.GetUserId(), ipAddress);
             return new CreateUserPayload(id);
         }
         catch (NotUniqueException ex) when (ex.PropertyName == nameof(NewUserAttributes.Email))
