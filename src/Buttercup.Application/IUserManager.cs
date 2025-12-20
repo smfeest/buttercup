@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 
 namespace Buttercup.Application;
@@ -13,10 +14,16 @@ public interface IUserManager
     /// <param name="attributes">
     /// The user attributes.
     /// </param>
+    /// <param name="currentUserId">
+    /// The current user ID.
+    /// </param>
+    /// <param name="ipAddress">
+    /// The IP address of the current user.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is the ID of the new user.
     /// </returns>
-    Task<long> CreateUser(NewUserAttributes attributes);
+    Task<long> CreateUser(NewUserAttributes attributes, long currentUserId, IPAddress? ipAddress);
 
     /// <summary>
     /// Creates a new user for automated end-to-end testing.
