@@ -34,8 +34,11 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CreateUser_InsertsUserAndReturnsId(bool isAdmin)
+    public async Task CreateUser_Success(bool isAdmin)
     {
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
         var securityStamp = this.modelFactory.NextToken(8);
         this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(securityStamp);
 
@@ -46,9 +49,13 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             TimeZone = this.modelFactory.NextString("time-zone"),
             IsAdmin = isAdmin,
         };
+        var ipAddress = this.modelFactory.NextIpAddress();
 
-        var id = await this.userManager.CreateUser(attributes);
+        var id = await this.userManager.CreateUser(attributes, currentUser.Id, ipAddress);
 
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts user
         var expected = new User
         {
             Id = id,
@@ -63,9 +70,17 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = 0,
         };
-        var actual = await this.userManager.FindUser(id);
-
+        var actual = await dbContext.Users.FindAsync([id], TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
+
+        // Inserts user audit entry
+        var userAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        Assert.Equal(this.timeProvider.GetUtcDateTimeNow(), userAuditEntry.Time);
+        Assert.Equal(UserOperation.Create, userAuditEntry.Operation);
+        Assert.Equal(id, userAuditEntry.TargetId);
+        Assert.Equal(currentUser.Id, userAuditEntry.ActorId);
+        Assert.Equal(ipAddress, userAuditEntry.IpAddress);
     }
 
     [Fact]
@@ -82,7 +97,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         };
 
         var exception = await Assert.ThrowsAsync<NotUniqueException>(
-            () => this.userManager.CreateUser(attributes));
+            () => this.userManager.CreateUser(attributes, existing.Id, null));
         Assert.Equal(nameof(attributes.Email), exception.PropertyName);
         Assert.Equal(
             $"Another user already exists with email '{attributes.Email}'",

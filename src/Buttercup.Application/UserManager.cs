@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,8 @@ internal sealed class UserManager(
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
 
-    public async Task<long> CreateUser(NewUserAttributes attributes)
+    public async Task<long> CreateUser(
+        NewUserAttributes attributes, long currentUserId, IPAddress? ipAddress)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var user = new User
@@ -34,6 +36,15 @@ internal sealed class UserManager(
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Users.Add(user);
+        dbContext.UserAuditEntries.Add(
+            new()
+            {
+                Time = timestamp,
+                Operation = UserOperation.Create,
+                Target = user,
+                ActorId = currentUserId,
+                IpAddress = ipAddress
+            });
 
         try
         {
