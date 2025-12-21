@@ -22,24 +22,24 @@ public sealed class IPAddressOperationFilterInputTypeTests
             field =>
             {
                 Assert.Equal("eq", field.Name);
-                Assert.IsType<StringType>(field.Type);
+                Assert.IsType<IPAddressType>(field.Type);
             },
             field =>
             {
                 Assert.Equal("neq", field.Name);
-                Assert.IsType<StringType>(field.Type);
+                Assert.IsType<IPAddressType>(field.Type);
             },
             field =>
             {
                 Assert.Equal("in", field.Name);
                 var listType = Assert.IsType<ListType>(field.Type);
-                Assert.IsType<StringType>(listType.ElementType);
+                Assert.IsType<IPAddressType>(listType.ElementType);
             },
             field =>
             {
                 Assert.Equal("nin", field.Name);
                 var listType = Assert.IsType<ListType>(field.Type);
-                Assert.IsType<StringType>(listType.ElementType);
+                Assert.IsType<IPAddressType>(listType.ElementType);
             });
     }
 }

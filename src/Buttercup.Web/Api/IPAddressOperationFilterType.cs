@@ -7,10 +7,10 @@ public class IPAddressOperationFilterInputType
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
-        descriptor.Operation(DefaultFilterOperations.NotEquals).Type<StringType>();
-        descriptor.Operation(DefaultFilterOperations.In).Type<ListType<StringType>>();
-        descriptor.Operation(DefaultFilterOperations.NotIn).Type<ListType<StringType>>();
+        descriptor.Operation(DefaultFilterOperations.Equals).Type<IPAddressType>();
+        descriptor.Operation(DefaultFilterOperations.NotEquals).Type<IPAddressType>();
+        descriptor.Operation(DefaultFilterOperations.In).Type<ListType<IPAddressType>>();
+        descriptor.Operation(DefaultFilterOperations.NotIn).Type<ListType<IPAddressType>>();
         descriptor.AllowAnd(false).AllowOr(false);
     }
 }
