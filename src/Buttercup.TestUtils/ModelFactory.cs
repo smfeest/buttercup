@@ -158,6 +158,41 @@ public sealed class ModelFactory
     };
 
     /// <summary>
+    /// Instantiates a new <see cref="UserAuditEntry" /> object with unique property values.
+    /// </summary>
+    /// <param name="setOptionalAttributes">
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
+    /// null.
+    /// </param>
+    /// <param name="target">
+    /// The user for <see cref="UserAuditEntry.Target"/> and <see cref="UserAuditEntry.TargetId"/>.
+    /// If null, a new user will be built and assigned.
+    /// </param>
+    /// <param name="actor">
+    /// The user for <see cref="UserAuditEntry.Actor"/> and <see cref="UserAuditEntry.ActorId"/>.
+    /// If null, a new user will be built and assigned.
+    /// </param>
+    /// <returns>The new <see cref="UserAuditEntry" /> object.</returns>
+    public UserAuditEntry BuildUserAuditEntry(
+        bool setOptionalAttributes = false, User? target = null, User? actor = null)
+    {
+        target ??= this.BuildUser();
+        actor ??= this.BuildUser();
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Time = this.NextDateTime(),
+            OperationType = (UserOperationType)(this.NextInt() % 3),
+            Target = target,
+            TargetId = target.Id,
+            Actor = actor,
+            ActorId = actor.Id,
+            IpAddress = setOptionalAttributes ? this.NextIpAddress() : null,
+        };
+    }
+
+    /// <summary>
     /// Generates a boolean value.
     /// </summary>
     /// <returns>The boolean value.</returns>
