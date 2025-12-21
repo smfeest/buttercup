@@ -15,6 +15,7 @@ using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Localization;
 using Buttercup.Web.Security;
+using HotChocolate.Data.Sorting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -90,7 +91,10 @@ services.AddGraphQLServer()
             .BindRuntimeType<IPAddress, IPAddressOperationFilterInputType>())
     .AddMutationConventions()
     .AddProjections()
-    .AddSorting()
+    .AddSorting(descriptor =>
+        descriptor
+            .AddDefaults()
+            .BindRuntimeType<IPAddress, DefaultSortEnumType>())
     .AddType<IncorrectCredentialsError>()
     .AddType<TooManyAttemptsError>()
     .AddObjectTypeExtension<UserMutations>(descriptor =>

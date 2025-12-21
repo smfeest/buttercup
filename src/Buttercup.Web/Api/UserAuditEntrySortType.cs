@@ -8,6 +8,5 @@ public sealed class UserAuditEntrySortType : SortInputType<UserAuditEntry>
     protected override void Configure(ISortInputTypeDescriptor<UserAuditEntry> descriptor) =>
         descriptor
             .Ignore(e => e.TargetId)
-            .Ignore(e => e.ActorId)
-            .Field(e => e.IpAddress).Type<DefaultSortEnumType>();
+            .Ignore(e => e.ActorId);
 }
