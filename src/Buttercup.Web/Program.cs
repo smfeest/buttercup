@@ -1,3 +1,4 @@
+using System.Net;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
@@ -83,7 +84,10 @@ services.AddGraphQLServer()
     .AddAuthorization()
     .AddDirectiveType<AdminOnlyDirectiveType>()
     .AddErrorInterfaceType<IMutationError>()
-    .AddFiltering()
+    .AddFiltering(descriptor =>
+        descriptor
+            .AddDefaults()
+            .BindRuntimeType<IPAddress, IPAddressOperationFilterInputType>())
     .AddMutationConventions()
     .AddProjections()
     .AddSorting()
