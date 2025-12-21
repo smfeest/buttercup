@@ -9,5 +9,5 @@ public sealed class UserAuditEntryFilterType : FilterInputType<UserAuditEntry>
         descriptor
             .Ignore(e => e.TargetId)
             .Ignore(e => e.ActorId)
-            .Field(e => e.IpAddress).Type<StringOperationFilterInputType>();
+            .Field(e => e.IpAddress).Type<IPAddressOperationFilterInputType>();
 }
