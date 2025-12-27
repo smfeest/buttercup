@@ -5,9 +5,6 @@ namespace Buttercup.Web.Api;
 
 public sealed class SecurityEventFilterType : FilterInputType<SecurityEvent>
 {
-    protected override void Configure(IFilterInputTypeDescriptor<SecurityEvent> descriptor)
-    {
+    protected override void Configure(IFilterInputTypeDescriptor<SecurityEvent> descriptor) =>
         descriptor.Ignore(e => e.UserId);
-        descriptor.Field(e => e.IpAddress).Type<StringOperationFilterInputType>();
-    }
 }
