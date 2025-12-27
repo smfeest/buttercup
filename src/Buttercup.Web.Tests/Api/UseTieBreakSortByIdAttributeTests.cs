@@ -22,14 +22,11 @@ public sealed class UseTieBreakSortByIdAttributeTests
 
     private static async Task<IExecutionResult> Execute(string query)
     {
-        var serviceProvider = new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<Query>()
-            .AddSorting(convention => convention.AddDefaults())
-            .Services
-            .BuildServiceProvider();
-
-        var executor = await serviceProvider.GetRequestExecutorAsync();
+            .AddSorting()
+            .BuildRequestExecutorAsync();
 
         return await executor.ExecuteAsync(query);
     }

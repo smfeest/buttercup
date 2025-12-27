@@ -183,23 +183,18 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
 
     private static async Task<IExecutionResult> Execute(string query, bool isAdmin)
     {
-        var serviceProvider = new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQLServer()
             .AddAuthorizationHandler(_ => new AuthorizationHandler(isAdmin))
             .AddDirectiveType<AdminOnlyDirectiveType>()
             .AddQueryType<Query>()
-            .AddFiltering(convention => convention
-                .AddDefaults()
-                .BindRuntimeType<Bar, BarFilterType>()
-                .BindRuntimeType<Foo, FooFilterType>())
-            .AddSorting(convention => convention
-                .AddDefaults()
-                .BindRuntimeType<Bar, BarSortType>()
-                .BindRuntimeType<Foo, FooSortType>())
-            .Services
-            .BuildServiceProvider();
-
-        var executor = await serviceProvider.GetRequestExecutorAsync();
+            .AddFiltering()
+            .AddType<BarFilterType>()
+            .AddType<FooFilterType>()
+            .AddSorting()
+            .AddType<BarSortType>()
+            .AddType<FooSortType>()
+            .BuildRequestExecutorAsync();
 
         return await executor.ExecuteAsync(query);
     }
