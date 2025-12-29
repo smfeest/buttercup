@@ -1,5 +1,4 @@
 using System.Net;
-using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Security;
@@ -37,10 +36,9 @@ public interface IPasswordAuthenticationService
     /// The client IP address.
     /// </param>
     /// <returns>
-    /// A task for the operation. The result is <b>true</b> if the token is valid, <b>false</b>
-    /// if it isn't.
+    /// A task for the operation.
     /// </returns>
-    Task<bool> CanResetPassword(string token, IPAddress? ipAddress);
+    Task<PasswordResetResult> CanResetPassword(string token, IPAddress? ipAddress);
 
     /// <summary>
     /// Changes a user's password.
@@ -83,12 +81,9 @@ public interface IPasswordAuthenticationService
     /// The client IP address.
     /// </param>
     /// <returns>
-    /// A task for the operation. The result is the updated user.
+    /// A task for the operation.
     /// </returns>
-    /// <exception cref="InvalidTokenException">
-    /// The password reset token isn't valid.
-    /// </exception>
-    Task<User> ResetPassword(string token, string newPassword, IPAddress? ipAddress);
+    Task<PasswordResetResult> ResetPassword(string token, string newPassword, IPAddress? ipAddress);
 
     /// <summary>
     /// Sends a password reset link to the user with a given email address.

@@ -132,9 +132,9 @@ public sealed class AuthenticationControllerTests : IDisposable
     #region ResetPassword (GET)
 
     [Fact]
-    public async Task ResetPassword_Get_TokenIsValid_ReturnsDefaultViewResult()
+    public async Task ResetPassword_Get_Success_ReturnsDefaultViewResult()
     {
-        var token = this.SetupResetPasswordGet(true);
+        var token = this.SetupResetPasswordGet(new(this.modelFactory.BuildUser()));
 
         var result = await this.authenticationController.ResetPassword(token);
 
@@ -145,7 +145,7 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Get_TokenIsInvalid_ReturnsInvalidTokenViewResult()
     {
-        var token = this.SetupResetPasswordGet(false);
+        var token = this.SetupResetPasswordGet(new(PasswordResetFailure.InvalidToken));
 
         var result = await this.authenticationController.ResetPassword(token);
 
@@ -153,14 +153,25 @@ public sealed class AuthenticationControllerTests : IDisposable
         Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
     }
 
-    private string SetupResetPasswordGet(bool tokenIsValue)
+    [Fact]
+    public async Task ResetPassword_Get_UserIsDeactivated_ReturnsUserDeactivatedViewResult()
+    {
+        var token = this.SetupResetPasswordGet(new(PasswordResetFailure.UserDeactivated));
+
+        var result = await this.authenticationController.ResetPassword(token);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Equal("ResetPasswordUserDeactivated", viewResult.ViewName);
+    }
+
+    private string SetupResetPasswordGet(PasswordResetResult canResetPasswordResult)
     {
         var token = this.modelFactory.NextString("token");
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
             .Setup(x => x.CanResetPassword(token, ipAddress))
-            .ReturnsAsync(tokenIsValue);
+            .ReturnsAsync(canResetPasswordResult);
 
         return token;
     }
@@ -184,31 +195,34 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Post_InvalidToken_ReturnsInvalidTokenViewResult()
     {
-        var ipAddress = this.SetupRemoteIpAddress();
+        var (token, viewModel) = this.SetupResetPasswordPost(
+            new(PasswordResetFailure.InvalidToken));
 
-        this.passwordAuthenticationServiceMock
-            .Setup(x => x.ResetPassword("sample-token", "sample-password", ipAddress))
-            .ThrowsAsync(new InvalidTokenException());
-
-        var result = await this.authenticationController.ResetPassword(
-            "sample-token", new() { Password = "sample-password" });
+        var result = await this.authenticationController.ResetPassword(token, viewModel);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
     }
 
     [Fact]
+    public async Task ResetPassword_Post_UserDeactivated_ReturnsUserDeactivatedViewResult()
+    {
+        var (token, viewModel) = this.SetupResetPasswordPost(
+            new(PasswordResetFailure.UserDeactivated));
+
+        var result = await this.authenticationController.ResetPassword(token, viewModel);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        Assert.Equal("ResetPasswordUserDeactivated", viewResult.ViewName);
+    }
+
+    [Fact]
     public async Task ResetPassword_Post_Success_SignsInUser()
     {
         var user = this.modelFactory.BuildUser();
-        var ipAddress = this.SetupRemoteIpAddress();
+        var (token, viewModel) = this.SetupResetPasswordPost(new(user));
 
-        this.passwordAuthenticationServiceMock
-            .Setup(x => x.ResetPassword("sample-token", "sample-password", ipAddress))
-            .ReturnsAsync(user);
-
-        await this.authenticationController.ResetPassword(
-            "sample-token", new() { Password = "sample-password" });
+        await this.authenticationController.ResetPassword(token, viewModel);
 
         this.cookieAuthenticationServiceMock.Verify(x => x.SignIn(this.httpContext, user));
     }
@@ -216,11 +230,27 @@ public sealed class AuthenticationControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Post_Success_RedirectsToHomeIndex()
     {
-        var result = await this.authenticationController.ResetPassword("sample-token", new());
+        var (token, viewModel) = this.SetupResetPasswordPost(new(this.modelFactory.BuildUser()));
+
+        var result = await this.authenticationController.ResetPassword(token, viewModel);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Home", redirectResult.ControllerName);
         Assert.Equal(nameof(HomeController.Index), redirectResult.ActionName);
+    }
+
+    private (string Token, ResetPasswordViewModel ViewModel) SetupResetPasswordPost(
+        PasswordResetResult result)
+    {
+        var token = this.modelFactory.NextString("token");
+        var password = this.modelFactory.NextString("new-password");
+        var ipAddress = this.SetupRemoteIpAddress();
+
+        this.passwordAuthenticationServiceMock
+            .Setup(x => x.ResetPassword(token, password, ipAddress))
+            .ReturnsAsync(result);
+
+        return (token, new ResetPasswordViewModel { Password = password });
     }
 
     #endregion
