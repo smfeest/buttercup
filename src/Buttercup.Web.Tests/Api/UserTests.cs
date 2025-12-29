@@ -10,7 +10,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     public async Task QueryingPublicFieldsOnAnotherUserWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
-        var user = this.ModelFactory.BuildUser();
+        var user = this.ModelFactory.BuildUser(setOptionalAttributes: true, deactivated: true);
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -26,6 +26,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
             user.TimeZone,
             user.Created,
             user.Modified,
+            user.Deactivated,
             user.Revision,
         };
 
@@ -152,6 +153,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
                     timeZone
                     created
                     modified
+                    deactivated
                     revision
                 }
             }

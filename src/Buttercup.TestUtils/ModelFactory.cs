@@ -141,8 +141,11 @@ public sealed class ModelFactory
     /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
     /// null.
     /// </param>
+    /// <param name="deactivated">
+    /// <b>true</b> if the user should be marked as deactivated; <b>false</b> otherwise.
+    /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User BuildUser(bool setOptionalAttributes = false) => new()
+    public User BuildUser(bool setOptionalAttributes = false, bool deactivated = false) => new()
     {
         Id = this.NextInt(),
         Name = this.NextString("name"),
@@ -154,6 +157,7 @@ public sealed class ModelFactory
         IsAdmin = this.NextBoolean(),
         Created = this.NextDateTime(),
         Modified = this.NextDateTime(),
+        Deactivated = deactivated ? this.NextDateTime() : null,
         Revision = this.NextInt(),
     };
 
