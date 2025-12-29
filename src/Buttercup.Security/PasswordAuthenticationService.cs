@@ -136,14 +136,14 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (userId.HasValue)
         {
-            this.LogPasswordResetTokenValid(RedactToken(token), userId.Value);
+            this.LogCanResetPassword(RedactToken(token), userId.Value);
         }
         else
         {
             await this.InsertSecurityEvent(
                 dbContext, "password_reset_failure:invalid_token", ipAddress);
 
-            this.LogPasswordResetTokenInvalid(RedactToken(token));
+            this.LogCannotResetPasswordTokenInvalid(RedactToken(token));
         }
 
         return userId.HasValue;
@@ -372,6 +372,20 @@ internal sealed partial class PasswordAuthenticationService(
     private partial void LogAuthenticationFailedUnrecognizedEmail(string email);
 
     [LoggerMessage(
+        EventId = 14,
+        EventName = "CannotResetPasswordTokenInvalid",
+        Level = LogLevel.Debug,
+        Message = "Cannot use token '{Token}' to reset password; token is invalid")]
+    private partial void LogCannotResetPasswordTokenInvalid(string token);
+
+    [LoggerMessage(
+        EventId = 15,
+        EventName = "CanResetPassword",
+        Level = LogLevel.Debug,
+        Message = "Can use token '{Token}' to reset password for user {UserId}")]
+    private partial void LogCanResetPassword(string token, long userId);
+
+    [LoggerMessage(
         EventId = 6,
         EventName = "PasswordChanged",
         Level = LogLevel.Information,
@@ -426,20 +440,6 @@ internal sealed partial class PasswordAuthenticationService(
         Level = LogLevel.Information,
         Message = "Password reset link sent to user {UserId} ({Email})")]
     private partial void LogPasswordResetLinkSent(long userId, string email);
-
-    [LoggerMessage(
-        EventId = 14,
-        EventName = "PasswordResetTokenInvalid",
-        Level = LogLevel.Debug,
-        Message = "Password reset token '{Token}' is no longer valid")]
-    private partial void LogPasswordResetTokenInvalid(string token);
-
-    [LoggerMessage(
-        EventId = 15,
-        EventName = "PasswordResetTokenValid",
-        Level = LogLevel.Debug,
-        Message = "Password reset token '{Token}' is valid and belongs to user {UserId}")]
-    private partial void LogPasswordResetTokenValid(string token, long userId);
 
     [LoggerMessage(
         EventId = 16,

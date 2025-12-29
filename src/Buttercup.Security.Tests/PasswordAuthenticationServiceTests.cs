@@ -414,7 +414,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
             .HasLevel(LogLevel.Debug)
-            .HasMessage($"Password reset token '{args.Token[..6]}…' is no longer valid");
+            .HasMessage(
+                $"Cannot use token '{args.Token[..6]}…' to reset password; token is invalid");
 
         // Returns false
         Assert.False(result);
@@ -448,7 +449,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
             .HasLevel(LogLevel.Debug)
-            .HasMessage($"Password reset token '{args.Token[..6]}…' is no longer valid");
+            .HasMessage(
+                $"Cannot use token '{args.Token[..6]}…' to reset password; token is invalid");
 
         // Returns false
         Assert.False(result);
@@ -466,7 +468,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
             .HasLevel(LogLevel.Debug)
-            .HasMessage($"Password reset token 'ABC' is no longer valid");
+            .HasMessage($"Cannot use token 'ABC' to reset password; token is invalid");
 
         // Returns false
         Assert.False(result);
@@ -493,8 +495,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(15)
             .HasLevel(LogLevel.Debug)
-            .HasMessage(
-                $"Password reset token '{args.Token[..6]}…' is valid and belongs to user {user.Id}");
+            .HasMessage($"Can use token '{args.Token[..6]}…' to reset password for user {user.Id}");
 
         // Returns true
         Assert.True(result);
