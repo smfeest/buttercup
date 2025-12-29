@@ -122,6 +122,33 @@ internal sealed partial class PasswordAuthenticationService(
         return new(user);
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
+    public async Task<bool> CanResetPassword(string token, IPAddress? ipAddress)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var userId = await this.ValidPasswordResetToken(dbContext, token)
+            .Select<PasswordResetToken, long?>(t => t.UserId)
+            .FirstOrDefaultAsync();
+
+        if (userId.HasValue)
+        {
+            this.LogPasswordResetTokenValid(RedactToken(token), userId.Value);
+        }
+        else
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "password_reset_failure:invalid_token", ipAddress);
+
+            this.LogPasswordResetTokenInvalid(RedactToken(token));
+        }
+
+        return userId.HasValue;
+    }
+
     public async Task<bool> ChangePassword(
         long userId, string currentPassword, string newPassword, IPAddress? ipAddress)
     {
@@ -159,33 +186,6 @@ internal sealed partial class PasswordAuthenticationService(
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
         return true;
-    }
-
-    [SuppressMessage(
-        "Performance",
-        "CA1873:Avoid potentially expensive logging",
-        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
-    public async Task<bool> PasswordResetTokenIsValid(string token, IPAddress? ipAddress)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        var userId = await this.ValidPasswordResetToken(dbContext, token)
-            .Select<PasswordResetToken, long?>(t => t.UserId)
-            .FirstOrDefaultAsync();
-
-        if (userId.HasValue)
-        {
-            this.LogPasswordResetTokenValid(RedactToken(token), userId.Value);
-        }
-        else
-        {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:invalid_token", ipAddress);
-
-            this.LogPasswordResetTokenInvalid(RedactToken(token));
-        }
-
-        return userId.HasValue;
     }
 
     [SuppressMessage(

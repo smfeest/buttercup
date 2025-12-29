@@ -28,6 +28,21 @@ public interface IPasswordAuthenticationService
         string email, string password, IPAddress? ipAddress);
 
     /// <summary>
+    /// Checks whether a password reset is expected to succeed.
+    /// </summary>
+    /// <param name="token">
+    /// The password reset token.
+    /// </param>
+    /// <param name="ipAddress">
+    /// The client IP address.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The result is <b>true</b> if the token is valid, <b>false</b>
+    /// if it isn't.
+    /// </returns>
+    Task<bool> CanResetPassword(string token, IPAddress? ipAddress);
+
+    /// <summary>
     /// Changes a user's password.
     /// </summary>
     /// <param name="userId">
@@ -51,21 +66,6 @@ public interface IPasswordAuthenticationService
     /// </exception>
     Task<bool> ChangePassword(
         long userId, string currentPassword, string newPassword, IPAddress? ipAddress);
-
-    /// <summary>
-    /// Validates a password reset token.
-    /// </summary>
-    /// <param name="token">
-    /// The password reset token.
-    /// </param>
-    /// <param name="ipAddress">
-    /// The client IP address.
-    /// </param>
-    /// <returns>
-    /// A task for the operation. The result is <b>true</b> if the token is valid, <b>false</b>
-    /// if it isn't.
-    /// </returns>
-    Task<bool> PasswordResetTokenIsValid(string token, IPAddress? ipAddress);
 
     /// <summary>
     /// Resets a user's password.

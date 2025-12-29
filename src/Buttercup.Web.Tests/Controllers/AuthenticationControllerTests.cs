@@ -159,7 +159,7 @@ public sealed class AuthenticationControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.PasswordResetTokenIsValid(token, ipAddress))
+            .Setup(x => x.CanResetPassword(token, ipAddress))
             .ReturnsAsync(tokenIsValue);
 
         return token;

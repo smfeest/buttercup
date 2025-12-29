@@ -43,7 +43,7 @@ public sealed class AuthenticationController(
     [HttpGet("reset-password/{token}", Name = "ResetPassword")]
     [EnsureSignedOut]
     public async Task<IActionResult> ResetPassword(string token) =>
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
+        await this.passwordAuthenticationService.CanResetPassword(
             token, this.HttpContext.Connection.RemoteIpAddress) ?
             this.View() :
             this.View("ResetPasswordInvalidToken");
