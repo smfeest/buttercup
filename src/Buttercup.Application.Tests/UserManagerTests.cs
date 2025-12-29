@@ -68,6 +68,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             IsAdmin = attributes.IsAdmin,
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Deactivated = null,
             Revision = 0,
         };
         var actual = await dbContext.Users.FindAsync([id], TestContext.Current.CancellationToken);
@@ -141,6 +142,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             IsAdmin = false,
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Deactivated = null,
             Revision = 0,
         };
         var actual = await this.userManager.FindUser(id);
@@ -188,6 +190,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             IsAdmin = false,
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Deactivated = null,
             Revision = 0,
         };
         var actual = await this.userManager.FindUser(id);
