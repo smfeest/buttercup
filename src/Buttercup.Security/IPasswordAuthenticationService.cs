@@ -24,7 +24,8 @@ public interface IPasswordAuthenticationService
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<PasswordAuthenticationResult> Authenticate(string email, string password, IPAddress? ipAddress);
+    Task<PasswordAuthenticationResult> Authenticate(
+        string email, string password, IPAddress? ipAddress);
 
     /// <summary>
     /// Changes a user's password.
