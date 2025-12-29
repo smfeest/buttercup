@@ -70,7 +70,7 @@ public interface IPasswordAuthenticationService
     /// Resets a user's password.
     /// </summary>
     /// <remarks>
-    /// All existing password reset tokens for the user are invalidated.
+    /// All existing password reset tokens for the user are invalidated on success.
     /// </remarks>
     /// <param name="token">
     /// The password reset token.
