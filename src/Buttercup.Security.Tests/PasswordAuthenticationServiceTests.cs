@@ -105,6 +105,37 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
+    public async Task Authenticate_UserDeactivated()
+    {
+        var args = this.BuildAuthenticateArgs();
+
+        var user = this.modelFactory.BuildUser(deactivated: true) with { Email = args.Email };
+        await this.DatabaseFixture.InsertEntities(user);
+
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
+
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "authentication_failure:user_deactivated", args.IpAddress, user.Id));
+
+        // Logs user deactivated message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(17)
+            .HasLevel(LogLevel.Information)
+            .HasMessage(
+                $"Authentication failed; user {user.Id} ({user.Email}) is deactivated");
+
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
+    }
+
+    [Fact]
     public async Task Authenticate_UserHasNoPassword()
     {
         var args = this.BuildAuthenticateArgs();

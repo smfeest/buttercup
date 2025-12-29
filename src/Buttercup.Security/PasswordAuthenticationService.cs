@@ -58,6 +58,16 @@ internal sealed partial class PasswordAuthenticationService(
             return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
 
+        if (user.Deactivated.HasValue)
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "authentication_failure:user_deactivated", ipAddress, user.Id);
+
+            this.LogAuthenticationFailedUserDeactivated(user.Id, user.Email);
+
+            return new(PasswordAuthenticationFailure.IncorrectCredentials);
+        }
+
         if (user.HashedPassword == null)
         {
             await this.InsertSecurityEvent(
@@ -332,6 +342,13 @@ internal sealed partial class PasswordAuthenticationService(
         Level = LogLevel.Information,
         Message = "Authentication failed; incorrect password for user {UserId} ({Email})")]
     private partial void LogAuthenticationFailedIncorrectPassword(long userId, string email);
+
+    [LoggerMessage(
+        EventId = 17,
+        EventName = "AuthenticationFailedUserDeactivated",
+        Level = LogLevel.Information,
+        Message = "Authentication failed; user {UserId} ({Email}) is deactivated")]
+    private partial void LogAuthenticationFailedUserDeactivated(long userId, string email);
 
     [LoggerMessage(
         EventId = 3,

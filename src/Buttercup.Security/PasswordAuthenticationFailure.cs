@@ -6,8 +6,8 @@ namespace Buttercup.Security;
 public enum PasswordAuthenticationFailure
 {
     /// <summary>
-    /// Indicates that the email was unrecognised, the password was incorrect, or the user has yet
-    /// to set a password.
+    /// Indicates that the email address does not match active user, the password is incorrect, or
+    /// the user has yet to set a password.
     /// </summary>
     IncorrectCredentials,
 
