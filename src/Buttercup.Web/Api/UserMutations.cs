@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
@@ -83,6 +84,37 @@ public sealed class UserMutations
     {
         var (id, password) = await userManager.CreateTestUser();
         return new CreateTestUserPayload(id, password);
+    }
+
+    /// <summary>
+    /// Deactivates a user.
+    /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
+    /// <param name="userManager">
+    /// The user manager.
+    /// </param>
+    /// <param name="id">
+    /// The user ID.
+    /// </param>
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [Error<NotFoundException>]
+    public async Task<DeactivateUserPayload> DeactivateUser(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
+        IUserManager userManager,
+        long id)
+    {
+        var deactivated = await userManager.DeactivateUser(
+            id,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+
+        return new(id, deactivated);
     }
 
     /// <summary>
