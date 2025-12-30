@@ -14,6 +14,7 @@
       <th>@Localizer["Label_Name"]</th>
       <th>@Localizer["Label_EmailAddress"]</th>
       <th class="data-table--collapsed-below-medium">@Localizer["Label_Role"]</th>
+      <th>@Localizer["Label_Status"]</th>
     </tr>
   </thead>
   <tbody>
@@ -26,6 +27,14 @@
           @if(user.IsAdmin)
           {
             <text>@Localizer["Label_Administrator"]</text>
+          }
+        </td>
+        <td>
+          @if(user.Deactivated.HasValue)
+          {
+            <span class="tag">
+              @Localizer["Label_Deactivated"]
+            </span>
           }
         </td>
       </tr>

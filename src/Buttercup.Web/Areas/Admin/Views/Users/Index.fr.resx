@@ -12,7 +12,13 @@
   <data name="Label_Role">
     <value>Rôle</value>
   </data>
+  <data name="Label_Status">
+    <value>Statut</value>
+  </data>
   <data name="Label_Administrator">
     <value>Administrateur</value>
+  </data>
+  <data name="Label_Deactivated">
+    <value>Désactivé</value>
   </data>
 </root>
