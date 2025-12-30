@@ -27,7 +27,7 @@ internal sealed class UserManager(
         {
             Name = attributes.Name,
             Email = attributes.Email,
-            SecurityStamp = this.randomTokenGenerator.Generate(2),
+            SecurityStamp = this.GenerateSecurityStamp(),
             TimeZone = attributes.TimeZone,
             IsAdmin = attributes.IsAdmin,
             Created = timestamp,
@@ -72,7 +72,7 @@ internal sealed class UserManager(
             Name = $"Test User {suffix}",
             Email = $"test+{suffix}@example.com",
             PasswordCreated = timestamp,
-            SecurityStamp = this.randomTokenGenerator.Generate(2),
+            SecurityStamp = this.GenerateSecurityStamp(),
             TimeZone = "Etc/UTC",
             IsAdmin = false,
             Created = timestamp,
@@ -123,6 +123,8 @@ internal sealed class UserManager(
                 .SetProperty(u => u.Modified, this.timeProvider.GetUtcDateTimeNow())
                 .SetProperty(u => u.Revision, u => u.Revision + 1));
     }
+
+    private string GenerateSecurityStamp() => this.randomTokenGenerator.Generate(2);
 
     private static async Task UpdateUserProperties(
         AppDbContext dbContext,
