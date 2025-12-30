@@ -660,7 +660,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     #region ResetPassword
 
     [Fact]
-    public async Task ResetPassword_ExpiredToken()
+    public async Task ResetPassword_TokenExpired()
     {
         var args = this.BuildResetPasswordArgs();
 
@@ -694,7 +694,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
-    public async Task ResetPassword_NonExistentToken()
+    public async Task ResetPassword_TokenNonExistent()
     {
         var args = this.BuildResetPasswordArgs();
 
@@ -728,7 +728,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
-    public async Task ResetPassword_ShortNonExistentToken()
+    public async Task ResetPassword_TokenNonExistentAndShort()
     {
         var args = this.BuildResetPasswordArgs() with { Token = "ABC" };
 
