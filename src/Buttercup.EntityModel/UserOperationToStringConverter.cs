@@ -12,6 +12,7 @@ internal sealed class UserOperationToStringConverter : ValueConverter<UserOperat
     {
         "change_password" => UserOperation.ChangePassword,
         "create" => UserOperation.Create,
+        "deactivate" => UserOperation.Deactivate,
         "reset_password" => UserOperation.ResetPassword,
         _ => throw new ArgumentException($"Invalid user operation type '{value}'", nameof(value))
     };
@@ -20,6 +21,7 @@ internal sealed class UserOperationToStringConverter : ValueConverter<UserOperat
     {
         UserOperation.ChangePassword => "change_password",
         UserOperation.Create => "create",
+        UserOperation.Deactivate => "deactivate",
         UserOperation.ResetPassword => "reset_password",
         _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
     };

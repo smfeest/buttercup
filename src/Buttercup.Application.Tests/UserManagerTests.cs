@@ -200,6 +200,73 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region DeactivateUser
+
+    [Fact]
+    public async Task DeactivateUser_AlreadyDeactivated()
+    {
+        var userBefore = this.modelFactory.BuildUser(deactivated: true);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(userBefore, currentUser);
+
+        Assert.False(
+            await this.userManager.DeactivateUser(
+                userBefore.Id, currentUser.Id, this.modelFactory.NextIpAddress()));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var userAfter = await dbContext.Users.FindAsync(
+            [userBefore.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(userBefore, userAfter);
+
+        Assert.False(
+            await dbContext.UserAuditEntries.AnyAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task DeactivateUser_Success()
+    {
+        var userBefore = this.modelFactory.BuildUser();
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(userBefore, currentUser);
+
+        var ipAddress = this.modelFactory.NextIpAddress();
+
+        var newSecurityStamp = this.modelFactory.NextToken(8);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(newSecurityStamp);
+
+        Assert.True(
+            await this.userManager.DeactivateUser(userBefore.Id, currentUser.Id, ipAddress));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var expectedUserAfter = userBefore with
+        {
+            SecurityStamp = newSecurityStamp,
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Deactivated = this.timeProvider.GetUtcDateTimeNow(),
+            Revision = userBefore.Revision + 1,
+        };
+        var actualUserAfter = await dbContext.Users.FindAsync(
+            [userBefore.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(expectedUserAfter, actualUserAfter);
+
+        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        var expectedAuditEntry = new UserAuditEntry
+        {
+            Id = actualAuditEntry.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = UserOperation.Deactivate,
+            TargetId = userBefore.Id,
+            ActorId = currentUser.Id,
+            IpAddress = ipAddress,
+        };
+        Assert.Equal(expectedAuditEntry, actualAuditEntry);
+    }
+
+    #endregion
+
     #region FindUser
 
     [Fact]

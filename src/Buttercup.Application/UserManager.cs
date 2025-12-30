@@ -96,6 +96,46 @@ internal sealed class UserManager(
         return (user.Id, password);
     }
 
+    public async Task<bool> DeactivateUser(long id, long currentUserId, IPAddress? ipAddress)
+    {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var user = await dbContext.Users.AsTracking().GetAsync(id);
+
+        if (user.Deactivated.HasValue)
+        {
+            return false;
+        }
+
+        user.SecurityStamp = this.GenerateSecurityStamp();
+        user.Modified = timestamp;
+        user.Deactivated = timestamp;
+        user.Revision++;
+
+        dbContext.UserAuditEntries.Add(
+            new()
+            {
+                Time = timestamp,
+                Operation = UserOperation.Deactivate,
+                TargetId = id,
+                ActorId = currentUserId,
+                IpAddress = ipAddress
+            });
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return await this.DeactivateUser(id, currentUserId, ipAddress);
+        }
+
+        return true;
+    }
+
     public async Task<User?> FindUser(long id)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
