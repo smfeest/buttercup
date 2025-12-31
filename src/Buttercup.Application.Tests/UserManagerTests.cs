@@ -341,6 +341,69 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region ReactivateUser
+
+    [Fact]
+    public async Task ReactivateUser_AlreadyActive()
+    {
+        var userBefore = this.modelFactory.BuildUser();
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(userBefore, currentUser);
+
+        Assert.False(
+            await this.userManager.ReactivateUser(
+                userBefore.Id, currentUser.Id, this.modelFactory.NextIpAddress()));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var userAfter = await dbContext.Users.FindAsync(
+            [userBefore.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(userBefore, userAfter);
+
+        Assert.False(
+            await dbContext.UserAuditEntries.AnyAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ReactivateUser_Success()
+    {
+        var userBefore = this.modelFactory.BuildUser(deactivated: true);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(userBefore, currentUser);
+
+        var ipAddress = this.modelFactory.NextIpAddress();
+
+        Assert.True(
+            await this.userManager.ReactivateUser(userBefore.Id, currentUser.Id, ipAddress));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var expectedUserAfter = userBefore with
+        {
+            Modified = this.timeProvider.GetUtcDateTimeNow(),
+            Deactivated = null,
+            Revision = userBefore.Revision + 1,
+        };
+        var actualUserAfter = await dbContext.Users.FindAsync(
+            [userBefore.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(expectedUserAfter, actualUserAfter);
+
+        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        var expectedAuditEntry = new UserAuditEntry
+        {
+            Id = actualAuditEntry.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = UserOperation.Reactivate,
+            TargetId = userBefore.Id,
+            ActorId = currentUser.Id,
+            IpAddress = ipAddress,
+        };
+        Assert.Equal(expectedAuditEntry, actualAuditEntry);
+    }
+
+    #endregion
+
     #region SetTimeZone
 
     [Fact]

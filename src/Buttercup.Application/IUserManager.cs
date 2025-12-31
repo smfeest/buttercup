@@ -59,6 +59,27 @@ public interface IUserManager
     Task<bool> DeactivateUser(long id, long currentUserId, IPAddress? ipAddress);
 
     /// <summary>
+    /// Reactivates a user.
+    /// </summary>
+    /// <param name="id">
+    /// The user ID.
+    /// </param>
+    /// <param name="currentUserId">
+    /// The current user ID.
+    /// </param>
+    /// <param name="ipAddress">
+    /// The IP address of the current user.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The task result is <b>true</b> if the user was reactivated, or
+    /// <b>false</b> if the user is already active.
+    /// </returns>
+    /// <exception cref="NotFoundException">
+    /// No matching user was found.
+    /// </exception>
+    Task<bool> ReactivateUser(long id, long currentUserId, IPAddress? ipAddress);
+
+    /// <summary>
     /// Finds a user.
     /// </summary>
     /// <param name="id">

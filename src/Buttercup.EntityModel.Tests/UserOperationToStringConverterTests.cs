@@ -8,6 +8,7 @@ public sealed class UserOperationToStringConverterTests
     [InlineData(UserOperation.ChangePassword, "change_password")]
     [InlineData(UserOperation.Create, "create")]
     [InlineData(UserOperation.Deactivate, "deactivate")]
+    [InlineData(UserOperation.Reactivate, "reactivate")]
     [InlineData(UserOperation.ResetPassword, "reset_password")]
     public void ConvertsToAndFromExpectedString(UserOperation operation, string stringValue)
     {
