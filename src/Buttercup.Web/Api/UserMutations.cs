@@ -134,4 +134,35 @@ public sealed class UserMutations
     public async Task<HardDeletePayload> HardDeleteTestUser(
         IUserManager userManager, long id) =>
         new(await userManager.HardDeleteTestUser(id));
+
+    /// <summary>
+    /// Reactivates a user.
+    /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
+    /// <param name="userManager">
+    /// The user manager.
+    /// </param>
+    /// <param name="id">
+    /// The user ID.
+    /// </param>
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [Error<NotFoundException>]
+    public async Task<ReactivateUserPayload> ReactivateUser(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
+        IUserManager userManager,
+        long id)
+    {
+        var reactivated = await userManager.ReactivateUser(
+            id,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+
+        return new(id, reactivated);
+    }
 }
