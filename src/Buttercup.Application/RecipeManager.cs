@@ -24,6 +24,7 @@ internal sealed class RecipeManager(
             Suggestions = attributes.Suggestions,
             Remarks = attributes.Remarks,
             Source = attributes.Source,
+            PhotoUrl = attributes.PhotoUrl,
             Created = timestamp,
             CreatedByUserId = currentUserId,
             Modified = timestamp,
@@ -91,6 +92,7 @@ internal sealed class RecipeManager(
         recipe.Suggestions = newAttributes.Suggestions;
         recipe.Remarks = newAttributes.Remarks;
         recipe.Source = newAttributes.Source;
+        recipe.PhotoUrl = newAttributes.PhotoUrl;
         recipe.Modified = this.timeProvider.GetUtcDateTimeNow();
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;

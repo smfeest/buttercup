@@ -9,6 +9,7 @@ using Buttercup.Email;
 using Buttercup.EntityModel;
 using Buttercup.Redis;
 using Buttercup.Security;
+using Buttercup.Storage;
 using Buttercup.Web;
 using Buttercup.Web.Api;
 using Buttercup.Web.Binders;
@@ -121,7 +122,8 @@ services
     .AddCoreServices()
     .AddEmailServices(configuration.GetSection("Email"))
     .AddRedisServices(configuration.GetSection("Redis"))
-    .AddSecurityServices(configuration.GetSection("Security"));
+    .AddSecurityServices(configuration.GetSection("Security"))
+    .AddButtercupStorage(configuration);
 
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

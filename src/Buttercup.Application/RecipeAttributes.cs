@@ -33,6 +33,7 @@ public sealed record RecipeAttributes
         this.Suggestions = recipe.Suggestions;
         this.Remarks = recipe.Remarks;
         this.Source = recipe.Source;
+        this.PhotoUrl = recipe.PhotoUrl;
     }
 
     /// <summary>
@@ -118,4 +119,13 @@ public sealed record RecipeAttributes
     /// </value>
     [StringLength(250, ErrorMessage = "Error_TooManyCharacters")]
     public string? Source { get; init; }
+
+    /// <summary>
+    /// Gets or sets the URL of the photo of the dish in Azure blob storage.
+    /// </summary>
+    /// <value>
+    /// The photo URL.
+    /// </value>
+    [StringLength(1000, ErrorMessage = "Error_TooManyCharacters")]
+    public string? PhotoUrl { get; init; }
 }

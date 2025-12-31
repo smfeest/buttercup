@@ -1,6 +1,7 @@
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
+using Buttercup.Storage;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Models.Recipes;
 using Microsoft.AspNetCore.Authorization;
@@ -17,7 +18,8 @@ public sealed class RecipesController(
     IDbContextFactory<AppDbContext> dbContextFactory,
     IStringLocalizer<RecipesController> localizer,
     IRecipesControllerQueries queries,
-    IRecipeManager recipeManager)
+    IRecipeManager recipeManager,
+    IPhotoStorageService photoStorageService)
     : Controller
 {
     private readonly ICommentManager commentManager = commentManager;
@@ -25,6 +27,7 @@ public sealed class RecipesController(
     private readonly IStringLocalizer<RecipesController> localizer = localizer;
     private readonly IRecipesControllerQueries queries = queries;
     private readonly IRecipeManager recipeManager = recipeManager;
+    private readonly IPhotoStorageService photoStorageService = photoStorageService;
 
     [HttpGet]
     public async Task<IActionResult> Index()
@@ -67,10 +70,51 @@ public sealed class RecipesController(
         {
             return this.View(model);
         }
+
+        string? photoUrl = model.ExistingPhotoUrl;
+
+        // Handle photo upload if a new photo was provided
+        if (model.Photo is not null && model.Photo.Length > 0)
+        {
+            // Validate file type
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            if (!allowedTypes.Contains(model.Photo.ContentType))
+            {
+                this.ModelState.AddModelError(
+                    nameof(EditRecipeViewModel.Photo),
+                    this.localizer["Error_InvalidFileType"]);
+                return this.View(model);
+            }
+
+            // Validate file size (max 5MB)
+            if (model.Photo.Length > 5 * 1024 * 1024)
+            {
+                this.ModelState.AddModelError(
+                    nameof(EditRecipeViewModel.Photo),
+                    this.localizer["Error_FileTooLarge"]);
+                return this.View(model);
+            }
+
+            // Delete old photo if it exists
+            if (!string.IsNullOrEmpty(model.ExistingPhotoUrl))
+            {
+                await this.photoStorageService.DeletePhotoAsync(model.ExistingPhotoUrl);
+            }
+
+            // Upload new photo
+            using var stream = model.Photo.OpenReadStream();
+            photoUrl = await this.photoStorageService.UploadPhotoAsync(
+                model.Photo.FileName,
+                model.Photo.ContentType,
+                stream);
+        }
+
+        var attributesWithPhoto = model.Attributes with { PhotoUrl = photoUrl };
+
         try
         {
             await this.recipeManager.UpdateRecipe(
-                id, model.Attributes, model.BaseRevision, this.User.GetUserId());
+                id, attributesWithPhoto, model.BaseRevision, this.User.GetUserId());
         }
         catch (ConcurrencyException)
         {

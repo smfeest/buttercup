@@ -1,5 +1,6 @@
 using Buttercup.Application;
 using Buttercup.EntityModel;
+using Buttercup.Storage;
 using Buttercup.TestUtils;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Models.Recipes;
@@ -19,6 +20,7 @@ public sealed class RecipesControllerTests : IDisposable
     private readonly DictionaryLocalizer<RecipesController> localizer = new();
     private readonly Mock<IRecipesControllerQueries> queriesMock = new();
     private readonly Mock<IRecipeManager> recipeManagerMock = new();
+    private readonly Mock<IPhotoStorageService> photoStorageServiceMock = new();
 
     private readonly RecipesController recipesController;
 
@@ -28,7 +30,8 @@ public sealed class RecipesControllerTests : IDisposable
             this.dbContextFactory,
             this.localizer,
             this.queriesMock.Object,
-            this.recipeManagerMock.Object)
+            this.recipeManagerMock.Object,
+            this.photoStorageServiceMock.Object)
         {
             ControllerContext = new() { HttpContext = this.httpContext },
         };

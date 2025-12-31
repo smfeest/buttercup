@@ -70,6 +70,12 @@ public sealed record Recipe : IEntityId, ISoftDeletable
     public string? Source { get; set; }
 
     /// <summary>
+    /// Gets or sets the URL of the photo of the dish in Azure blob storage.
+    /// </summary>
+    [StringLength(1000)]
+    public string? PhotoUrl { get; set; }
+
+    /// <summary>
     /// Gets or sets the date and time at which the recipe was added.
     /// </summary>
     public required DateTime Created { get; set; }
