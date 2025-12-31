@@ -105,6 +105,37 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
+    public async Task Authenticate_UserDeactivated()
+    {
+        var args = this.BuildAuthenticateArgs();
+
+        var user = this.modelFactory.BuildUser(deactivated: true) with { Email = args.Email };
+        await this.DatabaseFixture.InsertEntities(user);
+
+        this.SetPasswordAuthenticationRateLimiterResult(args.Email, true);
+
+        var result = await this.passwordAuthenticationService.Authenticate(
+            args.Email, args.Password, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "authentication_failure:user_deactivated", args.IpAddress, user.Id));
+
+        // Logs user deactivated message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(17)
+            .HasLevel(LogLevel.Information)
+            .HasMessage(
+                $"Authentication failed; user {user.Id} ({user.Email}) is deactivated");
+
+        // Returns 'incorrect credentials' failure
+        Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
+    }
+
+    [Fact]
     public async Task Authenticate_UserHasNoPassword()
     {
         var args = this.BuildAuthenticateArgs();
@@ -353,6 +384,171 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
     #endregion
 
+    #region CanResetPassword
+
+    [Fact]
+    public async Task CanResetPassword_TokenExpired()
+    {
+        var args = this.BuildCanResetPasswordArgs();
+
+        var user = this.modelFactory.BuildUser();
+        var token = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = args.Token,
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(24, 0, 1)),
+        };
+        await this.DatabaseFixture.InsertEntities(user, token);
+
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            args.Token, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "password_reset_failure:invalid_token", args.IpAddress));
+
+        // Logs invalid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(14)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage(
+                $"Cannot use token '{args.Token[..6]}…' to reset password; token is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
+    }
+
+    [Fact]
+    public async Task CanResetPassword_TokenNonExistent()
+    {
+        var args = this.BuildCanResetPasswordArgs();
+
+        var user = this.modelFactory.BuildUser();
+        var token = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = this.modelFactory.NextString("token"),
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+        };
+        await this.DatabaseFixture.InsertEntities(user, token);
+
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            args.Token, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "password_reset_failure:invalid_token", args.IpAddress));
+
+        // Logs invalid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(14)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage(
+                $"Cannot use token '{args.Token[..6]}…' to reset password; token is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
+    }
+
+    [Fact]
+    public async Task CanResetPassword_TokenNonExistentAndShort()
+    {
+        var args = this.BuildCanResetPasswordArgs() with { Token = "ABC" };
+
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            args.Token, args.IpAddress);
+
+        // Logs invalid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(14)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage($"Cannot use token 'ABC' to reset password; token is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
+    }
+
+    [Fact]
+    public async Task CanResetPassword_UserDeactivated()
+    {
+        var args = this.BuildCanResetPasswordArgs();
+
+        var user = this.modelFactory.BuildUser(deactivated: true);
+        var token = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = args.Token,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+        };
+        await this.DatabaseFixture.InsertEntities(user, token);
+
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            args.Token, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "password_reset_failure:user_deactivated", args.IpAddress, user.Id));
+
+        // Logs user deactivated message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(18)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage(
+                $"Cannot use token '{args.Token[..6]}…' to reset password; user {user.Id} ({user.Email}) is deactivated");
+
+        // Returns 'user deactivated' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.UserDeactivated, result.Failure);
+    }
+
+    [Fact]
+    public async Task CanResetPassword_Success()
+    {
+        var args = this.BuildCanResetPasswordArgs();
+
+        var user = this.modelFactory.BuildUser();
+        var token = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = args.Token,
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(23, 59, 59)),
+        };
+        await this.DatabaseFixture.InsertEntities(user, token);
+
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            args.Token, args.IpAddress);
+
+        // Logs valid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(15)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage(
+                $"Can use token '{args.Token[..6]}…' to reset password for user {user.Id} ({user.Email})");
+
+        // Returns success result with affected user
+        Assert.True(result.IsSuccess);
+        Assert.Equal(user, result.User);
+    }
+
+    private sealed record CanResetPasswordArgs(string Token, IPAddress IpAddress);
+
+    private CanResetPasswordArgs BuildCanResetPasswordArgs() => new(
+        this.modelFactory.NextString("token"), this.modelFactory.NextIpAddress());
+
+    #endregion
+
     #region ChangePassword
 
     [Fact]
@@ -503,133 +699,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
     #endregion
 
-    #region PasswordResetTokenIsValid
-
-    [Fact]
-    public async Task PasswordResetTokenIsValid_Valid()
-    {
-        var args = this.BuildPasswordResetTokenIsValidArgs();
-
-        var user = this.modelFactory.BuildUser();
-        var token = new PasswordResetToken
-        {
-            UserId = user.Id,
-            Token = args.Token,
-            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(23, 59, 59)),
-        };
-        await this.DatabaseFixture.InsertEntities(user, token);
-
-        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            args.Token, args.IpAddress);
-
-        // Logs valid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(15)
-            .HasLevel(LogLevel.Debug)
-            .HasMessage(
-                $"Password reset token '{args.Token[..6]}…' is valid and belongs to user {user.Id}");
-
-        // Returns true
-        Assert.True(result);
-    }
-
-    [Fact]
-    public async Task PasswordResetTokenIsValid_Expired()
-    {
-        var args = this.BuildPasswordResetTokenIsValidArgs();
-
-        var user = this.modelFactory.BuildUser();
-        var token = new PasswordResetToken
-        {
-            UserId = user.Id,
-            Token = args.Token,
-            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(24, 0, 1)),
-        };
-        await this.DatabaseFixture.InsertEntities(user, token);
-
-        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            args.Token, args.IpAddress);
-
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", args.IpAddress));
-
-        // Logs invalid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(14)
-            .HasLevel(LogLevel.Debug)
-            .HasMessage($"Password reset token '{args.Token[..6]}…' is no longer valid");
-
-        // Returns false
-        Assert.False(result);
-    }
-
-    [Fact]
-    public async Task PasswordResetTokenIsValid_NonExistent()
-    {
-        var args = this.BuildPasswordResetTokenIsValidArgs();
-
-        var user = this.modelFactory.BuildUser();
-        var token = new PasswordResetToken
-        {
-            UserId = user.Id,
-            Token = this.modelFactory.NextString("token"),
-            Created = this.timeProvider.GetUtcDateTimeNow(),
-        };
-        await this.DatabaseFixture.InsertEntities(user, token);
-
-        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            args.Token, args.IpAddress);
-
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", args.IpAddress));
-
-        // Logs invalid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(14)
-            .HasLevel(LogLevel.Debug)
-            .HasMessage($"Password reset token '{args.Token[..6]}…' is no longer valid");
-
-        // Returns false
-        Assert.False(result);
-    }
-
-    [Fact]
-    public async Task PasswordResetTokenIsValid_ShortNonExistent()
-    {
-        var args = this.BuildPasswordResetTokenIsValidArgs() with { Token = "ABC" };
-
-        var result = await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            args.Token, args.IpAddress);
-
-        // Logs invalid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(14)
-            .HasLevel(LogLevel.Debug)
-            .HasMessage($"Password reset token 'ABC' is no longer valid");
-
-        // Returns false
-        Assert.False(result);
-    }
-
-    private sealed record PasswordResetTokenIsValidArgs(string Token, IPAddress IpAddress);
-
-    private PasswordResetTokenIsValidArgs BuildPasswordResetTokenIsValidArgs() => new(
-        this.modelFactory.NextString("token"), this.modelFactory.NextIpAddress());
-
-    #endregion
-
     #region ResetPassword
 
     [Fact]
-    public async Task ResetPassword_ExpiredToken()
+    public async Task ResetPassword_TokenExpired()
     {
         var args = this.BuildResetPasswordArgs();
 
@@ -642,10 +715,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        // Throws exception
-        await Assert.ThrowsAsync<InvalidTokenException>(
-            () => this.passwordAuthenticationService.ResetPassword(
-                args.Token, args.NewPassword, args.IpAddress));
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            args.Token, args.NewPassword, args.IpAddress);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -660,10 +731,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Unable to reset password; password reset token {args.Token[..6]}… is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
     }
 
     [Fact]
-    public async Task ResetPassword_NonExistentToken()
+    public async Task ResetPassword_TokenNonExistent()
     {
         var args = this.BuildResetPasswordArgs();
 
@@ -676,10 +751,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        // Throws exception
-        await Assert.ThrowsAsync<InvalidTokenException>(
-            () => this.passwordAuthenticationService.ResetPassword(
-                args.Token, args.NewPassword, args.IpAddress));
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            args.Token, args.NewPassword, args.IpAddress);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -694,22 +767,65 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Unable to reset password; password reset token {args.Token[..6]}… is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
     }
 
     [Fact]
-    public async Task ResetPassword_ShortNonExistentToken()
+    public async Task ResetPassword_TokenNonExistentAndShort()
     {
         var args = this.BuildResetPasswordArgs() with { Token = "ABC" };
 
-        await Assert.ThrowsAsync<InvalidTokenException>(
-            () => this.passwordAuthenticationService.ResetPassword(
-                args.Token, args.NewPassword, args.IpAddress));
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            args.Token, args.NewPassword, args.IpAddress);
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(10)
             .HasLevel(LogLevel.Information)
             .HasMessage("Unable to reset password; password reset token ABC is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
+    }
+
+    [Fact]
+    public async Task ResetPassword_UserDeactivated()
+    {
+        var args = this.BuildResetPasswordArgs();
+
+        var user = this.modelFactory.BuildUser(deactivated: true);
+        var token = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = args.Token,
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+        };
+        await this.DatabaseFixture.InsertEntities(user, token);
+
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            args.Token, args.NewPassword, args.IpAddress);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        // Inserts security event
+        Assert.True(
+            await this.SecurityEventExists(
+                dbContext, "password_reset_failure:user_deactivated", args.IpAddress, user.Id));
+
+        // Logs user deactivated message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(19)
+            .HasLevel(LogLevel.Information)
+            .HasMessage(
+                $"Unable to reset password using token {args.Token[..6]}…; user {user.Id} ({user.Email}) is deactivated");
+
+        // Returns 'user deactivated' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.UserDeactivated, result.Failure);
     }
 
     [Fact]
@@ -782,8 +898,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Resets the rate limit counters
         this.passwordAuthenticationRateLimiterMock.Verify(x => x.Reset(userBefore.Email));
 
-        // Returns updated user
-        Assert.Equal(expectedUserAfter, result);
+        // Returns success result with updated user
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedUserAfter, result.User);
     }
 
     private sealed record ResetPasswordArgs(string Token, string NewPassword, IPAddress IpAddress);

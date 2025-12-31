@@ -16,6 +16,16 @@ public enum UserOperation
     Create,
 
     /// <summary>
+    /// Indicates that the user was deactivated.
+    /// </summary>
+    Deactivate,
+
+    /// <summary>
+    /// Indicates that the user was reactivated.
+    /// </summary>
+    Reactivate,
+
+    /// <summary>
     /// Indicates that the user reset their password.
     /// </summary>
     ResetPassword,

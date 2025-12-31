@@ -58,6 +58,16 @@ internal sealed partial class PasswordAuthenticationService(
             return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
 
+        if (user.Deactivated.HasValue)
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "authentication_failure:user_deactivated", ipAddress, user.Id);
+
+            this.LogAuthenticationFailedUserDeactivated(user.Id, user.Email);
+
+            return new(PasswordAuthenticationFailure.IncorrectCredentials);
+        }
+
         if (user.HashedPassword == null)
         {
             await this.InsertSecurityEvent(
@@ -112,6 +122,43 @@ internal sealed partial class PasswordAuthenticationService(
         return new(user);
     }
 
+    [SuppressMessage(
+        "Performance",
+        "CA1873:Avoid potentially expensive logging",
+        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
+    public async Task<PasswordResetResult> CanResetPassword(string token, IPAddress? ipAddress)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var user = await this.ValidPasswordResetToken(dbContext, token)
+            .Select(t => t.User)
+            .FirstOrDefaultAsync();
+
+        if (user is null)
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "password_reset_failure:invalid_token", ipAddress);
+
+            this.LogCannotResetPasswordTokenInvalid(RedactToken(token));
+
+            return new(PasswordResetFailure.InvalidToken);
+        }
+
+        if (user.Deactivated.HasValue)
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id);
+
+            this.LogCannotResetPasswordUserDeactivated(RedactToken(token), user.Id, user.Email);
+
+            return new(PasswordResetFailure.UserDeactivated);
+        }
+
+        this.LogCanResetPassword(RedactToken(token), user.Id, user.Email);
+
+        return new(user);
+    }
+
     public async Task<bool> ChangePassword(
         long userId, string currentPassword, string newPassword, IPAddress? ipAddress)
     {
@@ -155,34 +202,8 @@ internal sealed partial class PasswordAuthenticationService(
         "Performance",
         "CA1873:Avoid potentially expensive logging",
         Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
-    public async Task<bool> PasswordResetTokenIsValid(string token, IPAddress? ipAddress)
-    {
-        using var dbContext = this.dbContextFactory.CreateDbContext();
-
-        var userId = await this.ValidPasswordResetToken(dbContext, token)
-            .Select<PasswordResetToken, long?>(t => t.UserId)
-            .FirstOrDefaultAsync();
-
-        if (userId.HasValue)
-        {
-            this.LogPasswordResetTokenValid(RedactToken(token), userId.Value);
-        }
-        else
-        {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:invalid_token", ipAddress);
-
-            this.LogPasswordResetTokenInvalid(RedactToken(token));
-        }
-
-        return userId.HasValue;
-    }
-
-    [SuppressMessage(
-        "Performance",
-        "CA1873:Avoid potentially expensive logging",
-        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
-    public async Task<User> ResetPassword(string token, string newPassword, IPAddress? ipAddress)
+    public async Task<PasswordResetResult> ResetPassword(
+        string token, string newPassword, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -198,7 +219,17 @@ internal sealed partial class PasswordAuthenticationService(
 
             this.LogPasswordResetFailedInvalidToken(RedactToken(token));
 
-            throw new InvalidTokenException("Password reset token is invalid");
+            return new(PasswordResetFailure.InvalidToken);
+        }
+
+        if (user.Deactivated.HasValue)
+        {
+            await this.InsertSecurityEvent(
+                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id);
+
+            this.LogPasswordResetFailedUserDeactivated(RedactToken(token), user.Id, user.Email);
+
+            return new(PasswordResetFailure.UserDeactivated);
         }
 
         await this.SetPassword(
@@ -210,7 +241,7 @@ internal sealed partial class PasswordAuthenticationService(
 
         await this.passwordAuthenticationRateLimiter.Reset(user.Email);
 
-        return user;
+        return new(user);
     }
 
     public async Task<bool> SendPasswordResetLink(
@@ -334,6 +365,13 @@ internal sealed partial class PasswordAuthenticationService(
     private partial void LogAuthenticationFailedIncorrectPassword(long userId, string email);
 
     [LoggerMessage(
+        EventId = 17,
+        EventName = "AuthenticationFailedUserDeactivated",
+        Level = LogLevel.Information,
+        Message = "Authentication failed; user {UserId} ({Email}) is deactivated")]
+    private partial void LogAuthenticationFailedUserDeactivated(long userId, string email);
+
+    [LoggerMessage(
         EventId = 3,
         EventName = "AuthenticationFailedNoPasswordSet",
         Level = LogLevel.Information,
@@ -353,6 +391,28 @@ internal sealed partial class PasswordAuthenticationService(
         Level = LogLevel.Information,
         Message = "Authentication failed; no user with email {Email}")]
     private partial void LogAuthenticationFailedUnrecognizedEmail(string email);
+
+    [LoggerMessage(
+        EventId = 14,
+        EventName = "CannotResetPasswordTokenInvalid",
+        Level = LogLevel.Debug,
+        Message = "Cannot use token '{Token}' to reset password; token is invalid")]
+    private partial void LogCannotResetPasswordTokenInvalid(string token);
+
+    [LoggerMessage(
+        EventId = 18,
+        EventName = "CannotResetPasswordUserDeactivated",
+        Level = LogLevel.Debug,
+        Message = "Cannot use token '{Token}' to reset password; user {UserId} ({Email}) is deactivated")]
+    private partial void LogCannotResetPasswordUserDeactivated(
+        string token, long userId, string email);
+
+    [LoggerMessage(
+        EventId = 15,
+        EventName = "CanResetPassword",
+        Level = LogLevel.Debug,
+        Message = "Can use token '{Token}' to reset password for user {UserId} ({Email})")]
+    private partial void LogCanResetPassword(string token, long userId, string email);
 
     [LoggerMessage(
         EventId = 6,
@@ -390,6 +450,14 @@ internal sealed partial class PasswordAuthenticationService(
     private partial void LogPasswordResetFailedInvalidToken(string token);
 
     [LoggerMessage(
+        EventId = 19,
+        EventName = "PasswordResetFailedUserDeactivated",
+        Level = LogLevel.Information,
+        Message = "Unable to reset password using token {Token}; user {UserId} ({Email}) is deactivated")]
+    private partial void LogPasswordResetFailedUserDeactivated(
+        string token, long userId, string email);
+
+    [LoggerMessage(
         EventId = 11,
         EventName = "PasswordResetLinkNotSentRateLimitExceeded",
         Level = LogLevel.Information,
@@ -409,20 +477,6 @@ internal sealed partial class PasswordAuthenticationService(
         Level = LogLevel.Information,
         Message = "Password reset link sent to user {UserId} ({Email})")]
     private partial void LogPasswordResetLinkSent(long userId, string email);
-
-    [LoggerMessage(
-        EventId = 14,
-        EventName = "PasswordResetTokenInvalid",
-        Level = LogLevel.Debug,
-        Message = "Password reset token '{Token}' is no longer valid")]
-    private partial void LogPasswordResetTokenInvalid(string token);
-
-    [LoggerMessage(
-        EventId = 15,
-        EventName = "PasswordResetTokenValid",
-        Level = LogLevel.Debug,
-        Message = "Password reset token '{Token}' is valid and belongs to user {UserId}")]
-    private partial void LogPasswordResetTokenValid(string token, long userId);
 
     [LoggerMessage(
         EventId = 16,

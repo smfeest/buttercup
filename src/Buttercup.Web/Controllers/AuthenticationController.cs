@@ -42,11 +42,15 @@ public sealed class AuthenticationController(
 
     [HttpGet("reset-password/{token}", Name = "ResetPassword")]
     [EnsureSignedOut]
-    public async Task<IActionResult> ResetPassword(string token) =>
-        await this.passwordAuthenticationService.PasswordResetTokenIsValid(
-            token, this.HttpContext.Connection.RemoteIpAddress) ?
+    public async Task<IActionResult> ResetPassword(string token)
+    {
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            token, this.HttpContext.Connection.RemoteIpAddress);
+
+        return result.IsSuccess ?
             this.View() :
-            this.View("ResetPasswordInvalidToken");
+            this.PasswordResetFailureView(result.Failure.Value);
+    }
 
     [HttpPost("reset-password/{token}")]
     public async Task<IActionResult> ResetPassword(string token, ResetPasswordViewModel model)
@@ -56,19 +60,17 @@ public sealed class AuthenticationController(
             return this.View(model);
         }
 
-        try
-        {
-            var user = await this.passwordAuthenticationService.ResetPassword(
-                token, model.Password, this.HttpContext.Connection.RemoteIpAddress);
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            token, model.Password, this.HttpContext.Connection.RemoteIpAddress);
 
-            await this.cookieAuthenticationService.SignIn(this.HttpContext, user);
-
-            return this.RedirectToHome();
-        }
-        catch (InvalidTokenException)
+        if (!result.IsSuccess)
         {
-            return this.View("ResetPasswordInvalidToken");
+            return this.PasswordResetFailureView(result.Failure.Value);
         }
+
+        await this.cookieAuthenticationService.SignIn(this.HttpContext, result.User);
+
+        return this.RedirectToHome();
     }
 
     [HttpGet("sign-in")]
@@ -123,6 +125,14 @@ public sealed class AuthenticationController(
             this.Redirect(returnUrl) :
             this.RedirectToHome();
     }
+
+    private ViewResult PasswordResetFailureView(PasswordResetFailure failure) =>
+        this.View(failure switch
+        {
+            PasswordResetFailure.InvalidToken => "ResetPasswordInvalidToken",
+            PasswordResetFailure.UserDeactivated => "ResetPasswordUserDeactivated",
+            _ => throw new ArgumentOutOfRangeException(nameof(failure), failure, null),
+        });
 
     private RedirectToActionResult RedirectToHome() =>
         this.RedirectToAction(nameof(HomeController.Index), "Home");

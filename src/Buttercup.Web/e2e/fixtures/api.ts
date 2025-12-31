@@ -24,6 +24,8 @@ export type ApiUserFixture = {
   ) => Promise<Recipe>;
   /** Creates a test user. */
   createTestUser(): Promise<TestUser>;
+  /** Deactivates a user. */
+  deactivateUser: (id: number) => Promise<void>;
   /** Hard deletes a recipe. */
   hardDeleteRecipe: (id: number) => Promise<void>;
   /** Hard deletes a test user. */
@@ -70,6 +72,14 @@ const CREATE_TEST_USER_QUERY = gql`
         email
       }
       password
+    }
+  }
+`;
+
+const DEACTIVATE_USER_QUERY = gql`
+  mutation DeactivateUser($id: Long!) {
+    deactivateUser(input: { id: $id }) {
+      deactivated
     }
   }
 `;
@@ -223,6 +233,9 @@ export const api: TestFixture<Api, PlaywrightTestOptions> = (
         const { user, password } = result.data.createTestUser;
 
         return { ...user, password };
+      },
+      async deactivateUser(id) {
+        await client.mutation(DEACTIVATE_USER_QUERY, { id });
       },
       async hardDeleteRecipe(id) {
         await client.mutation(HARD_DELETE_RECIPE_QUERY, { id });

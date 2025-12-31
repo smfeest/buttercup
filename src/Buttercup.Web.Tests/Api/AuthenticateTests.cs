@@ -44,6 +44,34 @@ public sealed class AuthenticateTests(AppFactory appFactory) : EndToEndTests(app
     }
 
     [Fact]
+    public async Task FailingToAuthenticateDueToUserBeingDeactivated()
+    {
+        var user = await this.InsertUser(deactivated: true);
+
+        using var client = this.AppFactory.CreateClient();
+        using var response = await PostAuthenticateMutation(client, user.Email, UserPassword);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        JsonAssert.Equivalent(
+            new
+            {
+                IsSuccess = false,
+                AccessToken = default(string?),
+                Errors = new[]
+                {
+                    new
+                    {
+                        __typename = "IncorrectCredentialsError",
+                        Message = "Wrong email address or password",
+                    }
+                },
+            },
+            dataElement.GetProperty("authenticate"));
+    }
+
+    [Fact]
     public async Task FailingToAuthenticateDueToIncorrectPassword()
     {
         var user = await this.InsertUser();
@@ -111,12 +139,12 @@ public sealed class AuthenticateTests(AppFactory appFactory) : EndToEndTests(app
             dataElement.GetProperty("authenticate"));
     }
 
-    private async Task<User> InsertUser()
+    private async Task<User> InsertUser(bool deactivated = false)
     {
         var userPasswordHasher =
             this.AppFactory.Services.GetRequiredService<IPasswordHasher<User>>();
 
-        var user = this.ModelFactory.BuildUser() with
+        var user = this.ModelFactory.BuildUser(deactivated: deactivated) with
         {
             Email = $"user{Random.Shared.Next()}@example.com"
         };

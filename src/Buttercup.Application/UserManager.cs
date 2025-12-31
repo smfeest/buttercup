@@ -27,7 +27,7 @@ internal sealed class UserManager(
         {
             Name = attributes.Name,
             Email = attributes.Email,
-            SecurityStamp = this.randomTokenGenerator.Generate(2),
+            SecurityStamp = this.GenerateSecurityStamp(),
             TimeZone = attributes.TimeZone,
             IsAdmin = attributes.IsAdmin,
             Created = timestamp,
@@ -72,7 +72,7 @@ internal sealed class UserManager(
             Name = $"Test User {suffix}",
             Email = $"test+{suffix}@example.com",
             PasswordCreated = timestamp,
-            SecurityStamp = this.randomTokenGenerator.Generate(2),
+            SecurityStamp = this.GenerateSecurityStamp(),
             TimeZone = "Etc/UTC",
             IsAdmin = false,
             Created = timestamp,
@@ -96,6 +96,46 @@ internal sealed class UserManager(
         return (user.Id, password);
     }
 
+    public async Task<bool> DeactivateUser(long id, long currentUserId, IPAddress? ipAddress)
+    {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var user = await dbContext.Users.AsTracking().GetAsync(id);
+
+        if (user.Deactivated.HasValue)
+        {
+            return false;
+        }
+
+        user.SecurityStamp = this.GenerateSecurityStamp();
+        user.Modified = timestamp;
+        user.Deactivated = timestamp;
+        user.Revision++;
+
+        dbContext.UserAuditEntries.Add(
+            new()
+            {
+                Time = timestamp,
+                Operation = UserOperation.Deactivate,
+                TargetId = id,
+                ActorId = currentUserId,
+                IpAddress = ipAddress
+            });
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return await this.DeactivateUser(id, currentUserId, ipAddress);
+        }
+
+        return true;
+    }
+
     public async Task<User?> FindUser(long id)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -112,6 +152,45 @@ internal sealed class UserManager(
         return await dbContext.Users.Where(u => u.Id == id).ExecuteDeleteAsync() != 0;
     }
 
+    public async Task<bool> ReactivateUser(long id, long currentUserId, IPAddress? ipAddress)
+    {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var user = await dbContext.Users.AsTracking().GetAsync(id);
+
+        if (!user.Deactivated.HasValue)
+        {
+            return false;
+        }
+
+        user.Modified = timestamp;
+        user.Deactivated = null;
+        user.Revision++;
+
+        dbContext.UserAuditEntries.Add(
+            new()
+            {
+                Time = timestamp,
+                Operation = UserOperation.Reactivate,
+                TargetId = id,
+                ActorId = currentUserId,
+                IpAddress = ipAddress
+            });
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return await this.ReactivateUser(id, currentUserId, ipAddress);
+        }
+
+        return true;
+    }
+
     public async Task SetTimeZone(long userId, string timeZone)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -123,6 +202,8 @@ internal sealed class UserManager(
                 .SetProperty(u => u.Modified, this.timeProvider.GetUtcDateTimeNow())
                 .SetProperty(u => u.Revision, u => u.Revision + 1));
     }
+
+    private string GenerateSecurityStamp() => this.randomTokenGenerator.Generate(2);
 
     private static async Task UpdateUserProperties(
         AppDbContext dbContext,

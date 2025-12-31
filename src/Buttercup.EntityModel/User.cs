@@ -71,6 +71,12 @@ public sealed record User : IEntityId
     public required DateTime Modified { get; set; }
 
     /// <summary>
+    /// Gets or sets the date and time at which the user was deactivated, or null if the user is
+    /// still active.
+    /// </summary>
+    public DateTime? Deactivated { get; set; }
+
+    /// <summary>
     /// Gets or sets the revision number for concurrency control.
     /// </summary>
     [ConcurrencyCheck]

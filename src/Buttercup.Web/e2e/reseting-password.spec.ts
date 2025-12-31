@@ -44,3 +44,39 @@ test('can reset password', async ({ api, baseURL, page }) => {
     await hardDeleteTestUser(user.id);
   }
 });
+
+test('cannot reset password as deactivated user', async ({
+  api,
+  baseURL,
+  page,
+}) => {
+  const { createTestUser, deactivateUser, hardDeleteTestUser } =
+    api('e2e-admin');
+  const user = await createTestUser();
+  await deactivateUser(user.id);
+
+  try {
+    await page.goto('/sign-in');
+    await page.getByRole('link', { name: 'Forgot your password?' }).click();
+
+    await page.getByLabel('Email').fill(user.email);
+    await page.getByRole('button', { name: 'Send reset link' }).click();
+
+    await expect(page.getByText('sent you a link')).toBeVisible();
+
+    const resetPasswordEmailText = await latestEmailText(user.email);
+    const resetLinkMatch = resetPasswordEmailText.match(
+      new RegExp(`${baseURL}\\/reset-password\\/[^\\s]+`),
+    );
+    expect(resetLinkMatch).not.toBeNull();
+
+    await page.goto(resetLinkMatch![0]);
+    await expect(
+      page.getByText(
+        'You cannot reset your password because your user account has been deactivated.',
+      ),
+    ).toBeVisible();
+  } finally {
+    await hardDeleteTestUser(user.id);
+  }
+});
