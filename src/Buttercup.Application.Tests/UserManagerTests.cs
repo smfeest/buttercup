@@ -55,7 +55,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts user
         var expected = new User
         {
             Id = id,
@@ -74,14 +73,18 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         var actual = await dbContext.Users.FindAsync([id], TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
 
-        // Inserts user audit entry
-        var userAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
             TestContext.Current.CancellationToken);
-        Assert.Equal(this.timeProvider.GetUtcDateTimeNow(), userAuditEntry.Time);
-        Assert.Equal(UserOperation.Create, userAuditEntry.Operation);
-        Assert.Equal(id, userAuditEntry.TargetId);
-        Assert.Equal(currentUser.Id, userAuditEntry.ActorId);
-        Assert.Equal(ipAddress, userAuditEntry.IpAddress);
+        var expectedAuditEntry = new UserAuditEntry
+        {
+            Id = actualAuditEntry.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = UserOperation.Create,
+            TargetId = id,
+            ActorId = currentUser.Id,
+            IpAddress = ipAddress,
+        };
+        Assert.Equal(expectedAuditEntry, actualAuditEntry);
     }
 
     [Fact]

@@ -641,6 +641,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
+        // Updates user in database
         var expectedUserAfter = userBefore with
         {
             HashedPassword = newPasswordHash,
@@ -649,12 +650,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
         };
-
-        // Updates user in database
-        Assert.Equal(
-            expectedUserAfter,
-            await dbContext.Users.FindAsync(
-                [userBefore.Id], TestContext.Current.CancellationToken));
+        var actualUserAfter = await dbContext.Users.FindAsync(
+                [userBefore.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(expectedUserAfter, actualUserAfter);
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
@@ -665,13 +663,18 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
-        var userAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
             TestContext.Current.CancellationToken);
-        Assert.Equal(this.timeProvider.GetUtcDateTimeNow(), userAuditEntry.Time);
-        Assert.Equal(UserOperation.ChangePassword, userAuditEntry.Operation);
-        Assert.Equal(userBefore.Id, userAuditEntry.TargetId);
-        Assert.Equal(userBefore.Id, userAuditEntry.ActorId);
-        Assert.Equal(args.IpAddress, userAuditEntry.IpAddress);
+        var expectedAuditEntry = new UserAuditEntry
+        {
+            Id = actualAuditEntry.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = UserOperation.ChangePassword,
+            TargetId = userBefore.Id,
+            ActorId = userBefore.Id,
+            IpAddress = args.IpAddress,
+        };
+        Assert.Equal(expectedAuditEntry, actualAuditEntry);
 
         // Logs password changed message
         LogAssert.SingleEntry(this.logger)
@@ -853,6 +856,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
+        // Updates user in database
         var expectedUserAfter = userBefore with
         {
             HashedPassword = newPasswordHash,
@@ -861,12 +865,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
         };
-
-        // Updates user in database
-        Assert.Equal(
-            expectedUserAfter,
-            await dbContext.Users.FindAsync(
-                [userBefore.Id], TestContext.Current.CancellationToken));
+        var actualUserAfter = await dbContext.Users.FindAsync(
+            [userBefore.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(expectedUserAfter, actualUserAfter);
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
@@ -877,13 +878,18 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
-        var userAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
+        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
             TestContext.Current.CancellationToken);
-        Assert.Equal(this.timeProvider.GetUtcDateTimeNow(), userAuditEntry.Time);
-        Assert.Equal(UserOperation.ResetPassword, userAuditEntry.Operation);
-        Assert.Equal(userBefore.Id, userAuditEntry.TargetId);
-        Assert.Equal(userBefore.Id, userAuditEntry.ActorId);
-        Assert.Equal(args.IpAddress, userAuditEntry.IpAddress);
+        var expectedAuditEntry = new UserAuditEntry
+        {
+            Id = actualAuditEntry.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = UserOperation.ResetPassword,
+            TargetId = userBefore.Id,
+            ActorId = userBefore.Id,
+            IpAddress = args.IpAddress,
+        };
+        Assert.Equal(expectedAuditEntry, actualAuditEntry);
 
         // Logs password reset message
         LogAssert.SingleEntry(this.logger)
