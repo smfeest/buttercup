@@ -136,9 +136,6 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user is null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:invalid_token", ipAddress);
-
             this.LogCannotResetPasswordTokenInvalid(RedactToken(token));
 
             return new(PasswordResetFailure.InvalidToken);
@@ -146,8 +143,17 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user.Deactivated.HasValue)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id);
+            dbContext.UserAuditEntries.Add(
+                new()
+                {
+                    Time = this.timeProvider.GetUtcDateTimeNow(),
+                    Operation = UserAuditOperation.ResetPassword,
+                    TargetId = user.Id,
+                    ActorId = user.Id,
+                    IpAddress = ipAddress,
+                    Failure = UserAuditFailure.UserDeactivated,
+                });
+            await dbContext.SaveChangesAsync();
 
             this.LogCannotResetPasswordUserDeactivated(RedactToken(token), user.Id, user.Email);
 
@@ -232,9 +238,6 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user is null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:invalid_token", ipAddress);
-
             this.LogPasswordResetFailedInvalidToken(RedactToken(token));
 
             return new(PasswordResetFailure.InvalidToken);
@@ -242,8 +245,17 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user.Deactivated.HasValue)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id);
+            dbContext.UserAuditEntries.Add(
+                new()
+                {
+                    Time = this.timeProvider.GetUtcDateTimeNow(),
+                    Operation = UserAuditOperation.ResetPassword,
+                    TargetId = user.Id,
+                    ActorId = user.Id,
+                    IpAddress = ipAddress,
+                    Failure = UserAuditFailure.UserDeactivated,
+                });
+            await dbContext.SaveChangesAsync();
 
             this.LogPasswordResetFailedUserDeactivated(RedactToken(token), user.Id, user.Email);
 
@@ -269,9 +281,6 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (!await this.passwordResetRateLimiter.IsAllowed(email))
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:rate_limit_exceeded", ipAddress);
-
             this.LogPasswordResetLinkNotSentRateLimitExceeded(email);
 
             return false;
@@ -281,9 +290,6 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user == null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_reset_failure:unrecognized_email", ipAddress);
-
             this.LogPasswordResetLinkNotSentUnrecognizedEmail(email);
 
             return true;

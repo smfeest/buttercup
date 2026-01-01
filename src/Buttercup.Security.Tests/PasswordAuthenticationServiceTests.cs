@@ -396,11 +396,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
@@ -429,11 +424,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var result = await this.passwordAuthenticationService.CanResetPassword(token, ipAddress);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -480,10 +470,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ResetPassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.UserDeactivated);
 
         // Logs user deactivated message
         LogAssert.SingleEntry(this.logger)
@@ -691,11 +685,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(10)
@@ -726,11 +715,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             token, newPassword, ipAddress);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -779,10 +763,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ResetPassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.UserDeactivated);
 
         // Logs user deactivated message
         LogAssert.SingleEntry(this.logger)
@@ -883,11 +871,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:rate_limit_exceeded", ipAddress));
-
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
             .HasId(11)
@@ -912,11 +895,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             email, ipAddress, Mock.Of<IUrlHelper>());
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:unrecognized_email", ipAddress));
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
