@@ -639,18 +639,12 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
-        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
-            TestContext.Current.CancellationToken);
-        var expectedAuditEntry = new UserAuditEntry
-        {
-            Id = actualAuditEntry.Id,
-            Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserAuditOperation.ChangePassword,
-            TargetId = userBefore.Id,
-            ActorId = userBefore.Id,
-            IpAddress = ipAddress,
-        };
-        Assert.Equal(expectedAuditEntry, actualAuditEntry);
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ChangePassword,
+            userBefore.Id,
+            userBefore.Id,
+            ipAddress);
 
         // Logs password changed message
         LogAssert.SingleEntry(this.logger)
@@ -839,18 +833,12 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
-        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
-            TestContext.Current.CancellationToken);
-        var expectedAuditEntry = new UserAuditEntry
-        {
-            Id = actualAuditEntry.Id,
-            Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserAuditOperation.ResetPassword,
-            TargetId = userBefore.Id,
-            ActorId = userBefore.Id,
-            IpAddress = ipAddress,
-        };
-        Assert.Equal(expectedAuditEntry, actualAuditEntry);
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ResetPassword,
+            userBefore.Id,
+            userBefore.Id,
+            ipAddress);
 
         // Logs password reset message
         LogAssert.SingleEntry(this.logger)
@@ -1023,4 +1011,27 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.passwordHasherMock
             .Setup(x => x.VerifyHashedPassword(user, hashedPassword, suppliedPassword))
             .Returns(result);
+
+    private async Task AssertSingleUserAuditEntry(
+        AppDbContext dbContext,
+        UserAuditOperation operation,
+        long targetId,
+        long actorId,
+        IPAddress ipAddress,
+        UserAuditFailure? failure = null)
+    {
+        var actual = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        var expected = new UserAuditEntry
+        {
+            Id = actual.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = operation,
+            TargetId = targetId,
+            ActorId = actorId,
+            IpAddress = ipAddress,
+            Failure = failure,
+        };
+        Assert.Equal(expected, actual);
+    }
 }
