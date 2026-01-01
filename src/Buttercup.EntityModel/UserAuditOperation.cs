@@ -6,6 +6,11 @@ namespace Buttercup.EntityModel;
 public enum UserAuditOperation
 {
     /// <summary>
+    /// Indicates that the user authenticate with their password.
+    /// </summary>
+    AuthenticatePassword,
+
+    /// <summary>
     /// Indicates that the user changed their password.
     /// </summary>
     ChangePassword,

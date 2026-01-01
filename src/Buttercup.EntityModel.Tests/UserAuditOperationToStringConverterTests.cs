@@ -5,6 +5,7 @@ namespace Buttercup.EntityModel;
 public sealed class UserAuditOperationToStringConverterTests
 {
     [Theory]
+    [InlineData(UserAuditOperation.AuthenticatePassword, "authenticate_password")]
     [InlineData(UserAuditOperation.ChangePassword, "change_password")]
     [InlineData(UserAuditOperation.Create, "create")]
     [InlineData(UserAuditOperation.CreatePasswordResetToken, "create_password_reset_token")]

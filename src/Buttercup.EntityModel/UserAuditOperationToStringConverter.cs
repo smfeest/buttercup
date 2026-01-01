@@ -11,6 +11,7 @@ internal sealed class UserAuditOperationToStringConverter
 
     private static UserAuditOperation FromString(string value) => value switch
     {
+        "authenticate_password" => UserAuditOperation.AuthenticatePassword,
         "change_password" => UserAuditOperation.ChangePassword,
         "create" => UserAuditOperation.Create,
         "create_password_reset_token" => UserAuditOperation.CreatePasswordResetToken,
@@ -22,6 +23,7 @@ internal sealed class UserAuditOperationToStringConverter
 
     private static string ToString(UserAuditOperation operation) => operation switch
     {
+        UserAuditOperation.AuthenticatePassword => "authenticate_password",
         UserAuditOperation.ChangePassword => "change_password",
         UserAuditOperation.Create => "create",
         UserAuditOperation.CreatePasswordResetToken => "create_password_reset_token",
