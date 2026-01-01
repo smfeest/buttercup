@@ -35,7 +35,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             {
                 Id = 1,
                 Time = baseTime,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = currentUser,
                 Actor = otherUser,
                 IpAddress = IPAddress.Parse("10.20.30.40"),
@@ -44,7 +44,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             {
                 Id = 2,
                 Time = baseTime.AddHours(1),
-                Operation = UserOperation.ChangePassword,
+                Operation = UserAuditOperation.ChangePassword,
                 Target = otherUser,
                 Actor = currentUser,
                 IpAddress = null,
@@ -107,7 +107,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             new()
             {
                 Id = 1,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = currentUser,
                 Actor = currentUser,
                 IpAddress = IPAddress.Parse("10.20.30.40"),
@@ -115,7 +115,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             new()
             {
                 Id = 2,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = otherUser,
                 Actor = currentUser,
                 IpAddress = IPAddress.Parse("10.20.30.40"),
@@ -123,7 +123,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             new()
             {
                 Id = 3,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = otherUser,
                 Actor = currentUser,
                 IpAddress = IPAddress.Parse("192.168.0.2"),
@@ -131,7 +131,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             new()
             {
                 Id = 4,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = otherUser,
                 Actor = currentUser,
                 IpAddress = IPAddress.Parse("10.20.30.40"),
@@ -176,7 +176,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             {
                 Id = 1,
                 Time = baseTime,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = currentUser,
                 Actor = currentUser,
             },
@@ -184,7 +184,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             {
                 Id = 2,
                 Time = baseTime.AddMinutes(2),
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = currentUser,
                 Actor = currentUser,
             },
@@ -192,7 +192,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             {
                 Id = 3,
                 Time = baseTime.AddMinutes(1),
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = currentUser,
                 Actor = currentUser,
             },

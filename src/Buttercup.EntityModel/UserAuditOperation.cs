@@ -1,9 +1,9 @@
 namespace Buttercup.EntityModel;
 
 /// <summary>
-/// Specifies the type of operation performed on a user.
+/// Specifies the type of auditable operation performed on a user.
 /// </summary>
-public enum UserOperation
+public enum UserAuditOperation
 {
     /// <summary>
     /// Indicates that the user changed their password.

@@ -73,7 +73,7 @@ public sealed class AppDbContext : DbContext
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
-            .HasConversion<UserOperationToStringConverter>()
+            .HasConversion<UserAuditOperationToStringConverter>()
             .HasMaxLength(15);
         modelBuilder
             .Entity<UserAuditEntry>()

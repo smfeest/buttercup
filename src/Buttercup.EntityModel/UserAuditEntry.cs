@@ -22,7 +22,7 @@ public sealed record UserAuditEntry : IEntityId
     /// <summary>
     /// Gets or sets the operation.
     /// </summary>
-    public UserOperation Operation { get; set; }
+    public UserAuditOperation Operation { get; set; }
 
     /// <summary>
     /// Gets or sets the user that was the affected by the operation.

@@ -79,7 +79,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         {
             Id = actualAuditEntry.Id,
             Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.Create,
+            Operation = UserAuditOperation.Create,
             TargetId = id,
             ActorId = currentUser.Id,
             IpAddress = ipAddress,
@@ -260,7 +260,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         {
             Id = actualAuditEntry.Id,
             Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.Deactivate,
+            Operation = UserAuditOperation.Deactivate,
             TargetId = userBefore.Id,
             ActorId = currentUser.Id,
             IpAddress = ipAddress,
@@ -397,7 +397,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         {
             Id = actualAuditEntry.Id,
             Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.Reactivate,
+            Operation = UserAuditOperation.Reactivate,
             TargetId = userBefore.Id,
             ActorId = currentUser.Id,
             IpAddress = ipAddress,

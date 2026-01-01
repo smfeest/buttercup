@@ -40,7 +40,7 @@ internal sealed class UserManager(
             new()
             {
                 Time = timestamp,
-                Operation = UserOperation.Create,
+                Operation = UserAuditOperation.Create,
                 Target = user,
                 ActorId = currentUserId,
                 IpAddress = ipAddress
@@ -118,7 +118,7 @@ internal sealed class UserManager(
             new()
             {
                 Time = timestamp,
-                Operation = UserOperation.Deactivate,
+                Operation = UserAuditOperation.Deactivate,
                 TargetId = id,
                 ActorId = currentUserId,
                 IpAddress = ipAddress
@@ -173,7 +173,7 @@ internal sealed class UserManager(
             new()
             {
                 Time = timestamp,
-                Operation = UserOperation.Reactivate,
+                Operation = UserAuditOperation.Reactivate,
                 TargetId = id,
                 ActorId = currentUserId,
                 IpAddress = ipAddress

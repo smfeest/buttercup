@@ -189,7 +189,7 @@ internal sealed partial class PasswordAuthenticationService(
         }
 
         await this.SetPassword(
-            dbContext, user, newPassword, UserOperation.ChangePassword, ipAddress);
+            dbContext, user, newPassword, UserAuditOperation.ChangePassword, ipAddress);
 
         this.LogPasswordChanged(user.Id, user.Email);
 
@@ -233,7 +233,7 @@ internal sealed partial class PasswordAuthenticationService(
         }
 
         await this.SetPassword(
-            dbContext, user, newPassword, UserOperation.ResetPassword, ipAddress);
+            dbContext, user, newPassword, UserAuditOperation.ResetPassword, ipAddress);
 
         this.LogPasswordReset(user.Id, RedactToken(token));
 
@@ -324,7 +324,7 @@ internal sealed partial class PasswordAuthenticationService(
         AppDbContext dbContext,
         User user,
         string newPassword,
-        UserOperation operation,
+        UserAuditOperation operation,
         IPAddress? ipAddress)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();

@@ -645,7 +645,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         {
             Id = actualAuditEntry.Id,
             Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.ChangePassword,
+            Operation = UserAuditOperation.ChangePassword,
             TargetId = userBefore.Id,
             ActorId = userBefore.Id,
             IpAddress = ipAddress,
@@ -845,7 +845,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         {
             Id = actualAuditEntry.Id,
             Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.ResetPassword,
+            Operation = UserAuditOperation.ResetPassword,
             TargetId = userBefore.Id,
             ActorId = userBefore.Id,
             IpAddress = ipAddress,
