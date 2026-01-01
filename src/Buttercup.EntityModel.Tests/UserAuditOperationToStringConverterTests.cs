@@ -12,6 +12,8 @@ public sealed class UserAuditOperationToStringConverterTests
     [InlineData(UserAuditOperation.Deactivate, "deactivate")]
     [InlineData(UserAuditOperation.Reactivate, "reactivate")]
     [InlineData(UserAuditOperation.ResetPassword, "reset_password")]
+    [InlineData(UserAuditOperation.SignIn, "sign_in")]
+    [InlineData(UserAuditOperation.SignOut, "sign_out")]
     public void ConvertsToAndFromExpectedString(UserAuditOperation operation, string stringValue)
     {
         var converter = new UserAuditOperationToStringConverter();

@@ -39,4 +39,14 @@ public enum UserAuditOperation
     /// Indicates that the user reset their password.
     /// </summary>
     ResetPassword,
+
+    /// <summary>
+    /// Indicates that the user signed in.
+    /// </summary>
+    SignIn,
+
+    /// <summary>
+    /// Indicates that the user signed out.
+    /// </summary>
+    SignOut,
 }

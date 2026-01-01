@@ -18,6 +18,8 @@ internal sealed class UserAuditOperationToStringConverter
         "deactivate" => UserAuditOperation.Deactivate,
         "reactivate" => UserAuditOperation.Reactivate,
         "reset_password" => UserAuditOperation.ResetPassword,
+        "sign_in" => UserAuditOperation.SignIn,
+        "sign_out" => UserAuditOperation.SignOut,
         _ => throw new ArgumentException($"Invalid user operation type '{value}'", nameof(value))
     };
 
@@ -30,6 +32,8 @@ internal sealed class UserAuditOperationToStringConverter
         UserAuditOperation.Deactivate => "deactivate",
         UserAuditOperation.Reactivate => "reactivate",
         UserAuditOperation.ResetPassword => "reset_password",
+        UserAuditOperation.SignIn => "sign_in",
+        UserAuditOperation.SignOut => "sign_out",
         _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
     };
 }

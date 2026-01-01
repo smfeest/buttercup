@@ -131,8 +131,9 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
                 It.Is<ClaimsPrincipal>(p => p.Identity == identity),
                 null));
 
-        // Inserts security event
-        Assert.True(await this.SecurityEventExists(dbContext, "sign_in", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditSuccessEntry(
+            dbContext, UserAuditOperation.SignIn, user.Id, user.Id, ipAddress);
 
         // Logs signed in message
         LogAssert.SingleEntry(this.logger)
@@ -171,8 +172,9 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
             x => x.SignOutAsync(
                 httpContext, CookieAuthenticationDefaults.AuthenticationScheme, null));
 
-        // Inserts security event
-        Assert.True(await this.SecurityEventExists(dbContext, "sign_out", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditSuccessEntry(
+            dbContext, UserAuditOperation.SignOut, user.Id, user.Id, ipAddress);
 
         // Logs signed out message
         LogAssert.SingleEntry(this.logger)
@@ -199,12 +201,25 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
     #endregion
 
-    private async Task<bool> SecurityEventExists(
-        AppDbContext dbContext, string eventName, IPAddress ipAddress, long? userId = null) =>
-        await dbContext.SecurityEvents.AnyAsync(
-            securityEvent =>
-                securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
-                securityEvent.Event == eventName &&
-                securityEvent.IpAddress == ipAddress &&
-                securityEvent.UserId == userId);
+    private async Task AssertSingleUserAuditSuccessEntry(
+        AppDbContext dbContext,
+        UserAuditOperation operation,
+        long targetId,
+        long actorId,
+        IPAddress ipAddress)
+    {
+        var actual = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        var expected = new UserAuditEntry
+        {
+            Id = actual.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = operation,
+            TargetId = targetId,
+            ActorId = actorId,
+            IpAddress = ipAddress,
+            Failure = null,
+        };
+        Assert.Equal(expected, actual);
+    }
 }
