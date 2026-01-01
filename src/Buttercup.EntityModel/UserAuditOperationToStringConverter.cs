@@ -13,6 +13,7 @@ internal sealed class UserAuditOperationToStringConverter
     {
         "change_password" => UserAuditOperation.ChangePassword,
         "create" => UserAuditOperation.Create,
+        "create_password_reset_token" => UserAuditOperation.CreatePasswordResetToken,
         "deactivate" => UserAuditOperation.Deactivate,
         "reactivate" => UserAuditOperation.Reactivate,
         "reset_password" => UserAuditOperation.ResetPassword,
@@ -23,6 +24,7 @@ internal sealed class UserAuditOperationToStringConverter
     {
         UserAuditOperation.ChangePassword => "change_password",
         UserAuditOperation.Create => "create",
+        UserAuditOperation.CreatePasswordResetToken => "create_password_reset_token",
         UserAuditOperation.Deactivate => "deactivate",
         UserAuditOperation.Reactivate => "reactivate",
         UserAuditOperation.ResetPassword => "reset_password",

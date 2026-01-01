@@ -16,6 +16,11 @@ public enum UserAuditOperation
     Create,
 
     /// <summary>
+    /// Indicates that a password reset token was created for the user.
+    /// </summary>
+    CreatePasswordResetToken,
+
+    /// <summary>
     /// Indicates that the user was deactivated.
     /// </summary>
     Deactivate,

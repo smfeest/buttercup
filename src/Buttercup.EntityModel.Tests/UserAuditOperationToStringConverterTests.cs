@@ -7,6 +7,7 @@ public sealed class UserAuditOperationToStringConverterTests
     [Theory]
     [InlineData(UserAuditOperation.ChangePassword, "change_password")]
     [InlineData(UserAuditOperation.Create, "create")]
+    [InlineData(UserAuditOperation.CreatePasswordResetToken, "create_password_reset_token")]
     [InlineData(UserAuditOperation.Deactivate, "deactivate")]
     [InlineData(UserAuditOperation.Reactivate, "reactivate")]
     [InlineData(UserAuditOperation.ResetPassword, "reset_password")]

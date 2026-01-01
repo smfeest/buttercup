@@ -299,20 +299,28 @@ internal sealed partial class PasswordAuthenticationService(
 
         var token = this.randomTokenGenerator.Generate(12);
 
-        dbContext.PasswordResetTokens.Add(new()
-        {
-            Token = token,
-            UserId = user.Id,
-            Created = this.timeProvider.GetUtcDateTimeNow(),
-        });
+        dbContext.PasswordResetTokens.Add(
+            new()
+            {
+                Token = token,
+                UserId = user.Id,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
+            });
+        dbContext.UserAuditEntries.Add(
+            new()
+            {
+                Time = this.timeProvider.GetUtcDateTimeNow(),
+                Operation = UserAuditOperation.CreatePasswordResetToken,
+                TargetId = user.Id,
+                ActorId = user.Id,
+                IpAddress = ipAddress,
+            });
 
         await dbContext.SaveChangesAsync();
 
         var link = urlHelper.Link("ResetPassword", new { token })!;
 
         await this.authenticationMailer.SendPasswordResetLink(email, link);
-
-        await this.InsertSecurityEvent(dbContext, "password_reset_link_sent", ipAddress, user.Id);
 
         this.LogPasswordResetLinkSent(user.Id, email);
 

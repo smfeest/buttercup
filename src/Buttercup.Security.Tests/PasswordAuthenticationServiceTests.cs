@@ -945,10 +945,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Sends link to user
         this.authenticationMailerMock.Verify(x => x.SendPasswordResetLink(user.Email, link));
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_link_sent", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.CreatePasswordResetToken,
+            user.Id,
+            user.Id,
+            ipAddress);
 
         // Logs password reset link sent message
         LogAssert.SingleEntry(this.logger)
