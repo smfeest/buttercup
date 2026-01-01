@@ -21,6 +21,11 @@ public enum UserAuditOperation
     Create,
 
     /// <summary>
+    /// Indicates that an access token was created for the user.
+    /// </summary>
+    CreateAccessToken,
+
+    /// <summary>
     /// Indicates that a password reset token was created for the user.
     /// </summary>
     CreatePasswordResetToken,

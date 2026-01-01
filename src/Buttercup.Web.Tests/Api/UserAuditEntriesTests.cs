@@ -2,6 +2,7 @@ using System.Net;
 using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -26,8 +27,14 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task QueryingUserAuditEntries()
     {
-        var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
-        var otherUser = this.ModelFactory.BuildUser(true);
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+
+        await this.DeleteAllUserAuditEntries();
+
+        var otherUser = this.ModelFactory.BuildUser();
         var baseTime = this.ModelFactory.NextDateTime();
         var userAuditEntries = new UserAuditEntry[]
         {
@@ -36,8 +43,8 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                 Id = 1,
                 Time = baseTime,
                 Operation = UserAuditOperation.Create,
-                Target = currentUser,
-                Actor = otherUser,
+                TargetId = currentUser.Id,
+                ActorId = otherUser.Id,
                 IpAddress = IPAddress.Parse("10.20.30.40"),
             },
             new()
@@ -45,14 +52,13 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                 Id = 2,
                 Time = baseTime.AddHours(1),
                 Operation = UserAuditOperation.ChangePassword,
-                Target = otherUser,
-                Actor = currentUser,
+                TargetId = otherUser.Id,
+                ActorId = currentUser.Id,
                 IpAddress = null,
             },
         };
-        await this.DatabaseFixture.InsertEntities(currentUser, userAuditEntries);
+        await this.DatabaseFixture.InsertEntities(otherUser, userAuditEntries);
 
-        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await client.PostQuery(UserAuditEntriesQuery);
         using var document = await response.Content.ReadAsJsonDocument();
 
@@ -168,7 +174,13 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task SortingUserAuditEntries()
     {
-        var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+
+        await this.DeleteAllUserAuditEntries();
+
         var baseTime = this.ModelFactory.NextDateTime();
         var userAuditEntries = new UserAuditEntry[]
         {
@@ -177,29 +189,28 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                 Id = 1,
                 Time = baseTime,
                 Operation = UserAuditOperation.Create,
-                Target = currentUser,
-                Actor = currentUser,
+                TargetId = currentUser.Id,
+                ActorId = currentUser.Id,
             },
             new()
             {
                 Id = 2,
                 Time = baseTime.AddMinutes(2),
                 Operation = UserAuditOperation.Create,
-                Target = currentUser,
-                Actor = currentUser,
+                TargetId = currentUser.Id,
+                ActorId = currentUser.Id,
             },
             new()
             {
                 Id = 3,
                 Time = baseTime.AddMinutes(1),
                 Operation = UserAuditOperation.Create,
-                Target = currentUser,
-                Actor = currentUser,
+                TargetId = currentUser.Id,
+                ActorId = currentUser.Id,
             },
         };
-        await this.DatabaseFixture.InsertEntities(currentUser, userAuditEntries);
+        await this.DatabaseFixture.InsertEntities(userAuditEntries);
 
-        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await client.PostQuery("""
             query {
                 userAuditEntries(order: { time: DESC }) {
@@ -218,5 +229,11 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
             .Select(e => e.GetProperty("id").GetInt64());
 
         Assert.Equal([2, 3, 1], actualOrderedIds);
+    }
+
+    private async Task DeleteAllUserAuditEntries()
+    {
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+        await dbContext.UserAuditEntries.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
     }
 }
