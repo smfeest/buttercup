@@ -62,11 +62,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_failure:rate_limit_exceeded", ipAddress));
-
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
             .HasId(4)
@@ -92,11 +87,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             email, password, ipAddress);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_failure:unrecognized_email", ipAddress));
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
@@ -124,10 +114,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_failure:user_deactivated", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.AuthenticatePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.UserDeactivated);
 
         // Logs user deactivated message
         LogAssert.SingleEntry(this.logger)
@@ -156,10 +150,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_failure:no_password_set", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.AuthenticatePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.NoPasswordSet);
 
         // Logs no password set message
         LogAssert.SingleEntry(this.logger)
@@ -191,10 +189,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_failure:incorrect_password", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.AuthenticatePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.IncorrectPassword);
 
         // Logs incorrect password message
         LogAssert.SingleEntry(this.logger)
@@ -226,10 +228,9 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_success", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext, UserAuditOperation.AuthenticatePassword, user.Id, user.Id, ipAddress);
 
         // Resets the rate limit counters
         this.passwordAuthenticationRateLimiterMock.Verify(x => x.Reset(user.Email));
@@ -274,10 +275,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_success", ipAddress, userBefore.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.AuthenticatePassword,
+            userBefore.Id,
+            userBefore.Id,
+            ipAddress);
 
         // Logs successfully authenticated message
         LogAssert.SingleEntry(this.logger, 1)
@@ -344,10 +348,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security even
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "authentication_success", ipAddress, userBefore.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.AuthenticatePassword,
+            userBefore.Id,
+            userBefore.Id,
+            ipAddress);
 
         // Logs successfully authenticated message
         LogAssert.SingleEntry(this.logger, 1)
@@ -396,15 +403,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Cannot use token '{token.Token[..6]}…' to reset password; token is invalid");
 
@@ -430,15 +432,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Cannot use token '{token[..6]}…' to reset password; token is invalid");
 
@@ -455,7 +452,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage($"Cannot use token 'ABC' to reset password; token is invalid");
 
         // Returns 'invalid token' failure
@@ -480,15 +477,19 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ResetPassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.UserDeactivated);
 
         // Logs user deactivated message
         LogAssert.SingleEntry(this.logger)
             .HasId(18)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Cannot use token '{token.Token[..6]}…' to reset password; user {user.Id} ({user.Email}) is deactivated");
 
@@ -543,10 +544,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_change_failure:no_password_set", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ChangePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.NoPasswordSet);
     }
 
     [Fact]
@@ -571,10 +576,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Does not attempt to hash new password
         this.passwordHasherMock.Verify(x => x.HashPassword(user, newPassword), Times.Never);
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ChangePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.IncorrectPassword);
 
         // Logs password incorrect message
         LogAssert.SingleEntry(this.logger)
@@ -639,18 +648,12 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
-        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
-            TestContext.Current.CancellationToken);
-        var expectedAuditEntry = new UserAuditEntry
-        {
-            Id = actualAuditEntry.Id,
-            Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.ChangePassword,
-            TargetId = userBefore.Id,
-            ActorId = userBefore.Id,
-            IpAddress = ipAddress,
-        };
-        Assert.Equal(expectedAuditEntry, actualAuditEntry);
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ChangePassword,
+            userBefore.Id,
+            userBefore.Id,
+            ipAddress);
 
         // Logs password changed message
         LogAssert.SingleEntry(this.logger)
@@ -689,11 +692,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(10)
@@ -724,11 +722,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             token, newPassword, ipAddress);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:invalid_token", ipAddress));
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -777,10 +770,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:user_deactivated", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ResetPassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.UserDeactivated);
 
         // Logs user deactivated message
         LogAssert.SingleEntry(this.logger)
@@ -839,18 +836,12 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
-        var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
-            TestContext.Current.CancellationToken);
-        var expectedAuditEntry = new UserAuditEntry
-        {
-            Id = actualAuditEntry.Id,
-            Time = this.timeProvider.GetUtcDateTimeNow(),
-            Operation = UserOperation.ResetPassword,
-            TargetId = userBefore.Id,
-            ActorId = userBefore.Id,
-            IpAddress = ipAddress,
-        };
-        Assert.Equal(expectedAuditEntry, actualAuditEntry);
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ResetPassword,
+            userBefore.Id,
+            userBefore.Id,
+            ipAddress);
 
         // Logs password reset message
         LogAssert.SingleEntry(this.logger)
@@ -887,11 +878,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:rate_limit_exceeded", ipAddress));
-
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
             .HasId(11)
@@ -916,11 +902,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             email, ipAddress, Mock.Of<IUrlHelper>());
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_failure:unrecognized_email", ipAddress));
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
@@ -971,10 +952,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Sends link to user
         this.authenticationMailerMock.Verify(x => x.SendPasswordResetLink(user.Email, link));
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_reset_link_sent", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.CreatePasswordResetToken,
+            user.Id,
+            user.Id,
+            ipAddress);
 
         // Logs password reset link sent message
         LogAssert.SingleEntry(this.logger)
@@ -990,15 +974,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.passwordResetRateLimiterMock.Setup(x => x.IsAllowed(email)).ReturnsAsync(isAllowed);
 
     #endregion
-
-    private async Task<bool> SecurityEventExists(
-        AppDbContext dbContext, string eventName, IPAddress ipAddress, long? userId = null) =>
-        await dbContext.SecurityEvents.AnyAsync(
-            securityEvent =>
-                securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
-                securityEvent.Event == eventName &&
-                securityEvent.IpAddress == ipAddress &&
-                securityEvent.UserId == userId);
 
     private string SetupGenerateSecurityStamp()
     {
@@ -1023,4 +998,27 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.passwordHasherMock
             .Setup(x => x.VerifyHashedPassword(user, hashedPassword, suppliedPassword))
             .Returns(result);
+
+    private async Task AssertSingleUserAuditEntry(
+        AppDbContext dbContext,
+        UserAuditOperation operation,
+        long targetId,
+        long actorId,
+        IPAddress ipAddress,
+        UserAuditFailure? failure = null)
+    {
+        var actual = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        var expected = new UserAuditEntry
+        {
+            Id = actual.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = operation,
+            TargetId = targetId,
+            ActorId = actorId,
+            IpAddress = ipAddress,
+            Failure = failure,
+        };
+        Assert.Equal(expected, actual);
+    }
 }

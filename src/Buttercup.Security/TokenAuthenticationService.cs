@@ -23,18 +23,18 @@ internal sealed partial class TokenAuthenticationService(
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var token = this.accessTokenEncoder.Encode(new(user.Id, user.SecurityStamp, timestamp));
 
-        using (var dbContext = this.dbContextFactory.CreateDbContext())
-        {
-            dbContext.SecurityEvents.Add(new()
-            {
-                Time = timestamp,
-                Event = "access_token_issued",
-                IpAddress = ipAddress,
-                UserId = user.Id,
-            });
+        using var dbContext = this.dbContextFactory.CreateDbContext();
 
-            await dbContext.SaveChangesAsync();
-        }
+        dbContext.UserAuditEntries.Add(new()
+        {
+            Time = timestamp,
+            Operation = UserAuditOperation.CreateAccessToken,
+            TargetId = user.Id,
+            ActorId = user.Id,
+            IpAddress = ipAddress,
+        });
+
+        await dbContext.SaveChangesAsync();
 
         this.LogTokenIssued(user.Id, user.Email);
 

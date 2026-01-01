@@ -46,7 +46,8 @@ internal sealed partial class CookieAuthenticationService(
     {
         await this.SignInUser(httpContext, user);
 
-        await this.InsertSecurityEvent("sign_in", httpContext.Connection.RemoteIpAddress, user.Id);
+        await this.InsertUserAuditEntry(
+            UserAuditOperation.SignIn, user.Id, httpContext.Connection.RemoteIpAddress);
 
         this.LogSignedIn(user.Id, user.Email);
     }
@@ -59,8 +60,8 @@ internal sealed partial class CookieAuthenticationService(
 
         if (userId.HasValue)
         {
-            await this.InsertSecurityEvent(
-                "sign_out", httpContext.Connection.RemoteIpAddress, userId.Value);
+            await this.InsertUserAuditEntry(
+                UserAuditOperation.SignOut, userId.Value, httpContext.Connection.RemoteIpAddress);
 
             var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
 
@@ -68,16 +69,18 @@ internal sealed partial class CookieAuthenticationService(
         }
     }
 
-    private async Task InsertSecurityEvent(string eventName, IPAddress? ipAddress, long userId)
+    private async Task InsertUserAuditEntry(
+        UserAuditOperation operation, long userId, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        dbContext.SecurityEvents.Add(new()
+        dbContext.UserAuditEntries.Add(new()
         {
             Time = this.timeProvider.GetUtcDateTimeNow(),
-            Event = eventName,
+            Operation = operation,
+            TargetId = userId,
+            ActorId = userId,
             IpAddress = ipAddress,
-            UserId = userId,
         });
 
         await dbContext.SaveChangesAsync();

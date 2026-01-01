@@ -53,15 +53,20 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await dbContext.SecurityEvents.AnyAsync(
-                securityEvent =>
-                    securityEvent.Time == this.timeProvider.GetUtcDateTimeNow() &&
-                    securityEvent.Event == "access_token_issued" &&
-                    securityEvent.IpAddress == ipAddress &&
-                    securityEvent.UserId == user.Id,
-                TestContext.Current.CancellationToken));
+        // Inserts user audit entry
+        var actual = await dbContext.UserAuditEntries.SingleAsync(
+            TestContext.Current.CancellationToken);
+        var expected = new UserAuditEntry
+        {
+            Id = actual.Id,
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Operation = UserAuditOperation.CreateAccessToken,
+            TargetId = user.Id,
+            ActorId = user.Id,
+            IpAddress = ipAddress,
+            Failure = null,
+        };
+        Assert.Equal(expected, actual);
 
         // Logs token issued message
         LogAssert.SingleEntry(this.logger)

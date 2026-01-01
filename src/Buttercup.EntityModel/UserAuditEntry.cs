@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,7 @@ public sealed record UserAuditEntry : IEntityId
     /// <summary>
     /// Gets or sets the operation.
     /// </summary>
-    public UserOperation Operation { get; set; }
+    public UserAuditOperation Operation { get; set; }
 
     /// <summary>
     /// Gets or sets the user that was the affected by the operation.
@@ -48,4 +49,15 @@ public sealed record UserAuditEntry : IEntityId
     /// Gets or sets the IP address of the client through which the operation was initiated.
     /// </summary>
     public IPAddress? IpAddress { get; set; }
+
+    /// <summary>
+    /// <b>true</b> if the operation was successful; otherwise, <b>false</b>.
+    /// </summary>
+    [MemberNotNullWhen(false, nameof(Failure))]
+    public bool IsSuccess => this.Failure == null;
+
+    /// <summary>
+    /// Gets or sets the reason for failure, if unsuccessful.
+    /// </summary>
+    public UserAuditFailure? Failure { get; set; }
 }

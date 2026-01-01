@@ -1,0 +1,57 @@
+namespace Buttercup.EntityModel;
+
+/// <summary>
+/// Specifies the type of auditable operation performed on a user.
+/// </summary>
+public enum UserAuditOperation
+{
+    /// <summary>
+    /// Indicates that the user authenticate with their password.
+    /// </summary>
+    AuthenticatePassword,
+
+    /// <summary>
+    /// Indicates that the user changed their password.
+    /// </summary>
+    ChangePassword,
+
+    /// <summary>
+    /// Indicates that the user was created.
+    /// </summary>
+    Create,
+
+    /// <summary>
+    /// Indicates that an access token was created for the user.
+    /// </summary>
+    CreateAccessToken,
+
+    /// <summary>
+    /// Indicates that a password reset token was created for the user.
+    /// </summary>
+    CreatePasswordResetToken,
+
+    /// <summary>
+    /// Indicates that the user was deactivated.
+    /// </summary>
+    Deactivate,
+
+    /// <summary>
+    /// Indicates that the user was reactivated.
+    /// </summary>
+    Reactivate,
+
+    /// <summary>
+    /// Indicates that the user reset their password.
+    /// </summary>
+    ResetPassword,
+
+    /// <summary>
+    /// Indicates that the user signed in.
+    /// </summary>
+    SignIn,
+
+    /// <summary>
+    /// Indicates that the user signed out.
+    /// </summary>
+    SignOut,
+}
