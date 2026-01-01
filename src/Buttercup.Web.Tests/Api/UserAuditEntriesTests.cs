@@ -19,6 +19,8 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                     target { id name }
                     actor { id name }
                     ipAddress
+                    isSuccess
+                    failure
                 }
             }
         }
@@ -54,7 +56,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                 Operation = UserAuditOperation.ChangePassword,
                 TargetId = otherUser.Id,
                 ActorId = currentUser.Id,
-                IpAddress = null,
+                Failure = UserAuditFailure.NoPasswordSet,
             },
         };
         await this.DatabaseFixture.InsertEntities(otherUser, userAuditEntries);
@@ -74,6 +76,8 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                     Target = IdName.From(currentUser),
                     Actor = IdName.From(otherUser),
                     IpAddress = (string?)"10.20.30.40",
+                    IsSuccess = true,
+                    Failure = (string?)null,
                 },
                 new
                 {
@@ -83,6 +87,8 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
                     Target = IdName.From(otherUser),
                     Actor = IdName.From(currentUser),
                     IpAddress = (string?)null,
+                    IsSuccess = false,
+                    Failure = (string?)"NO_PASSWORD_SET",
                 },
             },
             dataElement.GetProperty("userAuditEntries").GetProperty("nodes"));
