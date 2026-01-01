@@ -543,10 +543,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_change_failure:no_password_set", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ChangePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.NoPasswordSet);
     }
 
     [Fact]
@@ -571,10 +575,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Does not attempt to hash new password
         this.passwordHasherMock.Verify(x => x.HashPassword(user, newPassword), Times.Never);
 
-        // Inserts security event
-        Assert.True(
-            await this.SecurityEventExists(
-                dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id));
+        // Inserts user audit entry
+        await this.AssertSingleUserAuditEntry(
+            dbContext,
+            UserAuditOperation.ChangePassword,
+            user.Id,
+            user.Id,
+            ipAddress,
+            UserAuditFailure.IncorrectPassword);
 
         // Logs password incorrect message
         LogAssert.SingleEntry(this.logger)

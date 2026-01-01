@@ -168,8 +168,17 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user.HashedPassword == null)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_change_failure:no_password_set", ipAddress, user.Id);
+            dbContext.UserAuditEntries.Add(
+                new()
+                {
+                    Time = this.timeProvider.GetUtcDateTimeNow(),
+                    Operation = UserAuditOperation.ChangePassword,
+                    TargetId = user.Id,
+                    ActorId = user.Id,
+                    IpAddress = ipAddress,
+                    Failure = UserAuditFailure.NoPasswordSet,
+                });
+            await dbContext.SaveChangesAsync();
 
             throw new InvalidOperationException(
                 $"User {user.Id} ({user.Email}) does not have a password.");
@@ -180,8 +189,17 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            await this.InsertSecurityEvent(
-                dbContext, "password_change_failure:incorrect_password", ipAddress, user.Id);
+            dbContext.UserAuditEntries.Add(
+                new()
+                {
+                    Time = this.timeProvider.GetUtcDateTimeNow(),
+                    Operation = UserAuditOperation.ChangePassword,
+                    TargetId = user.Id,
+                    ActorId = user.Id,
+                    IpAddress = ipAddress,
+                    Failure = UserAuditFailure.IncorrectPassword,
+                });
+            await dbContext.SaveChangesAsync();
 
             this.LogPasswordChangeFailedIncorrectPassword(user.Id, user.Email);
 
