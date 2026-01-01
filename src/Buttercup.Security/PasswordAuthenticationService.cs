@@ -413,14 +413,14 @@ internal sealed partial class PasswordAuthenticationService(
     [LoggerMessage(
         EventId = 14,
         EventName = "CannotResetPasswordTokenInvalid",
-        Level = LogLevel.Debug,
+        Level = LogLevel.Information,
         Message = "Cannot use token '{Token}' to reset password; token is invalid")]
     private partial void LogCannotResetPasswordTokenInvalid(string token);
 
     [LoggerMessage(
         EventId = 18,
         EventName = "CannotResetPasswordUserDeactivated",
-        Level = LogLevel.Debug,
+        Level = LogLevel.Information,
         Message = "Cannot use token '{Token}' to reset password; user {UserId} ({Email}) is deactivated")]
     private partial void LogCannotResetPasswordUserDeactivated(
         string token, long userId, string email);

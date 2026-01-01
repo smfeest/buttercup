@@ -404,7 +404,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Cannot use token '{token.Token[..6]}…' to reset password; token is invalid");
 
@@ -438,7 +438,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Cannot use token '{token[..6]}…' to reset password; token is invalid");
 
@@ -455,7 +455,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage($"Cannot use token 'ABC' to reset password; token is invalid");
 
         // Returns 'invalid token' failure
@@ -488,7 +488,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Logs user deactivated message
         LogAssert.SingleEntry(this.logger)
             .HasId(18)
-            .HasLevel(LogLevel.Debug)
+            .HasLevel(LogLevel.Information)
             .HasMessage(
                 $"Cannot use token '{token.Token[..6]}…' to reset password; user {user.Id} ({user.Email}) is deactivated");
 
