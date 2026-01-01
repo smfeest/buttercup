@@ -79,5 +79,10 @@ public sealed class AppDbContext : DbContext
             .Entity<UserAuditEntry>()
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
+        modelBuilder
+            .Entity<UserAuditEntry>()
+            .Property(e => e.Failure)
+            .HasConversion<UserAuditFailureToStringConverter>()
+            .HasMaxLength(30);
     }
 }

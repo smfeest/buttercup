@@ -48,4 +48,9 @@ public sealed record UserAuditEntry : IEntityId
     /// Gets or sets the IP address of the client through which the operation was initiated.
     /// </summary>
     public IPAddress? IpAddress { get; set; }
+
+    /// <summary>
+    /// Gets or sets the reason for failure, if unsuccessful.
+    /// </summary>
+    public UserAuditFailure? Failure { get; set; }
 }
