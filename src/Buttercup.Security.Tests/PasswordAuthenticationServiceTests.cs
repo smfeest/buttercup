@@ -552,6 +552,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             user.Id,
             ipAddress,
             UserAuditFailure.NoPasswordSet);
+
+        // Logs no password set message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(20)
+            .HasLevel(LogLevel.Information)
+            .HasMessage(
+                $"Password change denied; no password set for user {user.Id} ({user.Email})");
     }
 
     [Fact]

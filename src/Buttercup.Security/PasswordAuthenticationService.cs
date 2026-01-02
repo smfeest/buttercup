@@ -216,6 +216,8 @@ internal sealed partial class PasswordAuthenticationService(
                 });
             await dbContext.SaveChangesAsync();
 
+            this.LogPasswordChangeFailedNoPasswordSet(user.Id, user.Email);
+
             throw new InvalidOperationException(
                 $"User {user.Id} ({user.Email}) does not have a password.");
         }
@@ -475,6 +477,13 @@ internal sealed partial class PasswordAuthenticationService(
         Level = LogLevel.Information,
         Message = "Password change denied for user {UserId} ({Email}); current password is incorrect")]
     private partial void LogPasswordChangeFailedIncorrectPassword(long userId, string email);
+
+    [LoggerMessage(
+        EventId = 20,
+        EventName = "PasswordChangeFailedNoPasswordSet",
+        Level = LogLevel.Information,
+        Message = "Password change denied; no password set for user {UserId} ({Email})")]
+    private partial void LogPasswordChangeFailedNoPasswordSet(long userId, string email);
 
     [LoggerMessage(
         EventId = 8,
