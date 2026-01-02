@@ -77,7 +77,6 @@ public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFac
     {
         using var dbContext = this.CreateDbContext();
 
-        await dbContext.SecurityEvents.ExecuteDeleteAsync();
         await dbContext.PasswordResetTokens.ExecuteDeleteAsync();
         await dbContext.Recipes.ExecuteDeleteAsync();
         await dbContext.Users.ExecuteDeleteAsync();
