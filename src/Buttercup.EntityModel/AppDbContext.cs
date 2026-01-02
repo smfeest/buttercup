@@ -33,11 +33,6 @@ public sealed class AppDbContext : DbContext
     public DbSet<CommentRevision> CommentRevisions => this.Set<CommentRevision>();
 
     /// <summary>
-    /// Gets the set of all security events.
-    /// </summary>
-    public DbSet<SecurityEvent> SecurityEvents => this.Set<SecurityEvent>();
-
-    /// <summary>
     /// Gets the set of all password reset tokens.
     /// </summary>
     public DbSet<PasswordResetToken> PasswordResetTokens => this.Set<PasswordResetToken>();
@@ -65,11 +60,6 @@ public sealed class AppDbContext : DbContext
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder
-            .Entity<SecurityEvent>()
-            .Property(u => u.IpAddress)
-            .HasConversion<IPAddressToBytesConverter>();
-
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
