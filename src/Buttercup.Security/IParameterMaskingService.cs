@@ -6,6 +6,23 @@ namespace Buttercup.Security;
 public interface IParameterMaskingService
 {
     /// <summary>
+    /// Masks an email address for inclusion in a log or exception message.
+    /// </summary>
+    /// <remarks>
+    /// The returned value exposes the first and last couple of characters of username and domain
+    /// name. If the input string does not contain an '@' character (and is therefore not a valid
+    /// email address) then the first and last couple of characters of the entire string are
+    /// exposed. Parts containing fewer than six characters are masked in their entirety.
+    /// </remarks>
+    /// <param name="email">
+    /// The email address to mask.
+    /// </param>
+    /// <returns>
+    /// The masked email address.
+    /// </returns>
+    string MaskEmail(string email);
+
+    /// <summary>
     /// Masks a token for inclusion in a log or exception message.
     /// </summary>
     /// <remarks>

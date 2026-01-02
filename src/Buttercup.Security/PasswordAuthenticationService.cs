@@ -39,7 +39,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (!await this.passwordAuthenticationRateLimiter.IsAllowed(email))
         {
-            this.LogAuthenticationFailedRateLimitExceeded(email);
+            var maskedEmail = this.parameterMaskingService.MaskEmail(email);
+            this.LogAuthenticationFailedRateLimitExceeded(maskedEmail);
 
             return new(PasswordAuthenticationFailure.TooManyAttempts);
         }
@@ -48,7 +49,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user == null)
         {
-            this.LogAuthenticationFailedUnrecognizedEmail(email);
+            var maskedEmail = this.parameterMaskingService.MaskEmail(email);
+            this.LogAuthenticationFailedUnrecognizedEmail(maskedEmail);
 
             return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }

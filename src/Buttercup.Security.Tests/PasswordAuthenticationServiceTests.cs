@@ -54,6 +54,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task Authenticate_RateLimitExceeded()
     {
         var email = this.modelFactory.NextEmail();
+        var maskedEmail = this.SetupMaskEmail(email);
         var password = this.modelFactory.NextString("password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -68,7 +69,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(4)
             .HasLevel(LogLevel.Information)
-            .HasMessage($"Authentication failed; rate limit exceeded for email {email}");
+            .HasMessage($"Authentication failed; rate limit exceeded for email {maskedEmail}");
 
         // Returns 'too many requests' failure
         Assert.Equal(PasswordAuthenticationFailure.TooManyAttempts, result.Failure);
@@ -78,6 +79,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task Authenticate_EmailUnrecognized()
     {
         var email = this.modelFactory.NextEmail();
+        var maskedEmail = this.SetupMaskEmail(email);
         var password = this.modelFactory.NextString("password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -94,7 +96,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(5)
             .HasLevel(LogLevel.Information)
-            .HasMessage($"Authentication failed; no user with email {email}");
+            .HasMessage($"Authentication failed; no user with email {maskedEmail}");
 
         // Returns 'incorrect credentials' failure
         Assert.Equal(PasswordAuthenticationFailure.IncorrectCredentials, result.Failure);
@@ -973,6 +975,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var passwordHash = this.modelFactory.NextString("password-hash");
         this.passwordHasherMock.Setup(x => x.HashPassword(user, newPassword)).Returns(passwordHash);
         return passwordHash;
+    }
+
+    private string SetupMaskEmail(string email)
+    {
+        var maskedEmail = this.modelFactory.NextString("masked-email");
+        this.parameterMaskingServiceMock.Setup(x => x.MaskEmail(email)).Returns(maskedEmail);
+        return maskedEmail;
     }
 
     private string SetupMaskToken(string token)
