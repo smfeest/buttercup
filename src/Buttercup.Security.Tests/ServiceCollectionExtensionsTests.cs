@@ -69,6 +69,15 @@ public sealed class ServiceCollectionExtensionsTests
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
+    public void AddSecurityServices_AddsParameterMaskingService() =>
+        Assert.Contains(
+            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            serviceDescriptor =>
+                serviceDescriptor.ServiceType == typeof(IParameterMaskingService) &&
+                serviceDescriptor.ImplementationType == typeof(ParameterMaskingService) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+
+    [Fact]
     public void AddSecurityServices_AddsPasswordAuthenticationRateLimiter() =>
         Assert.Contains(
             new ServiceCollection().AddSecurityServices(this.ConfigureOptions),

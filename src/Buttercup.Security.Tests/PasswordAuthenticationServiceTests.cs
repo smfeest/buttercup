@@ -21,6 +21,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
     private readonly Mock<IAuthenticationMailer> authenticationMailerMock = new();
     private readonly FakeLogger<PasswordAuthenticationService> logger = new();
+    private readonly Mock<IParameterMaskingService> parameterMaskingServiceMock = new();
     private readonly Mock<IPasswordAuthenticationRateLimiter> passwordAuthenticationRateLimiterMock
         = new();
     private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
@@ -39,6 +40,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             this.authenticationMailerMock.Object,
             this.DatabaseFixture,
             this.logger,
+            this.parameterMaskingServiceMock.Object,
             this.passwordAuthenticationRateLimiterMock.Object,
             this.passwordHasherMock.Object,
             this.passwordResetRateLimiterMock.Object,
@@ -396,6 +398,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
+        var maskedToken = this.SetupMaskToken(token.Token);
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
@@ -408,7 +411,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(14)
             .HasLevel(LogLevel.Information)
             .HasMessage(
-                $"Cannot use token '{token.Token[..6]}…' to reset password; token is invalid");
+                $"Cannot use token '{maskedToken}' to reset password; token is invalid");
 
         // Returns 'invalid token' failure
         Assert.False(result.IsSuccess);
@@ -426,6 +429,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         await this.DatabaseFixture.InsertEntities(user, otherToken);
 
         var token = this.modelFactory.NextString("token");
+        var maskedToken = this.SetupMaskToken(token);
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(token, ipAddress);
@@ -437,23 +441,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(14)
             .HasLevel(LogLevel.Information)
             .HasMessage(
-                $"Cannot use token '{token[..6]}…' to reset password; token is invalid");
-
-        // Returns 'invalid token' failure
-        Assert.False(result.IsSuccess);
-        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
-    }
-
-    [Fact]
-    public async Task CanResetPassword_TokenNonExistentAndShort()
-    {
-        var result = await this.passwordAuthenticationService.CanResetPassword("ABC", null);
-
-        // Logs invalid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(14)
-            .HasLevel(LogLevel.Information)
-            .HasMessage($"Cannot use token 'ABC' to reset password; token is invalid");
+                $"Cannot use token '{maskedToken}' to reset password; token is invalid");
 
         // Returns 'invalid token' failure
         Assert.False(result.IsSuccess);
@@ -470,6 +458,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
+        var maskedToken = this.SetupMaskToken(token.Token);
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
@@ -491,7 +480,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(18)
             .HasLevel(LogLevel.Information)
             .HasMessage(
-                $"Cannot use token '{token.Token[..6]}…' to reset password; user {user.Id} ({user.Email}) is deactivated");
+                $"Cannot use token '{maskedToken}' to reset password; user {user.Id} ({user.Email}) is deactivated");
 
         // Returns 'user deactivated' failure
         Assert.False(result.IsSuccess);
@@ -508,6 +497,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
+        var maskedToken = this.SetupMaskToken(token.Token);
+
         var result = await this.passwordAuthenticationService.CanResetPassword(
             token.Token, this.modelFactory.NextIpAddress());
 
@@ -516,7 +507,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(15)
             .HasLevel(LogLevel.Debug)
             .HasMessage(
-                $"Can use token '{token.Token[..6]}…' to reset password for user {user.Id} ({user.Email})");
+                $"Can use token '{maskedToken}' to reset password for user {user.Id} ({user.Email})");
 
         // Returns success result with affected user
         Assert.True(result.IsSuccess);
@@ -691,6 +682,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
+        var maskedToken = this.SetupMaskToken(token.Token);
         var newPassword = this.modelFactory.NextString("new-password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -704,7 +696,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(10)
             .HasLevel(LogLevel.Information)
             .HasMessage(
-                $"Unable to reset password; password reset token {token.Token[..6]}… is invalid");
+                $"Unable to reset password; password reset token {maskedToken} is invalid");
 
         // Returns 'invalid token' failure
         Assert.False(result.IsSuccess);
@@ -722,6 +714,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         await this.DatabaseFixture.InsertEntities(user, otherToken);
 
         var token = this.modelFactory.NextString("token");
+        var maskedToken = this.SetupMaskToken(token);
         var newPassword = this.modelFactory.NextString("new-password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -735,24 +728,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(10)
             .HasLevel(LogLevel.Information)
             .HasMessage(
-                $"Unable to reset password; password reset token {token[..6]}… is invalid");
-
-        // Returns 'invalid token' failure
-        Assert.False(result.IsSuccess);
-        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
-    }
-
-    [Fact]
-    public async Task ResetPassword_TokenNonExistentAndShort()
-    {
-        var result = await this.passwordAuthenticationService.ResetPassword(
-            "ABC", this.modelFactory.NextString("new-password"), this.modelFactory.NextIpAddress());
-
-        // Logs invalid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(10)
-            .HasLevel(LogLevel.Information)
-            .HasMessage("Unable to reset password; password reset token ABC is invalid");
+                $"Unable to reset password; password reset token {maskedToken} is invalid");
 
         // Returns 'invalid token' failure
         Assert.False(result.IsSuccess);
@@ -769,6 +745,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
+        var maskedToken = this.SetupMaskToken(token.Token);
         var newPassword = this.modelFactory.NextString("new-password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -791,7 +768,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .HasId(19)
             .HasLevel(LogLevel.Information)
             .HasMessage(
-                $"Unable to reset password using token {token.Token[..6]}…; user {user.Id} ({user.Email}) is deactivated");
+                $"Unable to reset password using token {maskedToken}; user {user.Id} ({user.Email}) is deactivated");
 
         // Returns 'user deactivated' failure
         Assert.False(result.IsSuccess);
@@ -811,6 +788,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         await this.DatabaseFixture.InsertEntities(
             userBefore, otherUser, token, tokenForOtherUser);
 
+        var maskedToken = this.SetupMaskToken(token.Token);
         var newPassword = this.modelFactory.NextString("new-password");
         var newPasswordHash = this.SetupHashPassword(userBefore, newPassword);
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
@@ -854,7 +832,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         LogAssert.SingleEntry(this.logger)
             .HasId(9)
             .HasLevel(LogLevel.Information)
-            .HasMessage($"Password reset for user {userBefore.Id} using token {token.Token[..6]}…");
+            .HasMessage($"Password reset for user {userBefore.Id} using token {maskedToken}");
 
         // Sends password change notification
         this.authenticationMailerMock.Verify(
@@ -995,6 +973,13 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var passwordHash = this.modelFactory.NextString("password-hash");
         this.passwordHasherMock.Setup(x => x.HashPassword(user, newPassword)).Returns(passwordHash);
         return passwordHash;
+    }
+
+    private string SetupMaskToken(string token)
+    {
+        var maskedToken = this.modelFactory.NextString("masked-token");
+        this.parameterMaskingServiceMock.Setup(x => x.MaskToken(token)).Returns(maskedToken);
+        return maskedToken;
     }
 
     private void SetupVerifyHashedPassword(
