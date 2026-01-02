@@ -111,30 +111,6 @@ public sealed class ModelFactory
     }
 
     /// <summary>
-    /// Instantiates a new <see cref="SecurityEvent" /> object with unique property values.
-    /// </summary>
-    /// <param name="user">
-    /// The user for <see cref="SecurityEvent.User"/> and <see cref="SecurityEvent.UserId"/>.
-    /// </param>
-    /// <param name="setOptionalAttributes">
-    /// <b>true</b> if optional properties (other than <see cref="SecurityEvent.User"/> and <see
-    /// cref="SecurityEvent.UserId"/>) should be populated; <b>false</b> if they should be left
-    /// null.
-    /// </param>
-    /// <returns>The new <see cref="SecurityEvent" /> object.</returns>
-    public SecurityEvent BuildSecurityEvent(
-        User? user = null, bool setOptionalAttributes = false) =>
-        new()
-        {
-            Id = this.NextInt(),
-            Time = this.NextDateTime(),
-            Event = this.NextString("security-event"),
-            User = user,
-            UserId = user?.Id,
-            IpAddress = setOptionalAttributes ? this.NextIpAddress() : null,
-        };
-
-    /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.
     /// </summary>
     /// <param name="setOptionalAttributes">

@@ -147,8 +147,6 @@ internal sealed class UserManager(
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        await dbContext.SecurityEvents.Where(e => e.UserId == id).ExecuteDeleteAsync();
-
         return await dbContext.Users.Where(u => u.Id == id).ExecuteDeleteAsync() != 0;
     }
 

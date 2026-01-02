@@ -71,15 +71,6 @@ public sealed class Query
     [UsePaging]
     [UseProjection]
     [UseFiltering]
-    [UseTieBreakSortById<SecurityEvent>]
-    [UseSorting]
-    public IQueryable<SecurityEvent> SecurityEvents(AppDbContext dbContext) =>
-        dbContext.SecurityEvents;
-
-    [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    [UsePaging]
-    [UseProjection]
-    [UseFiltering]
     [UseTieBreakSortById<UserAuditEntry>]
     [UseSorting]
     public IQueryable<UserAuditEntry> UserAuditEntries(AppDbContext dbContext) =>

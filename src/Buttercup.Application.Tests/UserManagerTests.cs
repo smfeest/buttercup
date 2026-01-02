@@ -302,16 +302,12 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         var otherUser = this.modelFactory.BuildUser();
         var passwordResetTokenForUser = this.modelFactory.BuildPasswordResetToken(user);
         var passwordResetTokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
-        var securityEventForUser = this.modelFactory.BuildSecurityEvent(user);
-        var securityEventForOtherUser = this.modelFactory.BuildSecurityEvent(otherUser);
 
         await this.DatabaseFixture.InsertEntities(
             user,
             otherUser,
             passwordResetTokenForUser,
-            passwordResetTokenForOtherUser,
-            securityEventForUser,
-            securityEventForOtherUser);
+            passwordResetTokenForOtherUser);
 
         Assert.True(await this.userManager.HardDeleteTestUser(user.Id));
 
@@ -325,12 +321,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             await dbContext
                 .PasswordResetTokens
                 .Select(t => t.Token)
-                .SingleAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(
-            securityEventForOtherUser.Id,
-            await dbContext
-                .SecurityEvents
-                .Select(e => e.Id)
                 .SingleAsync(TestContext.Current.CancellationToken));
     }
 
