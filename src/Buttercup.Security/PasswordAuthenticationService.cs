@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +11,7 @@ internal sealed partial class PasswordAuthenticationService(
     IAuthenticationMailer authenticationMailer,
     IDbContextFactory<AppDbContext> dbContextFactory,
     ILogger<PasswordAuthenticationService> logger,
+    IParameterMaskingService parameterMaskingService,
     IPasswordAuthenticationRateLimiter passwordAuthenticationRateLimiter,
     IPasswordHasher<User> passwordHasher,
     IPasswordResetRateLimiter passwordResetRateLimiter,
@@ -24,6 +24,7 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly IAuthenticationMailer authenticationMailer = authenticationMailer;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<PasswordAuthenticationService> logger = logger;
+    private readonly IParameterMaskingService parameterMaskingService = parameterMaskingService;
     private readonly IPasswordAuthenticationRateLimiter passwordAuthenticationRateLimiter =
         passwordAuthenticationRateLimiter;
     private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
@@ -38,7 +39,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (!await this.passwordAuthenticationRateLimiter.IsAllowed(email))
         {
-            this.LogAuthenticationFailedRateLimitExceeded(email);
+            var maskedEmail = this.parameterMaskingService.MaskEmail(email);
+            this.LogAuthenticationFailedRateLimitExceeded(maskedEmail);
 
             return new(PasswordAuthenticationFailure.TooManyAttempts);
         }
@@ -47,7 +49,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         if (user == null)
         {
-            this.LogAuthenticationFailedUnrecognizedEmail(email);
+            var maskedEmail = this.parameterMaskingService.MaskEmail(email);
+            this.LogAuthenticationFailedUnrecognizedEmail(maskedEmail);
 
             return new(PasswordAuthenticationFailure.IncorrectCredentials);
         }
@@ -152,10 +155,6 @@ internal sealed partial class PasswordAuthenticationService(
         return new(user);
     }
 
-    [SuppressMessage(
-        "Performance",
-        "CA1873:Avoid potentially expensive logging",
-        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
     public async Task<PasswordResetResult> CanResetPassword(string token, IPAddress? ipAddress)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -164,9 +163,11 @@ internal sealed partial class PasswordAuthenticationService(
             .Select(t => t.User)
             .FirstOrDefaultAsync();
 
+        var maskedToken = this.parameterMaskingService.MaskToken(token);
+
         if (user is null)
         {
-            this.LogCannotResetPasswordTokenInvalid(RedactToken(token));
+            this.LogCannotResetPasswordTokenInvalid(maskedToken);
 
             return new(PasswordResetFailure.InvalidToken);
         }
@@ -185,12 +186,12 @@ internal sealed partial class PasswordAuthenticationService(
                 });
             await dbContext.SaveChangesAsync();
 
-            this.LogCannotResetPasswordUserDeactivated(RedactToken(token), user.Id, user.Email);
+            this.LogCannotResetPasswordUserDeactivated(maskedToken, user.Id, user.Email);
 
             return new(PasswordResetFailure.UserDeactivated);
         }
 
-        this.LogCanResetPassword(RedactToken(token), user.Id, user.Email);
+        this.LogCanResetPassword(maskedToken, user.Id, user.Email);
 
         return new(user);
     }
@@ -254,10 +255,6 @@ internal sealed partial class PasswordAuthenticationService(
         return true;
     }
 
-    [SuppressMessage(
-        "Performance",
-        "CA1873:Avoid potentially expensive logging",
-        Justification = "RedactToken calls are relatively inexpensive and necessary to avoid exposing sensitive secrets in logs")]
     public async Task<PasswordResetResult> ResetPassword(
         string token, string newPassword, IPAddress? ipAddress)
     {
@@ -268,9 +265,11 @@ internal sealed partial class PasswordAuthenticationService(
             .Select(t => t.User)
             .FirstOrDefaultAsync();
 
+        var maskedToken = this.parameterMaskingService.MaskToken(token);
+
         if (user is null)
         {
-            this.LogPasswordResetFailedInvalidToken(RedactToken(token));
+            this.LogPasswordResetFailedInvalidToken(maskedToken);
 
             return new(PasswordResetFailure.InvalidToken);
         }
@@ -289,7 +288,7 @@ internal sealed partial class PasswordAuthenticationService(
                 });
             await dbContext.SaveChangesAsync();
 
-            this.LogPasswordResetFailedUserDeactivated(RedactToken(token), user.Id, user.Email);
+            this.LogPasswordResetFailedUserDeactivated(maskedToken, user.Id, user.Email);
 
             return new(PasswordResetFailure.UserDeactivated);
         }
@@ -297,7 +296,7 @@ internal sealed partial class PasswordAuthenticationService(
         await this.SetPassword(
             dbContext, user, newPassword, UserAuditOperation.ResetPassword, ipAddress);
 
-        this.LogPasswordReset(user.Id, RedactToken(token));
+        this.LogPasswordReset(user.Id, maskedToken);
 
         await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
 
@@ -367,8 +366,6 @@ internal sealed partial class PasswordAuthenticationService(
         dbContext.PasswordResetTokens.Where(t =>
             t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(PasswordResetTokenExpiry) &&
             t.Token == token);
-
-    private static string RedactToken(string token) => token.Length > 6 ? $"{token[..6]}…" : token;
 
     private async Task SetPassword(
         AppDbContext dbContext,

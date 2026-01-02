@@ -58,6 +58,7 @@ public static class ServiceCollectionExtensions
             .AddTransient<IAuthenticationMailer, AuthenticationMailer>()
             .AddTransient<ICookieAuthenticationService, CookieAuthenticationService>()
             .AddTransient<IClaimsIdentityFactory, ClaimsIdentityFactory>()
+            .AddTransient<IParameterMaskingService, ParameterMaskingService>()
             .AddTransient<IPasswordAuthenticationRateLimiter, PasswordAuthenticationRateLimiter>()
             .AddTransient<IPasswordAuthenticationService, PasswordAuthenticationService>()
             .AddTransient<IPasswordResetRateLimiter, PasswordResetRateLimiter>()
