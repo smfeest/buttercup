@@ -11,6 +11,7 @@ using Buttercup.Redis;
 using Buttercup.Security;
 using Buttercup.Web;
 using Buttercup.Web.Api;
+using Buttercup.Web.Areas.Admin.Controllers.Queries;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Globalization;
@@ -162,6 +163,7 @@ services
 
 services
     .AddTransient<IInputObjectValidatorFactory, InputObjectValidatorFactory>()
+    .AddTransient<IUsersControllerQueries, UsersControllerQueries>()
     .AddTransient<IHomeControllerQueries, HomeControllerQueries>()
     .AddTransient<ICommentsControllerQueries, CommentsControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
