@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Label_Name">
+    <value>Name</value>
+  </data>
+  <data name="Label_Email">
+    <value>Email address</value>
+  </data>
+  <data name="Label_TimeZone">
+    <value>Time zone</value>
+  </data>
+  <data name="Label_IsAdmin">
+    <value>Administrator</value>
+  </data>
+</root>

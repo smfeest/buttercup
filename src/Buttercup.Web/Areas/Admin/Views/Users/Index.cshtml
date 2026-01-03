@@ -3,7 +3,10 @@
 @{
   ViewData["Title"] = Localizer["Title_Users"];
 }
-<h1>@Localizer["Title_Users"]</h1>
+<div class="admin-page-header">
+  <h1>@Localizer["Title_Users"]</h1>
+  <a class="push-button" asp-action="New">@Localizer["Label_AddUser"]</a>
+</div>
 <table class="data-table">
   <colgroup>
     <col span="2">
