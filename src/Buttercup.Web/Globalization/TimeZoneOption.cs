@@ -1,4 +1,4 @@
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 /// <summary>
 /// Represents a time zone option.

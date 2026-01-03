@@ -1,4 +1,4 @@
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 /// <summary>
 /// Defines the contract for the time zone option helper.

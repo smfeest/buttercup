@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 /// <summary>
 /// Provides extension methods for collections of time zone options.

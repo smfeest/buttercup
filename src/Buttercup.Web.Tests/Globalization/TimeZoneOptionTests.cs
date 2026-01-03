@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 public sealed class TimeZoneOptionTests
 {

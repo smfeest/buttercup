@@ -1,5 +1,5 @@
 using System.Globalization;
-using Buttercup.Web.Localization;
+using Buttercup.Web.Globalization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 

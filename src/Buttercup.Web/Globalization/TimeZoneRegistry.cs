@@ -1,4 +1,4 @@
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 public sealed class TimeZoneRegistry : ITimeZoneRegistry
 {

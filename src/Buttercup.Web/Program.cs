@@ -13,7 +13,7 @@ using Buttercup.Web;
 using Buttercup.Web.Api;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
-using Buttercup.Web.Localization;
+using Buttercup.Web.Globalization;
 using Buttercup.Web.Security;
 using HotChocolate.Data.Sorting;
 using Microsoft.AspNetCore.Authentication;

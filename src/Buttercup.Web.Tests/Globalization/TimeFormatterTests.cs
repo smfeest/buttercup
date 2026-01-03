@@ -3,7 +3,7 @@ using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 public sealed class TimeFormatterTests
 {

@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Buttercup.Security;
 
-namespace Buttercup.Web.Localization;
+namespace Buttercup.Web.Globalization;
 
 /// <summary>
 /// Provides extension methods for <see cref="HttpContext" />.
