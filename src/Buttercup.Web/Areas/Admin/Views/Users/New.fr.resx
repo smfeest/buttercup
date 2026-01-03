@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_NewUser">
+    <value>Nouvel utilisateur</value>
+  </data>
+  <data name="Label_Add">
+    <value>Ajouter</value>
+  </data>
+  <data name="Label_Cancel">
+    <value>Annuler</value>
+  </data>
+</root>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_EmailNotUnique">
+    <value>A user already exists with this email address</value>
+  </data>
+</root>

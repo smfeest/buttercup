@@ -24,4 +24,7 @@
   <data name="Label_Deactivated">
     <value>Désactivé</value>
   </data>
+  <data name="Label_AddUser">
+    <value>Ajouter un utilisateur</value>
+  </data>
 </root>

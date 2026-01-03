@@ -1,0 +1,13 @@
+@inject IViewLocalizer Localizer
+@model NewUserAttributes
+@{
+  ViewData["Title"] = Localizer["Title_NewUser"];
+}
+<h1>@Localizer["Title_NewUser"]</h1>
+<form method="post">
+  @Html.EditorForModel()
+  <div class="button-bar">
+    <button class="primary-push-button">@Localizer["Label_Add"]</button>
+    <a class="push-button" asp-action="Index">@Localizer["Label_Cancel"]</a>
+  </div>
+</form>
