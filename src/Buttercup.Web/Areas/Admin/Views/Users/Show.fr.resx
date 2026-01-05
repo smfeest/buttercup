@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Label_Name">
+    <value>Nom</value>
+  </data>
+  <data name="Label_EmailAddress">
+    <value>Adresse e-mail</value>
+  </data>
+  <data name="Label_AccessLevel">
+    <value>Niveau d'accès</value>
+  </data>
+  <data name="Label_Standard">
+    <value>Standard</value>
+  </data>
+  <data name="Label_Administrator">
+    <value>Administrateur</value>
+  </data>
+  <data name="Label_Password">
+    <value>Mot de passe</value>
+  </data>
+  <data name="Label_NoneSet">
+    <value>Aucun défini</value>
+  </data>
+  <data name="Label_LastChanged">
+    <value>Dernière modification le {0}</value>
+  </data>
+  <data name="Label_TimeZone">
+    <value>Fuseau horaire</value>
+  </data>
+  <data name="Label_Added">
+    <value>Ajouté</value>
+  </data>
+  <data name="Label_Updated">
+    <value>Modifié</value>
+  </data>
+  <data name="Label_Deactivated">
+    <value>Désactivé</value>
+  </data>
+</root>
