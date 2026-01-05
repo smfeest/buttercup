@@ -1,0 +1,54 @@
+@inject IViewLocalizer Localizer
+@inject ITimeZoneOptionsHelper TimeZoneOptions
+@model User
+@{
+  ViewData["Title"] = Model.Name;
+}
+<h1>@Model.Name</h1>
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_Name"]</div>
+  <div>@Model.Name</div>
+</div>
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_EmailAddress"]</div>
+  <div>@Model.Email</div>
+</div>
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_AccessLevel"]</div>
+  <div>@(Model.IsAdmin ? Localizer["Label_Administrator"] : Localizer["Label_Standard"])</div>
+</div>
+<hr class="record__divider" />
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_Password"]</div>
+  @if (Model.PasswordCreated == null)
+  {
+    <div>@Localizer["Label_NoneSet"]</div>
+  }
+  else
+  {
+    <div>@Localizer["Label_LastChanged", Html.UserDateTime(Model.PasswordCreated.Value, "d")]</div>
+  }
+</div>
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_TimeZone"]</div>
+  <div>@TimeZoneOptions.OptionForTimeZone(Model.TimeZone).Description</div>
+</div>
+<hr class="record__divider" />
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_Added"]</div>
+  <div>@Html.UserDateTime(Model.Created, "d")</div>
+</div>
+@if (Model.Modified > Model.Created)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_Updated"]</div>
+    <div>@Html.UserDateTime(Model.Modified, "d")</div>
+  </div>
+}
+@if (Model.Deactivated.HasValue)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_Deactivated"]</div>
+    <div>@Html.UserDateTime(Model.Deactivated.Value, "D")</div>
+  </div>
+}
