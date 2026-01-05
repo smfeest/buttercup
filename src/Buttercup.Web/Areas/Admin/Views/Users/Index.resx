@@ -9,14 +9,17 @@
   <data name="Label_EmailAddress">
     <value>Email address</value>
   </data>
-  <data name="Label_Role">
-    <value>Role</value>
+  <data name="Label_AccessLevel">
+    <value>Access level</value>
   </data>
-  <data name="Label_Status">
-    <value>Status</value>
+  <data name="Label_Standard">
+    <value>Standard</value>
   </data>
   <data name="Label_Administrator">
     <value>Administrator</value>
+  </data>
+  <data name="Label_Status">
+    <value>Status</value>
   </data>
   <data name="Label_Deactivated">
     <value>Deactivated</value>
