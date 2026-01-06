@@ -21,16 +21,16 @@
   <data name="Label_TimeAndUser">
     <value>{0} by {1}</value>
   </data>
-  <data name="Label_Ingredients">
+  <data name="Heading_Ingredients">
     <value>Ingredients</value>
   </data>
-  <data name="Label_Method">
+  <data name="Heading_Method">
     <value>Method</value>
   </data>
-  <data name="Label_Suggestions">
+  <data name="Heading_Suggestions">
     <value>Suggestions</value>
   </data>
-  <data name="Label_Remarks">
+  <data name="Heading_Remarks">
     <value>Remarks</value>
   </data>
   <data name="Label_Edit">
@@ -39,7 +39,7 @@
   <data name="Label_Delete">
     <value>Delete</value>
   </data>
-  <data name="Label_Comments">
+  <data name="Heading_Comments">
     <value>Comments</value>
   </data>
   <data name="Label_Comment">

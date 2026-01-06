@@ -66,21 +66,21 @@
   }
 </table>
 
-<h2>@Localizer["Label_Ingredients"]</h2>
+<h2>@Localizer["Heading_Ingredients"]</h2>
 <ul lines-in="@Model.Recipe.Ingredients"></ul>
 
-<h2>@Localizer["Label_Method"]</h2>
+<h2>@Localizer["Heading_Method"]</h2>
 <ol lines-in="@Model.Recipe.Method"></ol>
 
 @if (Model.Recipe.Suggestions != null)
 {
-  <h2>@Localizer["Label_Suggestions"]</h2>
+  <h2>@Localizer["Heading_Suggestions"]</h2>
   <ul lines-in="@Model.Recipe.Suggestions"></ul>
 }
 
 @if (Model.Recipe.Remarks != null)
 {
-  <h2>@Localizer["Label_Remarks"]</h2>
+  <h2>@Localizer["Heading_Remarks"]</h2>
   <ul lines-in="@Model.Recipe.Remarks"></ul>
 }
 
@@ -90,7 +90,7 @@
 </footer>
 
 <section>
-  <h2>@Localizer["Label_Comments"]</h2>
+  <h2>@Localizer["Heading_Comments"]</h2>
   @foreach (var commentViewModel in Model.CommentViewModels)
   {
     <partial name="_Comment" model="@commentViewModel" />
