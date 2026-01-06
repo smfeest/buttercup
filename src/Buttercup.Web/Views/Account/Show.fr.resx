@@ -16,7 +16,7 @@
     <value>Mot de passe</value>
   </data>
   <data name="Label_PasswordLastChanged">
-    <value>Dernière modification le {0:D}</value>
+    <value>Dernière modification le {0}</value>
   </data>
   <data name="Label_ChangePassword">
     <value>Modifier mot de passe</value>
