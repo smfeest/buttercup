@@ -267,6 +267,9 @@
   <data name="City_America/Chihuahua">
     <value>Chihuahua</value>
   </data>
+  <data name="City_America/Ciudad_Juarez">
+    <value>Ciudad Juárez</value>
+  </data>
   <data name="City_America/Costa_Rica">
     <value>Costa Rica</value>
   </data>
@@ -314,9 +317,6 @@
   </data>
   <data name="City_America/Glace_Bay">
     <value>Glace Bay</value>
-  </data>
-  <data name="City_America/Godthab">
-    <value>Nuuk</value>
   </data>
   <data name="City_America/Goose_Bay">
     <value>Goose Bay</value>
@@ -476,6 +476,9 @@
   </data>
   <data name="City_America/North_Dakota/New_Salem">
     <value>New Salem (Dakota du Nord)</value>
+  </data>
+  <data name="City_America/Nuuk">
+    <value>Nuuk</value>
   </data>
   <data name="City_America/Ojinaga">
     <value>Ojinaga</value>
@@ -1011,11 +1014,11 @@
   <data name="City_Europe/Kaliningrad">
     <value>Kaliningrad</value>
   </data>
-  <data name="City_Europe/Kiev">
-    <value>Kiev</value>
-  </data>
   <data name="City_Europe/Kirov">
     <value>Kirov</value>
+  </data>
+  <data name="City_Europe/Kyiv">
+    <value>Kiev</value>
   </data>
   <data name="City_Europe/Lisbon">
     <value>Lisbonne</value>
@@ -1182,9 +1185,6 @@
   <data name="City_Pacific/Efate">
     <value>Éfaté</value>
   </data>
-  <data name="City_Pacific/Enderbury">
-    <value>Enderbury</value>
-  </data>
   <data name="City_Pacific/Fakaofo">
     <value>Fakaofo</value>
   </data>
@@ -1208,6 +1208,9 @@
   </data>
   <data name="City_Pacific/Honolulu">
     <value>Honolulu</value>
+  </data>
+  <data name="City_Pacific/Kanton">
+    <value>Canton</value>
   </data>
   <data name="City_Pacific/Kiritimati">
     <value>Kiritimati</value>
@@ -1274,6 +1277,9 @@
   </data>
   <data name="City_Pacific/Wallis">
     <value>Wallis</value>
+  </data>
+  <data name="City_UTC">
+    <value>UTC</value>
   </data>
   <data name="Format_NegativeOffset">
     <value>UTC{0:'-'hh':'mm}</value>
