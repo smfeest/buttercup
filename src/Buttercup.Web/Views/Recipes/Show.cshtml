@@ -6,81 +6,80 @@
 }
 <h1>@Model.Recipe.Title</h1>
 
-<table class="recipe-header">
-  @if (Model.Recipe.PreparationMinutes != null)
-  {
-    <tr>
-      <th>@Localizer["Label_PreparationTime"]</th>
-      <td>@TimeFormatter.AsHoursAndMinutes(Model.Recipe.PreparationMinutes.Value)</td>
-    </tr>
-  }
-  @if (Model.Recipe.CookingMinutes != null)
-  {
-    <tr>
-      <th>@Localizer["Label_CookingTime"]</th>
-      <td>@TimeFormatter.AsHoursAndMinutes(Model.Recipe.CookingMinutes.Value)</td>
-    </tr>
-  }
-  @if (Model.Recipe.Servings != null)
-  {
-    <tr>
-      <th>@Localizer["Label_Servings"]</th>
-      <td>@Html.FormatValue(Model.Recipe.Servings, "{0:d}")</td>
-    </tr>
-  }
-  @if (Model.Recipe.Source != null)
-  {
-    <tr>
-      <th>@Localizer["Label_Source"]</th>
-      <td>@Model.Recipe.Source</td>
-    </tr>
-  }
-  <tr>
-    <th>@Localizer["Label_Added"]</th>
-    <td>
-      @if (Model.Recipe.CreatedByUser == null)
-      {
-        @Html.UserDateTime(Model.Recipe.Created)
-      }
-      else
-      {
-        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Recipe.Created), Model.Recipe.CreatedByUser.Name]
-      }
-    </td>
-  </tr>
-  @if (Model.Recipe.Modified > Model.Recipe.Created)
-  {
-    <tr>
-      <th>@Localizer["Label_Updated"]</th>
-      <td>
+<h2>@Localizer["Heading_Summary"]</h2>
+@if (Model.Recipe.PreparationMinutes != null)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_PreparationTime"]</div>
+    <div>@TimeFormatter.AsHoursAndMinutes(Model.Recipe.PreparationMinutes.Value)</div>
+  </div>
+}
+@if (Model.Recipe.CookingMinutes != null)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_CookingTime"]</div>
+    <div>@TimeFormatter.AsHoursAndMinutes(Model.Recipe.CookingMinutes.Value)</div>
+  </div>
+}
+@if (Model.Recipe.Servings != null)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_Servings"]</div>
+    <div>@Html.FormatValue(Model.Recipe.Servings, "{0:d}")</div>
+  </div>
+}
+@if (Model.Recipe.Source != null)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_Source"]</div>
+    <div>@Model.Recipe.Source</div>
+  </div>
+}
+<div class="record__item">
+  <div class="record__item-label">@Localizer["Label_Added"]</div>
+  <div>
+    @if (Model.Recipe.CreatedByUser == null)
+    {
+      @Html.UserDateTime(Model.Recipe.Created)
+    }
+    else
+    {
+      @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Recipe.Created, "d"), Model.Recipe.CreatedByUser.Name]
+    }
+  </div>
+</div>
+@if (Model.Recipe.Modified > Model.Recipe.Created)
+{
+  <div class="record__item">
+    <div class="record__item-label">@Localizer["Label_Updated"]</div>
+    <div>
       @if (Model.Recipe.ModifiedByUser == null)
       {
         @Html.UserDateTime(Model.Recipe.Modified)
       }
       else
       {
-        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Recipe.Modified), Model.Recipe.ModifiedByUser.Name]
+        @Localizer["Label_TimeAndUser", Html.UserDateTime(Model.Recipe.Modified, "d"), Model.Recipe.ModifiedByUser.Name]
       }
-      </td>
-    </tr>
-  }
-</table>
+    </div>
+  </div>
+}
 
-<h2>@Localizer["Label_Ingredients"]</h2>
+<h2>@Localizer["Heading_Ingredients"]</h2>
 <ul lines-in="@Model.Recipe.Ingredients"></ul>
 
-<h2>@Localizer["Label_Method"]</h2>
+<h2>@Localizer["Heading_Method"]</h2>
 <ol lines-in="@Model.Recipe.Method"></ol>
 
 @if (Model.Recipe.Suggestions != null)
 {
-  <h2>@Localizer["Label_Suggestions"]</h2>
+  <h2>@Localizer["Heading_Suggestions"]</h2>
   <ul lines-in="@Model.Recipe.Suggestions"></ul>
 }
 
 @if (Model.Recipe.Remarks != null)
 {
-  <h2>@Localizer["Label_Remarks"]</h2>
+  <h2>@Localizer["Heading_Remarks"]</h2>
   <ul lines-in="@Model.Recipe.Remarks"></ul>
 }
 
@@ -90,7 +89,7 @@
 </footer>
 
 <section>
-  <h2>@Localizer["Label_Comments"]</h2>
+  <h2>@Localizer["Heading_Comments"]</h2>
   @foreach (var commentViewModel in Model.CommentViewModels)
   {
     <partial name="_Comment" model="@commentViewModel" />

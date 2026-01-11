@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Heading_Summary">
+    <value>Résumé</value>
+  </data>
   <data name="Label_PreparationTime">
     <value>Temps de préparation</value>
   </data>
@@ -21,16 +24,16 @@
   <data name="Label_TimeAndUser">
     <value>{0} par {1}</value>
   </data>
-  <data name="Label_Ingredients">
+  <data name="Heading_Ingredients">
     <value>Ingrédients</value>
   </data>
-  <data name="Label_Method">
+  <data name="Heading_Method">
     <value>Méthode</value>
   </data>
-  <data name="Label_Suggestions">
+  <data name="Heading_Suggestions">
     <value>Suggestions</value>
   </data>
-  <data name="Label_Remarks">
+  <data name="Heading_Remarks">
     <value>Remarques</value>
   </data>
   <data name="Label_Edit">
@@ -39,7 +42,7 @@
   <data name="Label_Delete">
     <value>Supprimer</value>
   </data>
-  <data name="Label_Comments">
+  <data name="Heading_Comments">
     <value>Commentaires</value>
   </data>
   <data name="Label_Comment">
