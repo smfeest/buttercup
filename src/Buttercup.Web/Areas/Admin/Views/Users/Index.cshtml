@@ -21,7 +21,7 @@
     @foreach (var user in Model!)
     {
       <tr>
-        <td>@user.Name</td>
+        <td><a asp-action="Show" asp-route-id="@user.Id">@user.Name</a></td>
         <td>@user.Email</td>
         <td class="data-table--collapsed-below-medium">
           @(user.IsAdmin ? Localizer["Label_Administrator"] : Localizer["Label_Standard"])

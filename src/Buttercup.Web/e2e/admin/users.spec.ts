@@ -5,13 +5,16 @@ import { test } from '../test';
 test.describe('when signed in as an admin user', () => {
   test.use({ storageState: authStatePath('e2e-admin') });
 
-  test('can view all users', async ({ page, navigation }) => {
+  test('can view user details', async ({ page, navigation }) => {
     await page.goto('/');
 
     await navigation.menuButton.click();
     await navigation.usersLink.click();
 
     await expect(page.locator('tr')).toContainText(['E2E Admin', 'E2E User']);
+
+    await page.getByRole('link', { name: 'E2E User' }).click();
+    await expect(page.locator('h1')).toHaveText('E2E User');
   });
 });
 

@@ -1,0 +1,26 @@
+.record__item {
+  padding: 0.6rem 0;
+}
+
+.record__item-label {
+  flex-basis: 10em;
+  font-size: 0.9em;
+  margin-bottom: @small-padding;
+}
+
+.record__divider {
+  border-style: none;
+  border-top: 1px solid @color-grey;
+  margin: @small-padding 0;
+}
+
+@media (min-width: @small-breakpoint) {
+  .record__item {
+    align-items: baseline;
+    display: flex;
+  }
+
+  .record__item-label {
+    margin-bottom: 0;
+  }
+}
