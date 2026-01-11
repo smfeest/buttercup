@@ -42,6 +42,6 @@ public sealed class TimeZoneOptionsHelper(
 
         var city = this.localizer[$"City_{timeZone.Id}"];
 
-        return new(timeZone.Id, offset, formattedOffset!, city!);
+        return new(timeZone.Id, offset, formattedOffset, city);
     }
 }
