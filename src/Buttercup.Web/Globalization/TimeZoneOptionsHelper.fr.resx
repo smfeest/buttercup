@@ -238,7 +238,7 @@
     <value>Boa Vista</value>
   </data>
   <data name="City_America/Bogota">
-    <value>Bogota</value>
+    <value>Bogotá</value>
   </data>
   <data name="City_America/Boise">
     <value>Boise</value>
@@ -439,7 +439,7 @@
     <value>Mexico</value>
   </data>
   <data name="City_America/Miquelon">
-    <value>Miquelon</value>
+    <value>Saint-Pierre</value>
   </data>
   <data name="City_America/Moncton">
     <value>Moncton</value>
@@ -466,7 +466,7 @@
     <value>Nome</value>
   </data>
   <data name="City_America/Noronha">
-    <value>Noronha</value>
+    <value>Fernando de Noronha</value>
   </data>
   <data name="City_America/North_Dakota/Beulah">
     <value>Beulah (Dakota du Nord)</value>
@@ -607,7 +607,7 @@
     <value>Davis</value>
   </data>
   <data name="City_Antarctica/DumontDUrville">
-    <value>Dumont d’Urville</value>
+    <value>Dumont-d’Urville</value>
   </data>
   <data name="City_Antarctica/Macquarie">
     <value>Macquarie</value>
@@ -724,7 +724,7 @@
     <value>Hong Kong</value>
   </data>
   <data name="City_Asia/Hovd">
-    <value>Hovd</value>
+    <value>Khovd</value>
   </data>
   <data name="City_Asia/Irkutsk">
     <value>Irkoutsk</value>
@@ -811,7 +811,7 @@
     <value>Qatar</value>
   </data>
   <data name="City_Asia/Qostanay">
-    <value>Qostanay</value>
+    <value>Kostanaï</value>
   </data>
   <data name="City_Asia/Qyzylorda">
     <value>Kzyl Orda</value>
@@ -985,7 +985,7 @@
     <value>Büsingen</value>
   </data>
   <data name="City_Europe/Chisinau">
-    <value>Chisinau</value>
+    <value>Chișinău</value>
   </data>
   <data name="City_Europe/Copenhagen">
     <value>Copenhague</value>
@@ -1246,7 +1246,7 @@
     <value>Pago Pago</value>
   </data>
   <data name="City_Pacific/Palau">
-    <value>Palau</value>
+    <value>Palaos</value>
   </data>
   <data name="City_Pacific/Pitcairn">
     <value>Pitcairn</value>
@@ -1276,7 +1276,7 @@
     <value>Wake</value>
   </data>
   <data name="City_Pacific/Wallis">
-    <value>Wallis</value>
+    <value>Wallis &amp; Futuna</value>
   </data>
   <data name="City_UTC">
     <value>UTC</value>
