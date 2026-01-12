@@ -1,4 +1,6 @@
+using System.Globalization;
 using Buttercup.TestUtils;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -8,6 +10,7 @@ namespace Buttercup.Web.Globalization;
 public sealed class TimeZoneOptionsHelperTests
 {
     private readonly DictionaryLocalizer<TimeZoneOptionsHelper> localizer = new();
+    private readonly FakeLogger<TimeZoneOptionsHelper> logger = new();
     private readonly FakeTimeProvider timeProvider = new();
     private readonly Mock<ITimeZoneRegistry> timeZoneRegistryMock = new();
 
@@ -15,7 +18,7 @@ public sealed class TimeZoneOptionsHelperTests
 
     public TimeZoneOptionsHelperTests() =>
         this.timeZoneOptionsHelper = new(
-            this.localizer, this.timeProvider, this.timeZoneRegistryMock.Object);
+            this.localizer, this.logger, this.timeProvider, this.timeZoneRegistryMock.Object);
 
     #region AllOptions
 
@@ -112,7 +115,7 @@ public sealed class TimeZoneOptionsHelperTests
     }
 
     [Fact]
-    public void OptionForTimeZone_ProvidesCity()
+    public void OptionForTimeZone_CityTranslationAvailable_ProvidesTranslatedCityName()
     {
         this.StubGetTimeZone();
         this.localizer.Add($"City_{FakeTimeZoneId}", "localized-city-name");
@@ -120,6 +123,30 @@ public sealed class TimeZoneOptionsHelperTests
         var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
 
         Assert.Equal("localized-city-name", option.City);
+    }
+
+    [Fact]
+    public void OptionForTimeZone_CityTranslationUnavailable_LogsDebugMessage()
+    {
+        this.StubGetTimeZone();
+
+        this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(1)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage(
+                $"Missing {CultureInfo.CurrentUICulture.Name} city translation for {FakeTimeZoneId}");
+    }
+
+    [Fact]
+    public void OptionForTimeZone_CityTranslationUnavailable_ProvidesTimeZoneIdAsFallback()
+    {
+        this.StubGetTimeZone();
+
+        var option = this.timeZoneOptionsHelper.OptionForTimeZone(FakeTimeZoneId);
+
+        Assert.Equal(FakeTimeZoneId, option.City);
     }
 
     private const string FakeTimeZoneId = "Fake/Time_Zone";

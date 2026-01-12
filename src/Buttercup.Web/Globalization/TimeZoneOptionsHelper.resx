@@ -61,7 +61,7 @@
     <value>Douala</value>
   </data>
   <data name="City_Africa/El_Aaiun">
-    <value>El Aaiun</value>
+    <value>El Aaiún</value>
   </data>
   <data name="City_Africa/Freetown">
     <value>Freetown</value>
@@ -97,7 +97,7 @@
     <value>Libreville</value>
   </data>
   <data name="City_Africa/Lome">
-    <value>Lome</value>
+    <value>Lomé</value>
   </data>
   <data name="City_Africa/Luanda">
     <value>Luanda</value>
@@ -130,7 +130,7 @@
     <value>Nairobi</value>
   </data>
   <data name="City_Africa/Ndjamena">
-    <value>Ndjamena</value>
+    <value>N'Djamena</value>
   </data>
   <data name="City_Africa/Niamey">
     <value>Niamey</value>
@@ -169,7 +169,7 @@
     <value>Antigua</value>
   </data>
   <data name="City_America/Araguaina">
-    <value>Araguaina</value>
+    <value>Araguaína</value>
   </data>
   <data name="City_America/Argentina/Buenos_Aires">
     <value>Buenos Aires</value>
@@ -190,7 +190,7 @@
     <value>Mendoza</value>
   </data>
   <data name="City_America/Argentina/Rio_Gallegos">
-    <value>Rio Gallegos</value>
+    <value>Río Gallegos</value>
   </data>
   <data name="City_America/Argentina/Salta">
     <value>Salta</value>
@@ -202,7 +202,7 @@
     <value>San Luis</value>
   </data>
   <data name="City_America/Argentina/Tucuman">
-    <value>Tucuman</value>
+    <value>Tucumán</value>
   </data>
   <data name="City_America/Argentina/Ushuaia">
     <value>Ushuaia</value>
@@ -220,13 +220,13 @@
     <value>Bahia</value>
   </data>
   <data name="City_America/Bahia_Banderas">
-    <value>Bahia Banderas</value>
+    <value>Bahía de Banderas</value>
   </data>
   <data name="City_America/Barbados">
     <value>Barbados</value>
   </data>
   <data name="City_America/Belem">
-    <value>Belem</value>
+    <value>Belém</value>
   </data>
   <data name="City_America/Belize">
     <value>Belize</value>
@@ -238,7 +238,7 @@
     <value>Boa Vista</value>
   </data>
   <data name="City_America/Bogota">
-    <value>Bogota</value>
+    <value>Bogotá</value>
   </data>
   <data name="City_America/Boise">
     <value>Boise</value>
@@ -250,7 +250,7 @@
     <value>Campo Grande</value>
   </data>
   <data name="City_America/Cancun">
-    <value>Cancun</value>
+    <value>Cancún</value>
   </data>
   <data name="City_America/Caracas">
     <value>Caracas</value>
@@ -267,6 +267,9 @@
   <data name="City_America/Chihuahua">
     <value>Chihuahua</value>
   </data>
+  <data name="City_America/Ciudad_Juarez">
+    <value>Ciudad Juárez</value>
+  </data>
   <data name="City_America/Costa_Rica">
     <value>Costa Rica</value>
   </data>
@@ -274,7 +277,7 @@
     <value>Creston</value>
   </data>
   <data name="City_America/Cuiaba">
-    <value>Cuiaba</value>
+    <value>Cuiabá</value>
   </data>
   <data name="City_America/Curacao">
     <value>Curaçao</value>
@@ -301,7 +304,7 @@
     <value>Edmonton</value>
   </data>
   <data name="City_America/Eirunepe">
-    <value>Eirunepe</value>
+    <value>Eirunepé</value>
   </data>
   <data name="City_America/El_Salvador">
     <value>El Salvador</value>
@@ -314,9 +317,6 @@
   </data>
   <data name="City_America/Glace_Bay">
     <value>Glace Bay</value>
-  </data>
-  <data name="City_America/Godthab">
-    <value>Nuuk</value>
   </data>
   <data name="City_America/Goose_Bay">
     <value>Goose Bay</value>
@@ -406,7 +406,7 @@
     <value>Lower Prince’s Quarter</value>
   </data>
   <data name="City_America/Maceio">
-    <value>Maceio</value>
+    <value>Maceió</value>
   </data>
   <data name="City_America/Managua">
     <value>Managua</value>
@@ -424,13 +424,13 @@
     <value>Matamoros</value>
   </data>
   <data name="City_America/Mazatlan">
-    <value>Mazatlan</value>
+    <value>Mazatlán</value>
   </data>
   <data name="City_America/Menominee">
     <value>Menominee</value>
   </data>
   <data name="City_America/Merida">
-    <value>Merida</value>
+    <value>Mérida</value>
   </data>
   <data name="City_America/Metlakatla">
     <value>Metlakatla</value>
@@ -439,7 +439,7 @@
     <value>Mexico City</value>
   </data>
   <data name="City_America/Miquelon">
-    <value>Miquelon</value>
+    <value>Saint-Pierre</value>
   </data>
   <data name="City_America/Moncton">
     <value>Moncton</value>
@@ -466,7 +466,7 @@
     <value>Nome</value>
   </data>
   <data name="City_America/Noronha">
-    <value>Noronha</value>
+    <value>Fernando de Noronha</value>
   </data>
   <data name="City_America/North_Dakota/Beulah">
     <value>Beulah, North Dakota</value>
@@ -476,6 +476,9 @@
   </data>
   <data name="City_America/North_Dakota/New_Salem">
     <value>New Salem, North Dakota</value>
+  </data>
+  <data name="City_America/Nuuk">
+    <value>Nuuk</value>
   </data>
   <data name="City_America/Ojinaga">
     <value>Ojinaga</value>
@@ -526,7 +529,7 @@
     <value>Rio Branco</value>
   </data>
   <data name="City_America/Santarem">
-    <value>Santarem</value>
+    <value>Santarém</value>
   </data>
   <data name="City_America/Santiago">
     <value>Santiago</value>
@@ -535,7 +538,7 @@
     <value>Santo Domingo</value>
   </data>
   <data name="City_America/Sao_Paulo">
-    <value>Sao Paulo</value>
+    <value>São Paulo</value>
   </data>
   <data name="City_America/Scoresbysund">
     <value>Ittoqqortoormiit</value>
@@ -598,37 +601,37 @@
     <value>Yellowknife</value>
   </data>
   <data name="City_Antarctica/Casey">
-    <value>Casey</value>
+    <value>Casey Station</value>
   </data>
   <data name="City_Antarctica/Davis">
     <value>Davis</value>
   </data>
   <data name="City_Antarctica/DumontDUrville">
-    <value>Dumont d’Urville</value>
+    <value>Dumont d’Urville Station</value>
   </data>
   <data name="City_Antarctica/Macquarie">
-    <value>Macquarie</value>
+    <value>Macquarie Island</value>
   </data>
   <data name="City_Antarctica/Mawson">
-    <value>Mawson</value>
+    <value>Mawson Station</value>
   </data>
   <data name="City_Antarctica/McMurdo">
-    <value>McMurdo</value>
+    <value>McMurdo Station</value>
   </data>
   <data name="City_Antarctica/Palmer">
-    <value>Palmer</value>
+    <value>Palmer Land</value>
   </data>
   <data name="City_Antarctica/Rothera">
-    <value>Rothera</value>
+    <value>Rothera Station</value>
   </data>
   <data name="City_Antarctica/Syowa">
-    <value>Syowa</value>
+    <value>Showa Station</value>
   </data>
   <data name="City_Antarctica/Troll">
-    <value>Troll</value>
+    <value>Troll Station</value>
   </data>
   <data name="City_Antarctica/Vostok">
-    <value>Vostok</value>
+    <value>Vostok Station</value>
   </data>
   <data name="City_Arctic/Longyearbyen">
     <value>Longyearbyen</value>
@@ -646,7 +649,7 @@
     <value>Anadyr</value>
   </data>
   <data name="City_Asia/Aqtau">
-    <value>Aqtau</value>
+    <value>Aktau</value>
   </data>
   <data name="City_Asia/Aqtobe">
     <value>Aqtobe</value>
@@ -721,7 +724,7 @@
     <value>Hong Kong</value>
   </data>
   <data name="City_Asia/Hovd">
-    <value>Hovd</value>
+    <value>Khovd</value>
   </data>
   <data name="City_Asia/Irkutsk">
     <value>Irkutsk</value>
@@ -766,7 +769,7 @@
     <value>Kuwait</value>
   </data>
   <data name="City_Asia/Macau">
-    <value>Macau</value>
+    <value>Macao</value>
   </data>
   <data name="City_Asia/Magadan">
     <value>Magadan</value>
@@ -808,10 +811,10 @@
     <value>Qatar</value>
   </data>
   <data name="City_Asia/Qostanay">
-    <value>Qostanay</value>
+    <value>Kostanay</value>
   </data>
   <data name="City_Asia/Qyzylorda">
-    <value>Qyzylorda</value>
+    <value>Kyzylorda</value>
   </data>
   <data name="City_Asia/Riyadh">
     <value>Riyadh</value>
@@ -859,7 +862,7 @@
     <value>Ulaanbaatar</value>
   </data>
   <data name="City_Asia/Urumqi">
-    <value>Urumqi</value>
+    <value>Ürümqi</value>
   </data>
   <data name="City_Asia/Ust-Nera">
     <value>Ust-Nera</value>
@@ -889,7 +892,7 @@
     <value>Bermuda</value>
   </data>
   <data name="City_Atlantic/Canary">
-    <value>Canary</value>
+    <value>Canaries</value>
   </data>
   <data name="City_Atlantic/Cape_Verde">
     <value>Cape Verde</value>
@@ -937,7 +940,7 @@
     <value>Lindeman</value>
   </data>
   <data name="City_Australia/Lord_Howe">
-    <value>Lord Howe</value>
+    <value>Lord Howe Island</value>
   </data>
   <data name="City_Australia/Melbourne">
     <value>Melbourne</value>
@@ -979,10 +982,10 @@
     <value>Budapest</value>
   </data>
   <data name="City_Europe/Busingen">
-    <value>Busingen</value>
+    <value>Büsingen</value>
   </data>
   <data name="City_Europe/Chisinau">
-    <value>Chisinau</value>
+    <value>Chișinău</value>
   </data>
   <data name="City_Europe/Copenhagen">
     <value>Copenhagen</value>
@@ -1011,11 +1014,11 @@
   <data name="City_Europe/Kaliningrad">
     <value>Kaliningrad</value>
   </data>
-  <data name="City_Europe/Kiev">
-    <value>Kiev</value>
-  </data>
   <data name="City_Europe/Kirov">
     <value>Kirov</value>
+  </data>
+  <data name="City_Europe/Kyiv">
+    <value>Kyiv</value>
   </data>
   <data name="City_Europe/Lisbon">
     <value>Lisbon</value>
@@ -1093,7 +1096,7 @@
     <value>Tallinn</value>
   </data>
   <data name="City_Europe/Tirane">
-    <value>Tirane</value>
+    <value>Tirana</value>
   </data>
   <data name="City_Europe/Ulyanovsk">
     <value>Ulyanovsk</value>
@@ -1132,22 +1135,22 @@
     <value>Antananarivo</value>
   </data>
   <data name="City_Indian/Chagos">
-    <value>Chagos</value>
+    <value>Chagos Archipelago</value>
   </data>
   <data name="City_Indian/Christmas">
-    <value>Christmas</value>
+    <value>Christmas Island</value>
   </data>
   <data name="City_Indian/Cocos">
-    <value>Cocos</value>
+    <value>Cocos Islands</value>
   </data>
   <data name="City_Indian/Comoro">
-    <value>Comoro</value>
+    <value>Comoros</value>
   </data>
   <data name="City_Indian/Kerguelen">
-    <value>Kerguelen</value>
+    <value>Kerguelen Islands</value>
   </data>
   <data name="City_Indian/Mahe">
-    <value>Mahe</value>
+    <value>Mahé</value>
   </data>
   <data name="City_Indian/Maldives">
     <value>Maldives</value>
@@ -1171,19 +1174,16 @@
     <value>Bougainville</value>
   </data>
   <data name="City_Pacific/Chatham">
-    <value>Chatham</value>
+    <value>Chatham Islands</value>
   </data>
   <data name="City_Pacific/Chuuk">
     <value>Chuuk</value>
   </data>
   <data name="City_Pacific/Easter">
-    <value>Easter</value>
+    <value>Easter Island</value>
   </data>
   <data name="City_Pacific/Efate">
     <value>Efate</value>
-  </data>
-  <data name="City_Pacific/Enderbury">
-    <value>Enderbury</value>
   </data>
   <data name="City_Pacific/Fakaofo">
     <value>Fakaofo</value>
@@ -1195,7 +1195,7 @@
     <value>Funafuti</value>
   </data>
   <data name="City_Pacific/Galapagos">
-    <value>Galapagos</value>
+    <value>Galápagos Islands</value>
   </data>
   <data name="City_Pacific/Gambier">
     <value>Gambier</value>
@@ -1209,6 +1209,9 @@
   <data name="City_Pacific/Honolulu">
     <value>Honolulu</value>
   </data>
+  <data name="City_Pacific/Kanton">
+    <value>Canton Island</value>
+  </data>
   <data name="City_Pacific/Kiritimati">
     <value>Kiritimati</value>
   </data>
@@ -1216,16 +1219,16 @@
     <value>Kosrae</value>
   </data>
   <data name="City_Pacific/Kwajalein">
-    <value>Kwajalein</value>
+    <value>Kwajalein Atoll</value>
   </data>
   <data name="City_Pacific/Majuro">
     <value>Majuro</value>
   </data>
   <data name="City_Pacific/Marquesas">
-    <value>Marquesas</value>
+    <value>Marquesas Islands</value>
   </data>
   <data name="City_Pacific/Midway">
-    <value>Midway</value>
+    <value>Midway Atoll</value>
   </data>
   <data name="City_Pacific/Nauru">
     <value>Nauru</value>
@@ -1234,10 +1237,10 @@
     <value>Niue</value>
   </data>
   <data name="City_Pacific/Norfolk">
-    <value>Norfolk</value>
+    <value>Norfolk Island</value>
   </data>
   <data name="City_Pacific/Noumea">
-    <value>Noumea</value>
+    <value>Nouméa</value>
   </data>
   <data name="City_Pacific/Pago_Pago">
     <value>Pago Pago</value>
@@ -1246,7 +1249,7 @@
     <value>Palau</value>
   </data>
   <data name="City_Pacific/Pitcairn">
-    <value>Pitcairn</value>
+    <value>Pitcairn Islands</value>
   </data>
   <data name="City_Pacific/Pohnpei">
     <value>Pohnpei</value>
@@ -1270,10 +1273,13 @@
     <value>Tongatapu</value>
   </data>
   <data name="City_Pacific/Wake">
-    <value>Wake</value>
+    <value>Wake Island</value>
   </data>
   <data name="City_Pacific/Wallis">
-    <value>Wallis</value>
+    <value>Wallis &amp; Futuna</value>
+  </data>
+  <data name="City_UTC">
+    <value>UTC</value>
   </data>
   <data name="Format_NegativeOffset">
     <value>GMT{0:'-'hh':'mm}</value>

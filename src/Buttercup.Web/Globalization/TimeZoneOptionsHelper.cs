@@ -1,14 +1,17 @@
+using System.Globalization;
 using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Globalization;
 
-public sealed class TimeZoneOptionsHelper(
+public sealed partial class TimeZoneOptionsHelper(
     IStringLocalizer<TimeZoneOptionsHelper> localizer,
+    ILogger<TimeZoneOptionsHelper> logger,
     TimeProvider timeProvider,
     ITimeZoneRegistry timeZoneRegistry)
     : ITimeZoneOptionsHelper
 {
     private readonly IStringLocalizer<TimeZoneOptionsHelper> localizer = localizer;
+    private readonly ILogger<TimeZoneOptionsHelper> logger = logger;
     private readonly TimeProvider clock = timeProvider;
     private readonly ITimeZoneRegistry timeZoneRegistry = timeZoneRegistry;
 
@@ -40,8 +43,27 @@ public sealed class TimeZoneOptionsHelper(
             "Format_NegativeOffset" : "Format_PositiveOffset";
         var formattedOffset = this.localizer[offsetFormat, offset];
 
-        var city = this.localizer[$"City_{timeZone.Id}"];
+        var cityTranslation = this.localizer[$"City_{timeZone.Id}"];
 
-        return new(timeZone.Id, offset, formattedOffset!, city!);
+        string city;
+
+        if (cityTranslation.ResourceNotFound)
+        {
+            this.LogMissingCityTranslation(CultureInfo.CurrentUICulture.Name, timeZone.Id);
+            city = timeZone.Id;
+        }
+        else
+        {
+            city = cityTranslation.Value;
+        }
+
+        return new(timeZone.Id, offset, formattedOffset, city);
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        EventName = "MissingCityTranslation",
+        Level = LogLevel.Debug,
+        Message = "Missing {UiCulture} city translation for {TimeZoneId}")]
+    private partial void LogMissingCityTranslation(string uiCulture, string timeZoneId);
 }
