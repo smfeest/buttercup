@@ -6,7 +6,7 @@
 }
 <h1>@Model.Recipe.Title</h1>
 
-<h2>@Localizer["Heading_Summary"]</h2>
+<div class="record">
 @if (Model.Recipe.PreparationMinutes != null)
 {
   <div class="record__item">
@@ -64,6 +64,7 @@
     </div>
   </div>
 }
+</div>
 
 <h2>@Localizer["Heading_Ingredients"]</h2>
 <ul lines-in="@Model.Recipe.Ingredients"></ul>

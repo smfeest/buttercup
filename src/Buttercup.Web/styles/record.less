@@ -1,3 +1,6 @@
+// .record {
+// }
+
 .record__item {
   padding: 0.5rem 0;
 }
@@ -15,13 +18,22 @@
 }
 
 @media (min-width: @small-breakpoint) {
-  .record__item {
-    align-items: baseline;
+  .record {
     display: flex;
-    padding-bottom: @small-padding;
+    flex-wrap: wrap;
+    gap: @padding;
   }
 
-  .record__item-label {
-    margin-bottom: 0;
+  .record__item {
+    flex-basis: 25%;
   }
+  // .record__item {
+  //   align-items: baseline;
+  //   display: flex;
+  //   padding-bottom: @small-padding;
+  // }
+
+  // .record__item-label {
+  //   margin-bottom: 0;
+  // }
 }
