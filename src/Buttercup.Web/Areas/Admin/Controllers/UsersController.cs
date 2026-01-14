@@ -67,4 +67,38 @@ public sealed class UsersController(
 
         return this.RedirectToAction(nameof(this.Index));
     }
+
+    [HttpPost("{id}/deactivate")]
+    public async Task<IActionResult> Deactivate(long id)
+    {
+        try
+        {
+            await this.userManager.DeactivateUser(
+                id, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
+
+            return this.RedirectToAction(nameof(this.Show), new { id });
+
+        }
+        catch (NotFoundException)
+        {
+            return this.NotFound();
+        }
+    }
+
+    [HttpPost("{id}/reactivate")]
+    public async Task<IActionResult> Reactivate(long id)
+    {
+        try
+        {
+            await this.userManager.ReactivateUser(
+                id, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
+
+            return this.RedirectToAction(nameof(this.Show), new { id });
+
+        }
+        catch (NotFoundException)
+        {
+            return this.NotFound();
+        }
+    }
 }

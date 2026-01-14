@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Label_Deactivate">
+    <value>Désactiver</value>
+  </data>
+  <data name="Label_Reactivate">
+    <value>Réactiver</value>
+  </data>
   <data name="Label_Name">
     <value>Nom</value>
   </data>
