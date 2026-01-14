@@ -195,6 +195,98 @@ public sealed class UsersControllerTests : IDisposable
 
     #endregion
 
+    #region Deactivate
+
+    [Fact]
+    public async Task Deactivate_Success_DeactivatesUser()
+    {
+        var userId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
+
+        await this.usersController.Deactivate(userId);
+
+        this.userManagerMock.Verify(x =>
+            x.DeactivateUser(userId, currentUserId, ipAddress));
+    }
+
+    [Fact]
+    public async Task Deactivate_Success_RedirectsToShow()
+    {
+        long userId = this.modelFactory.NextInt();
+        this.SetupCurrentUserId();
+
+        var result = await this.usersController.Deactivate(userId);
+
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(UsersController.Show), redirectResult.ActionName);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(userId, redirectResult.RouteValues["id"]);
+    }
+
+    [Fact]
+    public async Task Deactivate_UserNotFound_ReturnsNotFoundResult()
+    {
+        var userId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+
+        this.userManagerMock
+            .Setup(x => x.DeactivateUser(userId, currentUserId, null))
+            .ThrowsAsync(new NotFoundException());
+
+        var result = await this.usersController.Deactivate(userId);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    #endregion
+
+    #region Reactivate
+
+    [Fact]
+    public async Task Reactivate_Success_ReactivatesUser()
+    {
+        var userId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
+
+        await this.usersController.Reactivate(userId);
+
+        this.userManagerMock.Verify(x =>
+            x.ReactivateUser(userId, currentUserId, ipAddress));
+    }
+
+    [Fact]
+    public async Task Reactivate_Success_RedirectsToShow()
+    {
+        long userId = this.modelFactory.NextInt();
+        this.SetupCurrentUserId();
+
+        var result = await this.usersController.Reactivate(userId);
+
+        var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(UsersController.Show), redirectResult.ActionName);
+        Assert.NotNull(redirectResult.RouteValues);
+        Assert.Equal(userId, redirectResult.RouteValues["id"]);
+    }
+
+    [Fact]
+    public async Task Reactivate_UserNotFound_ReturnsNotFoundResult()
+    {
+        var userId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+
+        this.userManagerMock
+            .Setup(x => x.ReactivateUser(userId, currentUserId, null))
+            .ThrowsAsync(new NotFoundException());
+
+        var result = await this.usersController.Reactivate(userId);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    #endregion
+
     private long SetupCurrentUserId()
     {
         var userId = this.modelFactory.NextInt();
