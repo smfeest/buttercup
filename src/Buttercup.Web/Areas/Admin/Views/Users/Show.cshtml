@@ -4,7 +4,25 @@
 @{
   ViewData["Title"] = Model.Name;
 }
-<h1>@Model.Name</h1>
+<div class="admin-page-header">
+  <h1>@Model.Name</h1>
+  @if (Model.Deactivated.HasValue)
+  {
+    <form asp-action="Reactivate" asp-route-id="@Model.Id" method="post">
+      <button class="push-button">
+        @Localizer["Label_Reactivate"]
+      </button>
+    </form>
+  }
+  else
+  {
+    <form asp-action="Deactivate" asp-route-id="@Model.Id" method="post">
+      <button class="push-button">
+        @Localizer["Label_Deactivate"]
+      </button>
+    </form>
+  }
+</div>
 <div class="record__item">
   <div class="record__item-label">@Localizer["Label_Name"]</div>
   <div>@Model.Name</div>

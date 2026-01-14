@@ -42,6 +42,30 @@ test.describe('when signed in as an admin user', () => {
     expect(userId).toBeDefined();
     await hardDeleteTestUser(parseInt(userId!, 10));
   });
+
+  test('can deactivate and reactivate a user', async ({ api, page }) => {
+    const { createTestUser, hardDeleteTestUser } = api('e2e-admin');
+
+    const testUser = await createTestUser();
+
+    try {
+      await page.goto('/admin/users');
+      await page.getByRole('link', { name: testUser.name }).click();
+
+      await page.getByRole('button', { name: 'Deactivate' }).click();
+
+      await expect(page.getByText('Deactivated')).toBeVisible();
+
+      await page.getByRole('button', { name: 'Reactivate' }).click();
+
+      await expect(
+        page.getByRole('button', { name: 'Deactivate' }),
+      ).toBeVisible();
+      await expect(page.getByText('Deactivated')).not.toBeVisible();
+    } finally {
+      await hardDeleteTestUser(testUser.id);
+    }
+  });
 });
 
 test.describe('when signed in as a non-admin user', () => {
