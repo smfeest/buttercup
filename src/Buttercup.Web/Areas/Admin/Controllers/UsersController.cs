@@ -76,6 +76,8 @@ public sealed class UsersController(
             await this.userManager.DeactivateUser(
                 id, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
 
+            this.TempData["FlashMessage"] = this.localizer["Flash_UserDeactivated"].Value;
+
             return this.RedirectToAction(nameof(this.Show), new { id });
 
         }
@@ -92,6 +94,8 @@ public sealed class UsersController(
         {
             await this.userManager.ReactivateUser(
                 id, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
+
+            this.TempData["FlashMessage"] = this.localizer["Flash_UserReactivated"].Value;
 
             return this.RedirectToAction(nameof(this.Show), new { id });
 

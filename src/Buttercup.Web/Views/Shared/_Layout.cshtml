@@ -23,6 +23,10 @@
 </head>
 <body>
   @await Html.PartialAsync("_TopBar")
+  @if (TempData["FlashMessage"] is string)
+  {
+    <div>@TempData["FlashMessage"]</div>
+  }
   <div class="layout__content">
     @RenderBody()
     @await Html.PartialAsync("_FooterNav")

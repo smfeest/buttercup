@@ -3,4 +3,10 @@
   <data name="Error_EmailNotUnique">
     <value>A user already exists with this email address</value>
   </data>
+  <data name="Flash_UserDeactivated">
+    <value>User deactivated</value>
+  </data>
+  <data name="Flash_UserReactivated">
+    <value>User reactivated</value>
+  </data>
 </root>
