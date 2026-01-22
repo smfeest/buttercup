@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Buttercup.Application.Tests/Buttercup.Application.Tests.csproj" />
+    <Project Path="src/Buttercup.Application/Buttercup.Application.csproj" />
+    <Project Path="src/Buttercup.Core.Tests/Buttercup.Core.Tests.csproj" />
+    <Project Path="src/Buttercup.Core/Buttercup.Core.csproj" />
+    <Project Path="src/Buttercup.Email.Tests/Buttercup.Email.Tests.csproj" />
+    <Project Path="src/Buttercup.Email/Buttercup.Email.csproj" />
+    <Project Path="src/Buttercup.EntityModel.Migrations/Buttercup.EntityModel.Migrations.csproj" />
+    <Project Path="src/Buttercup.EntityModel.Tests/Buttercup.EntityModel.Tests.csproj" />
+    <Project Path="src/Buttercup.EntityModel/Buttercup.EntityModel.csproj" />
+    <Project Path="src/Buttercup.Redis.Tests/Buttercup.Redis.Tests.csproj" />
+    <Project Path="src/Buttercup.Redis/Buttercup.Redis.csproj" />
+    <Project Path="src/Buttercup.Security.Tests/Buttercup.Security.Tests.csproj" />
+    <Project Path="src/Buttercup.Security/Buttercup.Security.csproj" />
+    <Project Path="src/Buttercup.TestUtils/Buttercup.TestUtils.csproj" />
+    <Project Path="src/Buttercup.Web.Tests/Buttercup.Web.Tests.csproj" />
+    <Project Path="src/Buttercup.Web/Buttercup.Web.csproj" />
+  </Folder>
+</Solution>
