@@ -1,7 +1,7 @@
 using Buttercup.Application;
 using Buttercup.EntityModel;
-using Buttercup.Web.Areas.Admin.Controllers.Queries;
 using Buttercup.Security;
+using Buttercup.Web.Areas.Admin.Controllers.Queries;
 using Buttercup.Web.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
