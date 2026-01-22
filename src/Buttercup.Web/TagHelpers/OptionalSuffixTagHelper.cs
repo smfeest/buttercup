@@ -35,7 +35,7 @@ public sealed class OptionalSuffixTagHelper(IStringLocalizer<OptionalSuffixTagHe
         {
             var span = new TagBuilder("span");
             span.AddCssClass("form-field__optional-label");
-            span.InnerHtml.Append(this.localizer["Label_Optional"]!);
+            span.InnerHtml.Append(this.localizer["Label_Optional"]);
 
             output.Content.AppendHtml(span);
         }

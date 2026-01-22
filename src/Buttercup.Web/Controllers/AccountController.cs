@@ -52,7 +52,7 @@ public sealed class AccountController(
         {
             this.ModelState.AddModelError(
                 nameof(ChangePasswordViewModel.CurrentPassword),
-                this.localizer["Error_WrongPassword"]!);
+                this.localizer["Error_WrongPassword"]);
 
             return this.View(model);
         }
