@@ -16,8 +16,17 @@ public static class ServiceCollectionExtensions
     /// <returns>
     /// The service collection to allow chaining.
     /// </returns>
-    public static IServiceCollection AddCoreServices(this IServiceCollection services) =>
+    public static IServiceCollection AddCoreServices(this IServiceCollection services)
+    {
+        services
+            .AddOptions<GlobalizationOptions>()
+            .BindConfiguration("Globalization")
+            .ValidateDataAnnotations();
+
         services
             .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
             .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>();
+
+        return services;
+    }
 }
