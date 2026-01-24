@@ -2,9 +2,11 @@ using System.Security.Claims;
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.Security;
+using Buttercup.Web.Globalization;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace Buttercup.Web.Api;
 
@@ -19,6 +21,9 @@ public sealed class UserMutations
     /// </param>
     /// <param name="httpContextAccessor">
     /// The HTTP context accessor.
+    /// </param>
+    /// <param name="globalizationOptions">
+    /// The globalization options.
     /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
@@ -38,6 +43,7 @@ public sealed class UserMutations
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<FieldResult<CreateUserPayload, InputObjectValidationError>> CreateUser(
         ClaimsPrincipal claimsPrincipal,
+        IOptions<GlobalizationOptions> globalizationOptions,
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IUserManager userManager,

@@ -162,6 +162,11 @@ services
     .AddBugsnag();
 
 services
+    .AddOptionsWithValidateOnStart<GlobalizationOptions>()
+    .Bind(configuration.GetRequiredSection("Globalization"))
+    .ValidateDataAnnotations();
+
+services
     .AddTransient<IInputObjectValidatorFactory, InputObjectValidatorFactory>()
     .AddTransient<IUsersControllerQueries, UsersControllerQueries>()
     .AddTransient<IHomeControllerQueries, HomeControllerQueries>()
