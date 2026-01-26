@@ -120,7 +120,7 @@ services
     .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
-    .AddEmailServices(configuration.GetSection("Email"))
+    .AddEmailServices()
     .AddRedisServices(configuration.GetSection("Redis"))
     .AddSecurityServices(configuration.GetSection("Security"));
 

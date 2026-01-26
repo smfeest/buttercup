@@ -1,5 +1,5 @@
 using Azure.Communication.Email;
-using Microsoft.Extensions.Configuration;
+using Buttercup.TestUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -9,53 +9,38 @@ namespace Buttercup.Email;
 
 public sealed class ServiceCollectionExtensionsTests
 {
-    private const string FakeFromAddress = "fake-from@example.com";
+    private static readonly KeyValuePair<string, string?>[] ConfigValues =
+        [new("Email:FromAddress", "fake-from@example.com")];
 
     #region AddEmailServices
 
     [Fact]
     public void AddEmailServices_AddsEmailSenderFactory() =>
         Assert.Contains(
-            new ServiceCollection().AddEmailServices(ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddEmailServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IEmailSender) &&
                 serviceDescriptor.ImplementationFactory is not null &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddEmailServices_WithConfigureActionConfiguresOptions()
+    public void AddEmailServices_BindsEmailOptions()
     {
         var options = new ServiceCollection()
-            .AddEmailServices(ConfigureOptions)
+            .AddInMemoryConfiguration(ConfigValues)
+            .AddEmailServices()
             .BuildServiceProvider()
             .GetRequiredService<IOptions<EmailOptions>>();
 
-        Assert.Equal(FakeFromAddress, options.Value.FromAddress);
+        Assert.Equal(new() { FromAddress = "fake-from@example.com" }, options.Value);
     }
 
     [Fact]
-    public void AddEmailServices_WithConfigurationBindsConfiguration()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>()
-            {
-                ["FromAddress"] = FakeFromAddress,
-            })
-            .Build();
-
-        var options = new ServiceCollection()
-            .AddEmailServices(configuration)
-            .BuildServiceProvider()
-            .GetRequiredService<IOptions<EmailOptions>>();
-
-        Assert.Equal(FakeFromAddress, options.Value.FromAddress);
-    }
-
-    [Fact]
-    public void AddEmailServices_ValidatesOptions()
+    public void AddEmailServices_ValidatesEmailOptions()
     {
         var options = new ServiceCollection()
-            .AddEmailServices(options => { })
+            .AddInMemoryConfiguration([new("Email:FromAddress", string.Empty)])
+            .AddEmailServices()
             .BuildServiceProvider()
             .GetRequiredService<IOptions<EmailOptions>>();
 
@@ -69,12 +54,9 @@ public sealed class ServiceCollectionExtensionsTests
         EmailProvider provider, Type expectedType)
     {
         var serviceProvider = new ServiceCollection()
+            .AddInMemoryConfiguration([.. ConfigValues, new("Email:Provider", provider.ToString())])
             .AddTransient((_) => Mock.Of<EmailClient>())
-            .AddEmailServices(options =>
-            {
-                ConfigureOptions(options);
-                options.Provider = provider;
-            })
+            .AddEmailServices()
             .BuildServiceProvider();
 
         Assert.IsType(expectedType, serviceProvider.GetService<IEmailSender>());
@@ -84,20 +66,14 @@ public sealed class ServiceCollectionExtensionsTests
     public void EmailSenderFactory_ThrowsIfProviderInvalid()
     {
         var serviceProvider = new ServiceCollection()
-            .AddEmailServices(options =>
-            {
-                ConfigureOptions(options);
-                options.Provider = (EmailProvider)5;
-            })
+            .AddInMemoryConfiguration([.. ConfigValues, new("Email:Provider", "5")])
+            .AddEmailServices()
             .BuildServiceProvider();
 
         var exception = Assert.Throws<InvalidOperationException>(
             () => serviceProvider.GetService<IEmailSender>());
         Assert.Equal("'5' is not a valid EmailProvider value", exception.Message);
     }
-
-    private static void ConfigureOptions(EmailOptions options) =>
-        options.FromAddress = FakeFromAddress;
 
     #endregion
 }
