@@ -120,9 +120,9 @@ services
     .AddApplicationServices()
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
-    .AddEmailServices(configuration.GetSection("Email"))
-    .AddRedisServices(configuration.GetSection("Redis"))
-    .AddSecurityServices(configuration.GetSection("Security"));
+    .AddEmailServices()
+    .AddRedisServices()
+    .AddSecurityServices();
 
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
