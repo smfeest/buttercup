@@ -121,7 +121,7 @@ services
     .AddAppDbContextFactory(configuration.GetRequiredConnectionString("AppDb"))
     .AddCoreServices()
     .AddEmailServices()
-    .AddRedisServices(configuration.GetSection("Redis"))
+    .AddRedisServices()
     .AddSecurityServices(configuration.GetSection("Security"));
 
 services
