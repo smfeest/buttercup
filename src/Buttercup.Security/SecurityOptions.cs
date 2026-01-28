@@ -6,7 +6,7 @@ namespace Buttercup.Security;
 /// <summary>
 /// The security options.
 /// </summary>
-public sealed class SecurityOptions
+public sealed record SecurityOptions
 {
     /// <summary>
     /// The rate limit for password authentication attempts.
