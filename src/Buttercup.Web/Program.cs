@@ -122,7 +122,7 @@ services
     .AddCoreServices()
     .AddEmailServices()
     .AddRedisServices()
-    .AddSecurityServices(configuration.GetSection("Security"));
+    .AddSecurityServices();
 
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
