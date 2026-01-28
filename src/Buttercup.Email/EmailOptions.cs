@@ -5,7 +5,7 @@ namespace Buttercup.Email;
 /// <summary>
 /// The email options.
 /// </summary>
-public sealed class EmailOptions
+public sealed record EmailOptions
 {
     /// <summary>
     /// Gets or sets the from address.
