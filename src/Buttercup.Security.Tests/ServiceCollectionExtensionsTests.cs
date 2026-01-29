@@ -1,5 +1,4 @@
 using Buttercup.EntityModel;
-using Buttercup.Redis.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +9,6 @@ namespace Buttercup.Security;
 
 public sealed class ServiceCollectionExtensionsTests
 {
-    private readonly SlidingWindowRateLimit passwordAuthenticationRateLimit = new(1, 100);
-
     #region AddSecurityServices
 
     [Fact]
@@ -122,8 +119,16 @@ public sealed class ServiceCollectionExtensionsTests
             .GetRequiredService<IOptions<SecurityOptions>>();
 
         Assert.Equal(
-            this.passwordAuthenticationRateLimit,
-            options.Value.PasswordAuthenticationRateLimit);
+            new()
+            {
+                PasswordAuthenticationRateLimit = new(1, 100),
+                PasswordResetRateLimits = new()
+                {
+                    Global = new(2, 200),
+                    PerEmail = new(3, 300),
+                },
+            },
+            options.Value);
     }
 
     [Fact]
@@ -147,8 +152,16 @@ public sealed class ServiceCollectionExtensionsTests
             .GetRequiredService<IOptions<SecurityOptions>>();
 
         Assert.Equal(
-            this.passwordAuthenticationRateLimit,
-            options.Value.PasswordAuthenticationRateLimit);
+            new()
+            {
+                PasswordAuthenticationRateLimit = new(1, 100),
+                PasswordResetRateLimits = new()
+                {
+                    Global = new(2, 200),
+                    PerEmail = new(3, 300),
+                },
+            },
+            options.Value);
     }
 
     [Fact]
@@ -164,7 +177,7 @@ public sealed class ServiceCollectionExtensionsTests
 
     private void ConfigureOptions(SecurityOptions options)
     {
-        options.PasswordAuthenticationRateLimit = this.passwordAuthenticationRateLimit;
+        options.PasswordAuthenticationRateLimit = new(1, 100);
         options.PasswordResetRateLimits = new() { Global = new(2, 200), PerEmail = new(3, 300) };
     }
 
