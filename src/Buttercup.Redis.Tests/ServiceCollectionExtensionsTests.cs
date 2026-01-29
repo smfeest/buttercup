@@ -47,7 +47,7 @@ public sealed class ServiceCollectionExtensionsTests
             .BuildServiceProvider()
             .GetRequiredService<IOptions<RedisConnectionOptions>>();
 
-        Assert.Equal(FakeConnectionString, options.Value.ConnectionString);
+        Assert.Equal(new() { ConnectionString = FakeConnectionString }, options.Value);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class ServiceCollectionExtensionsTests
             .BuildServiceProvider()
             .GetRequiredService<IOptions<RedisConnectionOptions>>();
 
-        Assert.Equal(FakeConnectionString, options.Value.ConnectionString);
+        Assert.Equal(new() { ConnectionString = FakeConnectionString }, options.Value);
     }
 
     [Fact]

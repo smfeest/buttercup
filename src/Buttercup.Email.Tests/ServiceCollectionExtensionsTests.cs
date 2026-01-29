@@ -30,7 +30,7 @@ public sealed class ServiceCollectionExtensionsTests
             .BuildServiceProvider()
             .GetRequiredService<IOptions<EmailOptions>>();
 
-        Assert.Equal(FakeFromAddress, options.Value.FromAddress);
+        Assert.Equal(new() { FromAddress = FakeFromAddress }, options.Value);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public sealed class ServiceCollectionExtensionsTests
             .BuildServiceProvider()
             .GetRequiredService<IOptions<EmailOptions>>();
 
-        Assert.Equal(FakeFromAddress, options.Value.FromAddress);
+        Assert.Equal(new() { FromAddress = FakeFromAddress }, options.Value);
     }
 
     [Fact]
