@@ -5,7 +5,7 @@ namespace Buttercup.Redis;
 /// <summary>
 /// The Redis connection options.
 /// </summary>
-public sealed class RedisConnectionOptions
+public sealed record RedisConnectionOptions
 {
     /// <summary>
     /// The connection string.

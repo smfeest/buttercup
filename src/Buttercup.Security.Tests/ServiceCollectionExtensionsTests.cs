@@ -1,7 +1,6 @@
 using Buttercup.EntityModel;
-using Buttercup.Redis.RateLimiting;
+using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -10,14 +9,22 @@ namespace Buttercup.Security;
 
 public sealed class ServiceCollectionExtensionsTests
 {
-    private readonly SlidingWindowRateLimit passwordAuthenticationRateLimit = new(1, 100);
+    private static readonly KeyValuePair<string, string?>[] ConfigValues =
+    [
+        new("Security:PasswordAuthenticationRateLimit:Limit", "1"),
+        new("Security:PasswordAuthenticationRateLimit:Window", "00:00:00.100"),
+        new("Security:PasswordResetRateLimits:Global:Limit", "2"),
+        new("Security:PasswordResetRateLimits:Global:Window", "00:00:00.200"),
+        new("Security:PasswordResetRateLimits:PerEmail:Limit", "3"),
+        new("Security:PasswordResetRateLimits:PerEmail:Window", "00:00:00.300"),
+    ];
 
     #region AddSecurityServices
 
     [Fact]
     public void AddSecurityServices_AddsPasswordHasher() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IPasswordHasher<User>) &&
                 serviceDescriptor.ImplementationType == typeof(PasswordHasher<User>) &&
@@ -26,7 +33,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsAccessTokenEncoder() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IAccessTokenEncoder) &&
                 serviceDescriptor.ImplementationType == typeof(AccessTokenEncoder) &&
@@ -35,7 +42,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsAccessTokenSerializer() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IAccessTokenSerializer) &&
                 serviceDescriptor.ImplementationType == typeof(AccessTokenSerializer) &&
@@ -44,7 +51,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsAuthenticationMailer() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IAuthenticationMailer) &&
                 serviceDescriptor.ImplementationType == typeof(AuthenticationMailer) &&
@@ -53,7 +60,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsClaimsIdentityFactory() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IClaimsIdentityFactory) &&
                 serviceDescriptor.ImplementationType == typeof(ClaimsIdentityFactory) &&
@@ -62,7 +69,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsCookieAuthenticationService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(ICookieAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(CookieAuthenticationService) &&
@@ -71,7 +78,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsParameterMaskingService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IParameterMaskingService) &&
                 serviceDescriptor.ImplementationType == typeof(ParameterMaskingService) &&
@@ -80,7 +87,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsPasswordAuthenticationRateLimiter() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IPasswordAuthenticationRateLimiter) &&
                 serviceDescriptor.ImplementationType == typeof(PasswordAuthenticationRateLimiter) &&
@@ -89,7 +96,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsPasswordAuthenticationService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IPasswordAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(PasswordAuthenticationService) &&
@@ -98,7 +105,7 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsPasswordResetRateLimiter() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(IPasswordResetRateLimiter) &&
                 serviceDescriptor.ImplementationType == typeof(PasswordResetRateLimiter) &&
@@ -107,65 +114,48 @@ public sealed class ServiceCollectionExtensionsTests
     [Fact]
     public void AddSecurityServices_AddsTokenAuthenticationService() =>
         Assert.Contains(
-            new ServiceCollection().AddSecurityServices(this.ConfigureOptions),
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddSecurityServices(),
             serviceDescriptor =>
                 serviceDescriptor.ServiceType == typeof(ITokenAuthenticationService) &&
                 serviceDescriptor.ImplementationType == typeof(TokenAuthenticationService) &&
                 serviceDescriptor.Lifetime == ServiceLifetime.Transient);
 
     [Fact]
-    public void AddSecurityServices_WithConfigureActionConfiguresOptions()
+    public void AddSecurityServices_BindsSecurityOptions()
     {
         var options = new ServiceCollection()
-            .AddSecurityServices(this.ConfigureOptions)
+            .AddInMemoryConfiguration(ConfigValues)
+            .AddSecurityServices()
             .BuildServiceProvider()
             .GetRequiredService<IOptions<SecurityOptions>>();
 
         Assert.Equal(
-            this.passwordAuthenticationRateLimit,
-            options.Value.PasswordAuthenticationRateLimit);
-    }
-
-    [Fact]
-    public void AddSecurityServices_WithConfigurationBindsConfiguration()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>()
+            new()
             {
-                ["PasswordAuthenticationRateLimit:Limit"] = "1",
-                ["PasswordAuthenticationRateLimit:Window"] = "00:00:00.100",
-                ["PasswordResetRateLimits:Global:Limit"] = "2",
-                ["PasswordResetRateLimits:Global:Window"] = "00:00:00.200",
-                ["PasswordResetRateLimits:PerEmail:Limit"] = "3",
-                ["PasswordResetRateLimits:PerEmail:Window"] = "00:00:00.300",
-            })
-            .Build();
-
-        var options = new ServiceCollection()
-            .AddSecurityServices(configuration)
-            .BuildServiceProvider()
-            .GetRequiredService<IOptions<SecurityOptions>>();
-
-        Assert.Equal(
-            this.passwordAuthenticationRateLimit,
-            options.Value.PasswordAuthenticationRateLimit);
+                PasswordAuthenticationRateLimit = new(1, 100),
+                PasswordResetRateLimits = new()
+                {
+                    Global = new(2, 200),
+                    PerEmail = new(3, 300),
+                },
+            },
+            options.Value);
     }
 
     [Fact]
-    public void AddSecurityServices_ValidatesOptions()
+    public void AddSecurityServices_ValidatesSecurityOptions()
     {
+        var configValues = new Dictionary<string, string?>(ConfigValues);
+        configValues.Remove("Security:PasswordAuthenticationRateLimit:Limit");
+        configValues.Remove("Security:PasswordAuthenticationRateLimit:Window");
+
         var options = new ServiceCollection()
-            .AddSecurityServices(options => { })
+            .AddInMemoryConfiguration(configValues)
+            .AddSecurityServices()
             .BuildServiceProvider()
             .GetRequiredService<IOptions<SecurityOptions>>();
 
         Assert.Throws<OptionsValidationException>(() => options.Value);
-    }
-
-    private void ConfigureOptions(SecurityOptions options)
-    {
-        options.PasswordAuthenticationRateLimit = this.passwordAuthenticationRateLimit;
-        options.PasswordResetRateLimits = new() { Global = new(2, 200), PerEmail = new(3, 300) };
     }
 
     #endregion
