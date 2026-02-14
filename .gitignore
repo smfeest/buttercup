@@ -5,4 +5,5 @@ obj/
 TestResults/
 **/assets/scripts
 **/assets/styles
+**/assets/scss
 mono_crash.*

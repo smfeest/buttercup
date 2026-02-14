@@ -1,0 +1,37 @@
+@use './core-variables';
+
+.data-table {
+  border-spacing: 0;
+  width: 100%;
+
+  td,
+  th {
+    border-bottom: 1px solid core-variables.$color-grey;
+    padding: core-variables.$padding 0 core-variables.$padding
+      core-variables.$padding;
+    text-align: left;
+
+    &:first-child {
+      padding-left: 0;
+    }
+
+    &.data-table--right-aligned {
+      text-align: right;
+    }
+  }
+}
+
+.data-table--collapsed-below-medium {
+  display: none;
+}
+
+@media (min-width: core-variables.$medium-breakpoint) {
+  col.data-table--collapsed-below-medium {
+    display: table-column;
+  }
+
+  td.data-table--collapsed-below-medium,
+  th.data-table--collapsed-below-medium {
+    display: table-cell;
+  }
+}

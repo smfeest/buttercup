@@ -5,6 +5,10 @@ import less from 'gulp-less';
 import rename from 'gulp-rename';
 import webpack from 'webpack';
 import webpackStream from 'webpack-stream';
+import * as dartSass from 'sass';
+import gulpSass from 'gulp-sass';
+
+const sass = gulpSass(dartSass);
 
 const { dest, parallel, series, src, watch } = gulp;
 
@@ -33,6 +37,15 @@ function bundleStyles() {
     .pipe(rename({ suffix: '.prod' }))
     .pipe(cleanCss())
     .pipe(dest(paths.styleAssets));
+}
+
+function bundleScssStyles() {
+  return src(`scss/{main,print}.scss`)
+    .pipe(sass.sync().on('error', sass.logError))
+    .pipe(dest(`${paths.assets}/scss`))
+    .pipe(rename({ suffix: '.prod' }))
+    .pipe(cleanCss())
+    .pipe(dest(`${paths.assets}/scss`));
 }
 
 function clean() {
@@ -97,4 +110,12 @@ const rebuild = series(clean, build);
 
 const watchAll = parallel(bundleStyles, watchScripts, watchStyles);
 
-export { build as default, build, clean, rebuild, watchAll as watch };
+export {
+  build as default,
+  build,
+  clean,
+  rebuild,
+  watchAll as watch,
+  bundleStyles,
+  bundleScssStyles,
+};

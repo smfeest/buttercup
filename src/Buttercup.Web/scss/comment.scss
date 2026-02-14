@@ -1,0 +1,28 @@
+@use './core-variables';
+
+.comment:target {
+  margin-left: (-(core-variables.$padding));
+  border-left: core-variables.$color-orange solid 0.25em;
+  padding-left: calc(core-variables.$padding - 0.25em);
+}
+
+.comment--framed {
+  margin: 1em 0;
+  padding: 1em 1em 0 1em;
+  background-color: core-variables.$color-light-grey;
+  border: 1px solid core-variables.$color-light-grey;
+}
+
+.comment__header {
+  display: flex;
+  flex-direction: row;
+  gap: 0.9em;
+}
+
+.comment__author {
+  font-weight: 500;
+}
+
+a.comment__timestamp {
+  color: core-variables.$color-black;
+}

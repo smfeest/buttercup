@@ -1,0 +1,30 @@
+@use './core-variables';
+
+.home-page__container {
+  display: grid;
+  grid: auto-flow / 1fr;
+  margin: 0 auto;
+  max-width: 60em;
+  row-gap: core-variables.$padding;
+
+  @media (min-width: core-variables.$medium-breakpoint) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.home-page__recipe-list {
+  text-align: center;
+
+  h1 {
+    font-size: 1.8em;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    margin: 0 0 core-variables.$padding;
+  }
+}

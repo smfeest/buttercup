@@ -1,0 +1,11 @@
+@use './core-variables';
+
+$tag-horizontal-padding: 0.6em;
+$tag-vertical-padding: 0.2em;
+
+.tag {
+  background-color: core-variables.$color-grey;
+  display: inline-block;
+  margin: -$tag-vertical-padding 0;
+  padding: $tag-vertical-padding $tag-horizontal-padding;
+}

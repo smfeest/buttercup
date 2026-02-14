@@ -1,0 +1,30 @@
+@use './core-variables';
+
+html {
+  overflow-y: scroll;
+}
+
+body {
+  font-family: core-variables.$font-family-roboto;
+  min-width: core-variables.$min-width;
+  padding: 0 core-variables.$padding;
+}
+
+h1 {
+  color: core-variables.$color-orange;
+}
+
+h2 {
+  color: core-variables.$color-blue;
+}
+
+h1,
+h2 {
+  font-family: Lora, serif;
+  font-weight: bold;
+}
+
+a {
+  color: core-variables.$color-blue;
+  text-decoration: none;
+}

@@ -1,0 +1,82 @@
+@use './core-variables';
+
+$form-horizontal-padding: 1em;
+$form-vertical-padding-large: 1.5em;
+$form-vertical-padding-small: 0.5em;
+
+$form-input-border-width: 1px;
+$form-input-height: 2.5em;
+$form-input-input-padding: 0.75em;
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: $form-vertical-padding-large;
+}
+
+.form-field__label {
+  margin-bottom: $form-vertical-padding-small;
+}
+
+.form-field__optional-label {
+  color: core-variables.$color-dark-grey;
+  font-size: 0.8em;
+
+  &::before {
+    content: ' — ';
+  }
+}
+
+.form-field__input {
+  background-color: core-variables.$color-white;
+  border: $form-input-border-width solid core-variables.$color-grey;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  height: $form-input-height;
+  padding: 0 $form-input-input-padding;
+
+  &.input-validation-error {
+    border-color: core-variables.$color-red;
+  }
+
+  &:focus {
+    border-color: core-variables.$color-blue;
+    outline: 0;
+  }
+}
+
+textarea.form-field__input {
+  $vertical-midpoint: calc(
+    calc($form-input-height / 2) - $form-input-border-width
+  );
+
+  height: 6em;
+  padding: calc($vertical-midpoint - 0.5em) $form-input-input-padding;
+  resize: vertical;
+
+  &.form-field__input--tall {
+    height: 10em;
+  }
+}
+
+.form-field__link {
+  margin-top: $form-vertical-padding-small;
+}
+
+.field-validation-error,
+.validation-summary-errors {
+  background-color: core-variables.$color-red;
+  color: core-variables.$color-white;
+  font-weight: bold;
+  padding: $form-vertical-padding-small $form-horizontal-padding;
+}
+
+.validation-summary-errors {
+  margin-bottom: $form-vertical-padding-large;
+
+  > ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+}

@@ -1,0 +1,6 @@
+@use './core-variables';
+
+.layout__content {
+  margin: core-variables.$padding auto;
+  max-width: core-variables.$max-width;
+}

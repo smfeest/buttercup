@@ -1,0 +1,51 @@
+@use 'sass:color';
+@use './core-variables';
+
+.popover-menu {
+  background-color: core-variables.$color-white;
+  border: 1px solid core-variables.$color-grey;
+  box-shadow: 0 0.3em 1.5em rgba(0, 0, 0, 0.175);
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &.popover-menu--open {
+    display: block;
+  }
+
+  > li {
+    border-top: 1px solid core-variables.$color-light-grey;
+
+    &:first-child {
+      border-top: 0;
+    }
+  }
+}
+
+.popover-menu__item {
+  border: 2px solid transparent;
+  display: block;
+  padding: 0.625em 1.5625em;
+  white-space: nowrap;
+}
+
+a.popover-menu__item {
+  color: core-variables.$color-black;
+  text-decoration: none;
+
+  &:active,
+  &:hover {
+    background-color: color.adjust(
+      core-variables.$color-white,
+      $lightness: -5%,
+      $space: hsl
+    );
+    outline: 0;
+  }
+
+  &:focus {
+    border-color: core-variables.$color-orange;
+    outline: 0;
+  }
+}

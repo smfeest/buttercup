@@ -1,0 +1,91 @@
+@use 'sass:color';
+@use './core-variables';
+
+$push-button_background-color: core-variables.$color-white;
+$push-button_border-color: core-variables.$color-grey;
+$push-button_focus-border-color: core-variables.$color-blue;
+$push-button_foreground-color: core-variables.$color-very-dark-grey;
+
+@mixin push-button(
+  $background-color: $push-button_background-color,
+  $foreground-color: $push-button_foreground-color,
+  $border-color: $push-button_border-color,
+  $focus-border-color: $push-button_focus-border-color
+) {
+  background-color: $background-color;
+  border: 1px solid $border-color;
+  border-radius: 0.1875em;
+  box-sizing: border-box;
+  color: $foreground-color;
+  display: inline-block;
+  font-family: core-variables.$font-family-roboto;
+  min-width: 6.5em;
+  padding: 0.5em 1.5em;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  white-space: nowrap;
+  @content;
+
+  &:active,
+  &:hover {
+    background-color: color.adjust(
+      $background-color,
+      $lightness: -5%,
+      $space: hsl
+    );
+    border-color: color.adjust($border-color, $lightness: -5%, $space: hsl);
+    outline: 0;
+  }
+
+  &:focus {
+    background-color: color.adjust(
+      $background-color,
+      $lightness: -5%,
+      $space: hsl
+    );
+    border-color: $focus-border-color;
+    outline: 0;
+  }
+
+  &[disabled] {
+    opacity: 0.4;
+
+    &,
+    &:active,
+    &:focus,
+    &:hover {
+      background-color: $background-color;
+      border-color: $border-color;
+    }
+  }
+}
+
+.push-button {
+  @include push-button;
+}
+
+.primary-push-button {
+  @include push-button(
+    $background-color: core-variables.$color-blue,
+    $foreground-color: core-variables.$color-white,
+    $border-color: core-variables.$color-blue
+  ) {
+    font-weight: bold;
+  }
+}
+
+.critical-push-button {
+  @include push-button(
+    $background-color: core-variables.$color-red,
+    $foreground-color: core-variables.$color-white,
+    $border-color: core-variables.$color-red
+  ) {
+    font-weight: bold;
+  }
+}
+
+.button-bar {
+  display: flex;
+  gap: 0.625em;
+}

@@ -1,0 +1,58 @@
+@use 'sass:color';
+@use './core-variables';
+
+.account-overview__section-heading {
+  margin-bottom: 0;
+  padding-bottom: 0.25em;
+}
+
+.account-overview__item {
+  align-items: center;
+  border-bottom: 1px solid core-variables.$color-grey;
+  display: flex;
+  justify-content: space-between;
+
+  &:last-child {
+    border-bottom-width: 0;
+  }
+}
+
+a.account-overview__item {
+  color: core-variables.$color-black;
+
+  &:active,
+  &:hover {
+    background-color: color.adjust(
+      core-variables.$color-white,
+      $lightness: -5%,
+      $space: hsl
+    );
+  }
+}
+
+.account-overview__item-content {
+  flex-grow: 1;
+  padding: core-variables.$padding 0;
+}
+
+.account-overview__item-label {
+  flex-basis: 10em;
+  font-size: 0.9em;
+  margin-bottom: core-variables.$small-padding;
+}
+
+.account-overview__item-disclosure {
+  flex-shrink: 0;
+  margin: 0 core-variables.$small-padding 0 core-variables.$padding;
+}
+
+@media (min-width: core-variables.$small-breakpoint) {
+  .account-overview__item-content {
+    align-items: baseline;
+    display: flex;
+  }
+
+  .account-overview__item-label {
+    margin-bottom: 0;
+  }
+}
