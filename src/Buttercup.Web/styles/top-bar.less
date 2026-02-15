@@ -7,6 +7,10 @@
 .top-bar {
   background-color: @color-blue;
   margin: 0 -@padding;
+
+  @media print {
+    display: none;
+  }
 }
 
 .top-bar__content {

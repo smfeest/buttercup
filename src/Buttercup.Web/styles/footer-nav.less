@@ -1,6 +1,10 @@
 .footer-nav {
   border-top: 1px solid @color-light-grey;
   margin-top: @large-padding;
+
+  @media print {
+    display: none;
+  }
 }
 
 .footer-nav__items {

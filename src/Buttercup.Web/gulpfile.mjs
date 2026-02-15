@@ -27,7 +27,7 @@ function bundleDevelopmentScripts() {
 }
 
 function bundleStyles() {
-  return src(`${paths.styles}/{main,print}.less`)
+  return src(`${paths.styles}/main.less`)
     .pipe(less({ math: 'parens-division' }))
     .pipe(dest(paths.styleAssets))
     .pipe(rename({ suffix: '.prod' }))
