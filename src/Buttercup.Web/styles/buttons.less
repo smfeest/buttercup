@@ -23,13 +23,13 @@
 
   &:active,
   &:hover {
-    background-color: darken(@background-color, 5%);
-    border-color: darken(@border-color, 5%);
+    background-color: oklch(from @background-color calc(l - 0.05) c h);
+    border-color: oklch(from @border-color calc(l - 0.05) c h);
     outline: 0;
   }
 
   &:focus {
-    background-color: darken(@background-color, 5%);
+    background-color: oklch(from @background-color calc(l - 0.05) c h);
     border-color: @focus-border-color;
     outline: 0;
   }

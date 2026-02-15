@@ -32,7 +32,7 @@
 
     &:active,
     &:hover {
-      background-color: darken(@color-white, 5%);
+      background-color: oklch(from @color-white calc(l - 0.05) c h);
       outline: 0;
     }
 

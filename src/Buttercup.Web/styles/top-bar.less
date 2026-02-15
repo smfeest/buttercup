@@ -1,5 +1,5 @@
 @top-bar-height: 3rem;
-@top-bar-border-color-1: darken(@color-blue, 5%);
+@top-bar-border-color-1: oklch(from @color-blue calc(l - 0.05) c h);
 @top-bar-border-color-2: @color-grey;
 @top-bar-border-width: 1px;
 @top-bar-focus-border-width: 2px;
@@ -68,7 +68,7 @@
   &:active,
   &:hover,
   &[aria-expanded='true'] {
-    background-color: darken(@color-white, 5%);
+    background-color: oklch(from @color-white calc(l - 0.05) c h);
   }
 }
 
@@ -103,7 +103,7 @@
   &:active,
   &:hover,
   &[aria-expanded='true'] {
-    background-color: lighten(@color-blue, 5%);
+    background-color: oklch(from @color-blue calc(l + 0.05) c h);
   }
 }
 
@@ -156,7 +156,7 @@
     &:active,
     &:hover,
     &[aria-expanded='true'] {
-      background-color: lighten(@color-blue, 5%);
+      background-color: oklch(from @color-blue calc(l + 0.05) c h);
     }
   }
 }
