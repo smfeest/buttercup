@@ -15,7 +15,7 @@
     }
     @if (Model.IncludeDeleteLink)
     {
-      <a asp-controller="Comments" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
+      <a class="comment__action" asp-controller="Comments" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
     }
   </header>
   @Html.FromMarkdown(Model.Body, MarkdownPipelines.Comments)
