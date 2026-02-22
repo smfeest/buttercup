@@ -1,11 +1,19 @@
 @form-horizontal-padding: 1em;
-@form-vertical-padding-large: 1.5em;
 @form-vertical-padding-small: 0.5em;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+
+  > button {
+    align-self: flex-start;
+  }
+}
 
 .form-field {
   display: flex;
   flex-direction: column;
-  margin-bottom: @form-vertical-padding-large;
 }
 
 .form-field__label {
@@ -34,8 +42,6 @@
 }
 
 .validation-summary-errors {
-  margin-bottom: @form-vertical-padding-large;
-
   > ul {
     list-style-type: none;
     margin: 0;

@@ -5,7 +5,7 @@
   ViewData["Title"] = Localizer["Title_YourPreferences"];
 }
 <h1>@Localizer["Title_YourPreferences"]</h1>
-<form method="post">
+<form class="form" method="post">
   <div class="form-field">
     <label class="form-field__label" asp-for="TimeZone">@Localizer["Label_TimeZone"]</label>
     <select class="input-box" asp-for="TimeZone" asp-items="TimeZoneOptions.AllOptions().AsSelectListItems()" required>

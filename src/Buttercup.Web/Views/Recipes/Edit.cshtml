@@ -4,7 +4,7 @@
   ViewData["Title"] = Localizer["Title_EditRecipe", Model!.Attributes.Title];
 }
 <h1>@Localizer["Heading_EditRecipe"]</h1>
-<form method="post">
+<form class="form" method="post">
   @Html.EditorFor(m => m.Attributes)
   <input type="hidden" asp-for="BaseRevision">
   <div class="button-bar">

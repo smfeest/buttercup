@@ -94,9 +94,9 @@
   {
     <partial name="_Comment" model="@commentViewModel" />
   }
-  <form class="new-comment-form" method="post" asp-action="AddComment" asp-route-id="@Model.Recipe.Id">
+  <form class="form new-comment-form" method="post" asp-action="AddComment" asp-route-id="@Model.Recipe.Id">
     <p class="new-comment-form__author">@User.Identity?.Name</p>
-    <div class="new-comment-form__field form-field">
+    <div class="form-field">
       <textarea class="input-box" asp-for="NewCommentAttributes.Body" aria-label="@Localizer["Label_Comment"]" placeholder="@Localizer["Placeholder_Comment"]" required></textarea>
       <span asp-validation-for="NewCommentAttributes.Body"></span>
     </div>
