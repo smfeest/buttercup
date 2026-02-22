@@ -1,6 +1,6 @@
 .popover-menu {
-  background-color: @color-white;
-  border: 1px solid @color-grey;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-grey);
   box-shadow: 0 0.3em 1.5em rgba(0, 0, 0, 0.175);
   display: none;
   list-style: none;
@@ -12,7 +12,7 @@
   }
 
   > li {
-    border-top: 1px solid @color-light-grey;
+    border-top: 1px solid var(--color-light-grey);
 
     &:first-child {
       border-top: 0;
@@ -27,17 +27,17 @@
   white-space: nowrap;
 
   a& {
-    color: @color-black;
+    color: var(--color-black);
     text-decoration: none;
 
     &:active,
     &:hover {
-      background-color: oklch(from @color-white calc(l - 0.05) c h);
+      background-color: oklch(from var(--color-white) calc(l - 0.05) c h);
       outline: 0;
     }
 
     &:focus {
-      border-color: @color-orange;
+      border-color: var(--color-orange);
       outline: 0;
     }
   }

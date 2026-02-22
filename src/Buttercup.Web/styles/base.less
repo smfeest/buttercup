@@ -4,12 +4,12 @@ html {
 
 body {
   font-family: Roboto, sans-serif;
-  min-width: @min-width;
-  padding: 0 @padding;
+  min-width: var(--min-width);
+  padding: 0 var(--padding);
 }
 
 h1 {
-  color: @color-orange;
+  color: var(--color-orange);
 
   @media print {
     text-align: center;
@@ -17,7 +17,7 @@ h1 {
 }
 
 h2 {
-  color: @color-blue;
+  color: var(--color-blue);
 }
 
 h1,
@@ -27,6 +27,6 @@ h2 {
 }
 
 a {
-  color: @color-blue;
+  color: var(--color-blue);
   text-decoration: none;
 }

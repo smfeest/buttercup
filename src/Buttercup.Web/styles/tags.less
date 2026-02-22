@@ -1,9 +1,9 @@
-@tag_horizontal-padding: 0.6em;
-@tag_vertical-padding: 0.2em;
-
 .tag {
-  background-color: @color-grey;
+  --tag-horizontal-padding: 0.6em;
+  --tag-vertical-padding: 0.2em;
+
+  background-color: var(--color-grey);
   display: inline-block;
-  margin: -@tag_vertical-padding 0;
-  padding: @tag_vertical-padding @tag_horizontal-padding;
+  margin: calc(var(--tag-vertical-padding) * -1) 0;
+  padding: var(--tag-vertical-padding) var(--tag-horizontal-padding);
 }

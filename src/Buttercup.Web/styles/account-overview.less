@@ -5,16 +5,16 @@
 
 .account-overview__item {
   align-items: center;
-  border-bottom: 1px solid @color-grey;
+  border-bottom: 1px solid var(--color-grey);
   display: flex;
   justify-content: space-between;
 
   a& {
-    color: @color-black;
+    color: var(--color-black);
 
     &:active,
     &:hover {
-      background-color: oklch(from @color-white calc(l - 0.05) c h);
+      background-color: oklch(from var(--color-white) calc(l - 0.05) c h);
     }
   }
 
@@ -25,18 +25,18 @@
 
 .account-overview__item-content {
   flex-grow: 1;
-  padding: @padding 0;
+  padding: var(--padding) 0;
 }
 
 .account-overview__item-label {
   flex-basis: 10em;
   font-size: 0.9em;
-  margin-bottom: @small-padding;
+  margin-bottom: var(--small-padding);
 }
 
 .account-overview__item-disclosure {
   flex-shrink: 0;
-  margin: 0 @small-padding 0 @padding;
+  margin: 0 var(--small-padding) 0 var(--padding);
 }
 
 @media (min-width: @small-breakpoint) {

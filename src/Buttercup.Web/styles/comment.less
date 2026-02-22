@@ -1,14 +1,14 @@
 .comment:target {
-  margin-left: -@padding;
-  border-left: @color-orange solid 0.25em;
-  padding-left: calc(@padding - 0.25em);
+  margin-left: calc(var(--padding) * -1);
+  border-left: var(--color-orange) solid 0.25em;
+  padding-left: calc(var(--padding) - 0.25em);
 }
 
 .comment--framed {
   margin: 1em 0;
   padding: 1em 1em 0 1em;
-  background-color: @color-light-grey;
-  border: 1px solid @color-light-grey;
+  background-color: var(--color-light-grey);
+  border: 1px solid var(--color-light-grey);
 }
 
 .comment__header {
@@ -22,7 +22,7 @@
 }
 
 a.comment__timestamp {
-  color: @color-black;
+  color: var(--color-black);
 }
 
 @media print {

@@ -3,7 +3,7 @@
   grid: auto-flow / 1fr;
   margin: 0 auto;
   max-width: 60em;
-  row-gap: @padding;
+  row-gap: var(--padding);
 
   @media (min-width: @medium-breakpoint) {
     grid-template-columns: repeat(2, 1fr);
@@ -23,6 +23,6 @@
   }
 
   li {
-    margin: 0 0 @padding;
+    margin: 0 0 var(--padding);
   }
 }

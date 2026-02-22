@@ -1,12 +1,12 @@
 .recipes-index__header {
   display: flex;
   flex-direction: column;
-  margin-top: -@padding;
+  margin-top: calc(var(--padding) * -1);
 }
 
 #recipe-index__filter {
   display: none;
-  margin-bottom: @small-padding;
+  margin-bottom: var(--small-padding);
 
   .js-enabled & {
     display: block;
