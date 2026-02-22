@@ -8,7 +8,7 @@
 <form method="post">
   <div class="form-field">
     <label class="form-field__label" asp-for="TimeZone">@Localizer["Label_TimeZone"]</label>
-    <select class="form-field__input" asp-for="TimeZone" asp-items="TimeZoneOptions.AllOptions().AsSelectListItems()" required>
+    <select class="input-box" asp-for="TimeZone" asp-items="TimeZoneOptions.AllOptions().AsSelectListItems()" required>
     </select>
     <span asp-validation-for="TimeZone"></span>
   </div>
