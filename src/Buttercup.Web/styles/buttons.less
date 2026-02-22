@@ -1,17 +1,12 @@
-@push-button_background-color: @color-white;
-@push-button_border-color: @color-grey;
-@push-button_focus-border-color: @color-blue;
-@push-button_foreground-color: @color-very-dark-grey;
-
-.push-button(@background-color: @push-button_background-color,
-  @foreground-color: @push-button_foreground-color,
-  @border-color: @push-button_border-color,
-  @focus-border-color: @push-button_focus-border-color) {
-  background-color: @background-color;
-  border: 1px solid @border-color;
+.push-button {
+  --push-button-background-color: @color-white;
+  --push-button-foreground-color: @color-very-dark-grey;
+  --push-button-border-color: @color-grey;
+  background-color: var(--push-button-background-color);
+  border: 1px solid var(--push-button-border-color);
   border-radius: 0.1875em;
   box-sizing: border-box;
-  color: @foreground-color;
+  color: var(--push-button-foreground-color);
   display: inline-block;
   min-width: 6.5em;
   padding: 0.5em 1.5em;
@@ -22,14 +17,20 @@
 
   &:active,
   &:hover {
-    background-color: oklch(from @background-color calc(l - 0.05) c h);
-    border-color: oklch(from @border-color calc(l - 0.05) c h);
+    background-color: oklch(
+      from var(--push-button-background-color) calc(l - 0.05) c h
+    );
+    border-color: oklch(
+      from var(--push-button-border-color) calc(l - 0.05) c h
+    );
     outline: 0;
   }
 
   &:focus {
-    background-color: oklch(from @background-color calc(l - 0.05) c h);
-    border-color: @focus-border-color;
+    background-color: oklch(
+      from var(--push-button-background-color) calc(l - 0.05) c h
+    );
+    border-color: @color-blue;
     outline: 0;
   }
 
@@ -40,28 +41,24 @@
     &:active,
     &:focus,
     &:hover {
-      background-color: @background-color;
-      border-color: @border-color;
+      background-color: var(--push-button-background-color);
+      border-color: var(--push-button-border-color);
     }
   }
-}
 
-.push-button {
-  .push-button;
-}
+  &.push-button--primary {
+    --push-button-background-color: @color-blue;
+    --push-button-foreground-color: @color-white;
+    --push-button-border-color: @color-blue;
+    font-weight: bold;
+  }
 
-.primary-push-button {
-  .push-button(@background-color: @color-blue,
-    @foreground-color: @color-white,
-    @border-color: @color-blue);
-  font-weight: bold;
-}
-
-.critical-push-button {
-  .push-button(@background-color: @color-red,
-  @foreground-color: @color-white,
-  @border-color: @color-red);
-  font-weight: bold;
+  &.push-button--critical {
+    --push-button-background-color: @color-red;
+    --push-button-foreground-color: @color-white;
+    --push-button-border-color: @color-red;
+    font-weight: bold;
+  }
 }
 
 .button-bar {

@@ -8,7 +8,7 @@
   @Html.EditorFor(m => m.Attributes)
   <input type="hidden" asp-for="BaseRevision">
   <div class="button-bar">
-    <button class="primary-push-button">@Localizer["Label_Save"]</button>
+    <button class="push-button push-button--primary">@Localizer["Label_Save"]</button>
     <a class="push-button" asp-action="Show" asp-route-id="@Model.Id">@Localizer["Label_Cancel"]</a>
   </div>
 </form>

@@ -8,7 +8,7 @@
   <p>@Localizer["Message_DeleteConfirmation"]</p>
   <partial name="_Comment" model="@new CommentViewModel(Model, IncludeFrame: true)" />
   <div class="button-bar">
-    <button class="critical-push-button">@Localizer["Label_Delete"]</button>
+    <button class="push-button push-button--critical">@Localizer["Label_Delete"]</button>
     <a class="push-button" asp-controller="Recipes" asp-action="Show" asp-route-id="@Model.RecipeId">@Localizer["Label_Cancel"]</a>
   </div>
 </form>
