@@ -1,0 +1,61 @@
+@form-field-vertical-spacing: 0.5em;
+@form-validation-error-padding: 0.7em 1em;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+
+  &.form--compact {
+    gap: 0.7em;
+  }
+
+  > button {
+    align-self: flex-start;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field__label {
+  margin-bottom: @form-field-vertical-spacing;
+}
+
+.form-field__optional-label {
+  color: @color-dark-grey;
+  font-size: 0.8em;
+
+  &::before {
+    content: ' — ';
+  }
+}
+
+.form-field__link {
+  margin-top: @form-field-vertical-spacing;
+}
+
+.field-validation-error,
+.validation-summary-errors {
+  background-color: @color-red;
+  color: @color-white;
+  font-weight: bold;
+}
+
+.field-validation-error {
+  padding: @form-validation-error-padding;
+}
+
+.validation-summary-errors {
+  > ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    > li {
+      margin: @form-validation-error-padding;
+    }
+  }
+}
