@@ -1,6 +1,7 @@
 using Buttercup.Application;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -43,6 +44,9 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     [Fact]
     public async Task CreatingUserWithDefaultValues()
     {
+        var globalizationOptions =
+            this.AppFactory.Services.GetRequiredService<IOptions<GlobalizationOptions>>().Value;
+
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
@@ -52,14 +56,17 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
         {
             Name = this.ModelFactory.NextString("name"),
             Email = this.ModelFactory.NextEmail(),
-            TimeZone = "America/New_York",
         };
 
         using var response = await PostCreateUserMutation(client, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var createUserElement = ApiAssert.SuccessResponse(document).GetProperty("createUser");
-        Assert.False(createUserElement.GetProperty("user").GetProperty("isAdmin").GetBoolean());
+        var userElement = createUserElement.GetProperty("user");
+        Assert.Equal(
+            globalizationOptions.DefaultUserTimeZone,
+            userElement.GetProperty("timeZone").GetString());
+        Assert.False(userElement.GetProperty("isAdmin").GetBoolean());
         JsonAssert.ValueIsNull(createUserElement.GetProperty("errors"));
     }
 

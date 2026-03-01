@@ -2,6 +2,7 @@ using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 using Xunit;
@@ -13,6 +14,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 {
     private readonly ModelFactory modelFactory = new();
 
+    private readonly GlobalizationOptions globalizationOptions;
     private readonly Mock<IPasswordHasher<User>> passwordHasherMock = new();
     private readonly Mock<IRandomTokenGenerator> randomTokenGeneratorMock = new();
     private readonly FakeTimeProvider timeProvider;
@@ -21,9 +23,15 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     public UserManagerTests(DatabaseFixture<DatabaseCollection> databaseFixture)
         : base(databaseFixture)
     {
+        this.globalizationOptions = new GlobalizationOptions
+        {
+            DefaultUserTimeZone = this.modelFactory.NextString("default-time-zone"),
+        };
         this.timeProvider = new(this.modelFactory.NextDateTime());
+
         this.userManager = new(
             this.DatabaseFixture,
+            Options.Create(this.globalizationOptions),
             this.passwordHasherMock.Object,
             this.randomTokenGeneratorMock.Object,
             this.timeProvider);
@@ -85,6 +93,31 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             IpAddress = ipAddress,
         };
         Assert.Equal(expectedAuditEntry, actualAuditEntry);
+    }
+
+    [Fact]
+    public async Task CreateUser_NoTimeZoneSpecified()
+    {
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(currentUser);
+
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(
+            this.modelFactory.NextToken(8));
+
+        var id = await this.userManager.CreateUser(
+            new()
+            {
+                Name = this.modelFactory.NextString("name"),
+                Email = this.modelFactory.NextEmail(),
+                TimeZone = null,
+            },
+            currentUser.Id,
+            null);
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var user = await dbContext.Users.GetAsync(id);
+        Assert.Equal(this.globalizationOptions.DefaultUserTimeZone, user.TimeZone);
     }
 
     [Fact]
