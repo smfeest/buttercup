@@ -8,10 +8,10 @@
     </a>
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <ul class="top-bar__tabs">
-      <li class="top-bar__tab-item"><a class="top-bar__tab" asp-controller="Recipes" asp-action="Index">@Localizer["Label_AllRecipes"]</a></li>
-      <li class="top-bar__tab-item"><a class="top-bar__tab" asp-controller="Recipes" asp-action="New">@Localizer["Label_NewRecipe"]</a></li>
-    </ul>
+    <div class="top-bar__tabs">
+      <span class="top-bar__tab-item"><a class="top-bar__tab" asp-controller="Recipes" asp-action="Index">@Localizer["Label_AllRecipes"]</a></span>
+      <span class="top-bar__tab-item"><a class="top-bar__tab" asp-controller="Recipes" asp-action="New">@Localizer["Label_NewRecipe"]</a></span>
+    </div>
     <button id="top-bar__menu-button" type="button" aria-label="@Localizer["Label_ToggleMenu"]">⋮</button>
     <ul id="top-bar__menu-popover" class="popover-menu">
       <li>
