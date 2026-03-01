@@ -18,10 +18,8 @@
 .footer-nav__item {
   display: inline-block;
 
-  & + & {
-    ::before {
-      content: '|';
-      margin: 0 0.7em;
-    }
+  & + &::before {
+    content: '|';
+    margin: 0 0.7em;
   }
 }
