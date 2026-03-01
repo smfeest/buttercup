@@ -1,27 +1,15 @@
 .footer-nav {
   border-top: 1px solid var(--color-light-grey);
   margin-top: var(--large-padding);
+  padding: var(--padding);
+  text-align: center;
 
   @media print {
     display: none;
   }
 }
 
-.footer-nav__items {
-  display: flex;
-  justify-content: center;
-  list-style: none;
-  padding: 0;
-  text-align: center;
-}
-
-.footer-nav__item {
-  display: inline-block;
-
-  & + & {
-    ::before {
-      content: '|';
-      margin: 0 0.7em;
-    }
-  }
+.footer-nav__item + .footer-nav__item::before {
+  content: '|' / '';
+  margin: 0 0.7em;
 }
