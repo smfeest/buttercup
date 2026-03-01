@@ -3,7 +3,7 @@
   @if (User.Identity?.IsAuthenticated == true)
   {
   <noscript>
-    <footer class="footer-nav">
+    <nav class="footer-nav">
       <ul class="footer-nav__items">
         <li class="footer-nav__item"><a asp-controller="Account" asp-action="Show">@Localizer["Label_YourAccount"]</a></li>
         @if ((await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicyNames.AdminOnly)).Succeeded)
@@ -12,6 +12,6 @@
         }
         <li class="footer-nav__item"><a asp-controller="Authentication" asp-action="SignOut">@Localizer["Label_SignOut"]</a></li>
       </ul>
-    </footer>
+    </nav>
   </noscript>
   }
