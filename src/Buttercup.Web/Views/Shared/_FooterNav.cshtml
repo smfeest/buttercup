@@ -3,7 +3,7 @@
   @if (User.Identity?.IsAuthenticated == true)
   {
   <noscript>
-    <nav class="footer-nav">
+    <nav class="footer-nav" aria-label="@Localizer["Label_Footer"]">
       <span class="footer-nav__item"><a asp-controller="Account" asp-action="Show">@Localizer["Label_YourAccount"]</a></span>
       @if ((await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicyNames.AdminOnly)).Succeeded)
       {
