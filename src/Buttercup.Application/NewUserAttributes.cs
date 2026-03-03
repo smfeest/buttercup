@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Buttercup.Application.Validation;
 
 namespace Buttercup.Application;
 
@@ -36,6 +37,7 @@ public sealed record NewUserAttributes
     /// </value>
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(50, ErrorMessage = "Error_TooManyCharacters")]
+    [TimeZone(ErrorMessage = "Error_InvalidTimeZone")]
     public string TimeZone { get; init; } = string.Empty;
 
     /// <summary>

@@ -3,6 +3,9 @@
   <data name="Error_InvalidEmail">
     <value>Ce champ doit contenir une adresse e-mail valide</value>
   </data>
+  <data name="Error_InvalidTimeZone">
+    <value>Ce champ doit contenir un identifiant de fuseau horaire (TZID) valide</value>
+  </data>
   <data name="Error_RequiredField">
     <value>Ce champ est requis</value>
   </data>
