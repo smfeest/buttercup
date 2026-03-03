@@ -58,6 +58,7 @@ public sealed class InputObjectValidator<T>(ISchema schema, IValidator<T> valida
             RangeAttribute => ValidationErrorCode.OutOfRange,
             RequiredAttribute required => ValidationErrorCode.Required,
             StringLengthAttribute length => ValidationErrorCode.InvalidStringLength,
+            TimeZoneAttribute => ValidationErrorCode.InvalidTimeZone,
             _ => throw new NotSupportedException(
                 $"No {nameof(ValidationErrorCode)} mapping exists for validation attribute type '{attribute.GetType().Name}'")
         };
