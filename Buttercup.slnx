@@ -15,6 +15,6 @@
     <Project Path="src/Buttercup.Security/Buttercup.Security.csproj" />
     <Project Path="src/Buttercup.TestUtils/Buttercup.TestUtils.csproj" />
     <Project Path="src/Buttercup.Web.Tests/Buttercup.Web.Tests.csproj" />
-    <Project Path="src/Buttercup.Web/Buttercup.Web.csproj" />
+    <Project DefaultStartup="true" Path="src/Buttercup.Web/Buttercup.Web.csproj" />
   </Folder>
 </Solution>
