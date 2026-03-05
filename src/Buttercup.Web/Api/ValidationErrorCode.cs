@@ -14,6 +14,10 @@ public enum ValidationErrorCode
     /// </summary>
     InvalidStringLength,
     /// <summary>
+    /// Indicates that the string value provided is not a recognized time zone identifier (TZID).
+    /// </summary>
+    InvalidTimeZone,
+    /// <summary>
     /// Indicates that the value provided is not unique.
     /// </summary>
     NotUnique,

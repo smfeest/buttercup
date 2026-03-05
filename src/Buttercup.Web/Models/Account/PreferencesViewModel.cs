@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Buttercup.Application.Validation;
 using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Models.Account;
@@ -12,5 +13,6 @@ public sealed record PreferencesViewModel
     public PreferencesViewModel(User user) => this.TimeZone = user.TimeZone;
 
     [Required(ErrorMessage = "Error_RequiredField")]
+    [TimeZone(ErrorMessage = "Error_InvalidTimeZone")]
     public string TimeZone { get; init; } = string.Empty;
 }

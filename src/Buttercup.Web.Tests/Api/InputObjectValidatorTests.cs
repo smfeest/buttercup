@@ -137,6 +137,19 @@ public sealed class InputObjectValidatorTests
     }
 
     [Fact]
+    public void Validate_SetsCodeToInvalidTimeZoneWhenErrorIsFromTimeZoneAttribute()
+    {
+        this.SetupInvalid(attribute: new TimeZoneAttribute());
+        var inputObjectValidator = this.CreateInputObjectValidator();
+        var errors = new List<InputObjectValidationError>();
+
+        inputObjectValidator.Validate(this.planet, [], errors);
+
+        var error = Assert.Single(errors);
+        Assert.Equal(ValidationErrorCode.InvalidTimeZone, error.Code);
+    }
+
+    [Fact]
     public void Validation_ThrowsNotSupportedExceptionWhenNoCodeIsMappedToAttribute()
     {
         this.SetupInvalid(attribute: new Base64StringAttribute());

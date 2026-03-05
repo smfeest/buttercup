@@ -121,7 +121,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
         {
             Name = new('a', 251),
             Email = "example.com",
-            TimeZone = "",
+            TimeZone = "foo/bar",
         };
 
         using var response = await PostCreateUserMutation(client, attributes);
@@ -147,9 +147,9 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
             },
             new
             {
-                Message = "This field is required",
+                Message = "This field must contain a valid time zone identifier (TZID)",
                 Path = new string[] { "input", "attributes", "timeZone" },
-                Code = "REQUIRED",
+                Code = "INVALID_TIME_ZONE",
             },
         };
         JsonAssert.Equivalent(expectedErrors, createUserElement.GetProperty("errors"));

@@ -3,4 +3,7 @@
   <data name="Error_RequiredField">
     <value>This field is required</value>
   </data>
+  <data name="Error_InvalidTimeZone">
+    <value>Selected time zone is not supported</value>
+  </data>
 </root>

@@ -1,4 +1,5 @@
 using Buttercup.Application.Validation;
+using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Buttercup.Application;
@@ -22,6 +23,7 @@ public static class ServiceCollectionExtensions
             .AddTransient<ICommentManager, CommentManager>()
             .AddTransient<IRecipeManager, RecipeManager>()
             .AddTransient<IUserManager, UserManager>()
+            .AddSingleton<IValidationAttributeAdapterProvider, GenericValidationAttributeAdapterProvider>()
             .AddTransient(typeof(IValidationErrorLocalizer<>), typeof(ValidationErrorLocalizer<>))
             .AddSingleton(typeof(IValidator<>), typeof(Validator<>));
 }
