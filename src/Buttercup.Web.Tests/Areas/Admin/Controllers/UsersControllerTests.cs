@@ -5,6 +5,7 @@ using Buttercup.TestUtils;
 using Buttercup.Web.Areas.Admin.Controllers.Queries;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -16,6 +17,7 @@ public sealed class UsersControllerTests : IDisposable
     private readonly ModelFactory modelFactory = new();
 
     private readonly FakeDbContextFactory dbContextFactory = new();
+    private readonly GlobalizationOptions globalizationOptions;
     private readonly DefaultHttpContext httpContext = new();
     private readonly DictionaryLocalizer<UsersController> localizer = new();
     private readonly Mock<IUsersControllerQueries> queriesMock = new();
@@ -23,15 +25,23 @@ public sealed class UsersControllerTests : IDisposable
 
     private readonly UsersController usersController;
 
-    public UsersControllerTests() =>
+    public UsersControllerTests()
+    {
+        this.globalizationOptions = new GlobalizationOptions
+        {
+            DefaultUserTimeZone = this.modelFactory.NextString("default-time-zone"),
+        };
+
         this.usersController = new(
             this.dbContextFactory,
+            Options.Create(this.globalizationOptions),
             this.localizer,
             this.queriesMock.Object,
             this.userManagerMock.Object)
         {
             ControllerContext = new() { HttpContext = this.httpContext },
         };
+    }
 
     public void Dispose() => this.usersController.Dispose();
 
@@ -87,7 +97,9 @@ public sealed class UsersControllerTests : IDisposable
     {
         var result = this.usersController.New();
         var viewResult = Assert.IsType<ViewResult>(result);
-        Assert.Equal(new NewUserAttributes { TimeZone = "Europe/London" }, viewResult.Model);
+        Assert.Equal(
+            new NewUserAttributes { TimeZone = this.globalizationOptions.DefaultUserTimeZone },
+            viewResult.Model);
     }
 
     #endregion

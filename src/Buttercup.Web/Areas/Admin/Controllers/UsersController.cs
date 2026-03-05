@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 namespace Buttercup.Web.Areas.Admin.Controllers;
 
@@ -15,11 +16,13 @@ namespace Buttercup.Web.Areas.Admin.Controllers;
 [Route("[area]/[controller]")]
 public sealed class UsersController(
     IDbContextFactory<AppDbContext> dbContextFactory,
+    IOptions<GlobalizationOptions> globalizationOptions,
     IStringLocalizer<UsersController> localizer,
     IUsersControllerQueries queries,
     IUserManager userManager) : Controller
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly GlobalizationOptions globalizationOptions = globalizationOptions.Value;
     private readonly IStringLocalizer<UsersController> localizer = localizer;
     private readonly IUsersControllerQueries queries = queries;
     private readonly IUserManager userManager = userManager;
@@ -41,7 +44,8 @@ public sealed class UsersController(
 
     [HttpGet("new")]
     public IActionResult New() =>
-        this.View(new NewUserAttributes { TimeZone = "Europe/London" });
+        this.View(
+            new NewUserAttributes { TimeZone = this.globalizationOptions.DefaultUserTimeZone });
 
     [HttpPost("new")]
     public async Task<IActionResult> New(NewUserAttributes model)

@@ -32,13 +32,16 @@ public sealed record NewUserAttributes
     /// <summary>
     /// Gets or sets the user's time zone.
     /// </summary>
+    /// <remarks>
+    /// If this property is left unspecified, the new user's time zone will be set to <see
+    /// cref="GlobalizationOptions.DefaultUserTimeZone"/>.
+    /// </remarks>
     /// <value>
     /// The user's time zone as a TZID (e.g. 'Europe/London').
     /// </value>
-    [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(50, ErrorMessage = "Error_TooManyCharacters")]
     [TimeZone(ErrorMessage = "Error_InvalidTimeZone")]
-    public string TimeZone { get; init; } = string.Empty;
+    public string? TimeZone { get; init; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the user is an administrator.

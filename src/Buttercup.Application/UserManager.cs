@@ -4,17 +4,20 @@ using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Options;
 
 namespace Buttercup.Application;
 
 internal sealed class UserManager(
     IDbContextFactory<AppDbContext> dbContextFactory,
+    IOptions<GlobalizationOptions> globalizationOptions,
     IPasswordHasher<User> passwordHasher,
     IRandomTokenGenerator randomTokenGenerator,
     TimeProvider timeProvider)
     : IUserManager
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
+    private readonly GlobalizationOptions globalizationOptions = globalizationOptions.Value;
     private readonly IPasswordHasher<User> passwordHasher = passwordHasher;
     private readonly IRandomTokenGenerator randomTokenGenerator = randomTokenGenerator;
     private readonly TimeProvider timeProvider = timeProvider;
@@ -28,7 +31,7 @@ internal sealed class UserManager(
             Name = attributes.Name,
             Email = attributes.Email,
             SecurityStamp = this.GenerateSecurityStamp(),
-            TimeZone = attributes.TimeZone,
+            TimeZone = attributes.TimeZone ?? this.globalizationOptions.DefaultUserTimeZone,
             IsAdmin = attributes.IsAdmin,
             Created = timestamp,
             Modified = timestamp,
