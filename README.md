@@ -3,7 +3,6 @@
 ## Setting up a dev environment
 
 1.  Install required tools and dependencies:
-
     - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
     - [Mailpit](https://mailpit.axllent.org/)
     - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
@@ -107,7 +106,7 @@
 
 - To generate and open the .NET coverage report:
 
-      dotnet test --collect "XPlat Code Coverage"
+      dotnet test --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
       ./scripts/build-dotnet-coverage-report.sh
       open coverage/index.html
 
