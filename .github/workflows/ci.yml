@@ -48,7 +48,7 @@ jobs:
       - name: Create MySQL user
         run: mysql -uroot -proot < scripts/create-dev-user.sql
       - name: Run .NET tests
-        run: dotnet test --no-build --configuration Release --collect "XPlat Code Coverage"
+        run: dotnet test --no-build --configuration Release --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
       - name: Report .NET test coverage
         if: ${{ hashFiles('**/coverage.cobertura.xml') }}
         run: |
