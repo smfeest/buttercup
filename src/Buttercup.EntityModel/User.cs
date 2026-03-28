@@ -56,6 +56,11 @@ public sealed record User : IEntityId
     public required string TimeZone { get; set; }
 
     /// <summary>
+    /// Gets or sets the user's role.
+    /// </summary>
+    public Role Role { get; set; } = Role.Contributor;
+
+    /// <summary>
     /// Gets or sets a value indicating whether the user is an administrator.
     /// </summary>
     public bool IsAdmin { get; set; }
