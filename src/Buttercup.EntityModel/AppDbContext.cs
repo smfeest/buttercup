@@ -61,6 +61,13 @@ public sealed class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
+            .Entity<User>()
+            .Property(e => e.Role)
+            .HasConversion<RoleToStringConverter>()
+            .HasMaxLength(15)
+            .HasDefaultValue(Role.Contributor)
+            .HasSentinel(Role.Contributor);
+        modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
             .HasConversion<UserAuditOperationToStringConverter>()
