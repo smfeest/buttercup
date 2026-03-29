@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.TestUtils;
 using Xunit;
@@ -9,7 +10,7 @@ public sealed class CreateTestUserTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task CreatingTestUser()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

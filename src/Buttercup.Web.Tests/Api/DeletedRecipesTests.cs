@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -33,7 +34,7 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task QueryingDeletedRecipes()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var deletedRecipe = this.ModelFactory.BuildRecipe(
             setOptionalAttributes: true, softDeleted: true);
         var otherRecipe = this.ModelFactory.BuildRecipe();
@@ -75,7 +76,7 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task QueryingDeletedRecipesWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -89,7 +90,7 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task FilteringDeletedRecipes()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var recipes = new[]
         {
             this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 1, CookingMinutes = 30 },
@@ -119,7 +120,7 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task SortingDeletedRecipes()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var recipes = new[]
         {
             this.ModelFactory.BuildRecipe(softDeleted: true) with { Id = 1, Title = "Recipe A" },

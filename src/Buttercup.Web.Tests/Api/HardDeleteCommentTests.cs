@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -9,7 +10,7 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
     [Fact]
     public async Task DeletingComment()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var comment = this.ModelFactory.BuildComment(setRecipe: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
@@ -28,7 +29,7 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
     [Fact]
     public async Task DeletingCommentWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         var comment = this.ModelFactory.BuildComment(setRecipe: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
@@ -43,7 +44,7 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
     [Fact]
     public async Task DeletingNonExistentComment()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

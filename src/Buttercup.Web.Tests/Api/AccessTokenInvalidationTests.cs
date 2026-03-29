@@ -1,4 +1,5 @@
 using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -10,7 +11,7 @@ public sealed class AccessTokenInvalidationTests(AppFactory appFactory) : EndToE
     [Fact]
     public async Task QueryingApiFollowingDeactivation()
     {
-        var user = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var user = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(user);
