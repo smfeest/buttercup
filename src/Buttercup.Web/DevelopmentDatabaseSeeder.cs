@@ -52,6 +52,7 @@ internal sealed class DevelopmentDatabaseSeeder(
             PasswordCreated = timestamp,
             SecurityStamp = this.randomTokenGenerator.Generate(2),
             TimeZone = "Etc/UTC",
+            Role = isAdmin ? Role.Admin : Role.Contributor,
             IsAdmin = isAdmin,
             Created = timestamp,
             Modified = timestamp,

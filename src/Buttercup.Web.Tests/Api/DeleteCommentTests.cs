@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -9,7 +10,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     [Fact]
     public async Task DeletingOwnCommentWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         var comment = this.ModelFactory.BuildComment(setRecipe: true) with { Author = currentUser };
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
@@ -35,7 +36,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     [Fact]
     public async Task DeletingSomeoneElsesCommentWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true, setRecipe: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
@@ -53,7 +54,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     [Fact]
     public async Task DeletingSomeoneElsesCommentWhenAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true, setRecipe: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
@@ -122,7 +123,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     [Fact]
     public async Task DeletingNonExistentCommentWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -136,7 +137,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     [Fact]
     public async Task DeletingNonExistentCommentWhenAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

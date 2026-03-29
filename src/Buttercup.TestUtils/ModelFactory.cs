@@ -121,21 +121,27 @@ public sealed class ModelFactory
     /// <b>true</b> if the user should be marked as deactivated; <b>false</b> otherwise.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User BuildUser(bool setOptionalAttributes = false, bool deactivated = false) => new()
+    public User BuildUser(bool setOptionalAttributes = false, bool deactivated = false)
     {
-        Id = this.NextInt(),
-        Name = this.NextString("name"),
-        Email = this.NextEmail(),
-        HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
-        PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
-        SecurityStamp = this.NextToken(8),
-        TimeZone = this.NextString("time-zone"),
-        IsAdmin = this.NextBoolean(),
-        Created = this.NextDateTime(),
-        Modified = this.NextDateTime(),
-        Deactivated = deactivated ? this.NextDateTime() : null,
-        Revision = this.NextInt(),
-    };
+        var isAdmin = this.NextBoolean();
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Name = this.NextString("name"),
+            Email = this.NextEmail(),
+            HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
+            PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
+            SecurityStamp = this.NextToken(8),
+            TimeZone = this.NextString("time-zone"),
+            Role = isAdmin ? Role.Admin : Role.Contributor,
+            IsAdmin = isAdmin,
+            Created = this.NextDateTime(),
+            Modified = this.NextDateTime(),
+            Deactivated = deactivated ? this.NextDateTime() : null,
+            Revision = this.NextInt(),
+        };
+    }
 
     /// <summary>
     /// Generates a boolean value.

@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -9,7 +10,7 @@ public sealed class DeletedCommentsTests(AppFactory appFactory) : EndToEndTests(
     [Fact]
     public async Task SortingFilteringAndPagingDeletedComments()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var deletedComments = new string[] { "Foo", "Bar", "Qux", "Baz", "Bar" }
             .Select(recipeTitle =>
                 this.ModelFactory.BuildComment(setOptionalAttributes: true, softDeleted: true) with
@@ -66,7 +67,7 @@ public sealed class DeletedCommentsTests(AppFactory appFactory) : EndToEndTests(
     [Fact]
     public async Task QueryingDeletedCommentsWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

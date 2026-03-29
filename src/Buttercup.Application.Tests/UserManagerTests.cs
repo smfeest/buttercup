@@ -40,9 +40,9 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     #region CreateUser
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task CreateUser_Success(bool isAdmin)
+    [InlineData(false, Role.Contributor)]
+    [InlineData(true, Role.Admin)]
+    public async Task CreateUser_Success(bool isAdmin, Role expectedRole)
     {
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(currentUser);
@@ -72,6 +72,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             PasswordCreated = null,
             SecurityStamp = securityStamp,
             TimeZone = attributes.TimeZone,
+            Role = expectedRole,
             IsAdmin = attributes.IsAdmin,
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
@@ -175,6 +176,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
             SecurityStamp = securityStamp,
             TimeZone = "Etc/UTC",
+            Role = Role.Contributor,
             IsAdmin = false,
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),

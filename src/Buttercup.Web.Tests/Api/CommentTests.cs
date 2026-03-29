@@ -86,7 +86,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     [Fact]
     public async Task QueryingDeletedCommentWhenAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         var comment = this.ModelFactory.BuildComment(setRecipe: true, softDeleted: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
@@ -120,7 +120,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     [Fact]
     public async Task QueryingDeletedCommentWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         var comment = this.ModelFactory.BuildComment(setRecipe: true, softDeleted: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 

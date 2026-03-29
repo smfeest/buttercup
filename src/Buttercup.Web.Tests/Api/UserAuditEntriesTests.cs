@@ -29,7 +29,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task QueryingUserAuditEntries()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -97,7 +97,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task QueryingUserAuditEntriesWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -112,7 +112,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task FilteringUserAuditEntries()
     {
-        var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true, Role = Role.Admin };
         var otherUser = this.ModelFactory.BuildUser() with { Email = "other@example.com" };
         var userAuditEntries = new UserAuditEntry[]
         {
@@ -180,7 +180,7 @@ public sealed class UserAuditEntriesTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task SortingUserAuditEntries()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
