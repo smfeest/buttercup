@@ -83,6 +83,4 @@ public sealed class DeletedCommentsTests(AppFactory appFactory) : EndToEndTests(
             document.RootElement.GetProperty("data").GetProperty("deletedComments"));
         ApiAssert.HasSingleError(ErrorCodes.Authentication.NotAuthorized, document);
     }
-
-    // TODO: Test sort, filter and paging
 }
