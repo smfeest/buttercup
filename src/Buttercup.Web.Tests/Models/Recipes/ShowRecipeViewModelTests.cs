@@ -61,7 +61,7 @@ public sealed class ShowRecipeViewModelTests
             this.modelFactory.BuildComment() with { AuthorId = userId },
             this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
         };
-        var user = PrincipalFactory.CreateWithUserId(userId);
+        var user = PrincipalFactory.Create(userId, Role.Contributor);
         var viewModel = new ShowRecipeViewModel(
             this.modelFactory.BuildRecipe(), comments, new(), user);
 
@@ -82,8 +82,7 @@ public sealed class ShowRecipeViewModelTests
             this.modelFactory.BuildComment(),
             this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
         };
-        var user = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, nameof(Role.Admin)));
+        var user = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Admin);
         var viewModel = new ShowRecipeViewModel(
             this.modelFactory.BuildRecipe(), comments, new(), user);
 

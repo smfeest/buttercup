@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authorization;
@@ -14,8 +13,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     public async Task CurrentUserInAdminRole_IndicatesSuccess()
     {
         var requirement = new CommentAuthorOrAdminRequirement();
-        var currentUser = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, nameof(Role.Admin)));
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Admin);
         var resource = this.modelFactory.BuildComment();
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
@@ -29,7 +27,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     {
         var requirement = new CommentAuthorOrAdminRequirement();
         var currentUserId = this.modelFactory.NextInt();
-        var currentUser = PrincipalFactory.CreateWithUserId(currentUserId);
+        var currentUser = PrincipalFactory.Create(currentUserId, Role.Contributor);
         var resource = this.modelFactory.BuildComment() with { AuthorId = currentUserId };
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
@@ -42,7 +40,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     public async Task ResourceIsCommentAndAuthorIdIsNull_DoesNotIndicateSuccess()
     {
         var requirement = new CommentAuthorOrAdminRequirement();
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Contributor);
         var resource = this.modelFactory.BuildComment() with { AuthorId = null };
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
@@ -55,7 +53,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     public async Task ResourceIsCommentAndAuthorIdDoesNotMatchCurrentUser_DoesNotIndicateSuccess()
     {
         var requirement = new CommentAuthorOrAdminRequirement();
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Contributor);
         var resource = this.modelFactory.BuildComment() with
         {
             AuthorId = this.modelFactory.NextInt(),
@@ -71,7 +69,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     public async Task ResourceIsNotComment_DoesNotIndicateSuccess()
     {
         var requirement = new CommentAuthorOrAdminRequirement();
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Contributor);
         var context = new AuthorizationHandlerContext([requirement], currentUser, new());
 
         await requirement.HandleAsync(context);
