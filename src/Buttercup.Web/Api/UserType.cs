@@ -17,12 +17,12 @@ public sealed class UserType : ObjectType<User>
             .Field(u => u.PasswordCreated)
             .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin);
         descriptor
-            .Field(u => u.IsAdmin)
+            .Field(u => u.Role)
             .Authorize(AuthorizationPolicyNames.ParentResultSelfOrAdmin);
 
         descriptor
             .Ignore(u => u.HashedPassword)
-            .Ignore(u => u.Role)
+            .Ignore(u => u.IsAdmin)
             .Ignore(u => u.SecurityStamp);
     }
 }

@@ -50,7 +50,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
         {
             user.Email,
             user.PasswordCreated,
-            user.IsAdmin,
+            Role = "CONTRIBUTOR",
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("user"));
@@ -83,7 +83,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
             },
             new
             {
-                Path = new string[] { "user", "isAdmin" },
+                Path = new string[] { "user", "role" },
                 Extensions = new { Code = ErrorCodes.Authentication.NotAuthorized },
             },
         };
@@ -96,7 +96,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     public async Task QueryingPrivateFieldsOnAnotherUserWhenAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
-        var user = this.ModelFactory.BuildUser();
+        var user = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -109,7 +109,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
         {
             user.Email,
             user.PasswordCreated,
-            user.IsAdmin,
+            Role = "CONTRIBUTOR",
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("user"));
@@ -167,7 +167,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
                 user(id: $id) {
                     email
                     passwordCreated
-                    isAdmin
+                    role
                 }
             }
             """,
