@@ -13,16 +13,12 @@ internal sealed class ClaimsIdentityFactory : IClaimsIdentityFactory
             new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role.ToString()),
             new(CustomClaimTypes.SecurityStamp, user.SecurityStamp),
             new(CustomClaimTypes.TimeZone, user.TimeZone),
             new(CustomClaimTypes.UserRevision,
                 user.Revision.ToString(CultureInfo.InvariantCulture)),
         };
-
-        if (user.IsAdmin)
-        {
-            claims.Add(new(ClaimTypes.Role, nameof(Role.Admin)));
-        }
 
         return new(claims, authenticationType);
     }
