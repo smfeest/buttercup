@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Buttercup.Security;
+using Buttercup.EntityModel;
 using Buttercup.Web.Api;
 using HotChocolate;
 using HotChocolate.Authorization;
@@ -172,7 +172,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     {
         var requirement = new AdminOnlyFilterAndSortFieldsRequirement();
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity(isAdmin ? [new Claim(ClaimTypes.Role, RoleNames.Admin)] : []));
+            new ClaimsIdentity(isAdmin ? [new Claim(ClaimTypes.Role, nameof(Role.Admin))] : []));
         var context = new Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext(
             [requirement], principal, resource);
 

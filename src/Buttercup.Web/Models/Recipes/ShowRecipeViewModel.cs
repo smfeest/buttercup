@@ -22,7 +22,7 @@ public sealed class ShowRecipeViewModel(
     private static IEnumerable<CommentViewModel> InitializeCommentViewModels(
         IEnumerable<Comment> comments, ClaimsPrincipal user)
     {
-        var isAdmin = user.HasClaim(ClaimTypes.Role, RoleNames.Admin);
+        var isAdmin = user.HasClaim(ClaimTypes.Role, nameof(Role.Admin));
         var userId = user.TryGetUserId();
 
         return comments.Select(comment =>

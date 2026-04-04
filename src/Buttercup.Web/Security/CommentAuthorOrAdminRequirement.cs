@@ -6,7 +6,7 @@ namespace Buttercup.Web.Security;
 
 /// <summary>
 /// An <see cref="IAuthorizationRequirement"/> that is satisfied if either the resource represents a
-/// comment authored by the current user, or the current user has the <see cref="RoleNames.Admin"/>
+/// comment authored by the current user, or the current user has the <see cref="Role.Admin"/>
 /// role.
 /// </summary>
 public sealed class CommentAuthorOrAdminRequirement
@@ -14,7 +14,7 @@ public sealed class CommentAuthorOrAdminRequirement
 {
     public Task HandleAsync(AuthorizationHandlerContext context)
     {
-        if (context.User.IsInRole(RoleNames.Admin) || IsAuthor(context))
+        if (context.User.IsInRole(nameof(Role.Admin)) || IsAuthor(context))
         {
             context.Succeed(this);
         }

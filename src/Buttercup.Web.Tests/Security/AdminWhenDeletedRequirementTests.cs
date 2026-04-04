@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Buttercup.EntityModel;
-using Buttercup.Security;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
 using Moq;
@@ -42,7 +41,7 @@ public sealed class AdminWhenDeletedRequirementTests
     {
         var requirement = new AdminWhenDeletedRequirement();
         var currentUser = new ClaimsPrincipal(
-            new ClaimsIdentity([new Claim(ClaimTypes.Role, RoleNames.Admin)]));
+            new ClaimsIdentity([new Claim(ClaimTypes.Role, nameof(Role.Admin))]));
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);

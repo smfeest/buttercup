@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Buttercup.Application;
 using Buttercup.EntityModel;
-using Buttercup.Security;
 using Buttercup.TestUtils;
 using Xunit;
 
@@ -84,7 +83,7 @@ public sealed class ShowRecipeViewModelTests
             this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
         };
         var user = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
+            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, nameof(Role.Admin)));
         var viewModel = new ShowRecipeViewModel(
             this.modelFactory.BuildRecipe(), comments, new(), user);
 

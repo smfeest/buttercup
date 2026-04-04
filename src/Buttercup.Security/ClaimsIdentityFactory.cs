@@ -21,7 +21,7 @@ internal sealed class ClaimsIdentityFactory : IClaimsIdentityFactory
 
         if (user.IsAdmin)
         {
-            claims.Add(new(ClaimTypes.Role, RoleNames.Admin));
+            claims.Add(new(ClaimTypes.Role, nameof(Role.Admin)));
         }
 
         return new(claims, authenticationType);

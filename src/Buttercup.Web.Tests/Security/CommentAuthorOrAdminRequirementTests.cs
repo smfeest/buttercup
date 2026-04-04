@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Buttercup.Security;
+using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authorization;
 using Xunit;
@@ -15,7 +15,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     {
         var requirement = new CommentAuthorOrAdminRequirement();
         var currentUser = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
+            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, nameof(Role.Admin)));
         var resource = this.modelFactory.BuildComment();
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
