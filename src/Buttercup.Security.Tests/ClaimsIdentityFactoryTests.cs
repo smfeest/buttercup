@@ -37,6 +37,15 @@ public sealed class ClaimsIdentityFactoryTests
         Assert.True(CreateIdentityForUser(user).HasClaim(ClaimTypes.Email, user.Email));
     }
 
+    [Theory]
+    [InlineData(Role.Admin)]
+    [InlineData(Role.Contributor)]
+    public void CreateIdentityForUser_SetsRoleClaim(Role role)
+    {
+        var user = this.modelFactory.BuildUser() with { Role = role };
+        Assert.True(CreateIdentityForUser(user).HasClaim(ClaimTypes.Role, role.ToString()));
+    }
+
     [Fact]
     public void CreateIdentityForUser_SetsSecurityStampClaim()
     {
@@ -69,16 +78,6 @@ public sealed class ClaimsIdentityFactoryTests
     {
         var identity = CreateIdentityForUser(this.modelFactory.BuildUser());
         Assert.Equal(AuthenticationType, identity.AuthenticationType);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void IdentityHasAdminRoleIfUserIsAdmin(bool userIsAdmin)
-    {
-        var user = this.modelFactory.BuildUser() with { IsAdmin = userIsAdmin };
-        Assert.Equal(
-            userIsAdmin, CreateIdentityForUser(user).HasClaim(ClaimTypes.Role, nameof(Role.Admin)));
     }
 
     private static ClaimsIdentity CreateIdentityForUser(User user) =>
