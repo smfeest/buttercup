@@ -142,7 +142,7 @@ services
         TokenAuthenticationDefaults.AuthenticationScheme, null);
 
 services.AddAuthorizationBuilder()
-    .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin))
+    .AddPolicy(AuthorizationPolicyNames.AdminOnly, policy => policy.RequireRole(nameof(Role.Admin)))
     .AddPolicy(
         AuthorizationPolicyNames.AdminOnlyFilterAndSortFields,
         policy => policy.AddRequirements(new AdminOnlyFilterAndSortFieldsRequirement()))

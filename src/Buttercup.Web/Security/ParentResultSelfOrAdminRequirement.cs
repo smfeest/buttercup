@@ -9,14 +9,14 @@ namespace Buttercup.Web.Security;
 /// <summary>
 /// An <see cref="IAuthorizationRequirement"/> that is satisfied if either the resource is an <see
 /// cref="IMiddlewareContext"/> where the parent result represents the current user, or the current
-/// user has the <see cref="RoleNames.Admin"/> role.
+/// user has the <see cref="Role.Admin"/> role.
 /// </summary>
 public sealed class ParentResultSelfOrAdminRequirement :
     IAuthorizationHandler, IAuthorizationRequirement
 {
     public Task HandleAsync(AuthorizationHandlerContext context)
     {
-        if (context.User.IsInRole(RoleNames.Admin) || ParentObjectIsSelf(context))
+        if (context.User.IsInRole(nameof(Role.Admin)) || ParentObjectIsSelf(context))
         {
             context.Succeed(this);
         }

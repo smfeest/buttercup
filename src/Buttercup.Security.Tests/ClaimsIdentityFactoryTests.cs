@@ -78,7 +78,7 @@ public sealed class ClaimsIdentityFactoryTests
     {
         var user = this.modelFactory.BuildUser() with { IsAdmin = userIsAdmin };
         Assert.Equal(
-            userIsAdmin, CreateIdentityForUser(user).HasClaim(ClaimTypes.Role, RoleNames.Admin));
+            userIsAdmin, CreateIdentityForUser(user).HasClaim(ClaimTypes.Role, nameof(Role.Admin)));
     }
 
     private static ClaimsIdentity CreateIdentityForUser(User user) =>

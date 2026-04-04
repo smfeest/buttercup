@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Buttercup.EntityModel;
-using Buttercup.Security;
 using Buttercup.TestUtils;
 using Buttercup.Web.Api;
 using HotChocolate.Resolvers;
@@ -20,7 +19,7 @@ public sealed class ParentResultSelfOrAdminRequirementTests
         var requirement = new ParentResultSelfOrAdminRequirement();
         var resource = CreateMiddlewareContextWithUser(this.modelFactory.BuildUser());
         var currentUser = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
+            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, nameof(Role.Admin)));
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);

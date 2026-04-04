@@ -1,18 +1,17 @@
 using Buttercup.EntityModel;
-using Buttercup.Security;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Buttercup.Web.Security;
 
 /// <summary>
 /// An <see cref="IAuthorizationRequirement"/> that is satisfied if either the resource is not
-/// soft-deleted, or the current user has the <see cref="RoleNames.Admin"/> role.
+/// soft-deleted, or the current user has the <see cref="Role.Admin"/> role.
 /// </summary>
 public sealed class AdminWhenDeletedRequirement : IAuthorizationHandler, IAuthorizationRequirement
 {
     public Task HandleAsync(AuthorizationHandlerContext context)
     {
-        if (!IsDeleted(context) || context.User.IsInRole(RoleNames.Admin))
+        if (!IsDeleted(context) || context.User.IsInRole(nameof(Role.Admin)))
         {
             context.Succeed(this);
         }

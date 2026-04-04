@@ -1,4 +1,4 @@
-using Buttercup.Security;
+using Buttercup.EntityModel;
 using Buttercup.Web.Api;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
@@ -10,7 +10,7 @@ namespace Buttercup.Web.Security;
 
 /// <summary>
 /// An <see cref="IAuthorizationRequirement"/> that is satisfied unless an admin-only filter or sort
-/// field has been used and the current user does not have the <see cref="RoleNames.Admin"/> role.
+/// field has been used and the current user does not have the <see cref="Role.Admin"/> role.
 /// </summary>
 /// <remarks>
 /// Authorization will also fail if the <see cref="AuthorizationHandlerContext.Resource"/> is not an
@@ -23,7 +23,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirement
     {
         if (context.Resource is IMiddlewareContext middlewareContext &&
             (
-                context.User.IsInRole(RoleNames.Admin) ||
+                context.User.IsInRole(nameof(Role.Admin)) ||
                 !ArgumentsContainAdminOnlyField(middlewareContext)
             ))
         {
