@@ -64,9 +64,7 @@ public sealed class AppDbContext : DbContext
             .Entity<User>()
             .Property(e => e.Role)
             .HasConversion<RoleToStringConverter>()
-            .HasMaxLength(15)
-            .HasDefaultValue(Role.Contributor)
-            .HasSentinel(Role.Contributor);
+            .HasMaxLength(15);
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
