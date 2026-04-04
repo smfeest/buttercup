@@ -1,4 +1,5 @@
 @inject IViewLocalizer Localizer
+@inject IRoleLocalizer RoleLocalizer
 @inject ITimeZoneOptionsHelper TimeZoneOptions
 @model User
 @{
@@ -32,8 +33,8 @@
   <div>@Model.Email</div>
 </div>
 <div class="record__item">
-  <div class="record__item-label">@Localizer["Label_AccessLevel"]</div>
-  <div>@(Model.IsAdmin ? Localizer["Label_Administrator"] : Localizer["Label_Standard"])</div>
+  <div class="record__item-label">@Localizer["Label_Role"]</div>
+  <div>@RoleLocalizer[Model.Role]</div>
 </div>
 <hr class="record__divider" />
 <div class="record__item">

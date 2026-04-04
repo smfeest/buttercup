@@ -12,14 +12,8 @@
   <data name="Label_EmailAddress">
     <value>Adresse e-mail</value>
   </data>
-  <data name="Label_AccessLevel">
-    <value>Niveau d'accès</value>
-  </data>
-  <data name="Label_Standard">
-    <value>Standard</value>
-  </data>
-  <data name="Label_Administrator">
-    <value>Administrateur</value>
+  <data name="Label_Role">
+    <value>Rôle</value>
   </data>
   <data name="Label_Password">
     <value>Mot de passe</value>
