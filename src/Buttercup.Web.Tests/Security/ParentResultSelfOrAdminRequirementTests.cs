@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Api;
@@ -18,8 +17,7 @@ public sealed class ParentResultSelfOrAdminRequirementTests
     {
         var requirement = new ParentResultSelfOrAdminRequirement();
         var resource = CreateMiddlewareContextWithUser(this.modelFactory.BuildUser());
-        var currentUser = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, nameof(Role.Admin)));
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Admin);
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -33,7 +31,7 @@ public sealed class ParentResultSelfOrAdminRequirementTests
         var requirement = new ParentResultSelfOrAdminRequirement();
         var subjectUser = this.modelFactory.BuildUser();
         var resource = CreateMiddlewareContextWithUser(subjectUser);
-        var currentUser = PrincipalFactory.CreateWithUserId(subjectUser.Id);
+        var currentUser = PrincipalFactory.Create(subjectUser.Id, Role.Contributor);
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -46,7 +44,7 @@ public sealed class ParentResultSelfOrAdminRequirementTests
     {
         var requirement = new ParentResultSelfOrAdminRequirement();
         var resource = CreateMiddlewareContextWithUser(this.modelFactory.BuildUser());
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Contributor);
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -59,7 +57,7 @@ public sealed class ParentResultSelfOrAdminRequirementTests
     {
         var requirement = new ParentResultSelfOrAdminRequirement();
         var resource = Mock.Of<IMiddlewareContext>(x => x.ObjectType == new RecipeType());
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Contributor);
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -71,7 +69,7 @@ public sealed class ParentResultSelfOrAdminRequirementTests
     public async Task ResourceIsNotMiddlewareContext_DoesNotIndicateSuccess()
     {
         var requirement = new ParentResultSelfOrAdminRequirement();
-        var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
+        var currentUser = PrincipalFactory.Create(this.modelFactory.NextInt(), Role.Contributor);
         var context = new AuthorizationHandlerContext([requirement], currentUser, new());
 
         await requirement.HandleAsync(context);

@@ -17,7 +17,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     [Fact]
     public async Task NoOrderOrWhereArgumentWhenNotAnAdmin_IsAuthorized()
     {
-        var result = await Execute("{ foos { field1 } }", isAdmin: false);
+        var result = await Execute("{ foos { field1 } }", Role.Contributor);
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
@@ -32,7 +32,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
         """)]
     public async Task OrderArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
-        var result = await Execute(query, isAdmin: false);
+        var result = await Execute(query, Role.Contributor);
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
@@ -49,7 +49,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
         """)]
     public async Task OrderArgumentWithAdminOnlyFieldsWhenNotAnAdmin_IsNotAuthorized(string query)
     {
-        var result = await Execute(query, isAdmin: false);
+        var result = await Execute(query, Role.Contributor);
         var errors = result.ExpectOperationResult().Errors;
         Assert.NotNull(errors);
         Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
@@ -70,7 +70,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
                 ) { field1 }
             }
             """,
-            isAdmin: true);
+            Role.Admin);
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
@@ -103,7 +103,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
         """)]
     public async Task WhereArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
-        var result = await Execute(query, isAdmin: false);
+        var result = await Execute(query, Role.Contributor);
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
@@ -138,7 +138,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
         """)]
     public async Task WhereArgumentWithAdminOnlyFieldsWhenNotAnAdmin_IsNotAuthorized(string query)
     {
-        var result = await Execute(query, isAdmin: false);
+        var result = await Execute(query, Role.Contributor);
         var errors = result.ExpectOperationResult().Errors;
         Assert.NotNull(errors);
         Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
@@ -160,19 +160,19 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
                 ) { field1 }
             }
             """,
-            isAdmin: true);
+            Role.Admin);
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
     [Fact]
     public async Task ResourceIsNotMiddlewareContext_IsNotAuthorized() =>
-        Assert.False(await Authorize(new(), isAdmin: true));
+        Assert.False(await Authorize(new(), Role.Admin));
 
-    private static async Task<bool> Authorize(object resource, bool isAdmin)
+    private static async Task<bool> Authorize(object resource, Role role)
     {
         var requirement = new AdminOnlyFilterAndSortFieldsRequirement();
         var principal = new ClaimsPrincipal(
-            new ClaimsIdentity(isAdmin ? [new Claim(ClaimTypes.Role, nameof(Role.Admin))] : []));
+            new ClaimsIdentity([new(ClaimTypes.Role, role.ToString())]));
         var context = new Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext(
             [requirement], principal, resource);
 
@@ -181,11 +181,11 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
         return context.HasSucceeded;
     }
 
-    private static async Task<IExecutionResult> Execute(string query, bool isAdmin)
+    private static async Task<IExecutionResult> Execute(string query, Role role)
     {
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
-            .AddAuthorizationHandler(_ => new AuthorizationHandler(isAdmin))
+            .AddAuthorizationHandler(_ => new AuthorizationHandler(role))
             .AddDirectiveType<AdminOnlyDirectiveType>()
             .AddQueryType<Query>()
             .AddFiltering()
@@ -241,15 +241,13 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
         public IEnumerable<Foo> Foos() => [];
     }
 
-    private sealed class AuthorizationHandler(bool isAdmin) : IAuthorizationHandler
+    private sealed class AuthorizationHandler(Role role) : IAuthorizationHandler
     {
         public async ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
             AuthorizeDirective directive,
             CancellationToken cancellationToken = default) =>
-            await Authorize(context, isAdmin) ?
-                AuthorizeResult.Allowed :
-                AuthorizeResult.NotAllowed;
+            await Authorize(context, role) ? AuthorizeResult.Allowed : AuthorizeResult.NotAllowed;
 
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             AuthorizationContext context,

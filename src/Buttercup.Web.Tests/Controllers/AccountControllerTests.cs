@@ -223,14 +223,14 @@ public sealed class AccountControllerTests : IDisposable
     private User SetupCurrentUser()
     {
         var user = this.modelFactory.BuildUser();
-        this.httpContext.User = PrincipalFactory.CreateWithUserId(user.Id);
+        this.httpContext.User = PrincipalFactory.Create(user.Id);
         return user;
     }
 
     private long SetupCurrentUserId()
     {
         var userId = this.modelFactory.NextInt();
-        this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
+        this.httpContext.User = PrincipalFactory.Create(userId);
         return userId;
     }
 

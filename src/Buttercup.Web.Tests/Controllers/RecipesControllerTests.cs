@@ -408,7 +408,7 @@ public sealed class RecipesControllerTests : IDisposable
     private long SetupCurrentUserId()
     {
         var userId = this.modelFactory.NextInt();
-        this.httpContext.User = PrincipalFactory.CreateWithUserId(userId);
+        this.httpContext.User = PrincipalFactory.Create(userId);
         return userId;
     }
 

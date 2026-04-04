@@ -66,7 +66,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         var httpContext = new DefaultHttpContext();
         var authenticationProperties = new AuthenticationProperties();
 
-        var originalPrincipal = PrincipalFactory.CreateWithUserId(
+        var originalPrincipal = PrincipalFactory.Create(
             user.Id, new Claim(ClaimTypes.Name, "original-principal"));
 
         var ticket = new AuthenticationTicket(
@@ -157,7 +157,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
 
         var httpContext = new DefaultHttpContext()
         {
-            User = PrincipalFactory.CreateWithUserId(user.Id, new Claim(ClaimTypes.Email, email)),
+            User = PrincipalFactory.Create(user.Id, new Claim(ClaimTypes.Email, email)),
         };
 
         httpContext.Features.Set<IHttpConnectionFeature>(
