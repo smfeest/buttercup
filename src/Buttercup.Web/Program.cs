@@ -168,6 +168,7 @@ services
     .AddTransient<ICommentsControllerQueries, CommentsControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
     .AddTransient<CookieAuthenticationEventsHandler>()
+    .AddTransient<IRoleLocalizer, RoleLocalizer>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
     .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
