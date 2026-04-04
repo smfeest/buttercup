@@ -10,9 +10,9 @@ namespace Buttercup.Web.Api;
 public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFactory)
 {
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task CreatingUser(bool isAdmin)
+    [InlineData(true, "ADMIN")]
+    [InlineData(false, "CONTRIBUTOR")]
+    public async Task CreatingUser(bool isAdmin, string expectedRole)
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
@@ -34,7 +34,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
             attributes.Name,
             attributes.Email,
             attributes.TimeZone,
-            isAdmin,
+            Role = expectedRole,
             Revision = 0
         };
         JsonAssert.Equivalent(expected, userElement);
@@ -67,7 +67,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
         Assert.Equal(
             globalizationOptions.DefaultUserTimeZone,
             userElement.GetProperty("timeZone").GetString());
-        Assert.False(userElement.GetProperty("isAdmin").GetBoolean());
+        Assert.Equal("CONTRIBUTOR", userElement.GetProperty("role").GetString());
         JsonAssert.ValueIsNull(createUserElement.GetProperty("errors"));
     }
 
@@ -181,7 +181,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
                         name
                         email
                         timeZone
-                        isAdmin
+                        role
                         revision
                     }
                     errors {
