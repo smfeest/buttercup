@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Admin">
+    <value>Administrateur</value>
+  </data>
+  <data name="Contributor">
+    <value>Contributeur</value>
+  </data>
+</root>
