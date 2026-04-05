@@ -37,11 +37,11 @@ internal sealed class DevelopmentDatabaseSeeder(
 
     private void AddUsers(DbContext dbContext) =>
         dbContext.Set<User>().AddRange(
-            this.BuildUser("Developer", "dev", true),
-            this.BuildUser("E2E Admin", "e2e-admin", true),
-            this.BuildUser("E2E User", "e2e-user", false));
+            this.BuildUser("Developer", "dev", Role.Admin),
+            this.BuildUser("E2E Admin", "e2e-admin", Role.Admin),
+            this.BuildUser("E2E User", "e2e-user", Role.Contributor));
 
-    private User BuildUser(string name, string username, bool isAdmin)
+    private User BuildUser(string name, string username, Role role)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
@@ -52,8 +52,7 @@ internal sealed class DevelopmentDatabaseSeeder(
             PasswordCreated = timestamp,
             SecurityStamp = this.randomTokenGenerator.Generate(2),
             TimeZone = "Etc/UTC",
-            Role = isAdmin ? Role.Admin : Role.Contributor,
-            IsAdmin = isAdmin,
+            Role = role,
             Created = timestamp,
             Modified = timestamp,
         };

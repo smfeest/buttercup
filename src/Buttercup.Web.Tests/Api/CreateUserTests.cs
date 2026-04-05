@@ -14,7 +14,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     [InlineData(false, "CONTRIBUTOR")]
     public async Task CreatingUser(bool isAdmin, string expectedRole)
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -48,7 +48,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
         var globalizationOptions =
             this.AppFactory.Services.GetRequiredService<IOptions<GlobalizationOptions>>().Value;
 
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -75,7 +75,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     public async Task CreatingUserWithNonUniqueEmail()
     {
         var existingUser = this.ModelFactory.BuildUser();
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(existingUser, currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -103,7 +103,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     [Fact]
     public async Task CreatingUserWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -120,7 +120,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
     [Fact]
     public async Task CreatingUserWithInvalidAttributes()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

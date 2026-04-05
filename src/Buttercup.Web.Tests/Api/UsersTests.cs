@@ -30,7 +30,6 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
             setOptionalAttributes: true, deactivated: false) with
         {
             Role = Role.Admin,
-            IsAdmin = true
         };
         var otherUser = this.ModelFactory.BuildUser(
             setOptionalAttributes: false, deactivated: true);
@@ -74,7 +73,7 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
     {
         var users = new[]
         {
-            this.ModelFactory.BuildUser() with { Id = 1, Name = "Anna", IsAdmin = false, Role = Role.Contributor },
+            this.ModelFactory.BuildUser() with { Id = 1, Name = "Anna", Role = Role.Contributor },
             this.ModelFactory.BuildUser() with { Id = 2, Name = "Ben" },
             this.ModelFactory.BuildUser() with { Id = 3, Name = "Adam" },
         };
@@ -101,7 +100,7 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
     [Fact]
     public async Task FilteringUsersByEmailWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -121,7 +120,7 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
     {
         var users = new[]
         {
-            this.ModelFactory.BuildUser() with { Id = 1, Name = "Anna", IsAdmin = false, Role = Role.Contributor },
+            this.ModelFactory.BuildUser() with { Id = 1, Name = "Anna", Role = Role.Contributor },
             this.ModelFactory.BuildUser() with { Id = 2, Name = "Chris" },
             this.ModelFactory.BuildUser() with { Id = 3, Name = "Ben" },
             this.ModelFactory.BuildUser() with { Id = 4, Name = "Anna" },
@@ -155,7 +154,6 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
             {
                 Id = 1,
                 Email = "craig@example.com",
-                IsAdmin = true,
                 Role = Role.Admin,
             },
             this.ModelFactory.BuildUser() with { Id = 2, Email = "mary@example.com" },
@@ -181,7 +179,7 @@ public sealed class UsersTests(AppFactory appFactory) : EndToEndTests(appFactory
     [Fact]
     public async Task SortingUsersByEmailWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

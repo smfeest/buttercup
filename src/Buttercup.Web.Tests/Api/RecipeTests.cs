@@ -120,7 +120,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     [Fact]
     public async Task QueryingDeletedRecipeWhenAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
@@ -159,7 +159,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     [Fact]
     public async Task QueryingDeletedRecipeWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
@@ -175,7 +175,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     [Fact]
     public async Task QueryingDeletedCommentsWhenAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         var recipe = this.ModelFactory.BuildRecipe();
         var deletedComment = this.ModelFactory.BuildComment(
             setOptionalAttributes: true, softDeleted: true);
@@ -206,7 +206,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     [Fact]
     public async Task QueryingDeletedCommentsWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         var recipe = this.ModelFactory.BuildRecipe();
         recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);

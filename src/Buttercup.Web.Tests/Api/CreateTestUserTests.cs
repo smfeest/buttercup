@@ -10,7 +10,7 @@ public sealed class CreateTestUserTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task CreatingTestUser()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

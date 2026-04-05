@@ -121,33 +121,21 @@ public sealed class ModelFactory
     /// <b>true</b> if the user should be marked as deactivated; <b>false</b> otherwise.
     /// </param>
     /// <returns>The new <see cref="User" /> object.</returns>
-    public User BuildUser(bool setOptionalAttributes = false, bool deactivated = false)
+    public User BuildUser(bool setOptionalAttributes = false, bool deactivated = false) => new()
     {
-        var isAdmin = this.NextBoolean();
-
-        return new()
-        {
-            Id = this.NextInt(),
-            Name = this.NextString("name"),
-            Email = this.NextEmail(),
-            HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
-            PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
-            SecurityStamp = this.NextToken(8),
-            TimeZone = this.NextString("time-zone"),
-            Role = isAdmin ? Role.Admin : Role.Contributor,
-            IsAdmin = isAdmin,
-            Created = this.NextDateTime(),
-            Modified = this.NextDateTime(),
-            Deactivated = deactivated ? this.NextDateTime() : null,
-            Revision = this.NextInt(),
-        };
-    }
-
-    /// <summary>
-    /// Generates a boolean value.
-    /// </summary>
-    /// <returns>The boolean value.</returns>
-    public bool NextBoolean() => this.NextInt() % 2 == 0;
+        Id = this.NextInt(),
+        Name = this.NextString("name"),
+        Email = this.NextEmail(),
+        HashedPassword = setOptionalAttributes ? this.NextString("password-hash") : null,
+        PasswordCreated = setOptionalAttributes ? this.NextDateTime() : null,
+        SecurityStamp = this.NextToken(8),
+        TimeZone = this.NextString("time-zone"),
+        Role = (Role)(this.NextInt() % 2),
+        Created = this.NextDateTime(),
+        Modified = this.NextDateTime(),
+        Deactivated = deactivated ? this.NextDateTime() : null,
+        Revision = this.NextInt(),
+    };
 
     /// <summary>
     /// Generates a unique UTC date and time.

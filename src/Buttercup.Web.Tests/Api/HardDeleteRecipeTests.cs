@@ -10,7 +10,7 @@ public sealed class HardDeleteRecipeTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task DeletingRecipe()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         var recipe = this.ModelFactory.BuildRecipe();
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
@@ -29,7 +29,7 @@ public sealed class HardDeleteRecipeTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task DeletingRecipeWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         var recipe = this.ModelFactory.BuildRecipe();
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
 
@@ -44,7 +44,7 @@ public sealed class HardDeleteRecipeTests(AppFactory appFactory) : EndToEndTests
     [Fact]
     public async Task DeletingNonExistentRecipe()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

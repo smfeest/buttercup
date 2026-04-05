@@ -123,7 +123,7 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
     [Fact]
     public async Task FilteringRecipesByAdminOnlyUserFieldWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -172,7 +172,7 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
     [Fact]
     public async Task SortingRecipesByAdminOnlyUserFieldsWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

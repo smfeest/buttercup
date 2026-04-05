@@ -105,7 +105,7 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
     [Fact]
     public async Task FilteringCommentsByAdminOnlyUserFieldWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -197,7 +197,7 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
     [Fact]
     public async Task SortingCommentsByAdminOnlyUserFieldsWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

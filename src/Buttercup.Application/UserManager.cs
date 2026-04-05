@@ -33,7 +33,6 @@ internal sealed class UserManager(
             SecurityStamp = this.GenerateSecurityStamp(),
             TimeZone = attributes.TimeZone ?? this.globalizationOptions.DefaultUserTimeZone,
             Role = attributes.IsAdmin ? Role.Admin : Role.Contributor,
-            IsAdmin = attributes.IsAdmin,
             Created = timestamp,
             Modified = timestamp,
         };
@@ -79,7 +78,6 @@ internal sealed class UserManager(
             SecurityStamp = this.GenerateSecurityStamp(),
             TimeZone = "Etc/UTC",
             Role = Role.Contributor,
-            IsAdmin = false,
             Created = timestamp,
             Modified = timestamp,
         };

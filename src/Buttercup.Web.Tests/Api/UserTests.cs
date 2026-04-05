@@ -10,7 +10,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     [Fact]
     public async Task QueryingPublicFieldsOnAnotherUserWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         var user = this.ModelFactory.BuildUser(setOptionalAttributes: true, deactivated: true);
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
@@ -37,7 +37,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     [Fact]
     public async Task QueryingPrivateFieldsOnSelfWhenNotAnAdmin()
     {
-        var user = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var user = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(user);
 
         using var client = await this.AppFactory.CreateClientForApiUser(user);
@@ -59,7 +59,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     [Fact]
     public async Task QueryingPrivateFieldsOnAnotherUserWhenNotAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         var user = this.ModelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 
@@ -95,7 +95,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
     [Fact]
     public async Task QueryingPrivateFieldsOnAnotherUserWhenAnAdmin()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         var user = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(currentUser, user);
 

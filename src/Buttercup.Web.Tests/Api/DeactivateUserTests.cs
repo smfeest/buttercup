@@ -11,7 +11,7 @@ public sealed class DeactivateUserTests(AppFactory appFactory) : EndToEndTests(a
     public async Task DeactivatingUser()
     {
         var user = this.ModelFactory.BuildUser();
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(user, currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -40,7 +40,7 @@ public sealed class DeactivateUserTests(AppFactory appFactory) : EndToEndTests(a
     public async Task DeactivatingUserWhenNotAnAdmin()
     {
         var user = this.ModelFactory.BuildUser();
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false, Role = Role.Contributor };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Contributor };
         await this.DatabaseFixture.InsertEntities(user, currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -55,7 +55,7 @@ public sealed class DeactivateUserTests(AppFactory appFactory) : EndToEndTests(a
     public async Task DeactivatingAlreadyDeactivatedUser()
     {
         var user = this.ModelFactory.BuildUser(deactivated: true);
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(user, currentUser);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -82,7 +82,7 @@ public sealed class DeactivateUserTests(AppFactory appFactory) : EndToEndTests(a
     [Fact]
     public async Task DeactivatingNonExistentUser()
     {
-        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true, Role = Role.Admin };
+        var currentUser = this.ModelFactory.BuildUser() with { Role = Role.Admin };
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         var nonExistentUserId = this.ModelFactory.NextInt();
