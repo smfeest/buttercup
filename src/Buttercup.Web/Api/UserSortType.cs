@@ -12,7 +12,6 @@ public sealed class UserSortType : SortInputType<User>
         descriptor.Field(u => u.Role).Directive(AdminOnlyDirectiveType.DirectiveName);
         descriptor
             .Ignore(u => u.HashedPassword)
-            .Ignore(u => u.IsAdmin)
             .Ignore(u => u.SecurityStamp)
             .Ignore(u => u.Revision);
     }
