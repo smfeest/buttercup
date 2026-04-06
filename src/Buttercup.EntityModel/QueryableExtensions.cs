@@ -16,12 +16,15 @@ public static class QueryableExtensions
     /// <typeparam name="T">The entity type.</typeparam>
     /// <param name="source">The queryable source.</param>
     /// <param name="id">The entity ID.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>
     /// A task for the operation. The result is the entity, or a null reference if no matching
     /// entity is found.
     /// </returns>
-    public static Task<T?> FindAsync<T>(this IQueryable<T> source, long id) where T : IEntityId =>
-        source.Where(x => x.Id == id).FirstOrDefaultAsync();
+    public static Task<T?> FindAsync<T>(
+        this IQueryable<T> source, long id, CancellationToken cancellationToken = default)
+        where T : IEntityId =>
+        source.Where(x => x.Id == id).FirstOrDefaultAsync(cancellationToken);
 
     /// <summary>
     /// Gets an entity by ID.
@@ -33,13 +36,15 @@ public static class QueryableExtensions
     /// <typeparam name="T">The entity type.</typeparam>
     /// <param name="source">The queryable source.</param>
     /// <param name="id">The entity ID.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <exception cref="NotFoundException">No matching entity was found.</exception>
     /// <returns>
     /// A task for the operation. The result is the entity.
     /// </returns>
-    public static async Task<T> GetAsync<T>(this IQueryable<T> source, long id)
+    public static async Task<T> GetAsync<T>(
+        this IQueryable<T> source, long id, CancellationToken cancellationToken = default)
         where T : IEntityId =>
-        await source.FindAsync(id) ??
+        await source.FindAsync(id, cancellationToken) ??
             throw new NotFoundException($"{typeof(T).Name}/{id} not found");
 
     /// <summary>

@@ -116,7 +116,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var user = await dbContext.Users.GetAsync(id);
+        var user = await dbContext.Users.GetAsync(id, TestContext.Current.CancellationToken);
         Assert.Equal(this.globalizationOptions.DefaultUserTimeZone, user.TimeZone);
     }
 
