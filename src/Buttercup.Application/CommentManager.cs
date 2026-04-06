@@ -11,11 +11,14 @@ internal sealed class CommentManager(
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
     public async Task<long> CreateComment(
-        long recipeId, CommentAttributes attributes, long currentUserId)
+        long recipeId,
+        CommentAttributes attributes,
+        long currentUserId,
+        CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var recipe = await dbContext.Recipes.GetAsync(recipeId);
+        var recipe = await dbContext.Recipes.GetAsync(recipeId, cancellationToken);
 
         if (recipe.Deleted.HasValue)
         {
@@ -34,12 +37,13 @@ internal sealed class CommentManager(
         comment.Revisions.Add(CommentRevision.From(comment));
 
         dbContext.Comments.Add(comment);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return comment.Id;
     }
 
-    public async Task<bool> DeleteComment(long id, long currentUserId)
+    public async Task<bool> DeleteComment(
+        long id, long currentUserId, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -47,17 +51,22 @@ internal sealed class CommentManager(
             .Comments
             .Where(c => c.Id == id)
             .WhereNotSoftDeleted()
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(c => c.Deleted, this.timeProvider.GetUtcDateTimeNow())
-                .SetProperty(c => c.DeletedByUserId, currentUserId));
+            .ExecuteUpdateAsync(
+                s => s
+                    .SetProperty(c => c.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                    .SetProperty(c => c.DeletedByUserId, currentUserId),
+                cancellationToken);
 
         return updatedRows > 0;
     }
 
-    public async Task<bool> HardDeleteComment(long id)
+    public async Task<bool> HardDeleteComment(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Comments.Where(r => r.Id == id).ExecuteDeleteAsync() != 0;
+        return await dbContext
+            .Comments
+            .Where(r => r.Id == id)
+            .ExecuteDeleteAsync(cancellationToken) != 0;
     }
 }
