@@ -54,15 +54,16 @@ public sealed class AzureEmailSenderTests
         var options = Options.Create(
             new EmailOptions { FromAddress = FromAddress });
         var emailSender = new AzureEmailSender(emailClientMock.Object, options);
+        var cancellationToken = TestContext.Current.CancellationToken;
 
         EmailMessage? sentMessage = null;
 
         emailClientMock
-            .Setup(x => x.SendAsync(WaitUntil.Started, It.IsAny<EmailMessage>(), default))
+            .Setup(x => x.SendAsync(WaitUntil.Started, It.IsAny<EmailMessage>(), cancellationToken))
             .Callback<WaitUntil, EmailMessage, CancellationToken>(
                 (_, message, _) => sentMessage = message);
 
-        await emailSender.Send(ToAddress, Subject, Body);
+        await emailSender.Send(ToAddress, Subject, Body, cancellationToken);
 
         return sentMessage!;
     }

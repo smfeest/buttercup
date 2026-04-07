@@ -86,8 +86,12 @@ public sealed class MailpitSenderTests : IDisposable
             .HasMessage($"Sent message test-message-id to to@example.com");
     }
 
-    private Task Send() => this.mailpitSender.Send(
-        "to@example.com", "test-message-subject", "test-message-body");
+    private Task Send() =>
+        this.mailpitSender.Send(
+            "to@example.com",
+            "test-message-subject",
+            "test-message-body",
+            TestContext.Current.CancellationToken);
 
     private static HttpResponseMessage SuccessResponse() => new(HttpStatusCode.OK)
     {
