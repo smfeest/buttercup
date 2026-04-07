@@ -16,7 +16,7 @@ public sealed class AccessTokenInvalidationTests(AppFactory appFactory) : EndToE
         using var client = await this.AppFactory.CreateClientForApiUser(user);
 
         await this.AppFactory.Services.GetRequiredService<IUserManager>().DeactivateUser(
-            user.Id, user.Id, null);
+            user.Id, user.Id, null, TestContext.Current.CancellationToken);
 
         using var response = await client.PostQuery("query { recipes { id } }");
         using var document = await response.Content.ReadAsJsonDocument();
