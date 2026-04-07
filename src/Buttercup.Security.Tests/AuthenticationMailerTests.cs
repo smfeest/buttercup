@@ -24,10 +24,15 @@ public sealed class AuthenticationMailerTests
             .Add("Subject_PasswordChangeNotification", "translated-subject")
             .Add("Body_PasswordChangeNotification", "translated-body");
 
-        await this.authenticationMailer.SendPasswordChangeNotification("user@example.com");
+        await this.authenticationMailer.SendPasswordChangeNotification(
+            "user@example.com", TestContext.Current.CancellationToken);
 
         this.emailSenderMock.Verify(
-            x => x.Send("user@example.com", "translated-subject", "translated-body"));
+            x => x.Send(
+                "user@example.com",
+                "translated-subject",
+                "translated-body",
+                TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -44,11 +49,14 @@ public sealed class AuthenticationMailerTests
             .Add("Body_PasswordResetLink", "translated-body / {0}");
 
         await this.authenticationMailer.SendPasswordResetLink(
-            "user@example.com", PasswordResetUrl);
+            "user@example.com", PasswordResetUrl, TestContext.Current.CancellationToken);
 
         this.emailSenderMock.Verify(
             x => x.Send(
-                "user@example.com", "translated-subject", $"translated-body / {PasswordResetUrl}"));
+                "user@example.com",
+                "translated-subject",
+                $"translated-body / {PasswordResetUrl}",
+                TestContext.Current.CancellationToken));
     }
 
     #endregion
