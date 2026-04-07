@@ -10,7 +10,8 @@ internal sealed class RecipeManager(
     private readonly TimeProvider timeProvider = timeProvider;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
-    public async Task<long> CreateRecipe(RecipeAttributes attributes, long currentUserId)
+    public async Task<long> CreateRecipe(
+        RecipeAttributes attributes, long currentUserId, CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var recipe = new Recipe()
@@ -34,12 +35,13 @@ internal sealed class RecipeManager(
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Recipes.Add(recipe);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return recipe.Id;
     }
 
-    public async Task<bool> DeleteRecipe(long id, long currentUserId)
+    public async Task<bool> DeleteRecipe(
+        long id, long currentUserId, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -47,26 +49,33 @@ internal sealed class RecipeManager(
             .Recipes
             .Where(r => r.Id == id)
             .WhereNotSoftDeleted()
-            .ExecuteUpdateAsync(s => s
+            .ExecuteUpdateAsync(
+                s => s
                 .SetProperty(r => r.Deleted, this.timeProvider.GetUtcDateTimeNow())
-                .SetProperty(r => r.DeletedByUserId, currentUserId));
+                .SetProperty(r => r.DeletedByUserId, currentUserId),
+                cancellationToken);
 
         return updatedRows > 0;
     }
 
-    public async Task<bool> HardDeleteRecipe(long id)
+    public async Task<bool> HardDeleteRecipe(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Recipes.Where(r => r.Id == id).ExecuteDeleteAsync() != 0;
+        return await dbContext.Recipes
+            .Where(r => r.Id == id).ExecuteDeleteAsync(cancellationToken) != 0;
     }
 
     public async Task<bool> UpdateRecipe(
-        long id, RecipeAttributes newAttributes, int baseRevision, long currentUserId)
+        long id,
+        RecipeAttributes newAttributes,
+        int baseRevision,
+        long currentUserId,
+        CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var recipe = await dbContext.Recipes.AsTracking().GetAsync(id);
+        var recipe = await dbContext.Recipes.AsTracking().GetAsync(id, cancellationToken);
 
         if (recipe.Deleted.HasValue)
         {
@@ -99,11 +108,12 @@ internal sealed class RecipeManager(
 
         try
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException)
         {
-            return await this.UpdateRecipe(id, newAttributes, baseRevision, currentUserId);
+            return await this.UpdateRecipe(
+                id, newAttributes, baseRevision, currentUserId, cancellationToken);
         }
 
         return true;
