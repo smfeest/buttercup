@@ -28,13 +28,17 @@ public sealed class RecipeMutations
     /// <param name="attributes">
     /// The recipe attributes.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize]
     public async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,
         ISchema schema,
-        RecipeAttributes attributes)
+        RecipeAttributes attributes,
+        CancellationToken cancellationToken)
     {
         var validator = validatorFactory.CreateValidator<RecipeAttributes>(schema);
         var validationErrors = new List<InputObjectValidationError>();
@@ -44,7 +48,8 @@ public sealed class RecipeMutations
             return new(validationErrors);
         }
 
-        var id = await recipeManager.CreateRecipe(attributes, claimsPrincipal.GetUserId());
+        var id = await recipeManager.CreateRecipe(
+            attributes, claimsPrincipal.GetUserId(), cancellationToken);
         return new CreateRecipePayload(id);
     }
 
@@ -60,10 +65,18 @@ public sealed class RecipeMutations
     /// <param name="id">
     /// The recipe ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize]
     public async Task<DeleteRecipePayload> DeleteRecipe(
-        IRecipeManager recipeManager, ClaimsPrincipal claimsPrincipal, long id) =>
-        new(id, await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId()));
+        IRecipeManager recipeManager,
+        ClaimsPrincipal claimsPrincipal,
+        long id,
+        CancellationToken cancellationToken) =>
+        new(
+            id,
+            await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId(), cancellationToken));
 
     /// <summary>
     /// Hard-deletes a recipe.
@@ -74,10 +87,14 @@ public sealed class RecipeMutations
     /// <param name="id">
     /// The recipe ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
-    public async Task<HardDeletePayload> HardDeleteRecipe(IRecipeManager recipeManager, long id) =>
-        new(await recipeManager.HardDeleteRecipe(id));
+    public async Task<HardDeletePayload> HardDeleteRecipe(
+        IRecipeManager recipeManager, long id, CancellationToken cancellationToken) =>
+        new(await recipeManager.HardDeleteRecipe(id, cancellationToken));
 
     /// <summary>
     /// Updates a recipe.
@@ -103,6 +120,9 @@ public sealed class RecipeMutations
     /// <param name="baseRevision">
     /// The base revision. Used for concurrency control.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize]
     [Error<ConcurrencyException>]
     [Error<NotFoundException>]
@@ -115,7 +135,8 @@ public sealed class RecipeMutations
         ISchema schema,
         long id,
         RecipeAttributes attributes,
-        int baseRevision)
+        int baseRevision,
+        CancellationToken cancellationToken)
     {
         var validator = validatorFactory.CreateValidator<RecipeAttributes>(schema);
         var validationErrors = new List<InputObjectValidationError>();
@@ -125,7 +146,8 @@ public sealed class RecipeMutations
             return new(validationErrors);
         }
 
-        await recipeManager.UpdateRecipe(id, attributes, baseRevision, claimsPrincipal.GetUserId());
+        await recipeManager.UpdateRecipe(
+            id, attributes, baseRevision, claimsPrincipal.GetUserId(), cancellationToken);
         return new UpdateRecipePayload(id);
     }
 }
