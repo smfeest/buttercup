@@ -37,7 +37,7 @@ public sealed class AuthenticateTests(AppFactory appFactory) : EndToEndTests(app
         var authenticatedUser =
             await this.AppFactory.Services
                 .GetRequiredService<ITokenAuthenticationService>()
-                .ValidateAccessToken(accessToken);
+                .ValidateAccessToken(accessToken, TestContext.Current.CancellationToken);
 
         Assert.NotNull(authenticatedUser);
         Assert.Equal(user.Email, authenticatedUser.Email);

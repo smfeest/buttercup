@@ -17,10 +17,14 @@ public interface ITokenAuthenticationService
     /// <param name="ipAddress">
     /// The client IP address.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the access token.
     /// </returns>
-    Task<string> IssueAccessToken(User user, IPAddress? ipAddress);
+    Task<string> IssueAccessToken(
+        User user, IPAddress? ipAddress, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Validates an access token.
@@ -28,9 +32,13 @@ public interface ITokenAuthenticationService
     /// <param name="accessToken">
     /// The access token.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the authenticated user if the token is valid, or
     /// null reference if it isn't.
     /// </returns>
-    Task<User?> ValidateAccessToken(string accessToken);
+    Task<User?> ValidateAccessToken(
+        string accessToken, CancellationToken cancellationToken = default);
 }
