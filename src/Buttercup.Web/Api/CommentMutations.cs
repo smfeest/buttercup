@@ -34,6 +34,9 @@ public sealed class CommentMutations
     /// <param name="attributes">
     /// The comment attributes.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize]
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
@@ -44,7 +47,8 @@ public sealed class CommentMutations
         ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         long recipeId,
-        CommentAttributes attributes)
+        CommentAttributes attributes,
+        CancellationToken cancellationToken)
     {
         var validator = validatorFactory.CreateValidator<CommentAttributes>(schema);
         var validationErrors = new List<InputObjectValidationError>();
@@ -54,7 +58,8 @@ public sealed class CommentMutations
             return new(validationErrors);
         }
 
-        var id = await commentManager.CreateComment(recipeId, attributes, claimsPrincipal.GetUserId());
+        var id = await commentManager.CreateComment(
+            recipeId, attributes, claimsPrincipal.GetUserId(), cancellationToken);
         return new CreateCommentPayload(id);
     }
 
@@ -82,6 +87,9 @@ public sealed class CommentMutations
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize]
     public async Task<DeleteCommentPayload> DeleteComment(
         IAuthorizationService authorizationService,
@@ -90,15 +98,19 @@ public sealed class CommentMutations
         AppDbContext dbContext,
         ClaimsPrincipal claimsPrincipal,
         IResolverContext resolverContext,
-        long id)
+        long id,
+        CancellationToken cancellationToken)
     {
-        var comment = await dbContext.Comments.FindAsync(id);
+        var comment = await dbContext.Comments.FindAsync([id], cancellationToken);
 
         var authorizationResult = await authorizationService.AuthorizeAsync(
             claimsPrincipal, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
 
         return authorizationResult.Succeeded
-            ? new(id, await commentManager.DeleteComment(id, claimsPrincipal.GetUserId()))
+            ? new(
+                id,
+                await commentManager.DeleteComment(
+                    id, claimsPrincipal.GetUserId(), cancellationToken))
             : throw new GraphQLException(
                 resolverContext.CreateError(
                     ErrorCodes.Authentication.NotAuthorized,
@@ -114,9 +126,12 @@ public sealed class CommentMutations
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
     public async Task<HardDeletePayload> HardDeleteComment(
-        ICommentManager commentManager, long id) =>
-        new(await commentManager.HardDeleteComment(id));
+        ICommentManager commentManager, long id, CancellationToken cancellationToken) =>
+        new(await commentManager.HardDeleteComment(id, cancellationToken));
 }
