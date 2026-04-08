@@ -43,7 +43,7 @@ public sealed class AccountControllerTests : IDisposable
         var user = this.SetupCurrentUser();
         this.SetupFindUser(user.Id, user);
 
-        var result = await this.accountController.Show();
+        var result = await this.accountController.Show(TestContext.Current.CancellationToken);
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(user, viewResult.Model);
     }
@@ -54,7 +54,7 @@ public sealed class AccountControllerTests : IDisposable
         var userId = this.SetupCurrentUserId();
         this.SetupFindUser(userId, null);
 
-        var result = await this.accountController.Show();
+        var result = await this.accountController.Show(TestContext.Current.CancellationToken);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -79,7 +79,8 @@ public sealed class AccountControllerTests : IDisposable
         this.accountController.ModelState.AddModelError("test", "test");
 
         var viewModel = BuildChangePasswordViewModel();
-        var result = await this.accountController.ChangePassword(viewModel);
+        var result = await this.accountController.ChangePassword(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
@@ -90,7 +91,8 @@ public sealed class AccountControllerTests : IDisposable
     {
         this.SetupChangePassword(false);
 
-        await this.accountController.ChangePassword(BuildChangePasswordViewModel());
+        await this.accountController.ChangePassword(
+            BuildChangePasswordViewModel(), TestContext.Current.CancellationToken);
 
         var modelState =
             this.accountController.ModelState[nameof(ChangePasswordViewModel.CurrentPassword)];
@@ -106,7 +108,8 @@ public sealed class AccountControllerTests : IDisposable
         this.SetupChangePassword(false);
 
         var viewModel = BuildChangePasswordViewModel();
-        var result = await this.accountController.ChangePassword(viewModel);
+        var result = await this.accountController.ChangePassword(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
@@ -117,7 +120,8 @@ public sealed class AccountControllerTests : IDisposable
     {
         this.SetupChangePassword(true);
 
-        await this.accountController.ChangePassword(BuildChangePasswordViewModel());
+        await this.accountController.ChangePassword(
+            BuildChangePasswordViewModel(), TestContext.Current.CancellationToken);
 
         this.cookieAuthenticationServiceMock.Verify(x => x.RefreshPrincipal(this.httpContext));
     }
@@ -127,7 +131,8 @@ public sealed class AccountControllerTests : IDisposable
     {
         this.SetupChangePassword(true);
 
-        var result = await this.accountController.ChangePassword(BuildChangePasswordViewModel());
+        var result = await this.accountController.ChangePassword(
+            BuildChangePasswordViewModel(), TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
@@ -145,7 +150,13 @@ public sealed class AccountControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.ChangePassword(userId, "current-password", "new-password", ipAddress))
+            .Setup(
+                x => x.ChangePassword(
+                    userId,
+                    "current-password",
+                    "new-password",
+                    ipAddress,
+                    TestContext.Current.CancellationToken))
             .ReturnsAsync(result);
 
         this.localizer.Add("Error_WrongPassword", "translated-wrong-password-error");
@@ -161,7 +172,8 @@ public sealed class AccountControllerTests : IDisposable
         var user = this.SetupCurrentUser();
         this.SetupFindUser(user.Id, user);
 
-        var result = await this.accountController.Preferences();
+        var result = await this.accountController.Preferences(
+            TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var viewModel = Assert.IsType<PreferencesViewModel>(viewResult.Model);
@@ -174,7 +186,9 @@ public sealed class AccountControllerTests : IDisposable
         var userId = this.SetupCurrentUserId();
         this.SetupFindUser(userId, null);
 
-        var result = await this.accountController.Preferences();
+        var result = await this.accountController.Preferences(
+            TestContext.Current.CancellationToken);
+
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -188,7 +202,8 @@ public sealed class AccountControllerTests : IDisposable
         this.accountController.ModelState.AddModelError("test", "test");
 
         var viewModel = BuildPreferencesViewModel();
-        var result = await this.accountController.Preferences(viewModel);
+        var result = await this.accountController.Preferences(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
@@ -199,9 +214,11 @@ public sealed class AccountControllerTests : IDisposable
     {
         var userId = this.SetupCurrentUserId();
 
-        await this.accountController.Preferences(BuildPreferencesViewModel());
+        await this.accountController.Preferences(
+            BuildPreferencesViewModel(), TestContext.Current.CancellationToken);
 
-        this.userManagerMock.Verify(x => x.SetTimeZone(userId, "time-zone"));
+        this.userManagerMock.Verify(
+            x => x.SetTimeZone(userId, "time-zone", TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -209,7 +226,8 @@ public sealed class AccountControllerTests : IDisposable
     {
         this.SetupCurrentUserId();
 
-        var result = await this.accountController.Preferences(BuildPreferencesViewModel());
+        var result = await this.accountController.Preferences(
+            BuildPreferencesViewModel(), TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(AccountController.Show), redirectResult.ActionName);
@@ -235,7 +253,9 @@ public sealed class AccountControllerTests : IDisposable
     }
 
     private void SetupFindUser(long id, User? user) =>
-        this.userManagerMock.Setup(x => x.FindUser(id)).ReturnsAsync(user);
+        this.userManagerMock
+            .Setup(x => x.FindUser(id, TestContext.Current.CancellationToken))
+            .ReturnsAsync(user);
 
     private IPAddress SetupRemoteIpAddress()
     {
