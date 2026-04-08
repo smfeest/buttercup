@@ -20,11 +20,17 @@ public interface IPasswordAuthenticationService
     /// <param name="ipAddress">
     /// The client IP address.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
     Task<PasswordAuthenticationResult> Authenticate(
-        string email, string password, IPAddress? ipAddress);
+        string email,
+        string password,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks whether a password reset is expected to succeed.
@@ -35,10 +41,14 @@ public interface IPasswordAuthenticationService
     /// <param name="ipAddress">
     /// The client IP address.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<PasswordResetResult> CanResetPassword(string token, IPAddress? ipAddress);
+    Task<PasswordResetResult> CanResetPassword(
+        string token, IPAddress? ipAddress, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Changes a user's password.
@@ -55,6 +65,9 @@ public interface IPasswordAuthenticationService
     /// <param name="ipAddress">
     /// The client IP address.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is <b>true</b> if the password was changed
     /// successfully, or <b>false</b> if the current password was incorrect.
@@ -63,7 +76,11 @@ public interface IPasswordAuthenticationService
     /// The user doesn't have a password.
     /// </exception>
     Task<bool> ChangePassword(
-        long userId, string currentPassword, string newPassword, IPAddress? ipAddress);
+        long userId,
+        string currentPassword,
+        string newPassword,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Resets a user's password.
@@ -80,10 +97,17 @@ public interface IPasswordAuthenticationService
     /// <param name="ipAddress">
     /// The client IP address.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<PasswordResetResult> ResetPassword(string token, string newPassword, IPAddress? ipAddress);
+    Task<PasswordResetResult> ResetPassword(
+        string token,
+        string newPassword,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a password reset link to the user with a given email address.
@@ -100,9 +124,16 @@ public interface IPasswordAuthenticationService
     /// <param name="urlHelper">
     /// The URL helper.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is <b>true</b> if the request was within rate limits,
     /// <b>false</b> if it wasn't.
     /// </returns>
-    Task<bool> SendPasswordResetLink(string email, IPAddress? ipAddress, IUrlHelper urlHelper);
+    Task<bool> SendPasswordResetLink(
+        string email,
+        IPAddress? ipAddress,
+        IUrlHelper urlHelper,
+        CancellationToken cancellationToken = default);
 }

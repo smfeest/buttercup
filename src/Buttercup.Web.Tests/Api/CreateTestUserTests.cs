@@ -36,7 +36,8 @@ public sealed class CreateTestUserTests(AppFactory appFactory) : EndToEndTests(a
         var authenticationResult = await passwordAuthenticationService.Authenticate(
             userElement.GetProperty("email").GetString()!,
             createUserElement.GetProperty("password").GetString()!,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         Assert.True(authenticationResult.IsSuccess);
         Assert.Equal(userElement.GetProperty("id").GetInt64(), authenticationResult.User.Id);
