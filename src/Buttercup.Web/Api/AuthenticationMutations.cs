@@ -15,11 +15,13 @@ public sealed class AuthenticationMutations
         IClaimsIdentityFactory claimsIdentityFactory,
         ClaimsPrincipal claimsPrincipal,
         string email,
-        string password)
+        string password,
+        CancellationToken cancellationToken)
     {
         var ipAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
 
-        var result = await passwordAuthenticationService.Authenticate(email, password, ipAddress);
+        var result = await passwordAuthenticationService.Authenticate(
+            email, password, ipAddress, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -31,7 +33,8 @@ public sealed class AuthenticationMutations
             return new(error);
         }
 
-        var accessToken = await tokenAuthenticationService.IssueAccessToken(result.User, ipAddress);
+        var accessToken = await tokenAuthenticationService.IssueAccessToken(
+            result.User, ipAddress, cancellationToken);
 
         claimsPrincipal.AddIdentity(claimsIdentityFactory.CreateIdentityForUser(result.User));
 
