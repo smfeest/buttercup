@@ -16,11 +16,15 @@ public interface ICommentsControllerQueries
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the comment, or null if the comment does not exist
     /// or is soft-deleted.
     /// </returns>
-    Task<Comment?> FindComment(AppDbContext dbContext, long id);
+    Task<Comment?> FindComment(
+        AppDbContext dbContext, long id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Finds a non-deleted a comment, loading the associated author.
@@ -31,9 +35,13 @@ public interface ICommentsControllerQueries
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the comment, or null if the comment does not exist
     /// or is soft-deleted.
     /// </returns>
-    Task<Comment?> FindCommentWithAuthor(AppDbContext dbContext, long id);
+    Task<Comment?> FindCommentWithAuthor(
+        AppDbContext dbContext, long id, CancellationToken cancellationToken);
 }
