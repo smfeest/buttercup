@@ -16,11 +16,14 @@ public interface IRecipesControllerQueries
     /// <param name="id">
     /// The recipe ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the recipe, or null if the recipe does not exist or
     /// is soft-deleted.
     /// </returns>
-    Task<Recipe?> FindRecipe(AppDbContext dbContext, long id);
+    Task<Recipe?> FindRecipe(AppDbContext dbContext, long id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Finds a non-deleted a recipe, including all of the associated records needed by the recipe
@@ -32,11 +35,15 @@ public interface IRecipesControllerQueries
     /// <param name="id">
     /// The recipe ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the recipe, or null if the recipe does not exist or
     /// is soft-deleted.
     /// </returns>
-    Task<Recipe?> FindRecipeForShowView(AppDbContext dbContext, long id);
+    Task<Recipe?> FindRecipeForShowView(
+        AppDbContext dbContext, long id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets all comments (with authors) for a recipe.
@@ -47,10 +54,14 @@ public interface IRecipesControllerQueries
     /// <param name="recipeId">
     /// The recipe ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<Comment[]> GetCommentsForRecipe(AppDbContext dbContext, long recipeId);
+    Task<Comment[]> GetCommentsForRecipe(
+        AppDbContext dbContext, long recipeId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets all non-deleted recipes ordered by title.
@@ -58,8 +69,11 @@ public interface IRecipesControllerQueries
     /// <param name="dbContext">
     /// The database context.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<Recipe[]> GetRecipesForIndex(AppDbContext dbContext);
+    Task<Recipe[]> GetRecipesForIndex(AppDbContext dbContext, CancellationToken cancellationToken);
 }
