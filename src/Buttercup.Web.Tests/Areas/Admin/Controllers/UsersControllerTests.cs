@@ -52,10 +52,11 @@ public sealed class UsersControllerTests : IDisposable
     {
         var users = new[] { this.modelFactory.BuildUser() };
         this.queriesMock
-            .Setup(x => x.GetUsersForIndex(this.dbContextFactory.FakeDbContext))
+            .Setup(x => x.GetUsersForIndex(
+                this.dbContextFactory.FakeDbContext, TestContext.Current.CancellationToken))
             .ReturnsAsync(users);
 
-        var result = await this.usersController.Index();
+        var result = await this.usersController.Index(TestContext.Current.CancellationToken);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         Assert.Same(users, viewResult.Model);
@@ -70,9 +71,12 @@ public sealed class UsersControllerTests : IDisposable
     {
         var user = this.modelFactory.BuildUser();
 
-        this.userManagerMock.Setup(x => x.FindUser(user.Id)).ReturnsAsync(user);
+        this.userManagerMock
+            .Setup(x => x.FindUser(user.Id, TestContext.Current.CancellationToken))
+            .ReturnsAsync(user);
 
-        var result = await this.usersController.Show(user.Id);
+        var result = await this.usersController.Show(
+            user.Id, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal(user, viewResult.Model);
@@ -82,9 +86,11 @@ public sealed class UsersControllerTests : IDisposable
     public async Task Show_UserNotFound_ReturnsNotFoundResult()
     {
         var userId = this.modelFactory.NextInt();
-        this.userManagerMock.Setup(x => x.FindUser(userId)).ReturnsAsync(default(User?));
+        this.userManagerMock
+            .Setup(x => x.FindUser(userId, TestContext.Current.CancellationToken))
+            .ReturnsAsync(default(User?));
 
-        var result = await this.usersController.Show(userId);
+        var result = await this.usersController.Show(userId, TestContext.Current.CancellationToken);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -113,9 +119,12 @@ public sealed class UsersControllerTests : IDisposable
         var currentUserId = this.SetupCurrentUserId();
         var ipAddress = this.SetupRemoteIpAddress();
 
-        var result = await this.usersController.New(attributes);
+        var result = await this.usersController.New(
+            attributes, TestContext.Current.CancellationToken);
 
-        this.userManagerMock.Verify(x => x.CreateUser(attributes, currentUserId, ipAddress));
+        this.userManagerMock.Verify(
+            x => x.CreateUser(
+                attributes, currentUserId, ipAddress, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -123,7 +132,8 @@ public sealed class UsersControllerTests : IDisposable
     {
         this.SetupCurrentUserId();
 
-        var result = await this.usersController.New(this.BuildNewUserAttributes());
+        var result = await this.usersController.New(
+            this.BuildNewUserAttributes(), TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(UsersController.Index), redirectResult.ActionName);
@@ -136,7 +146,8 @@ public sealed class UsersControllerTests : IDisposable
 
         this.usersController.ModelState.AddModelError("test", "test");
 
-        var result = await this.usersController.New(attributes);
+        var result = await this.usersController.New(
+            attributes, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(attributes, viewResult.Model);
@@ -152,10 +163,11 @@ public sealed class UsersControllerTests : IDisposable
         this.localizer.Add("Error_EmailNotUnique", "translated-email-not-unique-error");
 
         this.userManagerMock
-            .Setup(x => x.CreateUser(attributes, currentUserId, ipAddress))
+            .Setup(x => x.CreateUser(
+                attributes, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotUniqueException(nameof(NewUserAttributes.Email)));
 
-        await this.usersController.New(attributes);
+        await this.usersController.New(attributes, TestContext.Current.CancellationToken);
 
         var formState = this.usersController.ModelState[nameof(NewUserAttributes.Email)];
         Assert.NotNull(formState);
@@ -172,10 +184,12 @@ public sealed class UsersControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.userManagerMock
-            .Setup(x => x.CreateUser(attributes, currentUserId, ipAddress))
+            .Setup(x => x.CreateUser(
+                attributes, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotUniqueException(nameof(NewUserAttributes.Email)));
 
-        var result = await this.usersController.New(attributes);
+        var result = await this.usersController.New(
+            attributes, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Null(viewResult.ViewName);
@@ -190,11 +204,12 @@ public sealed class UsersControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.userManagerMock
-            .Setup(x => x.CreateUser(attributes, currentUserId, ipAddress))
+            .Setup(x => x.CreateUser(
+                attributes, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotUniqueException("Foo"));
 
         await Assert.ThrowsAsync<NotUniqueException>(
-            () => this.usersController.New(attributes));
+            () => this.usersController.New(attributes, TestContext.Current.CancellationToken));
     }
 
     private NewUserAttributes BuildNewUserAttributes() =>
@@ -216,10 +231,10 @@ public sealed class UsersControllerTests : IDisposable
         var currentUserId = this.SetupCurrentUserId();
         var ipAddress = this.SetupRemoteIpAddress();
 
-        await this.usersController.Deactivate(userId);
+        await this.usersController.Deactivate(userId, TestContext.Current.CancellationToken);
 
-        this.userManagerMock.Verify(x =>
-            x.DeactivateUser(userId, currentUserId, ipAddress));
+        this.userManagerMock.Verify(x => x.DeactivateUser(
+            userId, currentUserId, ipAddress, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -228,7 +243,8 @@ public sealed class UsersControllerTests : IDisposable
         long userId = this.modelFactory.NextInt();
         this.SetupCurrentUserId();
 
-        var result = await this.usersController.Deactivate(userId);
+        var result = await this.usersController.Deactivate(
+            userId, TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(UsersController.Show), redirectResult.ActionName);
@@ -243,10 +259,12 @@ public sealed class UsersControllerTests : IDisposable
         var currentUserId = this.SetupCurrentUserId();
 
         this.userManagerMock
-            .Setup(x => x.DeactivateUser(userId, currentUserId, null))
+            .Setup(x => x.DeactivateUser(
+                userId, currentUserId, null, TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
-        var result = await this.usersController.Deactivate(userId);
+        var result = await this.usersController.Deactivate(
+            userId, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -262,10 +280,10 @@ public sealed class UsersControllerTests : IDisposable
         var currentUserId = this.SetupCurrentUserId();
         var ipAddress = this.SetupRemoteIpAddress();
 
-        await this.usersController.Reactivate(userId);
+        await this.usersController.Reactivate(userId, TestContext.Current.CancellationToken);
 
-        this.userManagerMock.Verify(x =>
-            x.ReactivateUser(userId, currentUserId, ipAddress));
+        this.userManagerMock.Verify(x => x.ReactivateUser(
+            userId, currentUserId, ipAddress, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -274,7 +292,8 @@ public sealed class UsersControllerTests : IDisposable
         long userId = this.modelFactory.NextInt();
         this.SetupCurrentUserId();
 
-        var result = await this.usersController.Reactivate(userId);
+        var result = await this.usersController.Reactivate(
+            userId, TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(UsersController.Show), redirectResult.ActionName);
@@ -289,10 +308,12 @@ public sealed class UsersControllerTests : IDisposable
         var currentUserId = this.SetupCurrentUserId();
 
         this.userManagerMock
-            .Setup(x => x.ReactivateUser(userId, currentUserId, null))
+            .Setup(x => x.ReactivateUser(
+                userId, currentUserId, null, TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
-        var result = await this.usersController.Reactivate(userId);
+        var result = await this.usersController.Reactivate(
+            userId, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }

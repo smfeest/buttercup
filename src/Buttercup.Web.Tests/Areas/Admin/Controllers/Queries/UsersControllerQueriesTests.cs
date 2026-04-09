@@ -26,7 +26,8 @@ public sealed class UsersControllerQueriesTests(
         await this.DatabaseFixture.InsertEntities(
             orderedUsers[1], orderedUsers[3], orderedUsers[2], orderedUsers[0]);
 
-        var result = await this.queries.GetUsersForIndex(this.DatabaseFixture.CreateDbContext());
+        var result = await this.queries.GetUsersForIndex(
+            this.DatabaseFixture.CreateDbContext(), TestContext.Current.CancellationToken);
 
         Assert.Equal(orderedUsers, result);
     }
