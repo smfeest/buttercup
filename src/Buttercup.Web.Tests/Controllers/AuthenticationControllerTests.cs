@@ -54,7 +54,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         this.authenticationController.ModelState.AddModelError("test", "test");
 
-        await this.authenticationController.RequestPasswordReset(new());
+        await this.authenticationController.RequestPasswordReset(
+            new(), TestContext.Current.CancellationToken);
 
         this.passwordAuthenticationServiceMock.VerifyNoOtherCalls();
     }
@@ -65,7 +66,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         this.authenticationController.ModelState.AddModelError("test", "test");
 
         var viewModel = new RequestPasswordResetViewModel();
-        var result = await this.authenticationController.RequestPasswordReset(viewModel);
+        var result = await this.authenticationController.RequestPasswordReset(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Null(viewResult.ViewName);
@@ -81,7 +83,8 @@ public sealed class AuthenticationControllerTests : IDisposable
             "Error_TooManyPasswordResetRequests",
             "translated-too-many-password-reset-attempts-error");
 
-        await this.authenticationController.RequestPasswordReset(viewModel);
+        await this.authenticationController.RequestPasswordReset(
+            viewModel, TestContext.Current.CancellationToken);
 
         var formState = this.authenticationController.ModelState[string.Empty];
         Assert.NotNull(formState);
@@ -95,7 +98,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var viewModel = this.SetupRequestPasswordReset(false);
 
-        var result = await this.authenticationController.RequestPasswordReset(viewModel);
+        var result = await this.authenticationController.RequestPasswordReset(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Null(viewResult.ViewName);
@@ -107,7 +111,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var viewModel = this.SetupRequestPasswordReset(true);
 
-        var result = await this.authenticationController.RequestPasswordReset(viewModel);
+        var result = await this.authenticationController.RequestPasswordReset(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("RequestPasswordResetConfirmation", viewResult.ViewName);
@@ -121,7 +126,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.SendPasswordResetLink(email, ipAddress, this.urlHelperMock.Object))
+            .Setup(x => x.SendPasswordResetLink(
+                email, ipAddress, this.urlHelperMock.Object, TestContext.Current.CancellationToken))
             .ReturnsAsync(withinRateLimits);
 
         return viewModel;
@@ -136,7 +142,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var token = this.SetupResetPasswordGet(new(this.modelFactory.BuildUser()));
 
-        var result = await this.authenticationController.ResetPassword(token);
+        var result = await this.authenticationController.ResetPassword(
+            token, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Null(viewResult.ViewName);
@@ -147,7 +154,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var token = this.SetupResetPasswordGet(new(PasswordResetFailure.InvalidToken));
 
-        var result = await this.authenticationController.ResetPassword(token);
+        var result = await this.authenticationController.ResetPassword(
+            token, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
@@ -158,7 +166,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var token = this.SetupResetPasswordGet(new(PasswordResetFailure.UserDeactivated));
 
-        var result = await this.authenticationController.ResetPassword(token);
+        var result = await this.authenticationController.ResetPassword(
+            token, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("ResetPasswordUserDeactivated", viewResult.ViewName);
@@ -170,7 +179,7 @@ public sealed class AuthenticationControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.CanResetPassword(token, ipAddress))
+            .Setup(x => x.CanResetPassword(token, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(canResetPasswordResult);
 
         return token;
@@ -186,7 +195,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         this.authenticationController.ModelState.AddModelError("test", "test");
 
         var viewModel = new ResetPasswordViewModel();
-        var result = await this.authenticationController.ResetPassword("sample-token", viewModel);
+        var result = await this.authenticationController.ResetPassword(
+            "sample-token", viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
@@ -198,7 +208,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var (token, viewModel) = this.SetupResetPasswordPost(
             new(PasswordResetFailure.InvalidToken));
 
-        var result = await this.authenticationController.ResetPassword(token, viewModel);
+        var result = await this.authenticationController.ResetPassword(
+            token, viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("ResetPasswordInvalidToken", viewResult.ViewName);
@@ -210,7 +221,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var (token, viewModel) = this.SetupResetPasswordPost(
             new(PasswordResetFailure.UserDeactivated));
 
-        var result = await this.authenticationController.ResetPassword(token, viewModel);
+        var result = await this.authenticationController.ResetPassword(
+            token, viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Equal("ResetPasswordUserDeactivated", viewResult.ViewName);
@@ -222,7 +234,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var user = this.modelFactory.BuildUser();
         var (token, viewModel) = this.SetupResetPasswordPost(new(user));
 
-        await this.authenticationController.ResetPassword(token, viewModel);
+        await this.authenticationController.ResetPassword(
+            token, viewModel, TestContext.Current.CancellationToken);
 
         this.cookieAuthenticationServiceMock.Verify(x => x.SignIn(this.httpContext, user));
     }
@@ -232,7 +245,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var (token, viewModel) = this.SetupResetPasswordPost(new(this.modelFactory.BuildUser()));
 
-        var result = await this.authenticationController.ResetPassword(token, viewModel);
+        var result = await this.authenticationController.ResetPassword(
+            token, viewModel, TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Home", redirectResult.ControllerName);
@@ -247,7 +261,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var ipAddress = this.SetupRemoteIpAddress();
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.ResetPassword(token, password, ipAddress))
+            .Setup(x => x.ResetPassword(
+                token, password, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(result);
 
         return (token, new ResetPasswordViewModel { Password = password });
@@ -274,7 +289,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.IncorrectCredentials));
         this.authenticationController.ModelState.AddModelError("test", "test");
 
-        var result = await this.authenticationController.SignIn(viewModel);
+        var result = await this.authenticationController.SignIn(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
@@ -288,7 +304,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var viewModel = this.SetupSignInPost(new(failure));
 
-        await this.authenticationController.SignIn(viewModel);
+        await this.authenticationController.SignIn(
+            viewModel, TestContext.Current.CancellationToken);
 
         var formState = this.authenticationController.ModelState[string.Empty];
         Assert.NotNull(formState);
@@ -302,7 +319,8 @@ public sealed class AuthenticationControllerTests : IDisposable
     {
         var viewModel = this.SetupSignInPost(new(PasswordAuthenticationFailure.IncorrectCredentials));
 
-        var result = await this.authenticationController.SignIn(viewModel);
+        var result = await this.authenticationController.SignIn(
+            viewModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(viewModel, viewResult.Model);
@@ -314,7 +332,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var user = this.modelFactory.BuildUser();
         var viewModel = this.SetupSignInPost(new(user));
 
-        await this.authenticationController.SignIn(viewModel);
+        await this.authenticationController.SignIn(
+            viewModel, TestContext.Current.CancellationToken);
 
         this.cookieAuthenticationServiceMock.Verify(x => x.SignIn(this.httpContext, user));
     }
@@ -325,7 +344,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var viewModel = this.SetupSignInPost(new(this.modelFactory.BuildUser()));
         this.urlHelperMock.Setup(x => x.IsLocalUrl("/sample/redirect")).Returns(true);
 
-        var result = await this.authenticationController.SignIn(viewModel, "/sample/redirect");
+        var result = await this.authenticationController.SignIn(
+            viewModel, TestContext.Current.CancellationToken, "/sample/redirect");
 
         var redirectResult = Assert.IsType<RedirectResult>(result);
         Assert.Equal("/sample/redirect", redirectResult.Url);
@@ -337,7 +357,8 @@ public sealed class AuthenticationControllerTests : IDisposable
         var viewModel = this.SetupSignInPost(new(this.modelFactory.BuildUser()));
         this.urlHelperMock.Setup(x => x.IsLocalUrl("https://evil.com/")).Returns(false);
 
-        var result = await this.authenticationController.SignIn(viewModel, "https://evil.com/");
+        var result = await this.authenticationController.SignIn(
+            viewModel, TestContext.Current.CancellationToken, "https://evil.com/");
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Home", redirectResult.ControllerName);
@@ -355,7 +376,8 @@ public sealed class AuthenticationControllerTests : IDisposable
             .Add("Error_WrongEmailOrPassword", "translated-wrong-email-or-password-error");
 
         this.passwordAuthenticationServiceMock
-            .Setup(x => x.Authenticate(email, password, ipAddress))
+            .Setup(x => x.Authenticate(
+                email, password, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(authenticationResult);
 
         return new() { Email = email, Password = password };
