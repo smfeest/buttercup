@@ -15,13 +15,14 @@ public sealed class HomeController(
     private readonly IHomeControllerQueries queries = queries;
 
     [HttpGet("/")]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var recentlyAdded = await this.queries.GetRecentlyAddedRecipes(dbContext);
+        var recentlyAdded = await this.queries.GetRecentlyAddedRecipes(
+            dbContext, cancellationToken);
         var recentlyUpdated = await this.queries.GetRecentlyUpdatedRecipes(
-            dbContext, [.. recentlyAdded.Select(r => r.Id)]);
+            dbContext, [.. recentlyAdded.Select(r => r.Id)], cancellationToken);
 
         return this.View(new HomePageViewModel(recentlyAdded, recentlyUpdated));
     }

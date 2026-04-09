@@ -13,10 +13,14 @@ public interface IHomeControllerQueries
     /// <param name="dbContext">
     /// The database context.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<Recipe[]> GetRecentlyAddedRecipes(AppDbContext dbContext);
+    Task<Recipe[]> GetRecentlyAddedRecipes(
+        AppDbContext dbContext, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the ten most recently updated recipes.
@@ -31,9 +35,14 @@ public interface IHomeControllerQueries
     /// <param name="excludeRecipeIds">
     /// The IDs of the recipes that should be excluded.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
     Task<Recipe[]> GetRecentlyUpdatedRecipes(
-        AppDbContext dbContext, IReadOnlyCollection<long> excludeRecipeIds);
+        AppDbContext dbContext,
+        IReadOnlyCollection<long> excludeRecipeIds,
+        CancellationToken cancellationToken);
 }

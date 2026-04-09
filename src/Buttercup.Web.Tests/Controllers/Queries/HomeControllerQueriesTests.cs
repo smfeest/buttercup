@@ -31,7 +31,8 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         Assert.Collection(
-            await this.queries.GetRecentlyAddedRecipes(dbContext),
+            await this.queries.GetRecentlyAddedRecipes(
+                dbContext, TestContext.Current.CancellationToken),
                 r => Assert.Equivalent(allRecipes[14], r),
                 r => Assert.Equivalent(allRecipes[13], r),
                 r => Assert.Equivalent(allRecipes[12], r),
@@ -85,7 +86,7 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         var actual = await this.queries.GetRecentlyUpdatedRecipes(
-            dbContext, [allRecipes[3].Id, allRecipes[8].Id]);
+            dbContext, [allRecipes[3].Id, allRecipes[8].Id], TestContext.Current.CancellationToken);
 
         Assert.Collection(
             actual,

@@ -24,16 +24,20 @@ public sealed class HomeControllerTests
         var queriesMock = new Mock<IHomeControllerQueries>();
 
         queriesMock
-            .Setup(x => x.GetRecentlyAddedRecipes(dbContextFactory.FakeDbContext))
+            .Setup(x => x.GetRecentlyAddedRecipes(
+                dbContextFactory.FakeDbContext, TestContext.Current.CancellationToken))
             .ReturnsAsync(recentlyAddedRecipes);
         queriesMock
             .Setup(
-                x => x.GetRecentlyUpdatedRecipes(dbContextFactory.FakeDbContext, recentlyAddedIds))
+                x => x.GetRecentlyUpdatedRecipes(
+                    dbContextFactory.FakeDbContext,
+                    recentlyAddedIds,
+                    TestContext.Current.CancellationToken))
             .ReturnsAsync(recentlyUpdatedRecipes);
 
         using var homeController = new HomeController(dbContextFactory, queriesMock.Object);
 
-        var result = await homeController.Index();
+        var result = await homeController.Index(TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var viewModel = Assert.IsType<HomePageViewModel>(viewResult.Model);
