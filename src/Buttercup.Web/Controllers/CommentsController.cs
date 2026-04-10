@@ -24,19 +24,19 @@ public sealed class CommentsController(
     private readonly ICommentsControllerQueries queries = queries;
 
     [HttpGet("{id}/delete")]
-    public async Task<IActionResult> Delete(long id)
+    public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
-        var comment = await this.queries.FindCommentWithAuthor(dbContext, id);
+        var comment = await this.queries.FindCommentWithAuthor(dbContext, id, cancellationToken);
         return comment is null ? this.NotFound() : this.View(comment);
     }
 
     [HttpPost("{id}/delete")]
-    public async Task<IActionResult> DeletePost(long id)
+    public async Task<IActionResult> DeletePost(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var comment = await this.queries.FindComment(dbContext, id);
+        var comment = await this.queries.FindComment(dbContext, id, cancellationToken);
 
         if (comment is null)
         {
@@ -51,7 +51,7 @@ public sealed class CommentsController(
             return this.Unauthorized();
         }
 
-        await this.commentManager.DeleteComment(id, this.User.GetUserId());
+        await this.commentManager.DeleteComment(id, this.User.GetUserId(), cancellationToken);
 
         return this.RedirectToAction(
             nameof(RecipesController.Show), "Recipes", new { id = comment.RecipeId });

@@ -28,17 +28,17 @@ public sealed class UsersController(
     private readonly IUserManager userManager = userManager;
 
     [HttpGet]
-    public async Task<ViewResult> Index()
+    public async Task<ViewResult> Index(CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
-        var users = await this.queries.GetUsersForIndex(dbContext);
+        var users = await this.queries.GetUsersForIndex(dbContext, cancellationToken);
         return this.View(users);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Show(long id)
+    public async Task<IActionResult> Show(long id, CancellationToken cancellationToken)
     {
-        var user = await this.userManager.FindUser(id);
+        var user = await this.userManager.FindUser(id, cancellationToken);
         return user is null ? this.NotFound() : this.View(user);
     }
 
@@ -48,7 +48,8 @@ public sealed class UsersController(
             new NewUserAttributes { TimeZone = this.globalizationOptions.DefaultUserTimeZone });
 
     [HttpPost("new")]
-    public async Task<IActionResult> New(NewUserAttributes model)
+    public async Task<IActionResult> New(
+        NewUserAttributes model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
@@ -58,7 +59,10 @@ public sealed class UsersController(
         try
         {
             await this.userManager.CreateUser(
-                model, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
+                model,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
         }
         catch (NotUniqueException ex) when (ex.PropertyName == nameof(NewUserAttributes.Email))
         {
@@ -73,12 +77,15 @@ public sealed class UsersController(
     }
 
     [HttpPost("{id}/deactivate")]
-    public async Task<IActionResult> Deactivate(long id)
+    public async Task<IActionResult> Deactivate(long id, CancellationToken cancellationToken)
     {
         try
         {
             await this.userManager.DeactivateUser(
-                id, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
+                id,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
 
             return this.RedirectToAction(nameof(this.Show), new { id });
 
@@ -90,12 +97,15 @@ public sealed class UsersController(
     }
 
     [HttpPost("{id}/reactivate")]
-    public async Task<IActionResult> Reactivate(long id)
+    public async Task<IActionResult> Reactivate(long id, CancellationToken cancellationToken)
     {
         try
         {
             await this.userManager.ReactivateUser(
-                id, this.User.GetUserId(), this.HttpContext.Connection.RemoteIpAddress);
+                id,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
 
             return this.RedirectToAction(nameof(this.Show), new { id });
 

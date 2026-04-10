@@ -59,7 +59,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         };
         var ipAddress = this.modelFactory.NextIpAddress();
 
-        var id = await this.userManager.CreateUser(attributes, currentUser.Id, ipAddress);
+        var id = await this.userManager.CreateUser(
+            attributes, currentUser.Id, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -112,11 +113,12 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
                 TimeZone = null,
             },
             currentUser.Id,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var user = await dbContext.Users.GetAsync(id);
+        var user = await dbContext.Users.GetAsync(id, TestContext.Current.CancellationToken);
         Assert.Equal(this.globalizationOptions.DefaultUserTimeZone, user.TimeZone);
     }
 
@@ -134,7 +136,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         };
 
         var exception = await Assert.ThrowsAsync<NotUniqueException>(
-            () => this.userManager.CreateUser(attributes, existing.Id, null));
+            () => this.userManager.CreateUser(
+                attributes, existing.Id, null, TestContext.Current.CancellationToken));
         Assert.Equal(nameof(attributes.Email), exception.PropertyName);
         Assert.Equal(
             $"Another user already exists with email '{attributes.Email}'",
@@ -162,7 +165,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             .Setup(x => x.HashPassword(It.IsAny<User>(), password))
             .Returns(hashedPassword);
 
-        var (id, returnedPassword) = await this.userManager.CreateTestUser();
+        var (id, returnedPassword) = await this.userManager.CreateTestUser(
+            TestContext.Current.CancellationToken);
 
         Assert.Equal(password, returnedPassword);
 
@@ -181,7 +185,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Deactivated = null,
             Revision = 0,
         };
-        var actual = await this.userManager.FindUser(id);
+        var actual = await this.userManager.FindUser(id, TestContext.Current.CancellationToken);
 
         Assert.Equal(expected, actual);
     }
@@ -210,7 +214,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         await this.DatabaseFixture.InsertEntities(
             this.modelFactory.BuildUser() with { Email = $"test+{firstSuffix}@example.com" });
 
-        var (id, returnedPassword) = await this.userManager.CreateTestUser();
+        var (id, returnedPassword) = await this.userManager.CreateTestUser(
+            TestContext.Current.CancellationToken);
 
         Assert.Equal(password, returnedPassword);
 
@@ -229,7 +234,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Deactivated = null,
             Revision = 0,
         };
-        var actual = await this.userManager.FindUser(id);
+        var actual = await this.userManager.FindUser(id, TestContext.Current.CancellationToken);
 
         Assert.Equal(expected, actual);
     }
@@ -247,7 +252,10 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         Assert.False(
             await this.userManager.DeactivateUser(
-                userBefore.Id, currentUser.Id, this.modelFactory.NextIpAddress()));
+                userBefore.Id,
+                currentUser.Id,
+                this.modelFactory.NextIpAddress(),
+                TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -272,7 +280,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(newSecurityStamp);
 
         Assert.True(
-            await this.userManager.DeactivateUser(userBefore.Id, currentUser.Id, ipAddress));
+            await this.userManager.DeactivateUser(
+                userBefore.Id, currentUser.Id, ipAddress, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -312,7 +321,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         await this.DatabaseFixture.InsertEntities(expected);
 
         // Returns user
-        Assert.Equal(expected, await this.userManager.FindUser(expected.Id));
+        Assert.Equal(expected, await this.userManager.FindUser(
+            expected.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -321,7 +331,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
 
         // Returns null
-        Assert.Null(await this.userManager.FindUser(this.modelFactory.NextInt()));
+        Assert.Null(await this.userManager.FindUser(
+            this.modelFactory.NextInt(), TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -342,7 +353,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             passwordResetTokenForUser,
             passwordResetTokenForOtherUser);
 
-        Assert.True(await this.userManager.HardDeleteTestUser(user.Id));
+        Assert.True(await this.userManager.HardDeleteTestUser(
+            user.Id, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -362,7 +374,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     {
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
 
-        Assert.False(await this.userManager.HardDeleteTestUser(this.modelFactory.NextInt()));
+        Assert.False(await this.userManager.HardDeleteTestUser(
+            this.modelFactory.NextInt(), TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -378,7 +391,10 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         Assert.False(
             await this.userManager.ReactivateUser(
-                userBefore.Id, currentUser.Id, this.modelFactory.NextIpAddress()));
+                userBefore.Id,
+                currentUser.Id,
+                this.modelFactory.NextIpAddress(),
+                TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -400,7 +416,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         var ipAddress = this.modelFactory.NextIpAddress();
 
         Assert.True(
-            await this.userManager.ReactivateUser(userBefore.Id, currentUser.Id, ipAddress));
+            await this.userManager.ReactivateUser(
+                userBefore.Id, currentUser.Id, ipAddress, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -439,7 +456,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         await this.DatabaseFixture.InsertEntities(original);
 
         var newTimeZone = this.modelFactory.NextString("new-time-zone");
-        await this.userManager.SetTimeZone(original.Id, newTimeZone);
+        await this.userManager.SetTimeZone(
+            original.Id, newTimeZone, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -463,7 +481,10 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         // Throws exception
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => this.userManager.SetTimeZone(id, this.modelFactory.NextString("time-zone")));
+            () => this.userManager.SetTimeZone(
+                id,
+                this.modelFactory.NextString("time-zone"),
+                TestContext.Current.CancellationToken));
         Assert.Equal($"User {id} not found", exception.Message);
     }
 

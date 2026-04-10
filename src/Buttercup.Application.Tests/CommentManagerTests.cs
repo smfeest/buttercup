@@ -31,7 +31,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
         var attributes = this.BuildCommentAttributes();
-        var id = await this.commentManager.CreateComment(recipe.Id, attributes, currentUser.Id);
+        var id = await this.commentManager.CreateComment(
+            recipe.Id, attributes, currentUser.Id, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -77,7 +78,10 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.commentManager.CreateComment(
-                recipeId, this.BuildCommentAttributes(), currentUser.Id));
+                recipeId,
+                this.BuildCommentAttributes(),
+                currentUser.Id,
+                TestContext.Current.CancellationToken));
 
         Assert.Equal($"Recipe/{recipeId} not found", exception.Message);
     }
@@ -91,7 +95,10 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         var exception = await Assert.ThrowsAsync<SoftDeletedException>(
             () => this.commentManager.CreateComment(
-                recipe.Id, this.BuildCommentAttributes(), currentUser.Id));
+                recipe.Id,
+                this.BuildCommentAttributes(),
+                currentUser.Id,
+                TestContext.Current.CancellationToken));
 
         Assert.Equal($"Cannot add comment to soft-deleted recipe {recipe.Id}", exception.Message);
     }
@@ -107,7 +114,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
-        Assert.True(await this.commentManager.DeleteComment(original.Id, currentUser.Id));
+        Assert.True(await this.commentManager.DeleteComment(
+            original.Id, currentUser.Id, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -129,7 +137,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
-        Assert.False(await this.commentManager.DeleteComment(original.Id, currentUser.Id));
+        Assert.False(await this.commentManager.DeleteComment(
+            original.Id, currentUser.Id, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -146,7 +155,10 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             this.modelFactory.BuildComment(setRecipe: true), currentUser);
 
         Assert.False(
-            await this.commentManager.DeleteComment(this.modelFactory.NextInt(), currentUser.Id));
+            await this.commentManager.DeleteComment(
+                this.modelFactory.NextInt(),
+                currentUser.Id,
+                TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -159,7 +171,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         var comment = this.modelFactory.BuildComment(setRecipe: true);
         await this.DatabaseFixture.InsertEntities(comment);
 
-        Assert.True(await this.commentManager.HardDeleteComment(comment.Id));
+        Assert.True(await this.commentManager.HardDeleteComment(
+            comment.Id, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -171,7 +184,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     {
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildComment(setRecipe: true));
 
-        Assert.False(await this.commentManager.HardDeleteComment(this.modelFactory.NextInt()));
+        Assert.False(await this.commentManager.HardDeleteComment(
+            this.modelFactory.NextInt(), TestContext.Current.CancellationToken));
     }
 
     #endregion

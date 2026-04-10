@@ -20,14 +20,24 @@ public interface IUserManager
     /// <param name="ipAddress">
     /// The IP address of the current user.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is the ID of the new user.
     /// </returns>
-    Task<long> CreateUser(NewUserAttributes attributes, long currentUserId, IPAddress? ipAddress);
+    Task<long> CreateUser(
+        NewUserAttributes attributes,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new user for automated end-to-end testing.
     /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <remarks>
     /// This method creates a new user with a unique email address and randomly generated password.
     /// It should only be used to set up users for automated end-to-end testing in development.
@@ -35,7 +45,7 @@ public interface IUserManager
     /// <returns>
     /// A task for the operation. The task result is the ID and password of the new user.
     /// </returns>
-    Task<(long Id, string Password)> CreateTestUser();
+    Task<(long Id, string Password)> CreateTestUser(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deactivates a user.
@@ -49,6 +59,9 @@ public interface IUserManager
     /// <param name="ipAddress">
     /// The IP address of the current user.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> if the user was deactivated, or
     /// <b>false</b> if the user is already deactivated.
@@ -56,7 +69,11 @@ public interface IUserManager
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task<bool> DeactivateUser(long id, long currentUserId, IPAddress? ipAddress);
+    Task<bool> DeactivateUser(
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reactivates a user.
@@ -70,6 +87,9 @@ public interface IUserManager
     /// <param name="ipAddress">
     /// The IP address of the current user.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> if the user was reactivated, or
     /// <b>false</b> if the user is already active.
@@ -77,7 +97,11 @@ public interface IUserManager
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task<bool> ReactivateUser(long id, long currentUserId, IPAddress? ipAddress);
+    Task<bool> ReactivateUser(
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Finds a user.
@@ -85,10 +109,13 @@ public interface IUserManager
     /// <param name="id">
     /// The user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The result is the user, or null if the user does not exist.
     /// </returns>
-    Task<User?> FindUser(long id);
+    Task<User?> FindUser(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Hard-deletes a user and associated records.
@@ -100,11 +127,14 @@ public interface IUserManager
     /// <param name="id">
     /// The user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
     /// user does not exist.
     /// </returns>
-    Task<bool> HardDeleteTestUser(long id);
+    Task<bool> HardDeleteTestUser(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sets a user's time zone.
@@ -115,11 +145,14 @@ public interface IUserManager
     /// <param name="timeZone">
     /// The TZ ID of the time zone.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
     /// <exception cref="NotFoundException">
     /// No matching user was found.
     /// </exception>
-    Task SetTimeZone(long userId, string timeZone);
+    Task SetTimeZone(long userId, string timeZone, CancellationToken cancellationToken = default);
 }

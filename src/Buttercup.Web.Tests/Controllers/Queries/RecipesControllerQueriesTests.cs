@@ -20,7 +20,9 @@ public sealed class RecipesControllerQueriesTests(
         await this.DatabaseFixture.InsertEntities(recipe);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-        var actual = await this.queries.FindRecipe(dbContext, recipe.Id);
+        var actual = await this.queries.FindRecipe(
+            dbContext, recipe.Id, TestContext.Current.CancellationToken);
+
         var expected = recipe with
         {
             CreatedByUser = null,
@@ -41,7 +43,8 @@ public sealed class RecipesControllerQueriesTests(
         await this.DatabaseFixture.InsertEntities(expected);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-        var actual = await this.queries.FindRecipeForShowView(dbContext, expected.Id);
+        var actual = await this.queries.FindRecipeForShowView(
+            dbContext, expected.Id, TestContext.Current.CancellationToken);
 
         Assert.Equivalent(expected, actual);
     }
@@ -71,7 +74,8 @@ public sealed class RecipesControllerQueriesTests(
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         var expected = new[] { comment1, comment2 };
-        var actual = await this.queries.GetCommentsForRecipe(dbContext, recipe.Id);
+        var actual = await this.queries.GetCommentsForRecipe(
+            dbContext, recipe.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             expected.Select(c => new { c.Id, c.Author }),
@@ -94,7 +98,7 @@ public sealed class RecipesControllerQueriesTests(
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         Assert.Collection(
-            await this.queries.GetRecipesForIndex(dbContext),
+            await this.queries.GetRecipesForIndex(dbContext, TestContext.Current.CancellationToken),
             r => Assert.Equivalent(recipeA, r),
             r => Assert.Equivalent(recipeB, r),
             r => Assert.Equivalent(recipeC, r));

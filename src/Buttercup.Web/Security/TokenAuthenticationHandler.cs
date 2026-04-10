@@ -28,7 +28,8 @@ public sealed class TokenAuthenticationHandler(
             return AuthenticateResult.NoResult();
         }
 
-        var user = await this.tokenAuthenticationService.ValidateAccessToken(token);
+        var user = await this.tokenAuthenticationService.ValidateAccessToken(
+            token, this.Request.HttpContext.RequestAborted);
 
         if (user == null)
         {

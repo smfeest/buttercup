@@ -13,8 +13,11 @@ public interface IUsersControllerQueries
     /// <param name="dbContext">
     /// The database context.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<User[]> GetUsersForIndex(AppDbContext dbContext);
+    Task<User[]> GetUsersForIndex(AppDbContext dbContext, CancellationToken cancellationToken);
 }

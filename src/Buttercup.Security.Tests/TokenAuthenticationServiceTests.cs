@@ -49,7 +49,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
                 new(user.Id, user.SecurityStamp, this.timeProvider.GetUtcDateTimeNow())))
             .Returns(accessToken);
 
-        var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(user, ipAddress);
+        var returnedToken = await this.tokenAuthenticationService.IssueAccessToken(
+            user, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -91,7 +92,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         this.SetupDecodeFailure(accessToken, exception);
 
         // Returns null
-        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
+        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(
+            accessToken, TestContext.Current.CancellationToken));
 
         // Logs incorrect encoding message
         LogAssert.SingleEntry(this.logger)
@@ -110,7 +112,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         this.SetupDecodeFailure(accessToken, exception);
 
         // Returns null
-        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
+        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(
+            accessToken, TestContext.Current.CancellationToken));
 
         // Logs malformed message
         LogAssert.SingleEntry(this.logger)
@@ -129,7 +132,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         this.SetupDecodeSuccess(accessToken, user, tokenAge: new(24, 0, 1));
 
         // Returns null
-        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
+        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(
+            accessToken, TestContext.Current.CancellationToken));
 
         // Logs expired message
         LogAssert.SingleEntry(this.logger)
@@ -147,7 +151,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         this.SetupDecodeSuccess(accessToken, user);
 
         // Returns null
-        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
+        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(
+            accessToken, TestContext.Current.CancellationToken));
 
         // Logs user does not exist message
         LogAssert.SingleEntry(this.logger)
@@ -167,7 +172,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         this.SetupDecodeSuccess(accessToken, user, securityStamp: "stale-security-stamp");
 
         // Returns null
-        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
+        Assert.Null(await this.tokenAuthenticationService.ValidateAccessToken(
+            accessToken, TestContext.Current.CancellationToken));
 
         // Logs stale security stamp message
         LogAssert.SingleEntry(this.logger)
@@ -188,7 +194,8 @@ public sealed class TokenAuthenticationServiceTests : DatabaseTests<DatabaseColl
         this.SetupDecodeSuccess(accessToken, user);
 
         // Returns user
-        Assert.Equal(user, await this.tokenAuthenticationService.ValidateAccessToken(accessToken));
+        Assert.Equal(user, await this.tokenAuthenticationService.ValidateAccessToken(
+            accessToken, TestContext.Current.CancellationToken));
 
         // Logs successfully validated message
         LogAssert.SingleEntry(this.logger)

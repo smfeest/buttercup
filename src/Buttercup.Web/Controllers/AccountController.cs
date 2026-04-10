@@ -25,9 +25,9 @@ public sealed class AccountController(
     private readonly IUserManager userManager = userManager;
 
     [HttpGet]
-    public async Task<IActionResult> Show()
+    public async Task<IActionResult> Show(CancellationToken cancellationToken)
     {
-        var user = await this.FindCurrentUser();
+        var user = await this.FindCurrentUser(cancellationToken);
         return user is null ? this.NotFound() : this.View(user);
     }
 
@@ -35,7 +35,8 @@ public sealed class AccountController(
     public IActionResult ChangePassword() => this.View();
 
     [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    public async Task<IActionResult> ChangePassword(
+        ChangePasswordViewModel model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
@@ -46,7 +47,7 @@ public sealed class AccountController(
         var ipAddress = this.HttpContext.Connection.RemoteIpAddress;
 
         var passwordChanged = await this.passwordAuthenticationService.ChangePassword(
-            userId, model.CurrentPassword, model.NewPassword, ipAddress);
+            userId, model.CurrentPassword, model.NewPassword, ipAddress, cancellationToken);
 
         if (!passwordChanged)
         {
@@ -63,25 +64,27 @@ public sealed class AccountController(
     }
 
     [HttpGet("preferences")]
-    public async Task<IActionResult> Preferences()
+    public async Task<IActionResult> Preferences(CancellationToken cancellationToken)
     {
-        var user = await this.FindCurrentUser();
+        var user = await this.FindCurrentUser(cancellationToken);
         return user is null ? this.NotFound() : this.View(new PreferencesViewModel(user));
     }
 
     [HttpPost("preferences")]
-    public async Task<IActionResult> Preferences(PreferencesViewModel model)
+    public async Task<IActionResult> Preferences(
+        PreferencesViewModel model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
         }
 
-        await this.userManager.SetTimeZone(this.User.GetUserId(), model.TimeZone);
+        await this.userManager.SetTimeZone(
+            this.User.GetUserId(), model.TimeZone, cancellationToken);
 
         return this.RedirectToAction(nameof(this.Show));
     }
 
-    private Task<User?> FindCurrentUser() =>
-        this.userManager.FindUser(this.HttpContext.User.GetUserId());
+    private Task<User?> FindCurrentUser(CancellationToken cancellationToken) =>
+        this.userManager.FindUser(this.HttpContext.User.GetUserId(), cancellationToken);
 }

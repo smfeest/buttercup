@@ -16,10 +16,16 @@ public interface IRecipeManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is the ID of the new recipe.
     /// </returns>
-    Task<long> CreateRecipe(RecipeAttributes attributes, long currentUserId);
+    Task<long> CreateRecipe(
+        RecipeAttributes attributes,
+        long currentUserId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Soft-deletes a recipe.
@@ -30,11 +36,15 @@ public interface IRecipeManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
     /// recipe does not exist or has already been soft-deleted.
     /// </returns>
-    Task<bool> DeleteRecipe(long id, long currentUserId);
+    Task<bool> DeleteRecipe(
+        long id, long currentUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Hard-deletes a recipe.
@@ -42,11 +52,14 @@ public interface IRecipeManager
     /// <param name="id">
     /// The recipe ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
     /// recipe does not exist.
     /// </returns>
-    Task<bool> HardDeleteRecipe(long id);
+    Task<bool> HardDeleteRecipe(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates a recipe.
@@ -63,6 +76,9 @@ public interface IRecipeManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> if the recipe was updated,
     /// <b>false</b> if the recipe's attributes already matched <paramref name="newAttributes"/>.
@@ -77,5 +93,9 @@ public interface IRecipeManager
     /// <paramref name="baseRevision"/> does not match the current revision in the database.
     /// </exception>
     Task<bool> UpdateRecipe(
-        long id, RecipeAttributes newAttributes, int baseRevision, long currentUserId);
+        long id,
+        RecipeAttributes newAttributes,
+        int baseRevision,
+        long currentUserId,
+        CancellationToken cancellationToken = default);
 }

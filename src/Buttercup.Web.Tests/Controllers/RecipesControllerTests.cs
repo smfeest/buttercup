@@ -42,10 +42,11 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var recipes = new[] { this.modelFactory.BuildRecipe() };
         this.queriesMock
-            .Setup(x => x.GetRecipesForIndex(this.dbContextFactory.FakeDbContext))
+            .Setup(x => x.GetRecipesForIndex(
+                this.dbContextFactory.FakeDbContext, TestContext.Current.CancellationToken))
             .ReturnsAsync(recipes);
 
-        var result = await this.recipesController.Index();
+        var result = await this.recipesController.Index(TestContext.Current.CancellationToken);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         Assert.Same(recipes, viewResult.Model);
@@ -61,7 +62,8 @@ public sealed class RecipesControllerTests : IDisposable
         var recipe = this.SetupFindRecipeForShowView();
         var comments = this.SetupGetCommentsForRecipe(recipe.Id);
 
-        var result = await this.recipesController.Show(recipe.Id);
+        var result = await this.recipesController.Show(
+            recipe.Id, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
@@ -77,7 +79,8 @@ public sealed class RecipesControllerTests : IDisposable
         var recipeId = this.modelFactory.NextInt();
         this.SetupFindRecipeForShowView(recipeId, null);
 
-        var result = await this.recipesController.Show(recipeId);
+        var result = await this.recipesController.Show(
+            recipeId, TestContext.Current.CancellationToken);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -104,10 +107,12 @@ public sealed class RecipesControllerTests : IDisposable
         long recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
-            .Setup(x => x.CreateRecipe(attributes, currentUserId))
+            .Setup(x => x.CreateRecipe(
+                attributes, currentUserId, TestContext.Current.CancellationToken))
             .ReturnsAsync(recipeId);
 
-        var result = await this.recipesController.New(attributes);
+        var result = await this.recipesController.New(
+            attributes, TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -121,7 +126,8 @@ public sealed class RecipesControllerTests : IDisposable
         var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
         this.recipesController.ModelState.AddModelError("test", "test");
 
-        var result = await this.recipesController.New(attributes);
+        var result = await this.recipesController.New(
+            attributes, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(attributes, viewResult.Model);
@@ -136,7 +142,8 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var recipe = this.SetupFindRecipe();
 
-        var result = await this.recipesController.Edit(recipe.Id);
+        var result = await this.recipesController.Edit(
+            recipe.Id, TestContext.Current.CancellationToken);
         var viewResult = Assert.IsType<ViewResult>(result);
 
         var expectedModel = EditRecipeViewModel.ForRecipe(recipe);
@@ -151,7 +158,8 @@ public sealed class RecipesControllerTests : IDisposable
         var recipeId = this.modelFactory.NextInt();
         this.SetupFindRecipe(recipeId, null);
 
-        var result = await this.recipesController.Edit(recipeId);
+        var result = await this.recipesController.Edit(
+            recipeId, TestContext.Current.CancellationToken);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -165,11 +173,16 @@ public sealed class RecipesControllerTests : IDisposable
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
 
-        var result = await this.recipesController.Edit(editModel.Id, editModel);
+        var result = await this.recipesController.Edit(
+            editModel.Id, editModel, TestContext.Current.CancellationToken);
 
         this.recipeManagerMock.Verify(
             x => x.UpdateRecipe(
-                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId));
+                editModel.Id,
+                editModel.Attributes,
+                editModel.BaseRevision,
+                currentUserId,
+                TestContext.Current.CancellationToken));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -183,7 +196,8 @@ public sealed class RecipesControllerTests : IDisposable
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         this.recipesController.ModelState.AddModelError("test", "test");
 
-        var result = await this.recipesController.Edit(editModel.Id, editModel);
+        var result = await this.recipesController.Edit(
+            editModel.Id, editModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(editModel, viewResult.Model);
@@ -199,10 +213,15 @@ public sealed class RecipesControllerTests : IDisposable
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
-                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId))
+                editModel.Id,
+                editModel.Attributes,
+                editModel.BaseRevision,
+                currentUserId,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new ConcurrencyException());
 
-        var result = await this.recipesController.Edit(editModel.Id, editModel);
+        var result = await this.recipesController.Edit(
+            editModel.Id, editModel, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(editModel, viewResult.Model);
@@ -222,10 +241,15 @@ public sealed class RecipesControllerTests : IDisposable
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
-                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId))
+                editModel.Id,
+                editModel.Attributes,
+                editModel.BaseRevision,
+                currentUserId,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
-        var result = await this.recipesController.Edit(editModel.Id, editModel);
+        var result = await this.recipesController.Edit(
+            editModel.Id, editModel, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -238,10 +262,15 @@ public sealed class RecipesControllerTests : IDisposable
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
-                editModel.Id, editModel.Attributes, editModel.BaseRevision, currentUserId))
+                editModel.Id,
+                editModel.Attributes,
+                editModel.BaseRevision,
+                currentUserId,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new SoftDeletedException());
 
-        var result = await this.recipesController.Edit(editModel.Id, editModel);
+        var result = await this.recipesController.Edit(
+            editModel.Id, editModel, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -255,7 +284,8 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var recipe = this.SetupFindRecipe();
 
-        var result = await this.recipesController.Delete(recipe.Id);
+        var result = await this.recipesController.Delete(
+            recipe.Id, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(recipe, viewResult.Model);
@@ -267,7 +297,9 @@ public sealed class RecipesControllerTests : IDisposable
         var recipeId = this.modelFactory.NextInt();
         this.SetupFindRecipe(recipeId, null);
 
-        var result = await this.recipesController.Delete(recipeId);
+        var result = await this.recipesController.Delete(
+            recipeId, TestContext.Current.CancellationToken);
+
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -282,11 +314,13 @@ public sealed class RecipesControllerTests : IDisposable
         var recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
-            .Setup(x => x.DeleteRecipe(recipeId, currentUserId))
+            .Setup(x => x.DeleteRecipe(
+                recipeId, currentUserId, TestContext.Current.CancellationToken))
             .ReturnsAsync(true)
             .Verifiable();
 
-        var result = await this.recipesController.DeletePost(recipeId);
+        var result = await this.recipesController.DeletePost(
+            recipeId, TestContext.Current.CancellationToken);
 
         this.recipeManagerMock.Verify();
 
@@ -301,10 +335,12 @@ public sealed class RecipesControllerTests : IDisposable
         var recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
-            .Setup(x => x.DeleteRecipe(recipeId, currentUserId))
+            .Setup(x => x.DeleteRecipe(
+                recipeId, currentUserId, TestContext.Current.CancellationToken))
             .ReturnsAsync(false);
 
-        var result = await this.recipesController.DeletePost(recipeId);
+        var result = await this.recipesController.DeletePost(
+            recipeId, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -322,10 +358,12 @@ public sealed class RecipesControllerTests : IDisposable
         var commentId = this.modelFactory.NextInt();
 
         this.commentManagerMock
-            .Setup(x => x.CreateComment(recipeId, commentAttributes, currentUserId))
+            .Setup(x => x.CreateComment(
+                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
             .ReturnsAsync(commentId);
 
-        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+        var result = await this.recipesController.AddComment(
+            recipeId, commentAttributes, TestContext.Current.CancellationToken);
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(RecipesController.Show), redirectResult.ActionName);
@@ -343,7 +381,8 @@ public sealed class RecipesControllerTests : IDisposable
 
         this.recipesController.ModelState.AddModelError("test", "test");
 
-        var result = await this.recipesController.AddComment(recipe.Id, commentAttributes);
+        var result = await this.recipesController.AddComment(
+            recipe.Id, commentAttributes, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         var model = Assert.IsType<ShowRecipeViewModel>(viewResult.Model);
@@ -363,7 +402,8 @@ public sealed class RecipesControllerTests : IDisposable
 
         this.recipesController.ModelState.AddModelError("test", "test");
 
-        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+        var result = await this.recipesController.AddComment(
+            recipeId, commentAttributes, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -376,10 +416,12 @@ public sealed class RecipesControllerTests : IDisposable
         var commentAttributes = this.BuildCommentAttributes();
 
         this.commentManagerMock
-            .Setup(x => x.CreateComment(recipeId, commentAttributes, currentUserId))
+            .Setup(x => x.CreateComment(
+                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
-        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+        var result = await this.recipesController.AddComment(
+            recipeId, commentAttributes, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -392,10 +434,12 @@ public sealed class RecipesControllerTests : IDisposable
         var commentAttributes = this.BuildCommentAttributes();
 
         this.commentManagerMock
-            .Setup(x => x.CreateComment(recipeId, commentAttributes, currentUserId))
+            .Setup(x => x.CreateComment(
+                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
             .ThrowsAsync(new SoftDeletedException());
 
-        var result = await this.recipesController.AddComment(recipeId, commentAttributes);
+        var result = await this.recipesController.AddComment(
+            recipeId, commentAttributes, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -421,7 +465,8 @@ public sealed class RecipesControllerTests : IDisposable
 
     private void SetupFindRecipe(long id, Recipe? recipe) =>
         this.queriesMock
-            .Setup(x => x.FindRecipe(this.dbContextFactory.FakeDbContext, id))
+            .Setup(x => x.FindRecipe(
+                this.dbContextFactory.FakeDbContext, id, TestContext.Current.CancellationToken))
             .ReturnsAsync(recipe);
 
     private Recipe SetupFindRecipeForShowView()
@@ -433,14 +478,18 @@ public sealed class RecipesControllerTests : IDisposable
 
     private void SetupFindRecipeForShowView(long id, Recipe? recipe) =>
         this.queriesMock
-            .Setup(x => x.FindRecipeForShowView(this.dbContextFactory.FakeDbContext, id))
+            .Setup(x => x.FindRecipeForShowView(
+                this.dbContextFactory.FakeDbContext, id, TestContext.Current.CancellationToken))
             .ReturnsAsync(recipe);
 
     private Comment[] SetupGetCommentsForRecipe(long recipeId)
     {
         var comments = new[] { this.modelFactory.BuildComment() };
         this.queriesMock
-            .Setup(x => x.GetCommentsForRecipe(this.dbContextFactory.FakeDbContext, recipeId))
+            .Setup(x => x.GetCommentsForRecipe(
+                this.dbContextFactory.FakeDbContext,
+                recipeId,
+                TestContext.Current.CancellationToken))
             .ReturnsAsync(comments);
         return comments;
     }

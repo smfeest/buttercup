@@ -19,7 +19,10 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
     private readonly ModelFactory modelFactory = new();
 
     private readonly Mock<IClaimsIdentityFactory> claimsIdentityFactoryMock = new();
-    private readonly DefaultHttpContext httpContext = new();
+    private readonly DefaultHttpContext httpContext = new()
+    {
+        RequestAborted = TestContext.Current.CancellationToken,
+    };
     private readonly Mock<ITokenAuthenticationService> tokenAuthenticationServiceMock = new();
 
     private readonly TokenAuthenticationHandler tokenAuthenticationHandler;
@@ -72,7 +75,8 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
         this.SetAuthorizationHeader("Bearer invalid-token");
 
         this.tokenAuthenticationServiceMock
-            .Setup(x => x.ValidateAccessToken("invalid-token"))
+            .Setup(
+                x => x.ValidateAccessToken("invalid-token", TestContext.Current.CancellationToken))
             .ReturnsAsync(default(User?));
 
         var result = await this.tokenAuthenticationHandler.AuthenticateAsync();
@@ -94,7 +98,7 @@ public sealed class TokenAuthenticationHandlerTests : IAsyncLifetime
         this.SetAuthorizationHeader(authorizationHeaderValue);
 
         this.tokenAuthenticationServiceMock
-            .Setup(x => x.ValidateAccessToken("valid-token"))
+            .Setup(x => x.ValidateAccessToken("valid-token", TestContext.Current.CancellationToken))
             .ReturnsAsync(user);
 
         this.claimsIdentityFactoryMock

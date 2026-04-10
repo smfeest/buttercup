@@ -22,7 +22,8 @@ public sealed class AuthenticationController(
     public IActionResult RequestPasswordReset() => this.View();
 
     [HttpPost("reset-password")]
-    public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetViewModel model)
+    public async Task<IActionResult> RequestPasswordReset(
+        RequestPasswordResetViewModel model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
@@ -30,7 +31,7 @@ public sealed class AuthenticationController(
         }
 
         if (!await this.passwordAuthenticationService.SendPasswordResetLink(
-            model.Email, this.HttpContext.Connection.RemoteIpAddress, this.Url))
+            model.Email, this.HttpContext.Connection.RemoteIpAddress, this.Url, cancellationToken))
         {
             this.ModelState.AddModelError(
                 string.Empty, this.localizer["Error_TooManyPasswordResetRequests"]);
@@ -42,10 +43,11 @@ public sealed class AuthenticationController(
 
     [HttpGet("reset-password/{token}", Name = "ResetPassword")]
     [EnsureSignedOut]
-    public async Task<IActionResult> ResetPassword(string token)
+    public async Task<IActionResult> ResetPassword(
+        string token, CancellationToken cancellationToken)
     {
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token, this.HttpContext.Connection.RemoteIpAddress);
+            token, this.HttpContext.Connection.RemoteIpAddress, cancellationToken);
 
         return result.IsSuccess ?
             this.View() :
@@ -53,7 +55,8 @@ public sealed class AuthenticationController(
     }
 
     [HttpPost("reset-password/{token}")]
-    public async Task<IActionResult> ResetPassword(string token, ResetPasswordViewModel model)
+    public async Task<IActionResult> ResetPassword(
+        string token, ResetPasswordViewModel model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
@@ -61,7 +64,7 @@ public sealed class AuthenticationController(
         }
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token, model.Password, this.HttpContext.Connection.RemoteIpAddress);
+            token, model.Password, this.HttpContext.Connection.RemoteIpAddress, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -78,7 +81,8 @@ public sealed class AuthenticationController(
     public IActionResult SignIn() => this.View();
 
     [HttpPost("sign-in")]
-    public async Task<IActionResult> SignIn(SignInViewModel model, string? returnUrl = null)
+    public async Task<IActionResult> SignIn(
+        SignInViewModel model, CancellationToken cancellationToken, string? returnUrl = null)
     {
         if (!this.ModelState.IsValid)
         {
@@ -86,7 +90,10 @@ public sealed class AuthenticationController(
         }
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            model.Email, model.Password, this.HttpContext.Connection.RemoteIpAddress);
+            model.Email,
+            model.Password,
+            this.HttpContext.Connection.RemoteIpAddress,
+            cancellationToken);
 
         if (!result.IsSuccess)
         {

@@ -33,7 +33,7 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<PasswordAuthenticationResult> Authenticate(
-        string email, string password, IPAddress? ipAddress)
+        string email, string password, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -45,7 +45,7 @@ internal sealed partial class PasswordAuthenticationService(
             return new(PasswordAuthenticationFailure.TooManyAttempts);
         }
 
-        var user = await FindByEmailAsync(dbContext.Users.AsTracking(), email);
+        var user = await FindByEmailAsync(dbContext.Users.AsTracking(), email, cancellationToken);
 
         if (user == null)
         {
@@ -67,7 +67,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.UserDeactivated,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogAuthenticationFailedUserDeactivated(user.Id, user.Email);
 
@@ -86,7 +86,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.NoPasswordSet,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogAuthenticationFailedNoPasswordSet(user.Id, user.Email);
 
@@ -108,7 +108,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.IncorrectPassword,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogAuthenticationFailedIncorrectPassword(user.Id, user.Email);
 
@@ -124,7 +124,7 @@ internal sealed partial class PasswordAuthenticationService(
                 ActorId = user.Id,
                 IpAddress = ipAddress,
             });
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         this.LogAuthenticated(user.Id, user.Email);
 
@@ -140,7 +140,7 @@ internal sealed partial class PasswordAuthenticationService(
 
             try
             {
-                await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync(CancellationToken.None);
 
                 this.LogPasswordHashUpgraded(user.Id, user.Email);
             }
@@ -155,13 +155,14 @@ internal sealed partial class PasswordAuthenticationService(
         return new(user);
     }
 
-    public async Task<PasswordResetResult> CanResetPassword(string token, IPAddress? ipAddress)
+    public async Task<PasswordResetResult> CanResetPassword(
+        string token, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = await this.ValidPasswordResetToken(dbContext, token)
             .Select(t => t.User)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         var maskedToken = this.parameterMaskingService.MaskToken(token);
 
@@ -184,7 +185,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.UserDeactivated,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogCannotResetPasswordUserDeactivated(maskedToken, user.Id, user.Email);
 
@@ -197,11 +198,15 @@ internal sealed partial class PasswordAuthenticationService(
     }
 
     public async Task<bool> ChangePassword(
-        long userId, string currentPassword, string newPassword, IPAddress? ipAddress)
+        long userId,
+        string currentPassword,
+        string newPassword,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await dbContext.Users.AsTracking().GetAsync(userId);
+        var user = await dbContext.Users.AsTracking().GetAsync(userId, cancellationToken);
 
         if (user.HashedPassword == null)
         {
@@ -215,7 +220,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.NoPasswordSet,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogPasswordChangeFailedNoPasswordSet(user.Id, user.Email);
 
@@ -238,7 +243,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.IncorrectPassword,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogPasswordChangeFailedIncorrectPassword(user.Id, user.Email);
 
@@ -246,24 +251,30 @@ internal sealed partial class PasswordAuthenticationService(
         }
 
         await this.SetPassword(
-            dbContext, user, newPassword, UserAuditOperation.ChangePassword, ipAddress);
+            dbContext,
+            user,
+            newPassword,
+            UserAuditOperation.ChangePassword,
+            ipAddress,
+            cancellationToken);
 
         this.LogPasswordChanged(user.Id, user.Email);
 
-        await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
+        await this.authenticationMailer.SendPasswordChangeNotification(
+            user.Email, CancellationToken.None);
 
         return true;
     }
 
     public async Task<PasswordResetResult> ResetPassword(
-        string token, string newPassword, IPAddress? ipAddress)
+        string token, string newPassword, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         var user = await this.ValidPasswordResetToken(dbContext, token)
             .AsTracking()
             .Select(t => t.User)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         var maskedToken = this.parameterMaskingService.MaskToken(token);
 
@@ -286,7 +297,7 @@ internal sealed partial class PasswordAuthenticationService(
                     IpAddress = ipAddress,
                     Failure = UserAuditFailure.UserDeactivated,
                 });
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             this.LogPasswordResetFailedUserDeactivated(maskedToken, user.Id, user.Email);
 
@@ -294,11 +305,17 @@ internal sealed partial class PasswordAuthenticationService(
         }
 
         await this.SetPassword(
-            dbContext, user, newPassword, UserAuditOperation.ResetPassword, ipAddress);
+            dbContext,
+            user,
+            newPassword,
+            UserAuditOperation.ResetPassword,
+            ipAddress,
+            cancellationToken);
 
         this.LogPasswordReset(user.Id, maskedToken);
 
-        await this.authenticationMailer.SendPasswordChangeNotification(user.Email);
+        await this.authenticationMailer.SendPasswordChangeNotification(
+            user.Email, CancellationToken.None);
 
         await this.passwordAuthenticationRateLimiter.Reset(user.Email);
 
@@ -306,7 +323,10 @@ internal sealed partial class PasswordAuthenticationService(
     }
 
     public async Task<bool> SendPasswordResetLink(
-        string email, IPAddress? ipAddress, IUrlHelper urlHelper)
+        string email,
+        IPAddress? ipAddress,
+        IUrlHelper urlHelper,
+        CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -317,7 +337,7 @@ internal sealed partial class PasswordAuthenticationService(
             return false;
         }
 
-        var user = await FindByEmailAsync(dbContext.Users, email);
+        var user = await FindByEmailAsync(dbContext.Users, email, cancellationToken);
 
         if (user == null)
         {
@@ -347,19 +367,20 @@ internal sealed partial class PasswordAuthenticationService(
                 IpAddress = ipAddress,
             });
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         var link = urlHelper.Link("ResetPassword", new { token })!;
 
-        await this.authenticationMailer.SendPasswordResetLink(email, link);
+        await this.authenticationMailer.SendPasswordResetLink(email, link, CancellationToken.None);
 
         this.LogPasswordResetLinkSent(user.Id, email);
 
         return true;
     }
 
-    private static Task<User?> FindByEmailAsync(IQueryable<User> queryable, string email) =>
-        queryable.Where(u => u.Email == email).FirstOrDefaultAsync();
+    private static Task<User?> FindByEmailAsync(
+        IQueryable<User> queryable, string email, CancellationToken cancellationToken) =>
+        queryable.Where(u => u.Email == email).FirstOrDefaultAsync(cancellationToken);
 
     private IQueryable<PasswordResetToken> ValidPasswordResetToken(
         AppDbContext dbContext, string token) =>
@@ -372,7 +393,8 @@ internal sealed partial class PasswordAuthenticationService(
         User user,
         string newPassword,
         UserAuditOperation operation,
-        IPAddress? ipAddress)
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
@@ -392,9 +414,11 @@ internal sealed partial class PasswordAuthenticationService(
                 IpAddress = ipAddress
             });
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        await dbContext.PasswordResetTokens.Where(t => t.User == user).ExecuteDeleteAsync();
+        await dbContext.PasswordResetTokens
+            .Where(t => t.User == user)
+            .ExecuteDeleteAsync(CancellationToken.None);
     }
 
     [LoggerMessage(

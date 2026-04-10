@@ -17,8 +17,15 @@ public interface IEmailSender
     /// <param name="body">
     /// The message body.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task Send(string toAddress, string subject, string body);
+    Task Send(
+        string toAddress,
+        string subject,
+        string body,
+        CancellationToken cancellationToken = default);
 }

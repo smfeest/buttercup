@@ -11,10 +11,14 @@ public interface IAuthenticationMailer
     /// <param name="email">
     /// The recipient's email address.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task SendPasswordChangeNotification(string email);
+    Task SendPasswordChangeNotification(
+        string email, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a password reset link.
@@ -25,8 +29,12 @@ public interface IAuthenticationMailer
     /// <param name="link">
     /// The password reset link.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task SendPasswordResetLink(string email, string link);
+    Task SendPasswordResetLink(
+        string email, string link, CancellationToken cancellationToken = default);
 }

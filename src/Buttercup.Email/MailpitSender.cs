@@ -13,17 +13,19 @@ internal sealed partial class MailpitSender(
     private readonly HttpClient httpClient = httpClient;
     private readonly ILogger<MailpitSender> logger = logger;
 
-    public async Task Send(string toAddress, string subject, string body)
+    public async Task Send(
+        string toAddress, string subject, string body, CancellationToken cancellationToken)
     {
         var response = await this.httpClient.PostAsJsonAsync(
             new Uri(this.options.MailpitServer, "/api/v1/send"),
             new(new(this.options.FromAddress), [new(toAddress)], subject, body),
-            SerializerContext.Default.SendRequestBody);
+            SerializerContext.Default.SendRequestBody,
+            cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
         var responseBody = await response.Content.ReadFromJsonAsync(
-            SerializerContext.Default.SendResponseBody) ??
+            SerializerContext.Default.SendResponseBody, cancellationToken) ??
             throw new InvalidOperationException("No response body from send endpoint");
 
         this.LogMessageSent(responseBody.Id, toAddress);

@@ -18,7 +18,8 @@ internal sealed partial class TokenAuthenticationService(
     private readonly ILogger<TokenAuthenticationService> logger = logger;
     private readonly TimeProvider timeProvider = timeProvider;
 
-    public async Task<string> IssueAccessToken(User user, IPAddress? ipAddress)
+    public async Task<string> IssueAccessToken(
+        User user, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var token = this.accessTokenEncoder.Encode(new(user.Id, user.SecurityStamp, timestamp));
@@ -34,14 +35,15 @@ internal sealed partial class TokenAuthenticationService(
             IpAddress = ipAddress,
         });
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         this.LogTokenIssued(user.Id, user.Email);
 
         return token;
     }
 
-    public async Task<User?> ValidateAccessToken(string accessToken)
+    public async Task<User?> ValidateAccessToken(
+        string accessToken, CancellationToken cancellationToken)
     {
         AccessTokenPayload payload;
 
@@ -68,7 +70,7 @@ internal sealed partial class TokenAuthenticationService(
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await dbContext.Users.FindAsync(payload.UserId);
+        var user = await dbContext.Users.FindAsync([payload.UserId], cancellationToken);
 
         if (user is null)
         {

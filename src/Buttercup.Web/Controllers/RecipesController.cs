@@ -27,41 +27,45 @@ public sealed class RecipesController(
     private readonly IRecipeManager recipeManager = recipeManager;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
-        return this.View(await this.queries.GetRecipesForIndex(dbContext));
+        return this.View(await this.queries.GetRecipesForIndex(dbContext, cancellationToken));
     }
 
     [HttpGet("{id}")]
-    public Task<IActionResult> Show(long id) => this.Show(id, new());
+    public Task<IActionResult> Show(long id, CancellationToken cancellationToken) =>
+        this.Show(id, new(), cancellationToken);
 
     [HttpGet("new")]
     public IActionResult New() => this.View();
 
     [HttpPost("new")]
-    public async Task<IActionResult> New(RecipeAttributes model)
+    public async Task<IActionResult> New(
+        RecipeAttributes model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
         }
 
-        var id = await this.recipeManager.CreateRecipe(model, this.User.GetUserId());
+        var id = await this.recipeManager.CreateRecipe(
+            model, this.User.GetUserId(), cancellationToken);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
 
     [HttpGet("{id}/edit")]
-    public async Task<IActionResult> Edit(long id)
+    public async Task<IActionResult> Edit(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
-        var recipe = await this.queries.FindRecipe(dbContext, id);
+        var recipe = await this.queries.FindRecipe(dbContext, id, cancellationToken);
         return recipe is null ? this.NotFound() : this.View(EditRecipeViewModel.ForRecipe(recipe));
     }
 
     [HttpPost("{id}/edit")]
-    public async Task<IActionResult> Edit(long id, EditRecipeViewModel model)
+    public async Task<IActionResult> Edit(
+        long id, EditRecipeViewModel model, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
@@ -70,7 +74,7 @@ public sealed class RecipesController(
         try
         {
             await this.recipeManager.UpdateRecipe(
-                id, model.Attributes, model.BaseRevision, this.User.GetUserId());
+                id, model.Attributes, model.BaseRevision, this.User.GetUserId(), cancellationToken);
         }
         catch (ConcurrencyException)
         {
@@ -88,25 +92,26 @@ public sealed class RecipesController(
     }
 
     [HttpGet("{id}/delete")]
-    public async Task<IActionResult> Delete(long id)
+    public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
-        var recipe = await this.queries.FindRecipe(dbContext, id);
+        var recipe = await this.queries.FindRecipe(dbContext, id, cancellationToken);
         return recipe is null ? this.NotFound() : this.View(recipe);
     }
 
     [HttpPost("{id}/delete")]
-    public async Task<IActionResult> DeletePost(long id) =>
-        await this.recipeManager.DeleteRecipe(id, this.User.GetUserId()) ?
+    public async Task<IActionResult> DeletePost(long id, CancellationToken cancellationToken) =>
+        await this.recipeManager.DeleteRecipe(id, this.User.GetUserId(), cancellationToken) ?
             this.RedirectToAction(nameof(this.Index)) :
             this.NotFound();
 
     [HttpPost("{id}/comments")]
-    public async Task<IActionResult> AddComment(long id, CommentAttributes newCommentAttributes)
+    public async Task<IActionResult> AddComment(
+        long id, CommentAttributes newCommentAttributes, CancellationToken cancellationToken)
     {
         if (!this.ModelState.IsValid)
         {
-            return await this.Show(id, newCommentAttributes);
+            return await this.Show(id, newCommentAttributes, cancellationToken);
         }
 
         long commentId;
@@ -114,7 +119,7 @@ public sealed class RecipesController(
         try
         {
             commentId = await this.commentManager.CreateComment(
-                id, newCommentAttributes, this.User.GetUserId());
+                id, newCommentAttributes, this.User.GetUserId(), cancellationToken);
         }
         catch (Exception e) when (e is NotFoundException or SoftDeletedException)
         {
@@ -124,18 +129,19 @@ public sealed class RecipesController(
         return this.RedirectToAction(nameof(Show), null, new { id }, $"comment{commentId}");
     }
 
-    private async Task<IActionResult> Show(long id, CommentAttributes newCommentAttributes)
+    private async Task<IActionResult> Show(
+        long id, CommentAttributes newCommentAttributes, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var recipe = await this.queries.FindRecipeForShowView(dbContext, id);
+        var recipe = await this.queries.FindRecipeForShowView(dbContext, id, cancellationToken);
 
         if (recipe is null)
         {
             return this.NotFound();
         }
 
-        var comments = await this.queries.GetCommentsForRecipe(dbContext, id);
+        var comments = await this.queries.GetCommentsForRecipe(dbContext, id, cancellationToken);
 
         return this.View(
             nameof(Show),

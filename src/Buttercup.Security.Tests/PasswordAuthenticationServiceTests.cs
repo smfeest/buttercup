@@ -61,7 +61,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.SetPasswordAuthenticationRateLimiterResult(email, false);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            email, password, ipAddress);
+            email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -88,7 +88,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.SetPasswordAuthenticationRateLimiterResult(email, true);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            email, password, ipAddress);
+            email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -114,7 +114,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.SetPasswordAuthenticationRateLimiterResult(user.Email, true);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            user.Email, password, ipAddress);
+            user.Email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -150,7 +150,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.SetPasswordAuthenticationRateLimiterResult(user.Email, true);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            user.Email, password, ipAddress);
+            user.Email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -189,7 +189,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             user, hashedPassword, password, PasswordVerificationResult.Failed);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            user.Email, password, ipAddress);
+            user.Email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -228,7 +228,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             user, hashedPassword, password, PasswordVerificationResult.Success);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            user.Email, password, ipAddress);
+            user.Email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -275,7 +275,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var rehashedPassword = this.SetupHashPassword(userBefore, password);
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            userBefore.Email, password, ipAddress);
+            userBefore.Email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -348,7 +348,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             });
 
         var result = await this.passwordAuthenticationService.Authenticate(
-            userBefore.Email, password, ipAddress);
+            userBefore.Email, password, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -404,7 +404,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token.Token, ipAddress);
+            token.Token, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -434,7 +434,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var maskedToken = this.SetupMaskToken(token);
         var ipAddress = this.modelFactory.NextIpAddress();
 
-        var result = await this.passwordAuthenticationService.CanResetPassword(token, ipAddress);
+        var result = await this.passwordAuthenticationService.CanResetPassword(
+            token, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -464,7 +465,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token.Token, ipAddress);
+            token.Token, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -502,7 +503,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var maskedToken = this.SetupMaskToken(token.Token);
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token.Token, this.modelFactory.NextIpAddress());
+            token.Token, this.modelFactory.NextIpAddress(), TestContext.Current.CancellationToken);
 
         // Logs valid token message
         LogAssert.SingleEntry(this.logger)
@@ -533,7 +534,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Throws exception
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => this.passwordAuthenticationService.ChangePassword(
-                user.Id, currentPassword, newPassword, ipAddress));
+                user.Id,
+                currentPassword,
+                newPassword,
+                ipAddress,
+                TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -569,7 +574,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             user, currentPasswordHash, currentPassword, PasswordVerificationResult.Failed);
 
         var result = await this.passwordAuthenticationService.ChangePassword(
-            user.Id, currentPassword, newPassword, ipAddress);
+            user.Id,
+            currentPassword,
+            newPassword,
+            ipAddress,
+            TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -622,7 +631,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
 
         var result = await this.passwordAuthenticationService.ChangePassword(
-            userBefore.Id, currentPassword, newPassword, ipAddress);
+            userBefore.Id,
+            currentPassword,
+            newPassword,
+            ipAddress,
+            TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -689,7 +702,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token.Token, newPassword, ipAddress);
+            token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -721,7 +734,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token, newPassword, ipAddress);
+            token, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -752,7 +765,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token.Token, newPassword, ipAddress);
+            token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -797,7 +810,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token.Token, newPassword, ipAddress);
+            token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -861,7 +874,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         this.SetPasswordResetRateLimiterResult(email, false);
 
         var result = await this.passwordAuthenticationService.SendPasswordResetLink(
-            email, ipAddress, Mock.Of<IUrlHelper>());
+            email, ipAddress, Mock.Of<IUrlHelper>(), TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -886,7 +899,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildUser());
 
         var result = await this.passwordAuthenticationService.SendPasswordResetLink(
-            email, ipAddress, Mock.Of<IUrlHelper>());
+            email, ipAddress, Mock.Of<IUrlHelper>(), TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -922,7 +935,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             .Returns(link);
 
         var result = await this.passwordAuthenticationService.SendPasswordResetLink(
-            user.Email, ipAddress, urlHelperMock.Object);
+            user.Email, ipAddress, urlHelperMock.Object, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 

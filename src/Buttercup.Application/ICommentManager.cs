@@ -19,6 +19,9 @@ public interface ICommentManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is the ID of the new comment.
     /// </returns>
@@ -28,7 +31,11 @@ public interface ICommentManager
     /// <exception cref="SoftDeletedException">
     /// Recipe is soft-deleted.
     /// </exception>
-    Task<long> CreateComment(long recipeId, CommentAttributes attributes, long currentUserId);
+    Task<long> CreateComment(
+        long recipeId,
+        CommentAttributes attributes,
+        long currentUserId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Soft-deletes a comment.
@@ -39,11 +46,15 @@ public interface ICommentManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
     /// comment does not exist or has already been soft-deleted.
     /// </returns>
-    Task<bool> DeleteComment(long id, long currentUserId);
+    Task<bool> DeleteComment(
+        long id, long currentUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Hard-deletes a comment.
@@ -51,9 +62,12 @@ public interface ICommentManager
     /// <param name="id">
     /// The comment ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A task for the operation. The task result is <b>true</b> on success, <b>false</b> if the
     /// comment does not exist.
     /// </returns>
-    Task<bool> HardDeleteComment(long id);
+    Task<bool> HardDeleteComment(long id, CancellationToken cancellationToken = default);
 }

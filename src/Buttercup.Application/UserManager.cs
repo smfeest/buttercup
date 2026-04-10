@@ -23,7 +23,10 @@ internal sealed class UserManager(
     private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<long> CreateUser(
-        NewUserAttributes attributes, long currentUserId, IPAddress? ipAddress)
+        NewUserAttributes attributes,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var user = new User
@@ -51,7 +54,7 @@ internal sealed class UserManager(
 
         try
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (dbContext.Users.Any(u => u.Email == attributes.Email))
         {
@@ -64,7 +67,8 @@ internal sealed class UserManager(
         return user.Id;
     }
 
-    public async Task<(long Id, string Password)> CreateTestUser()
+    public async Task<(long Id, string Password)> CreateTestUser(
+        CancellationToken cancellationToken)
     {
         var suffix = this.randomTokenGenerator.Generate(2);
         var password = this.randomTokenGenerator.Generate(4);
@@ -89,23 +93,24 @@ internal sealed class UserManager(
 
         try
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException) when (dbContext.Users.Any(u => u.Email == user.Email))
         {
-            return await this.CreateTestUser();
+            return await this.CreateTestUser(cancellationToken);
         }
 
         return (user.Id, password);
     }
 
-    public async Task<bool> DeactivateUser(long id, long currentUserId, IPAddress? ipAddress)
+    public async Task<bool> DeactivateUser(
+        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await dbContext.Users.AsTracking().GetAsync(id);
+        var user = await dbContext.Users.AsTracking().GetAsync(id, cancellationToken);
 
         if (user.Deactivated.HasValue)
         {
@@ -129,37 +134,40 @@ internal sealed class UserManager(
 
         try
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException)
         {
-            return await this.DeactivateUser(id, currentUserId, ipAddress);
+            return await this.DeactivateUser(id, currentUserId, ipAddress, cancellationToken);
         }
 
         return true;
     }
 
-    public async Task<User?> FindUser(long id)
+    public async Task<User?> FindUser(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Users.FindAsync(id);
+        return await dbContext.Users.FindAsync([id], cancellationToken);
     }
 
-    public async Task<bool> HardDeleteTestUser(long id)
+    public async Task<bool> HardDeleteTestUser(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        return await dbContext.Users.Where(u => u.Id == id).ExecuteDeleteAsync() != 0;
+        return await dbContext.Users
+            .Where(u => u.Id == id)
+            .ExecuteDeleteAsync(cancellationToken) != 0;
     }
 
-    public async Task<bool> ReactivateUser(long id, long currentUserId, IPAddress? ipAddress)
+    public async Task<bool> ReactivateUser(
+        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await dbContext.Users.AsTracking().GetAsync(id);
+        var user = await dbContext.Users.AsTracking().GetAsync(id, cancellationToken);
 
         if (!user.Deactivated.HasValue)
         {
@@ -182,26 +190,28 @@ internal sealed class UserManager(
 
         try
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException)
         {
-            return await this.ReactivateUser(id, currentUserId, ipAddress);
+            return await this.ReactivateUser(id, currentUserId, ipAddress, cancellationToken);
         }
 
         return true;
     }
 
-    public async Task SetTimeZone(long userId, string timeZone)
+    public async Task SetTimeZone(long userId, string timeZone, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         await UpdateUserProperties(
             dbContext,
             userId,
-            s => s.SetProperty(u => u.TimeZone, timeZone)
+            s => s
+                .SetProperty(u => u.TimeZone, timeZone)
                 .SetProperty(u => u.Modified, this.timeProvider.GetUtcDateTimeNow())
-                .SetProperty(u => u.Revision, u => u.Revision + 1));
+                .SetProperty(u => u.Revision, u => u.Revision + 1),
+            cancellationToken);
     }
 
     private string GenerateSecurityStamp() => this.randomTokenGenerator.Generate(2);
@@ -209,12 +219,13 @@ internal sealed class UserManager(
     private static async Task UpdateUserProperties(
         AppDbContext dbContext,
         long userId,
-        Expression<Func<SetPropertyCalls<User>, SetPropertyCalls<User>>> setPropertyCalls)
+        Expression<Func<SetPropertyCalls<User>, SetPropertyCalls<User>>> setPropertyCalls,
+        CancellationToken cancellationToken)
     {
         var updatedRows = await dbContext
             .Users
             .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(setPropertyCalls);
+            .ExecuteUpdateAsync(setPropertyCalls, cancellationToken);
 
         if (updatedRows == 0)
         {

@@ -26,11 +26,14 @@ public sealed class CommentsControllerQueriesTests(
 
         Assert.Equivalent(
             accessibleComment with { Recipe = null, Author = null },
-            await this.queries.FindComment(dbContext, accessibleComment.Id));
+            await this.queries.FindComment(
+                dbContext, accessibleComment.Id, TestContext.Current.CancellationToken));
         Assert.Null(
-            await this.queries.FindComment(dbContext, softDeletedComment.Id));
+            await this.queries.FindComment(
+                dbContext, softDeletedComment.Id, TestContext.Current.CancellationToken));
         Assert.Null(
-            await this.queries.FindComment(dbContext, this.modelFactory.NextInt()));
+            await this.queries.FindComment(
+                dbContext, this.modelFactory.NextInt(), TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -50,11 +53,14 @@ public sealed class CommentsControllerQueriesTests(
 
         Assert.Equivalent(
             accessibleComment with { Recipe = null },
-            await this.queries.FindCommentWithAuthor(dbContext, accessibleComment.Id));
+            await this.queries.FindCommentWithAuthor(
+                dbContext, accessibleComment.Id, TestContext.Current.CancellationToken));
         Assert.Null(
-            await this.queries.FindCommentWithAuthor(dbContext, softDeletedComment.Id));
+            await this.queries.FindCommentWithAuthor(
+                dbContext, softDeletedComment.Id, TestContext.Current.CancellationToken));
         Assert.Null(
-            await this.queries.FindCommentWithAuthor(dbContext, this.modelFactory.NextInt()));
+            await this.queries.FindCommentWithAuthor(
+                dbContext, this.modelFactory.NextInt(), TestContext.Current.CancellationToken));
     }
 
     #endregion

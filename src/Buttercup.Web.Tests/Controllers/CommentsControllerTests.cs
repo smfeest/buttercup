@@ -42,7 +42,8 @@ public sealed class CommentsControllerTests : IDisposable
         var comment = this.modelFactory.BuildComment();
         this.SetupFindCommentWithAuthor(comment.Id, comment);
 
-        var result = await this.commentsController.Delete(comment.Id);
+        var result = await this.commentsController.Delete(
+            comment.Id, TestContext.Current.CancellationToken);
 
         var viewResult = Assert.IsType<ViewResult>(result);
         Assert.Same(comment, viewResult.Model);
@@ -54,7 +55,8 @@ public sealed class CommentsControllerTests : IDisposable
         var commentId = this.modelFactory.NextInt();
         this.SetupFindCommentWithAuthor(commentId, null);
 
-        var result = await this.commentsController.Delete(commentId);
+        var result = await this.commentsController.Delete(
+            commentId, TestContext.Current.CancellationToken);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -70,11 +72,13 @@ public sealed class CommentsControllerTests : IDisposable
         this.SetupFindComment(comment.Id, comment);
         this.SetupAuthorizeCommentAuthorOrAdmin(comment, true);
         this.commentManagerMock
-            .Setup(x => x.DeleteComment(comment.Id, currentUserId))
+            .Setup(x => x.DeleteComment(
+                comment.Id, currentUserId, TestContext.Current.CancellationToken))
             .ReturnsAsync(true)
             .Verifiable();
 
-        var result = await this.commentsController.DeletePost(comment.Id);
+        var result = await this.commentsController.DeletePost(
+            comment.Id, TestContext.Current.CancellationToken);
 
         this.commentManagerMock.Verify();
 
@@ -90,7 +94,8 @@ public sealed class CommentsControllerTests : IDisposable
         var commentId = this.modelFactory.NextInt();
         this.SetupFindComment(commentId, null);
 
-        var result = await this.commentsController.DeletePost(commentId);
+        var result = await this.commentsController.DeletePost(
+            commentId, TestContext.Current.CancellationToken);
 
         Assert.IsType<NotFoundResult>(result);
     }
@@ -103,7 +108,8 @@ public sealed class CommentsControllerTests : IDisposable
         this.SetupFindComment(comment.Id, comment);
         this.SetupAuthorizeCommentAuthorOrAdmin(comment, false);
 
-        var result = await this.commentsController.DeletePost(comment.Id);
+        var result = await this.commentsController.DeletePost(
+            comment.Id, TestContext.Current.CancellationToken);
 
         Assert.IsType<UnauthorizedResult>(result);
     }
@@ -125,11 +131,13 @@ public sealed class CommentsControllerTests : IDisposable
 
     private void SetupFindComment(long id, Comment? comment) =>
         this.queriesMock
-            .Setup(x => x.FindComment(this.dbContextFactory.FakeDbContext, id))
+            .Setup(x => x.FindComment(
+                this.dbContextFactory.FakeDbContext, id, TestContext.Current.CancellationToken))
             .ReturnsAsync(comment);
 
     private void SetupFindCommentWithAuthor(long id, Comment? comment) =>
         this.queriesMock
-            .Setup(x => x.FindCommentWithAuthor(this.dbContextFactory.FakeDbContext, id))
+            .Setup(x => x.FindCommentWithAuthor(
+                this.dbContextFactory.FakeDbContext, id, TestContext.Current.CancellationToken))
             .ReturnsAsync(comment);
 }

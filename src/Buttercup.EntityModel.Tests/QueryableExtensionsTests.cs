@@ -26,7 +26,8 @@ public sealed class QueryableExtensionsTests(
         await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
-        var actual = await dbContext.Recipes.AsQueryable().FindAsync(expected.Id);
+        var actual = await dbContext.Recipes.AsQueryable().FindAsync(
+            expected.Id, TestContext.Current.CancellationToken);
 
         Assert.Equivalent(expected, actual);
     }
@@ -42,7 +43,8 @@ public sealed class QueryableExtensionsTests(
         await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
-        Assert.Null(await dbContext.Recipes.AsQueryable().FindAsync(this.modelFactory.NextInt()));
+        Assert.Null(await dbContext.Recipes.AsQueryable().FindAsync(
+            this.modelFactory.NextInt(), TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -62,7 +64,8 @@ public sealed class QueryableExtensionsTests(
         await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
-        var actual = await dbContext.Recipes.GetAsync(expected.Id);
+        var actual = await dbContext.Recipes.GetAsync(
+            expected.Id, TestContext.Current.CancellationToken);
 
         Assert.Equivalent(expected, actual);
     }
@@ -81,7 +84,7 @@ public sealed class QueryableExtensionsTests(
         var id = this.modelFactory.NextInt();
 
         var exception = await Assert.ThrowsAsync<NotFoundException>(
-            () => dbContext.Recipes.GetAsync(id));
+            () => dbContext.Recipes.GetAsync(id, TestContext.Current.CancellationToken));
 
         Assert.Equal($"Recipe/{id} not found", exception.Message);
     }

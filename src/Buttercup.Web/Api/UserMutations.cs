@@ -35,6 +35,9 @@ public sealed class UserMutations
     /// <param name="attributes">
     /// The new user attributes.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     public async Task<FieldResult<CreateUserPayload, InputObjectValidationError>> CreateUser(
         ClaimsPrincipal claimsPrincipal,
@@ -43,7 +46,8 @@ public sealed class UserMutations
         IUserManager userManager,
         ISchema schema,
         IStringLocalizer<UserMutations> localizer,
-        NewUserAttributes attributes)
+        NewUserAttributes attributes,
+        CancellationToken cancellationToken)
     {
         var validator = validatorFactory.CreateValidator<NewUserAttributes>(schema);
         var validationErrors = new List<InputObjectValidationError>();
@@ -58,7 +62,7 @@ public sealed class UserMutations
         try
         {
             var id = await userManager.CreateUser(
-                attributes, claimsPrincipal.GetUserId(), ipAddress);
+                attributes, claimsPrincipal.GetUserId(), ipAddress, cancellationToken);
             return new CreateUserPayload(id);
         }
         catch (NotUniqueException ex) when (ex.PropertyName == nameof(NewUserAttributes.Email))
@@ -79,10 +83,14 @@ public sealed class UserMutations
     /// <param name="userManager">
     /// The user manager.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    public async Task<FieldResult<CreateTestUserPayload>> CreateTestUser(IUserManager userManager)
+    public async Task<FieldResult<CreateTestUserPayload>> CreateTestUser(
+        IUserManager userManager, CancellationToken cancellationToken)
     {
-        var (id, password) = await userManager.CreateTestUser();
+        var (id, password) = await userManager.CreateTestUser(cancellationToken);
         return new CreateTestUserPayload(id, password);
     }
 
@@ -101,18 +109,23 @@ public sealed class UserMutations
     /// <param name="id">
     /// The user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [Error<NotFoundException>]
     public async Task<DeactivateUserPayload> DeactivateUser(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IUserManager userManager,
-        long id)
+        long id,
+        CancellationToken cancellationToken)
     {
         var deactivated = await userManager.DeactivateUser(
             id,
             claimsPrincipal.GetUserId(),
-            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
 
         return new(id, deactivated);
     }
@@ -129,11 +142,14 @@ public sealed class UserMutations
     /// <param name="id">
     /// The user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
     public async Task<HardDeletePayload> HardDeleteTestUser(
-        IUserManager userManager, long id) =>
-        new(await userManager.HardDeleteTestUser(id));
+        IUserManager userManager, long id, CancellationToken cancellationToken) =>
+        new(await userManager.HardDeleteTestUser(id, cancellationToken));
 
     /// <summary>
     /// Reactivates a user.
@@ -150,18 +166,23 @@ public sealed class UserMutations
     /// <param name="id">
     /// The user ID.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [Error<NotFoundException>]
     public async Task<ReactivateUserPayload> ReactivateUser(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IUserManager userManager,
-        long id)
+        long id,
+        CancellationToken cancellationToken)
     {
         var reactivated = await userManager.ReactivateUser(
             id,
             claimsPrincipal.GetUserId(),
-            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
 
         return new(id, reactivated);
     }
