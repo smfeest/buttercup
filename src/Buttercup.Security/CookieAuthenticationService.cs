@@ -35,7 +35,8 @@ internal sealed partial class CookieAuthenticationService(
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await dbContext.Users.GetAsync(authenticateResult.Principal.GetUserId());
+        var user = await dbContext.Users.GetAsync(
+            authenticateResult.Principal.GetUserId(), httpContext.RequestAborted);
 
         await this.SignInUser(httpContext, user, authenticateResult.Properties);
 
