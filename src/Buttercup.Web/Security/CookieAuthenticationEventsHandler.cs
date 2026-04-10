@@ -35,7 +35,8 @@ public sealed partial class CookieAuthenticationEventsHandler(
             return;
         }
 
-        var user = await this.userManager.FindUser(userId.Value);
+        var user = await this.userManager.FindUser(
+            userId.Value, context.HttpContext.RequestAborted);
 
         if (user is null)
         {

@@ -211,13 +211,17 @@ public sealed class CookieAuthenticationEventsHandlerTests
 
     private CookieValidatePrincipalContext BuildValidatePrincipalContext(ClaimsPrincipal principal)
     {
+        var httpContext = new DefaultHttpContext
+        {
+            RequestAborted = TestContext.Current.CancellationToken,
+        };
         var scheme = new AuthenticationScheme(
             this.modelFactory.NextString("authentication-scheme"),
             null,
             typeof(CookieAuthenticationHandler));
         var ticket = new AuthenticationTicket(principal, scheme.Name);
 
-        return new(new DefaultHttpContext(), scheme, new(), ticket);
+        return new(httpContext, scheme, new(), ticket);
     }
 
     public static TheoryData<Func<User, ClaimsPrincipal>> GetTheoryDataForSecurityStampIsMissingOrStale()
@@ -259,7 +263,9 @@ public sealed class CookieAuthenticationEventsHandlerTests
     }
 
     private void SetupFindUser(long id, User? user) =>
-        this.userManagerMock.Setup(x => x.FindUser(id)).ReturnsAsync(user);
+        this.userManagerMock
+            .Setup(x => x.FindUser(id, TestContext.Current.CancellationToken))
+            .ReturnsAsync(user);
 
     #endregion
 }
