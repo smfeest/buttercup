@@ -36,13 +36,13 @@ jobs:
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Upload
         id: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           path: ${{env.WEB_PROJECT_PATH}}/publish-output
           retention-days: 3
       - name: Attest provenance
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
           subject-name: buttercup-web-${{env.SHORT_COMMIT_SHA}}
           subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}

@@ -65,17 +65,17 @@ jobs:
           podman manifest push $IMAGE_NAME:latest docker://$REGISTRY/$IMAGE_NAME:latest --digestfile digest
           echo "multi-arch-digest=$(cat digest)" >> "$GITHUB_OUTPUT"
       - name: Attest arm64 image
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.arm64-digest }}
       - name: Attest x64 image
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.x64-digest }}
       - name: Attest multi-architecture image
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.multi-arch-digest }}
