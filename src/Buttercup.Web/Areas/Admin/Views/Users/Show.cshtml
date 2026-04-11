@@ -44,7 +44,7 @@
   }
   else
   {
-    <div>@Localizer["Label_LastChanged", Html.UserDateTime(Model.PasswordCreated.Value, "d")]</div>
+    <div>@Localizer["Label_LastChanged", Html.UserDateTime(Model.PasswordCreated.Value, "G")]</div>
   }
 </div>
 <div class="record__item">
@@ -54,19 +54,19 @@
 <hr class="record__divider" />
 <div class="record__item">
   <div class="record__item-label">@Localizer["Label_Added"]</div>
-  <div>@Html.UserDateTime(Model.Created, "d")</div>
+  <div>@Html.UserDateTime(Model.Created, "G")</div>
 </div>
 @if (Model.Modified > Model.Created)
 {
   <div class="record__item">
     <div class="record__item-label">@Localizer["Label_Updated"]</div>
-    <div>@Html.UserDateTime(Model.Modified, "d")</div>
+    <div>@Html.UserDateTime(Model.Modified, "G")</div>
   </div>
 }
 @if (Model.Deactivated.HasValue)
 {
   <div class="record__item">
     <div class="record__item-label">@Localizer["Label_Deactivated"]</div>
-    <div>@Html.UserDateTime(Model.Deactivated.Value, "D")</div>
+    <div>@Html.UserDateTime(Model.Deactivated.Value, "G")</div>
   </div>
 }
