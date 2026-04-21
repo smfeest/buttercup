@@ -47,11 +47,7 @@ jobs:
           podman manifest add $IMAGE_NAME:latest containers-storage:localhost/$IMAGE_NAME:latest-linux-arm64
           podman manifest add $IMAGE_NAME:latest containers-storage:localhost/$IMAGE_NAME:latest-linux-x64
       - name: Log in to container registry
-        uses: redhat-actions/podman-login@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
       - name: Push to container registry
         id: push
         run: |
