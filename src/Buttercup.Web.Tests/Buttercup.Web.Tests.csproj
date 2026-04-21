@@ -4,7 +4,7 @@
     <RootNamespace>Buttercup.Web</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Markdig" Version="1.1.2" />
+    <PackageReference Include="Markdig" Version="1.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.4.0" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.4.0" />
