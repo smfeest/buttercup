@@ -1,19 +1,19 @@
 using System.Diagnostics;
-using Buttercup.Web.Models.Error;
+using Buttercup.Web.Models.Errors;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
 namespace Buttercup.Web.Controllers;
 
-public sealed class ErrorControllerTests
+public sealed class ErrorsControllerTests
 {
     #region AccessDenied
 
     [Fact]
     public void AccessDenied_ReturnsViewResult()
     {
-        using var errorController = new ErrorController();
-        Assert.IsType<ViewResult>(errorController.AccessDenied());
+        using var errorsController = new ErrorsController();
+        Assert.IsType<ViewResult>(errorsController.AccessDenied());
     }
 
     #endregion
@@ -26,7 +26,7 @@ public sealed class ErrorControllerTests
         using var activity = new Activity("test-activity").Start();
         Activity.Current = activity;
 
-        using var errorController = new ErrorController
+        using var errorsController = new ErrorsController
         {
             ControllerContext = new()
             {
@@ -34,7 +34,7 @@ public sealed class ErrorControllerTests
             }
         };
 
-        var viewResult = Assert.IsType<ViewResult>(errorController.Error());
+        var viewResult = Assert.IsType<ViewResult>(errorsController.Error());
         var viewModel = Assert.IsType<ErrorViewModel>(viewResult.Model);
         Assert.Equal(activity.Id, viewModel.RequestId);
     }
@@ -42,7 +42,7 @@ public sealed class ErrorControllerTests
     [Fact]
     public void Error_WithoutCurrentActivity_UsesTraceIdentifierAsRequestId()
     {
-        using var errorController = new ErrorController
+        using var errorsController = new ErrorsController
         {
             ControllerContext = new()
             {
@@ -50,7 +50,7 @@ public sealed class ErrorControllerTests
             }
         };
 
-        var viewResult = Assert.IsType<ViewResult>(errorController.Error());
+        var viewResult = Assert.IsType<ViewResult>(errorsController.Error());
         var viewModel = Assert.IsType<ErrorViewModel>(viewResult.Model);
         Assert.Equal("trace-id", viewModel.RequestId);
     }

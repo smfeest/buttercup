@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Buttercup.Web.Models.Error;
+using Buttercup.Web.Models.Errors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers;
 
-public sealed class ErrorController : Controller
+public sealed class ErrorsController : Controller
 {
     [HttpGet("/access-denied")]
     public IActionResult AccessDenied() => this.View();
