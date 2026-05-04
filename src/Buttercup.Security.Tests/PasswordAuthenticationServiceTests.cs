@@ -63,8 +63,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var result = await this.passwordAuthenticationService.Authenticate(
             email, password, ipAddress, TestContext.Current.CancellationToken);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
             .HasId(4)
@@ -89,8 +87,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         var result = await this.passwordAuthenticationService.Authenticate(
             email, password, ipAddress, TestContext.Current.CancellationToken);
-
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
@@ -406,8 +402,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var result = await this.passwordAuthenticationService.CanResetPassword(
             token.Token, ipAddress, TestContext.Current.CancellationToken);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(14)
@@ -436,8 +430,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
             token, ipAddress, TestContext.Current.CancellationToken);
-
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -704,8 +696,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var result = await this.passwordAuthenticationService.ResetPassword(
             token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
             .HasId(10)
@@ -735,8 +725,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         var result = await this.passwordAuthenticationService.ResetPassword(
             token, newPassword, ipAddress, TestContext.Current.CancellationToken);
-
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -876,8 +864,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var result = await this.passwordAuthenticationService.SendPasswordResetLink(
             email, ipAddress, Mock.Of<IUrlHelper>(), TestContext.Current.CancellationToken);
 
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
-
         // Logs rate limit exceeded message
         LogAssert.SingleEntry(this.logger)
             .HasId(11)
@@ -900,8 +886,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         var result = await this.passwordAuthenticationService.SendPasswordResetLink(
             email, ipAddress, Mock.Of<IUrlHelper>(), TestContext.Current.CancellationToken);
-
-        using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         // Logs unrecognized email message
         LogAssert.SingleEntry(this.logger)
