@@ -9,7 +9,14 @@ public sealed class ErrorsController : Controller
     [HttpGet("/access-denied")]
     public IActionResult AccessDenied() => this.View();
 
-    [Route("/error")]
-    public IActionResult Error() => this.View(new ErrorViewModel(
-        Activity.Current?.Id ?? this.HttpContext.TraceIdentifier));
+    [Route("/error/{statusCode}")]
+    public IActionResult Error(int statusCode) =>
+        this.View(
+            statusCode switch
+            {
+                StatusCodes.Status403Forbidden => "AccessDenied",
+                StatusCodes.Status404NotFound => "NotFound",
+                _ => "Error"
+            },
+            new ErrorViewModel(Activity.Current?.Id ?? this.HttpContext.TraceIdentifier));
 }

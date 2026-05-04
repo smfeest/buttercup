@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_NotFound">
+    <value>Page not found</value>
+  </data>
+  <data name="Message_NotFound">
+    <value>This page does not exist.</value>
+  </data>
+</root>

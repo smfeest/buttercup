@@ -5,16 +5,26 @@ using Xunit;
 
 namespace Buttercup.Web.Controllers;
 
-public sealed class ErrorsControllerTests
+public sealed class ErrorsControllerTests : IDisposable
 {
+    private readonly ErrorsController errorsController;
+
+    public ErrorsControllerTests() =>
+        this.errorsController = new()
+        {
+            ControllerContext = new()
+            {
+                HttpContext = new DefaultHttpContext { TraceIdentifier = "trace-id" }
+            }
+        };
+
+    public void Dispose() => this.errorsController.Dispose();
+
     #region AccessDenied
 
     [Fact]
-    public void AccessDenied_ReturnsViewResult()
-    {
-        using var errorsController = new ErrorsController();
-        Assert.IsType<ViewResult>(errorsController.AccessDenied());
-    }
+    public void AccessDenied_ReturnsViewResult() =>
+        Assert.IsType<ViewResult>(this.errorsController.AccessDenied());
 
     #endregion
 
@@ -26,15 +36,7 @@ public sealed class ErrorsControllerTests
         using var activity = new Activity("test-activity").Start();
         Activity.Current = activity;
 
-        using var errorsController = new ErrorsController
-        {
-            ControllerContext = new()
-            {
-                HttpContext = new DefaultHttpContext { TraceIdentifier = "trace-id" }
-            }
-        };
-
-        var viewResult = Assert.IsType<ViewResult>(errorsController.Error());
+        var viewResult = Assert.IsType<ViewResult>(this.errorsController.Error(500));
         var viewModel = Assert.IsType<ErrorViewModel>(viewResult.Model);
         Assert.Equal(activity.Id, viewModel.RequestId);
     }
@@ -42,17 +44,20 @@ public sealed class ErrorsControllerTests
     [Fact]
     public void Error_WithoutCurrentActivity_UsesTraceIdentifierAsRequestId()
     {
-        using var errorsController = new ErrorsController
-        {
-            ControllerContext = new()
-            {
-                HttpContext = new DefaultHttpContext { TraceIdentifier = "trace-id" }
-            }
-        };
-
-        var viewResult = Assert.IsType<ViewResult>(errorsController.Error());
+        var viewResult = Assert.IsType<ViewResult>(this.errorsController.Error(500));
         var viewModel = Assert.IsType<ErrorViewModel>(viewResult.Model);
         Assert.Equal("trace-id", viewModel.RequestId);
+    }
+
+    [Theory]
+    [InlineData(StatusCodes.Status400BadRequest, "Error")]
+    [InlineData(StatusCodes.Status403Forbidden, "AccessDenied")]
+    [InlineData(StatusCodes.Status404NotFound, "NotFound")]
+    [InlineData(StatusCodes.Status500InternalServerError, "Error")]
+    public void Error_RendersViewForStatusCode(int statusCode, string expectedViewName)
+    {
+        var viewResult = Assert.IsType<ViewResult>(this.errorsController.Error(statusCode));
+        Assert.Equal(expectedViewName, viewResult.ViewName);
     }
 
     #endregion
