@@ -19,6 +19,12 @@ public sealed partial class CookieAuthenticationEventsHandler(
     private readonly ILogger<CookieAuthenticationEventsHandler> logger = logger;
     private readonly IUserManager userManager = userManager;
 
+    public override Task RedirectToAccessDenied(RedirectContext<CookieAuthenticationOptions> context)
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    }
+
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         var principal = context.Principal;

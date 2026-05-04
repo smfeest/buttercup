@@ -20,14 +20,6 @@ public sealed class ErrorsControllerTests : IDisposable
 
     public void Dispose() => this.errorsController.Dispose();
 
-    #region AccessDenied
-
-    [Fact]
-    public void AccessDenied_ReturnsViewResult() =>
-        Assert.IsType<ViewResult>(this.errorsController.AccessDenied());
-
-    #endregion
-
     #region Error
 
     [Fact]

@@ -6,9 +6,6 @@ namespace Buttercup.Web.Controllers;
 
 public sealed class ErrorsController : Controller
 {
-    [HttpGet("/access-denied")]
-    public IActionResult AccessDenied() => this.View();
-
     [Route("/error/{statusCode}")]
     public IActionResult Error(int statusCode) =>
         this.View(

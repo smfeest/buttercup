@@ -72,7 +72,8 @@ test.describe('when signed in as a non-admin user', () => {
   test.use({ storageState: authStatePath('e2e-user') });
 
   test('is denied access', async ({ page }) => {
-    await page.goto('/admin/users');
+    const response = await page.goto('/admin/users');
+    expect(response?.status()).toBe(403);
     await expect(page.getByText('Access denied')).toBeVisible();
   });
 });
