@@ -30,6 +30,21 @@ public sealed class CookieAuthenticationEventsHandlerTests
             this.logger,
             this.userManagerMock.Object);
 
+    #region RedirectToAccessDenied
+
+    [Fact]
+    public async Task RedirectToAccessDenied_SetsStatusCodeTo403()
+    {
+        var context = new RedirectContext<CookieAuthenticationOptions>(
+            new DefaultHttpContext(), this.BuildAuthenticationScheme(), new(), new(), "foo/bar");
+
+        await this.cookieAuthenticationEventsHandler.RedirectToAccessDenied(context);
+
+        Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+    }
+
+    #endregion
+
     #region ValidatePrincipal
 
     [Fact]
@@ -209,16 +224,19 @@ public sealed class CookieAuthenticationEventsHandlerTests
         return new(new ClaimsIdentity(claims.Select((kvp) => new Claim(kvp.Key, kvp.Value))));
     }
 
+    private AuthenticationScheme BuildAuthenticationScheme() =>
+        new(
+            this.modelFactory.NextString("authentication-scheme"),
+            null,
+            typeof(CookieAuthenticationHandler));
+
     private CookieValidatePrincipalContext BuildValidatePrincipalContext(ClaimsPrincipal principal)
     {
         var httpContext = new DefaultHttpContext
         {
             RequestAborted = TestContext.Current.CancellationToken,
         };
-        var scheme = new AuthenticationScheme(
-            this.modelFactory.NextString("authentication-scheme"),
-            null,
-            typeof(CookieAuthenticationHandler));
+        var scheme = this.BuildAuthenticationScheme();
         var ticket = new AuthenticationTicket(principal, scheme.Name);
 
         return new(httpContext, scheme, new(), ticket);

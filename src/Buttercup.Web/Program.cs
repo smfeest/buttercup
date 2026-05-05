@@ -128,7 +128,6 @@ services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.AccessDeniedPath = "/access-denied";
         options.Cookie = new()
         {
             Name = "buttercup.auth",
@@ -181,8 +180,10 @@ var app = builder.Build();
 
 if (!isDevelopment)
 {
-    app.UseExceptionHandler("/error");
+    app.UseExceptionHandler("/error/500");
 }
+
+app.UseStatusCodePagesWithReExecute("/error/{0}");
 
 app.UseForwardedHeaders();
 
