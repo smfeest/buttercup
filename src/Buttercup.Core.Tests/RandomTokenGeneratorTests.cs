@@ -9,13 +9,8 @@ public sealed class RandomTokenGeneratorTests
     private readonly Mock<RandomNumberGenerator> randomNumberGeneratorMock = new();
     private readonly RandomTokenGenerator randomTokenGenerator;
 
-    public RandomTokenGeneratorTests()
-    {
-        var randomNumberGeneratorFactory = Mock.Of<IRandomNumberGeneratorFactory>(
-            x => x.Create() == this.randomNumberGeneratorMock.Object);
-
-        this.randomTokenGenerator = new(randomNumberGeneratorFactory);
-    }
+    public RandomTokenGeneratorTests() =>
+        this.randomTokenGenerator = new(this.randomNumberGeneratorMock.Object);
 
     #region Generate
 

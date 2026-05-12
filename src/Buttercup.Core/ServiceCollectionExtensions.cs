@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Buttercup;
@@ -23,9 +24,8 @@ public static class ServiceCollectionExtensions
             .BindConfiguration("Globalization")
             .ValidateDataAnnotations();
 
-        services
-            .AddTransient<IRandomNumberGeneratorFactory, RandomNumberGeneratorFactory>()
-            .AddTransient<IRandomTokenGenerator, RandomTokenGenerator>();
+        services.AddSingleton(_ => RandomNumberGenerator.Create());
+        services.AddTransient<IRandomTokenGenerator, RandomTokenGenerator>();
 
         return services;
     }

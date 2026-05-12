@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Buttercup.TestUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -13,13 +14,21 @@ public sealed class ServiceCollectionExtensionsTests
     #region AddCoreServices
 
     [Fact]
-    public void AddCoreServices_AddsRandomNumberGeneratorFactory() =>
+    public void AddCoreServices_AddsRandomNumberGenerator()
+    {
+        var serviceCollection =
+            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddCoreServices();
+
         Assert.Contains(
-            new ServiceCollection().AddInMemoryConfiguration(ConfigValues).AddCoreServices(),
+            serviceCollection,
             serviceDescriptor =>
-                serviceDescriptor.ServiceType == typeof(IRandomNumberGeneratorFactory) &&
-                serviceDescriptor.ImplementationType == typeof(RandomNumberGeneratorFactory) &&
-                serviceDescriptor.Lifetime == ServiceLifetime.Transient);
+                serviceDescriptor.ServiceType == typeof(RandomNumberGenerator) &&
+                serviceDescriptor.Lifetime == ServiceLifetime.Singleton);
+
+        using var serviceProvider = serviceCollection.BuildServiceProvider();
+
+        serviceProvider.GetRequiredService<RandomNumberGenerator>();
+    }
 
     [Fact]
     public void AddCoreServices_AddsRandomTokenGenerator() =>
