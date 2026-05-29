@@ -20,11 +20,25 @@
 
         mysql -u root -p < scripts/create-dev-user.sql
 
-4.  Create the application database:
+4.  The default database connection string connects to MySQL on localhost, using the password-less
+    _buttercup_dev_ user created in the previous step and _buttercup_app_ as the database name.
+
+    If necessary, use the ASP.NET Core Secret Manager to override the database connection string:
+
+        dotnet user-secrets set "ConnectionStrings:AppDb" "Server=..." -p src/Buttercup.Web
+
+5.  Create the application database:
 
         dotnet ef database update -s src/Buttercup.Web
 
-5.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and use the ASP.NET
+6.  The default Redis connection string connects to Redis or Valkey on localhost without credentials
+    or TLS encryption.
+
+    If necessary, use the ASP.NET Core Secret Manager to override the Redis connection string:
+
+        dotnet user-secrets set "Redis:ConnectionString" "redis.local,user=..." -p src/Buttercup.Web
+
+7.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and use the ASP.NET
     Core Secret Manager to add the project's API key as a user secret:
 
         dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>" -p src/Buttercup.Web
