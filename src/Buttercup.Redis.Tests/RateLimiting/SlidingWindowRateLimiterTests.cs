@@ -9,9 +9,10 @@ using Xunit;
 
 namespace Buttercup.Redis.RateLimiting;
 
-public sealed class SlidingWindowRateLimiterTests
+public sealed class SlidingWindowRateLimiterTests(RedisFixture redisFixture)
 {
     private readonly FakeLogger<SlidingWindowRateLimiter> logger = new();
+    private readonly RedisFixture redisFixture = redisFixture;
     private readonly FakeTimeProvider timeProvider = new();
 
     #region IsAllowed
@@ -19,7 +20,7 @@ public sealed class SlidingWindowRateLimiterTests
     [Fact]
     public async Task IsAllowed_ReturnsTrueOrFalseBasedOnLimit()
     {
-        var connection = await RedisConnection.GetConnection();
+        var connection = await this.redisFixture.GetMultiplexer();
         var rateLimiter = new SlidingWindowRateLimiter(
             this.logger, new FakeRedisConnectionManager(connection), this.timeProvider);
 
@@ -98,7 +99,7 @@ public sealed class SlidingWindowRateLimiterTests
     [Fact]
     public async Task Reset_ResetsCountersForSpecifiedKeyOnly()
     {
-        var connection = await RedisConnection.GetConnection();
+        var connection = await this.redisFixture.GetMultiplexer();
         var rateLimiter = new SlidingWindowRateLimiter(
             this.logger, new FakeRedisConnectionManager(connection), this.timeProvider);
 
