@@ -1,4 +1,7 @@
 using System.Net.Sockets;
+using Buttercup.TestUtils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
@@ -10,6 +13,7 @@ namespace Buttercup.Redis;
 public sealed class RedisConnectionManagerTests
 {
     private readonly Mock<IRedisConnectionFactory> connectionFactoryMock = new();
+    private readonly FakeLogger<RedisConnectionManager> logger = new();
     private readonly RedisConnectionOptions options = new()
     {
         ConnectionString = "fake-connection-string",
@@ -20,7 +24,10 @@ public sealed class RedisConnectionManagerTests
     private readonly FakeTimeProvider timeProvider = new();
 
     private RedisConnectionManager CreateRedisConnectionManager() =>
-        new(this.connectionFactoryMock.Object, Options.Create(this.options), this.timeProvider);
+        new(this.connectionFactoryMock.Object,
+        this.logger,
+        Options.Create(this.options),
+        this.timeProvider);
 
     #region CurrentConnection
 
@@ -92,12 +99,18 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.CheckException(new SocketException()); // First error
 
         this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Subtract(TimeSpan.FromSeconds(6)));
         await connectionManager.CheckException(new SocketException()); // Second error
 
         this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(initialConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(3)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; insufficient time has elapsed since last reconnection");
     }
 
     [Fact]
@@ -121,12 +134,74 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.CheckException(new SocketException()); // First error since reconnection
 
         this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Subtract(TimeSpan.FromSeconds(6)));
         await connectionManager.CheckException(new SocketException()); // Second error since reconnection
 
         this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(secondConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(3)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; insufficient time has elapsed since last reconnection");
+    }
+
+    [Fact]
+    public async Task CheckException_FirstErrorSinceInitialization_DoesNotReconnect()
+    {
+        var initialConnection = Mock.Of<IConnectionMultiplexer>();
+        this.connectionFactoryMock.Setup(x => x.NewConnection()).ReturnsAsync(initialConnection);
+
+        await using var connectionManager = this.CreateRedisConnectionManager();
+        await connectionManager.EnsureInitialized();
+
+        this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
+
+        this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
+        await connectionManager.CheckException(new SocketException());
+
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
+        Assert.Same(initialConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(5)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; first error since last reconnection");
+    }
+
+    [Fact]
+    public async Task CheckException_FirstErrorSinceReconnection_DoesNotReconnect()
+    {
+        var secondConnection = Mock.Of<IConnectionMultiplexer>();
+        this.connectionFactoryMock.SetupSequence(x => x.NewConnection())
+            .ReturnsAsync(Mock.Of<IConnectionMultiplexer>())
+            .ReturnsAsync(secondConnection);
+
+        await using var connectionManager = this.CreateRedisConnectionManager();
+        await connectionManager.EnsureInitialized();
+
+        this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
+        await connectionManager.CheckException(new SocketException()); // First error since initialization
+
+        this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Add(TimeSpan.FromSeconds(1)));
+        await connectionManager.CheckException(new SocketException()); // Second error since initialization (reconnection)
+
+        this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
+
+        this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
+        await connectionManager.CheckException(new SocketException());
+
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
+        Assert.Same(secondConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(5)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; first error since last reconnection");
     }
 
     [Fact]
@@ -142,12 +217,18 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.CheckException(new SocketException()); // First error
 
         this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error
 
         this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(initialConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(6)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; insufficient time has elapsed since first error");
     }
 
     [Fact]
@@ -171,12 +252,18 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.CheckException(new SocketException()); // First error since reconnection
 
         this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error since reconnection
 
         this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(secondConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(6)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; insufficient time has elapsed since first error");
     }
 
     [Fact]
@@ -192,12 +279,18 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.CheckException(new SocketException()); // First error
 
         this.connectionFactoryMock.Invocations.Clear();
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(this.options.DroppedConnectionEpisodeTimeout.Add(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error
 
         this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(initialConnection, connectionManager.CurrentConnection);
+
+        LogAssert.SingleEntry(this.logger)
+            .HasId(7)
+            .HasLevel(LogLevel.Debug)
+            .HasMessage("No forced reconnection; too much time has elapsed between errors");
     }
 
     [Fact]
@@ -218,11 +311,17 @@ public sealed class RedisConnectionManagerTests
 
         var newConnection = Mock.Of<IConnectionMultiplexer>();
         this.connectionFactoryMock.Setup(x => x.NewConnection()).ReturnsAsync(newConnection);
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(TimeSpan.FromSeconds(2));
         await connectionManager.CheckException(new SocketException()); // Third error
 
         Assert.Same(newConnection, connectionManager.CurrentConnection);
+
+        new FakeLogRecordAssert(this.logger.Collector.GetSnapshot()[0])
+            .HasId(1)
+            .HasLevel(LogLevel.Information)
+            .HasMessage("Creating new multiplexer");
     }
 
     [Fact]
@@ -243,11 +342,17 @@ public sealed class RedisConnectionManagerTests
 
         var newConnection = Mock.Of<IConnectionMultiplexer>();
         this.connectionFactoryMock.Setup(x => x.NewConnection()).ReturnsAsync(newConnection);
+        this.logger.Collector.Clear();
 
         this.timeProvider.Advance(this.options.DroppedConnectionEpisodeTimeout.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Third error
 
         Assert.Same(newConnection, connectionManager.CurrentConnection);
+
+        new FakeLogRecordAssert(this.logger.Collector.GetSnapshot()[0])
+            .HasId(1)
+            .HasLevel(LogLevel.Information)
+            .HasMessage("Creating new multiplexer");
     }
 
     [Fact]
@@ -268,6 +373,11 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.CheckException(new SocketException()); // Second error (reconnection)
 
         initialConnectionMock.Verify(x => x.DisposeAsync());
+
+        new FakeLogRecordAssert(this.logger.Collector.LatestRecord)
+            .HasId(2)
+            .HasLevel(LogLevel.Information)
+            .HasMessage("Disposing old multiplexer");
     }
 
     [Fact]
@@ -295,6 +405,11 @@ public sealed class RedisConnectionManagerTests
         newConnectionTcs.SetResult(newConnectionMock.Object);
 
         newConnectionMock.Verify(x => x.DisposeAsync());
+
+        new FakeLogRecordAssert(this.logger.Collector.LatestRecord)
+            .HasId(2)
+            .HasLevel(LogLevel.Information)
+            .HasMessage("Disposing old multiplexer");
     }
 
     #endregion
