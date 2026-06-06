@@ -20,7 +20,8 @@ public sealed record RedisConnectionOptions
     public TimeSpan DroppedConnectionGracePeriod { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// The maximum gap allowed between errors before the grace period is reset.
+    /// The maximum time that can have elapsed since the previous error for a forced reconnection to
+    /// be attempted.
     /// </summary>
     /// <remarks>
     /// This threshold is required because, for performance reasons, we don't explicitly reset the
