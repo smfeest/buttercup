@@ -91,10 +91,12 @@ public sealed class RedisConnectionManagerTests
         this.timeProvider.Advance(TimeSpan.FromSeconds(5));
         await connectionManager.CheckException(new SocketException()); // First error
 
+        this.connectionFactoryMock.Invocations.Clear();
+
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Subtract(TimeSpan.FromSeconds(6)));
         await connectionManager.CheckException(new SocketException()); // Second error
 
-        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Once);
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(initialConnection, connectionManager.CurrentConnection);
     }
 
@@ -118,10 +120,12 @@ public sealed class RedisConnectionManagerTests
         this.timeProvider.Advance(TimeSpan.FromSeconds(5));
         await connectionManager.CheckException(new SocketException()); // First error since reconnection
 
+        this.connectionFactoryMock.Invocations.Clear();
+
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Subtract(TimeSpan.FromSeconds(6)));
         await connectionManager.CheckException(new SocketException()); // Second error since reconnection
 
-        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Exactly(2));
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(secondConnection, connectionManager.CurrentConnection);
     }
 
@@ -137,10 +141,12 @@ public sealed class RedisConnectionManagerTests
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // First error
 
+        this.connectionFactoryMock.Invocations.Clear();
+
         this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error
 
-        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Once);
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(initialConnection, connectionManager.CurrentConnection);
     }
 
@@ -164,10 +170,12 @@ public sealed class RedisConnectionManagerTests
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // First error since reconnection
 
+        this.connectionFactoryMock.Invocations.Clear();
+
         this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error since reconnection
 
-        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Exactly(2));
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(secondConnection, connectionManager.CurrentConnection);
     }
 
@@ -183,20 +191,21 @@ public sealed class RedisConnectionManagerTests
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // First error
 
+        this.connectionFactoryMock.Invocations.Clear();
+
         this.timeProvider.Advance(this.options.DroppedConnectionEpisodeTimeout.Add(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error
 
-        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Once);
+        this.connectionFactoryMock.Verify(x => x.NewConnection(), Times.Never);
         Assert.Same(initialConnection, connectionManager.CurrentConnection);
     }
 
     [Fact]
     public async Task CheckException_DroppedConnectionGracePeriodElapsedOnlyIfMeasuredFromFirstError_Reconnects()
     {
-        var newConnection = Mock.Of<IConnectionMultiplexer>();
-        this.connectionFactoryMock.SetupSequence(x => x.NewConnection())
-            .ReturnsAsync(Mock.Of<IConnectionMultiplexer>())
-            .ReturnsAsync(newConnection);
+        this.connectionFactoryMock
+            .Setup(x => x.NewConnection())
+            .ReturnsAsync(Mock.Of<IConnectionMultiplexer>());
 
         await using var connectionManager = this.CreateRedisConnectionManager();
         await connectionManager.EnsureInitialized();
@@ -206,6 +215,9 @@ public sealed class RedisConnectionManagerTests
 
         this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error
+
+        var newConnection = Mock.Of<IConnectionMultiplexer>();
+        this.connectionFactoryMock.Setup(x => x.NewConnection()).ReturnsAsync(newConnection);
 
         this.timeProvider.Advance(TimeSpan.FromSeconds(2));
         await connectionManager.CheckException(new SocketException()); // Third error
@@ -216,10 +228,9 @@ public sealed class RedisConnectionManagerTests
     [Fact]
     public async Task CheckException_DroppedConnectionEpisodeTimeoutNotElapsedOnlyIfMeasuredFromPreviousError_Reconnects()
     {
-        var newConnection = Mock.Of<IConnectionMultiplexer>();
-        this.connectionFactoryMock.SetupSequence(x => x.NewConnection())
-            .ReturnsAsync(Mock.Of<IConnectionMultiplexer>())
-            .ReturnsAsync(newConnection);
+        this.connectionFactoryMock
+            .Setup(x => x.NewConnection())
+            .ReturnsAsync(Mock.Of<IConnectionMultiplexer>());
 
         await using var connectionManager = this.CreateRedisConnectionManager();
         await connectionManager.EnsureInitialized();
@@ -230,6 +241,9 @@ public sealed class RedisConnectionManagerTests
 
         this.timeProvider.Advance(this.options.DroppedConnectionGracePeriod.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Second error
+
+        var newConnection = Mock.Of<IConnectionMultiplexer>();
+        this.connectionFactoryMock.Setup(x => x.NewConnection()).ReturnsAsync(newConnection);
 
         this.timeProvider.Advance(this.options.DroppedConnectionEpisodeTimeout.Subtract(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // Third error
