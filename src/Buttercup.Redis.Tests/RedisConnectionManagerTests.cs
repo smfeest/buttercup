@@ -234,7 +234,6 @@ public sealed class RedisConnectionManagerTests
 
         await using var connectionManager = this.CreateRedisConnectionManager();
         await connectionManager.EnsureInitialized();
-        var initialConnection = connectionManager.CurrentConnection;
 
         this.timeProvider.Advance(this.options.MinForcedReconnectionInterval.Add(TimeSpan.FromSeconds(1)));
         await connectionManager.CheckException(new SocketException()); // First error
