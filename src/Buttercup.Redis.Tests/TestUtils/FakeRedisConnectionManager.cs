@@ -15,7 +15,5 @@ public sealed class FakeRedisConnectionManager(IConnectionMultiplexer connection
         return Task.FromResult(false);
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-
     public Task EnsureInitialized() => Task.CompletedTask;
 }

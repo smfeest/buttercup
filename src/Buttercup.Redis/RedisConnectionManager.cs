@@ -5,7 +5,7 @@ using StackExchange.Redis;
 
 namespace Buttercup.Redis;
 
-internal sealed partial class RedisConnectionManager : IRedisConnectionManager
+internal sealed partial class RedisConnectionManager : IAsyncDisposable, IRedisConnectionManager
 {
     private readonly IRedisConnectionFactory connectionFactory;
     private readonly ILogger<RedisConnectionManager> logger;

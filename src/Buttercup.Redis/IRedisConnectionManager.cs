@@ -5,7 +5,7 @@ namespace Buttercup.Redis;
 /// <summary>
 /// Defines the contract for the service that manages the singleton Redis connection multiplexer.
 /// </summary>
-public interface IRedisConnectionManager : IAsyncDisposable
+public interface IRedisConnectionManager
 {
     /// <summary>
     /// Gets the current connection multiplexer.
