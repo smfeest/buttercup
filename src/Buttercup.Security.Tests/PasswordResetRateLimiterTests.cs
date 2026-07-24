@@ -1,3 +1,4 @@
+using System.Globalization;
 using Buttercup.Redis.RateLimiting;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -27,6 +28,13 @@ public sealed class PasswordResetRateLimiterTests
 
         this.passwordResetRateLimiter = new(
             options, this.slidingWindowRateLimiterMock.Object);
+    }
+
+    [Fact]
+    public void TestParse()
+    {
+        var timespan = TimeSpan.Parse("24:00:00", CultureInfo.CurrentCulture);
+        Assert.Equal(TimeSpan.FromDays(1), timespan);
     }
 
     #region IsAllowed
