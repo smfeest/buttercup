@@ -31,6 +31,18 @@ internal sealed class RecipeManager(
             ModifiedByUserId = currentUserId
         };
 
+        recipe.Audits.Add(new RecipeAudit
+        {
+            Time = timestamp,
+            Action = RecipeAction.Create,
+            ActorId = currentUserId,
+            Changes = new RecipeChanges
+            {
+                Title = new(recipe.Title),
+                PreparationMinutes = new(recipe.PreparationMinutes)
+            }
+        });
+
         recipe.Revisions.Add(RecipeRevision.From(recipe));
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -91,6 +103,23 @@ internal sealed class RecipeManager(
                 $"Revision {baseRevision} does not match current revision {recipe.Revision}");
         }
 
+        var audit = new RecipeAudit
+        {
+            Time = this.timeProvider.GetUtcDateTimeNow(),
+            Action = RecipeAction.Modify,
+            ActorId = currentUserId,
+            Changes = new()
+        };
+
+        if (recipe.Title != newAttributes.Title)
+        {
+            audit.Changes.Title = new(recipe.Title, newAttributes.Title);
+        }
+        if (recipe.PreparationMinutes != newAttributes.PreparationMinutes)
+        {
+            audit.Changes.PreparationMinutes = new(recipe.PreparationMinutes, newAttributes.PreparationMinutes);
+        }
+
         recipe.Title = newAttributes.Title;
         recipe.PreparationMinutes = newAttributes.PreparationMinutes;
         recipe.CookingMinutes = newAttributes.CookingMinutes;
@@ -104,6 +133,7 @@ internal sealed class RecipeManager(
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
 
+        recipe.Audits.Add(audit);
         recipe.Revisions.Add(RecipeRevision.From(recipe));
 
         try

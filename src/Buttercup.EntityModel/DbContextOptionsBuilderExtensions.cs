@@ -35,7 +35,8 @@ public static class DbContextOptionsBuilderExtensions
                 mysqlOptions => mysqlOptions
                     .MigrationsAssembly("Buttercup.EntityModel.Migrations")
                     .MigrationsHistoryTable("__migrations_history")
-                    .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
+                    .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+                    .UseMicrosoftJson())
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .UseSnakeCaseNamingConvention();
 
