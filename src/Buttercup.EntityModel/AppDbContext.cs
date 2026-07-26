@@ -43,6 +43,11 @@ public sealed class AppDbContext : DbContext
     public DbSet<Recipe> Recipes => this.Set<Recipe>();
 
     /// <summary>
+    /// Gets the set of all recipe audit entries.
+    /// </summary>
+    public DbSet<RecipeAudit> RecipeAudits => this.Set<RecipeAudit>();
+
+    /// <summary>
     /// Gets the set of all recipe revisions.
     /// </summary>
     public DbSet<RecipeRevision> RecipeRevisions => this.Set<RecipeRevision>();
@@ -60,6 +65,17 @@ public sealed class AppDbContext : DbContext
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder
+            .Entity<RecipeAudit>()
+            .Property(e => e.Action)
+            .HasConversion<RecipeActionToStringConverter>()
+            .HasMaxLength(10);
+        modelBuilder
+            .Entity<RecipeAudit>()
+            .HasOne(e => e.Revision)
+            .WithMany()
+            .HasForeignKey(e => new { e.RecipeId, e.RevisionNumber })
+            .OnDelete(DeleteBehavior.Restrict);
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
