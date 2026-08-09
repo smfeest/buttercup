@@ -6,9 +6,14 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a reversion of a comment.
 /// </summary>
-[PrimaryKey(nameof(CommentId), nameof(Revision))]
+[Index(nameof(CommentId), nameof(Revision), IsUnique = true)]
 public sealed record CommentRevision
 {
+    /// <summary>
+    /// Gets or sets the primary key of the revision.
+    /// </summary>
+    public long Id { get; set; }
+
     /// <summary>
     /// Gets or sets the comment.
     /// </summary>

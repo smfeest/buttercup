@@ -64,6 +64,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         Assert.Equal(
             new()
             {
+                Id = revision.Id,
                 CommentId = id,
                 Revision = 0,
                 Created = expectedTimestamp,

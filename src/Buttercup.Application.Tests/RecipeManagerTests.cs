@@ -68,6 +68,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.Equal(
             new()
             {
+                Id = revision.Id,
                 RecipeId = id,
                 Revision = 0,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
@@ -248,6 +249,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.Equal(
             new()
             {
+                Id = revision.Id,
                 RecipeId = original.Id,
                 Revision = original.Revision + 1,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
