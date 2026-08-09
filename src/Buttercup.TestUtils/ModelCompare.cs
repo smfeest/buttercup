@@ -65,6 +65,7 @@ public static class ModelCompare
             CreatedByUser = null,
             ModifiedByUser = null,
             DeletedByUser = null,
+            Audits = Array.Empty<RecipeAudit>(),
             Comments = Array.Empty<Comment>(),
             Revisions = Array.Empty<RecipeRevision>(),
         };
