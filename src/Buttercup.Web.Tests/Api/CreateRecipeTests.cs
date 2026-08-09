@@ -40,7 +40,6 @@ public sealed class CreateRecipeTests(AppFactory appFactory) : EndToEndTests(app
             attributes.Source,
             CreatedByUser = IdName.From(currentUser),
             ModifiedByUser = IdName.From(currentUser),
-            Revision = 0
         };
         JsonAssert.Equivalent(expected, recipeElement);
 
@@ -117,7 +116,6 @@ public sealed class CreateRecipeTests(AppFactory appFactory) : EndToEndTests(app
                         source
                         createdByUser { id name }
                         modifiedByUser { id name }
-                        revision
                     }
                     errors {
                         ... on ValidationError {

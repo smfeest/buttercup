@@ -30,7 +30,6 @@ public sealed class CreateCommentTests(AppFactory appFactory) : EndToEndTests(ap
             Recipe = new { recipe.Id, recipe.Title },
             Author = IdName.From(currentUser),
             body,
-            Revision = 0
         };
         JsonAssert.Equivalent(expected, recipeElement);
 
@@ -138,7 +137,6 @@ public sealed class CreateCommentTests(AppFactory appFactory) : EndToEndTests(ap
                         recipe { id title }
                         author { id name }
                         body
-                        revision
                     }
                     errors {
                         __typename

@@ -25,7 +25,6 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
                 modifiedByUser { id name }
                 deleted
                 deletedByUser { id name }
-                revision
             }
         }
         """;
@@ -65,7 +64,6 @@ public sealed class DeletedRecipesTests(AppFactory appFactory) : EndToEndTests(a
                 ModifiedByUser = IdName.From(deletedRecipe.ModifiedByUser),
                 deletedRecipe.Deleted,
                 DeletedByUser = IdName.From(deletedRecipe.DeletedByUser),
-                deletedRecipe.Revision
             }
         };
 

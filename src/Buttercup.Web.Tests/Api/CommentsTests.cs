@@ -16,8 +16,6 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
                     body
                     created
                     modified
-                    revision
-                    revisions { revision created body }
                 }
             }
         }
@@ -49,13 +47,6 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
             comment.Body,
             comment.Created,
             comment.Modified,
-            comment.Revision,
-            Revisions = comment.Revisions.Select(revision => new
-            {
-                revision.Revision,
-                revision.Created,
-                revision.Body
-            }),
         });
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("comments").GetProperty("nodes"));
