@@ -3,7 +3,6 @@ using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Buttercup.Web.Areas.Admin.Controllers.Queries;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -330,8 +329,7 @@ public sealed class UsersControllerTests : IDisposable
     private IPAddress SetupRemoteIpAddress()
     {
         var ipAddress = this.modelFactory.NextIpAddress();
-        this.httpContext.Features.Set<IHttpConnectionFeature>(
-            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
+        this.httpContext.SetRemoteIpAddress(ipAddress);
         return ipAddress;
     }
 }

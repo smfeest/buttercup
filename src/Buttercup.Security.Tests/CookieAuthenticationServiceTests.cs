@@ -5,7 +5,6 @@ using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
@@ -112,8 +111,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
         var ipAddress = this.modelFactory.NextIpAddress();
         var identity = new ClaimsIdentity([new Claim(ClaimTypes.Name, "user-identity")]);
 
-        httpContext.Features.Set<IHttpConnectionFeature>(
-            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
+        httpContext.SetRemoteIpAddress(ipAddress);
 
         this.claimsIdentityFactoryMock
             .Setup(x => x.CreateIdentityForUser(user, CookieAuthenticationDefaults.AuthenticationScheme))
@@ -160,8 +158,7 @@ public sealed class CookieAuthenticationServiceTests : DatabaseTests<DatabaseCol
             User = PrincipalFactory.CreateWithUserId(user.Id, new Claim(ClaimTypes.Email, email)),
         };
 
-        httpContext.Features.Set<IHttpConnectionFeature>(
-            new HttpConnectionFeature { RemoteIpAddress = ipAddress });
+        httpContext.SetRemoteIpAddress(ipAddress);
 
         await this.cookieAuthenticationService.SignOut(httpContext);
 
