@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
@@ -104,11 +105,12 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
         long recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
             .Setup(x => x.CreateRecipe(
-                attributes, currentUserId, TestContext.Current.CancellationToken))
+                attributes, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(recipeId);
 
         var result = await this.recipesController.New(
@@ -492,5 +494,12 @@ public sealed class RecipesControllerTests : IDisposable
                 TestContext.Current.CancellationToken))
             .ReturnsAsync(comments);
         return comments;
+    }
+
+    private IPAddress SetupRemoteIpAddress()
+    {
+        var ipAddress = this.modelFactory.NextIpAddress();
+        this.httpContext.SetRemoteIpAddress(ipAddress);
+        return ipAddress;
     }
 }

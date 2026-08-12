@@ -13,14 +13,17 @@ public sealed class RecipeMutations
     /// <summary>
     /// Creates a recipe.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
     /// </param>
     /// <param name="recipeManager">
     /// The recipe manager.
-    /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
     /// </param>
     /// <param name="schema">
     /// The GraphQL schema.
@@ -33,9 +36,10 @@ public sealed class RecipeMutations
     /// </param>
     [Authorize]
     public async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
-        ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         RecipeAttributes attributes,
         CancellationToken cancellationToken)
@@ -49,7 +53,11 @@ public sealed class RecipeMutations
         }
 
         var id = await recipeManager.CreateRecipe(
-            attributes, claimsPrincipal.GetUserId(), cancellationToken);
+            attributes,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
+
         return new CreateRecipePayload(id);
     }
 

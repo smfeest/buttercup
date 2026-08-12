@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +12,10 @@ internal sealed class RecipeManager(
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
     public async Task<long> CreateRecipe(
-        RecipeAttributes attributes, long currentUserId, CancellationToken cancellationToken)
+        RecipeAttributes attributes,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var recipe = new Recipe()
@@ -31,7 +35,18 @@ internal sealed class RecipeManager(
             ModifiedByUserId = currentUserId
         };
 
-        recipe.Revisions.Add(RecipeRevision.From(recipe));
+        var revision = RecipeRevision.From(recipe);
+        recipe.Revisions.Add(revision);
+
+        recipe.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = RecipeAction.Create,
+                Revision = revision,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Recipes.Add(recipe);

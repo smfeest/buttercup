@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 
 namespace Buttercup.Application;
@@ -16,6 +17,9 @@ public interface IRecipeManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="ipAddress">
+    /// The IP address of the current user.
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -25,6 +29,7 @@ public interface IRecipeManager
     Task<long> CreateRecipe(
         RecipeAttributes attributes,
         long currentUserId,
+        IPAddress? ipAddress,
         CancellationToken cancellationToken = default);
 
     /// <summary>

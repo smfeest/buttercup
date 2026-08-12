@@ -50,7 +50,10 @@ public sealed class RecipesController(
         }
 
         var id = await this.recipeManager.CreateRecipe(
-            model, this.User.GetUserId(), cancellationToken);
+            model,
+            this.User.GetUserId(),
+            this.HttpContext.Connection.RemoteIpAddress,
+            cancellationToken);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
