@@ -64,11 +64,14 @@ public sealed class RecipeMutations
     /// <summary>
     /// Soft-deletes a recipe.
     /// </summary>
-    /// <param name="recipeManager">
-    /// The recipe manager.
-    /// </param>
     /// <param name="claimsPrincipal">
     /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
+    /// <param name="recipeManager">
+    /// The recipe manager.
     /// </param>
     /// <param name="id">
     /// The recipe ID.
@@ -78,13 +81,18 @@ public sealed class RecipeMutations
     /// </param>
     [Authorize]
     public async Task<DeleteRecipePayload> DeleteRecipe(
-        IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
+        IRecipeManager recipeManager,
         long id,
         CancellationToken cancellationToken) =>
         new(
             id,
-            await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId(), cancellationToken));
+            await recipeManager.DeleteRecipe(
+                id,
+                claimsPrincipal.GetUserId(),
+                httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+                cancellationToken));
 
     /// <summary>
     /// Hard-deletes a recipe.

@@ -320,12 +320,13 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Post_DeletesRecipeAndRedirectsToIndexPage()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.DeleteRecipe(
-                recipeId, currentUserId, TestContext.Current.CancellationToken))
+                recipeId, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(true)
             .Verifiable();
 
@@ -341,12 +342,13 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Post_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.DeleteRecipe(
-                recipeId, currentUserId, TestContext.Current.CancellationToken))
+                recipeId, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(false);
 
         var result = await this.recipesController.DeletePost(

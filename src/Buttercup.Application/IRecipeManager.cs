@@ -41,6 +41,9 @@ public interface IRecipeManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="ipAddress">
+    /// The IP address of the current user.
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -49,7 +52,10 @@ public interface IRecipeManager
     /// recipe does not exist or has already been soft-deleted.
     /// </returns>
     Task<bool> DeleteRecipe(
-        long id, long currentUserId, CancellationToken cancellationToken = default);
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Hard-deletes a recipe.

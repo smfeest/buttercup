@@ -56,9 +56,14 @@ internal sealed class RecipeManager(
     }
 
     public async Task<bool> DeleteRecipe(
-        long id, long currentUserId, CancellationToken cancellationToken)
+        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        await using var transaction =
+            await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var updatedRows = await dbContext
             .Recipes
@@ -66,11 +71,30 @@ internal sealed class RecipeManager(
             .WhereNotSoftDeleted()
             .ExecuteUpdateAsync(
                 s => s
-                .SetProperty(r => r.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                .SetProperty(r => r.Deleted, timestamp)
                 .SetProperty(r => r.DeletedByUserId, currentUserId),
                 cancellationToken);
 
-        return updatedRows > 0;
+        if (updatedRows == 0)
+        {
+            return false;
+        }
+
+        dbContext.RecipeAudits.Add(
+            new()
+            {
+                RecipeId = id,
+                Time = timestamp,
+                Action = RecipeAction.Delete,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<bool> HardDeleteRecipe(long id, CancellationToken cancellationToken)

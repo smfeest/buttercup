@@ -109,7 +109,11 @@ public sealed class RecipesController(
 
     [HttpPost("{id}/delete")]
     public async Task<IActionResult> DeletePost(long id, CancellationToken cancellationToken) =>
-        await this.recipeManager.DeleteRecipe(id, this.User.GetUserId(), cancellationToken) ?
+        await this.recipeManager.DeleteRecipe(
+            id,
+            this.User.GetUserId(),
+            this.HttpContext.Connection.RemoteIpAddress,
+            cancellationToken) ?
             this.RedirectToAction(nameof(this.Index)) :
             this.NotFound();
 
