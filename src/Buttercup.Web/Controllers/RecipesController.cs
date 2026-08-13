@@ -77,7 +77,12 @@ public sealed class RecipesController(
         try
         {
             await this.recipeManager.UpdateRecipe(
-                id, model.Attributes, model.BaseRevision, this.User.GetUserId(), cancellationToken);
+                id,
+                model.Attributes,
+                model.BaseRevision,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
         }
         catch (ConcurrencyException)
         {

@@ -86,6 +86,7 @@ internal sealed class RecipeManager(
         RecipeAttributes newAttributes,
         int baseRevision,
         long currentUserId,
+        IPAddress? ipAddress,
         CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -106,6 +107,8 @@ internal sealed class RecipeManager(
                 $"Revision {baseRevision} does not match current revision {recipe.Revision}");
         }
 
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
         recipe.Title = newAttributes.Title;
         recipe.PreparationMinutes = newAttributes.PreparationMinutes;
         recipe.CookingMinutes = newAttributes.CookingMinutes;
@@ -115,11 +118,22 @@ internal sealed class RecipeManager(
         recipe.Suggestions = newAttributes.Suggestions;
         recipe.Remarks = newAttributes.Remarks;
         recipe.Source = newAttributes.Source;
-        recipe.Modified = this.timeProvider.GetUtcDateTimeNow();
+        recipe.Modified = timestamp;
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
 
-        recipe.Revisions.Add(RecipeRevision.From(recipe));
+        var revision = RecipeRevision.From(recipe);
+        recipe.Revisions.Add(revision);
+
+        recipe.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = RecipeAction.Update,
+                Revision = revision,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
 
         try
         {
@@ -128,7 +142,7 @@ internal sealed class RecipeManager(
         catch (DbUpdateConcurrencyException)
         {
             return await this.UpdateRecipe(
-                id, newAttributes, baseRevision, currentUserId, cancellationToken);
+                id, newAttributes, baseRevision, currentUserId, ipAddress, cancellationToken);
         }
 
         return true;

@@ -217,10 +217,12 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     #region UpdateRecipe
 
     [Fact]
-    public async Task UpdateRecipe_UpdatesRecipeInsertsRevisionAndReturnsTrue()
+    public async Task UpdateRecipe_UpdatesRecipeInsertsAuditAndRevisionAndReturnsTrue()
     {
         var original = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
+        var ipAddress = this.modelFactory.NextIpAddress();
+
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         var newAttributes = new RecipeAttributes(
@@ -231,12 +233,14 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             newAttributes,
             original.Revision,
             currentUser.Id,
+            ipAddress,
             TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         var recipe = await dbContext
             .Recipes
+            .Include(r => r.Audits)
             .Include(r => r.Revisions)
             .GetAsync(original.Id, TestContext.Current.CancellationToken);
 
@@ -262,7 +266,22 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             recipe,
             ModelCompare.EqualExcludingNavigationProperties);
 
+        var audit = Assert.Single(recipe.Audits);
         var revision = Assert.Single(recipe.Revisions);
+
+        Assert.Equal(
+            new()
+            {
+                Id = audit.Id,
+                RecipeId = original.Id,
+                Time = this.timeProvider.GetUtcDateTimeNow(),
+                Action = RecipeAction.Update,
+                RevisionId = revision.Id,
+                ActorId = currentUser.Id,
+                IpAddress = ipAddress,
+            },
+            audit,
+            ModelCompare.EqualExcludingNavigationProperties);
 
         Assert.Equal(
             new()
@@ -301,6 +320,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             newAttributes,
             original.Revision,
             currentUser.Id,
+            null,
             TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
@@ -327,6 +347,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             new(original),
             original.Revision,
             currentUser.Id,
+            null,
             TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
@@ -351,6 +372,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 new(this.modelFactory.BuildRecipe()),
                 0,
                 currentUser.Id,
+                null,
                 TestContext.Current.CancellationToken));
 
         Assert.Equal($"Recipe/{id} not found", exception.Message);
@@ -369,6 +391,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 new(this.modelFactory.BuildRecipe()),
                 recipe.Revision,
                 currentUser.Id,
+                null,
                 TestContext.Current.CancellationToken));
 
         Assert.Equal($"Cannot update soft-deleted recipe {recipe.Id}", exception.Message);
@@ -388,6 +411,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 new(this.modelFactory.BuildRecipe()),
                 staleRevision,
                 currentUser.Id,
+                null,
                 TestContext.Current.CancellationToken));
 
         Assert.Equal(

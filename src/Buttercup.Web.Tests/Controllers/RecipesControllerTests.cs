@@ -174,6 +174,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         var result = await this.recipesController.Edit(
             editModel.Id, editModel, TestContext.Current.CancellationToken);
@@ -184,6 +185,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
@@ -210,6 +212,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.localizer.Add("Error_StaleEdit", "translated-stale-edit-error");
 
@@ -219,6 +222,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken))
             .ThrowsAsync(new ConcurrencyException());
 
@@ -240,6 +244,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
@@ -247,6 +252,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
@@ -261,6 +267,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
@@ -268,6 +275,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken))
             .ThrowsAsync(new SoftDeletedException());
 

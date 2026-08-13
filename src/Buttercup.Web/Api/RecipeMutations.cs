@@ -107,14 +107,17 @@ public sealed class RecipeMutations
     /// <summary>
     /// Updates a recipe.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
     /// </param>
     /// <param name="recipeManager">
     /// The recipe manager.
-    /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
     /// </param>
     /// <param name="schema">
     /// The GraphQL schema.
@@ -137,9 +140,10 @@ public sealed class RecipeMutations
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
     public async Task<FieldResult<UpdateRecipePayload>> UpdateRecipe(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
-        ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         long id,
         RecipeAttributes attributes,
@@ -155,7 +159,13 @@ public sealed class RecipeMutations
         }
 
         await recipeManager.UpdateRecipe(
-            id, attributes, baseRevision, claimsPrincipal.GetUserId(), cancellationToken);
+            id,
+            attributes,
+            baseRevision,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
+
         return new UpdateRecipePayload(id);
     }
 }

@@ -81,6 +81,9 @@ public interface IRecipeManager
     /// <param name="currentUserId">
     /// The current user ID.
     /// </param>
+    /// <param name="ipAddress">
+    /// The IP address of the current user.
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -102,5 +105,6 @@ public interface IRecipeManager
         RecipeAttributes newAttributes,
         int baseRevision,
         long currentUserId,
+        IPAddress? ipAddress,
         CancellationToken cancellationToken = default);
 }
