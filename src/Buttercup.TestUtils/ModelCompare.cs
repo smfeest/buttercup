@@ -74,6 +74,28 @@ public static class ModelCompare
     }
 
     /// <summary>
+    /// Indicates whether two <see cref="RecipeAudit"/> models are equal, excluding navigation
+    /// properties.
+    /// </summary>
+    /// <param name="x">The first object to compare.</param>
+    /// <param name="y">The second object to compare.</param>
+    /// <returns>
+    /// <b>true</b> if the two objects are equal after excluding navigation properties; <b>false</b>
+    /// otherwise.
+    /// </returns>
+    public static bool EqualExcludingNavigationProperties(RecipeAudit x, RecipeAudit y)
+    {
+        static RecipeAudit ClearNavigationProperties(RecipeAudit audit) => audit with
+        {
+            Recipe = null,
+            Revision = null,
+            Actor = null,
+        };
+
+        return ClearNavigationProperties(x) == ClearNavigationProperties(y);
+    }
+
+    /// <summary>
     /// Indicates whether two <see cref="RecipeRevision"/> models are equal, excluding navigation
     /// properties.
     /// </summary>
