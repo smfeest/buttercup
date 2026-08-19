@@ -33,16 +33,16 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
         Assert.Collection(
             await this.queries.GetRecentlyAddedRecipes(
                 dbContext, TestContext.Current.CancellationToken),
-                r => Assert.Equivalent(allRecipes[14], r),
-                r => Assert.Equivalent(allRecipes[13], r),
-                r => Assert.Equivalent(allRecipes[12], r),
-                r => Assert.Equivalent(allRecipes[11], r),
-                r => Assert.Equivalent(allRecipes[9], r),
-                r => Assert.Equivalent(allRecipes[8], r),
-                r => Assert.Equivalent(allRecipes[7], r),
-                r => Assert.Equivalent(allRecipes[6], r),
-                r => Assert.Equivalent(allRecipes[4], r),
-                r => Assert.Equivalent(allRecipes[3], r));
+            r => Assert.Equal(allRecipes[14], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[13], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[12], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[11], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[9], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[8], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[7], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[6], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[4], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[3], r, ModelCompare.EqualExcludingNavigationProperties));
     }
 
     #endregion
@@ -90,16 +90,16 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
 
         Assert.Collection(
             actual,
-            r => Assert.Equivalent(allRecipes[2], r),
-            r => Assert.Equivalent(allRecipes[9], r),
-            r => Assert.Equivalent(allRecipes[12], r),
-            r => Assert.Equivalent(allRecipes[14], r),
-            r => Assert.Equivalent(allRecipes[13], r),
-            r => Assert.Equivalent(allRecipes[1], r),
-            r => Assert.Equivalent(allRecipes[0], r),
-            r => Assert.Equivalent(allRecipes[4], r),
-            r => Assert.Equivalent(allRecipes[7], r),
-            r => Assert.Equivalent(allRecipes[15], r));
+            r => Assert.Equal(allRecipes[2], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[9], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[12], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[14], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[13], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[1], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[0], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[4], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[7], r, ModelCompare.EqualExcludingNavigationProperties),
+            r => Assert.Equal(allRecipes[15], r, ModelCompare.EqualExcludingNavigationProperties));
     }
 
     #endregion

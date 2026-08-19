@@ -29,7 +29,7 @@ public sealed class QueryableExtensionsTests(
         var actual = await dbContext.Recipes.AsQueryable().FindAsync(
             expected.Id, TestContext.Current.CancellationToken);
 
-        Assert.Equivalent(expected, actual);
+        Assert.Equal(expected, actual, ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class QueryableExtensionsTests(
         var actual = await dbContext.Recipes.GetAsync(
             expected.Id, TestContext.Current.CancellationToken);
 
-        Assert.Equivalent(expected, actual);
+        Assert.Equal(expected, actual, ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -107,18 +107,20 @@ public sealed class QueryableExtensionsTests(
         await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         dbContext.ChangeTracker.Clear();
 
-        Assert.Equivalent(
+        Assert.Equal(
             deletedRecipe,
             await dbContext
                 .Recipes
                 .WhereSoftDeleted()
-                .SingleAsync(TestContext.Current.CancellationToken));
-        Assert.Equivalent(
+                .SingleAsync(TestContext.Current.CancellationToken),
+            ModelCompare.EqualExcludingNavigationProperties);
+        Assert.Equal(
             visibleRecipe,
             await dbContext
                 .Recipes
                 .WhereNotSoftDeleted()
-                .SingleAsync(TestContext.Current.CancellationToken));
+                .SingleAsync(TestContext.Current.CancellationToken),
+            ModelCompare.EqualExcludingNavigationProperties);
     }
 
     #endregion

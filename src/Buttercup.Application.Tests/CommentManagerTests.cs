@@ -36,35 +36,41 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var expectedTimestamp = this.timeProvider.GetUtcDateTimeNow();
-        var expectedComment = new Comment
-        {
-            Id = id,
-            RecipeId = recipe.Id,
-            AuthorId = currentUser.Id,
-            Body = attributes.Body,
-            Created = expectedTimestamp,
-            Modified = expectedTimestamp,
-            Deleted = null,
-            DeletedByUserId = null,
-            Revision = 0,
-        };
-        var actualComment = await dbContext.Comments.GetAsync(
-            id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(expectedComment, actualComment);
+        var comment = await dbContext
+            .Comments
+            .Include(c => c.Revisions)
+            .GetAsync(id, TestContext.Current.CancellationToken);
 
-        var expectedRevision = new CommentRevision
-        {
-            CommentId = id,
-            Revision = 0,
-            Created = expectedTimestamp,
-            Body = attributes.Body,
-        };
-        var actualRevision = await dbContext
-            .CommentRevisions
-            .Where(r => r.CommentId == id)
-            .SingleAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(expectedRevision, actualRevision);
+        var expectedTimestamp = this.timeProvider.GetUtcDateTimeNow();
+
+        Assert.Equal(
+            new()
+            {
+                Id = id,
+                RecipeId = recipe.Id,
+                AuthorId = currentUser.Id,
+                Body = attributes.Body,
+                Created = expectedTimestamp,
+                Modified = expectedTimestamp,
+                Deleted = null,
+                DeletedByUserId = null,
+                Revision = 0,
+            },
+            comment,
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        var revision = Assert.Single(comment.Revisions);
+
+        Assert.Equal(
+            new()
+            {
+                CommentId = id,
+                Revision = 0,
+                Created = expectedTimestamp,
+                Body = attributes.Body,
+            },
+            revision,
+            ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -119,15 +125,17 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var expected = original with
-        {
-            Recipe = null,
-            Deleted = this.timeProvider.GetUtcDateTimeNow(),
-            DeletedByUserId = currentUser.Id,
-        };
-        var actual = await dbContext.Comments.GetAsync(
+        var recipe = await dbContext.Comments.GetAsync(
             original.Id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(expected, actual);
+
+        Assert.Equal(
+            original with
+            {
+                Deleted = this.timeProvider.GetUtcDateTimeNow(),
+                DeletedByUserId = currentUser.Id,
+            },
+            recipe,
+            ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -142,9 +150,10 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var actual = await dbContext.Comments.GetAsync(
+        var recipe = await dbContext.Comments.GetAsync(
             original.Id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(original with { Recipe = null }, actual);
+
+        Assert.Equal(original, recipe, ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]

@@ -24,10 +24,11 @@ public sealed class CommentsControllerQueriesTests(
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        Assert.Equivalent(
-            accessibleComment with { Recipe = null, Author = null },
+        Assert.Equal(
+            accessibleComment,
             await this.queries.FindComment(
-                dbContext, accessibleComment.Id, TestContext.Current.CancellationToken));
+                dbContext, accessibleComment.Id, TestContext.Current.CancellationToken),
+            ModelCompare.EqualExcludingNavigationProperties);
         Assert.Null(
             await this.queries.FindComment(
                 dbContext, softDeletedComment.Id, TestContext.Current.CancellationToken));
@@ -51,10 +52,11 @@ public sealed class CommentsControllerQueriesTests(
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        Assert.Equivalent(
-            accessibleComment with { Recipe = null },
+        Assert.Equal(
+            accessibleComment,
             await this.queries.FindCommentWithAuthor(
-                dbContext, accessibleComment.Id, TestContext.Current.CancellationToken));
+                dbContext, accessibleComment.Id, TestContext.Current.CancellationToken),
+            ModelCompare.EqualExcludingNavigationProperties);
         Assert.Null(
             await this.queries.FindCommentWithAuthor(
                 dbContext, softDeletedComment.Id, TestContext.Current.CancellationToken));
