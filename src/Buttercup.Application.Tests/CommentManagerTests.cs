@@ -49,8 +49,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             DeletedByUserId = null,
             Revision = 0,
         };
-        var actualComment = await dbContext.Comments.FindAsync(
-            [id], TestContext.Current.CancellationToken);
+        var actualComment = await dbContext.Comments.GetAsync(
+            id, TestContext.Current.CancellationToken);
         Assert.Equivalent(expectedComment, actualComment);
 
         var expectedRevision = new CommentRevision
@@ -125,8 +125,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             Deleted = this.timeProvider.GetUtcDateTimeNow(),
             DeletedByUserId = currentUser.Id,
         };
-        var actual = await dbContext.Comments.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Comments.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
         Assert.Equivalent(expected, actual);
     }
 
@@ -142,8 +142,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var actual = await dbContext.Comments.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Comments.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
         Assert.Equivalent(original with { Recipe = null }, actual);
     }
 
