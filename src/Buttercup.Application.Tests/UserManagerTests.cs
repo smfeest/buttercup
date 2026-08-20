@@ -79,7 +79,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Deactivated = null,
             Revision = 0,
         };
-        var actual = await dbContext.Users.FindAsync([id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Users.GetAsync(id, TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
 
         var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
@@ -259,8 +259,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var userAfter = await dbContext.Users.FindAsync(
-            [userBefore.Id], TestContext.Current.CancellationToken);
+        var userAfter = await dbContext.Users.GetAsync(
+            userBefore.Id, TestContext.Current.CancellationToken);
         Assert.Equal(userBefore, userAfter);
 
         Assert.False(
@@ -292,8 +292,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Deactivated = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
         };
-        var actualUserAfter = await dbContext.Users.FindAsync(
-            [userBefore.Id], TestContext.Current.CancellationToken);
+        var actualUserAfter = await dbContext.Users.GetAsync(
+            userBefore.Id, TestContext.Current.CancellationToken);
         Assert.Equal(expectedUserAfter, actualUserAfter);
 
         var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
@@ -398,8 +398,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var userAfter = await dbContext.Users.FindAsync(
-            [userBefore.Id], TestContext.Current.CancellationToken);
+        var userAfter = await dbContext.Users.GetAsync(
+            userBefore.Id, TestContext.Current.CancellationToken);
         Assert.Equal(userBefore, userAfter);
 
         Assert.False(
@@ -427,8 +427,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Deactivated = null,
             Revision = userBefore.Revision + 1,
         };
-        var actualUserAfter = await dbContext.Users.FindAsync(
-            [userBefore.Id], TestContext.Current.CancellationToken);
+        var actualUserAfter = await dbContext.Users.GetAsync(
+            userBefore.Id, TestContext.Current.CancellationToken);
         Assert.Equal(expectedUserAfter, actualUserAfter);
 
         var actualAuditEntry = await dbContext.UserAuditEntries.SingleAsync(
@@ -468,8 +468,8 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = original.Revision + 1,
         };
-        var actual = await dbContext.Users.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Users.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
         Assert.Equal(expected, actual);
     }
 

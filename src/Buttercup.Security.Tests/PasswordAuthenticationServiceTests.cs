@@ -298,8 +298,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Updates user in database
         Assert.Equal(
             expectedUserAfter,
-            await dbContext.Users.FindAsync(
-                [userBefore.Id], TestContext.Current.CancellationToken));
+            await dbContext.Users.GetAsync(userBefore.Id, TestContext.Current.CancellationToken));
 
         // Logs password hash upgraded message
         LogAssert.SingleEntry(this.logger, 8)
@@ -364,8 +363,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         // Does not update user in database
         Assert.Equal(
             userAfterConcurrentModification,
-            await dbContext.Users.FindAsync(
-                [userBefore.Id], TestContext.Current.CancellationToken));
+            await dbContext.Users.GetAsync(userBefore.Id, TestContext.Current.CancellationToken));
 
         // Logs upgraded password hash not persisted message
         LogAssert.SingleEntry(this.logger, 16)
@@ -640,8 +638,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
         };
-        var actualUserAfter = await dbContext.Users.FindAsync(
-                [userBefore.Id], TestContext.Current.CancellationToken);
+        var actualUserAfter = await dbContext.Users.GetAsync(
+            userBefore.Id, TestContext.Current.CancellationToken);
         Assert.Equal(expectedUserAfter, actualUserAfter);
 
         // Deletes all password reset tokens for the user
@@ -811,8 +809,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
         };
-        var actualUserAfter = await dbContext.Users.FindAsync(
-            [userBefore.Id], TestContext.Current.CancellationToken);
+        var actualUserAfter = await dbContext.Users.GetAsync(
+            userBefore.Id, TestContext.Current.CancellationToken);
         Assert.Equal(expectedUserAfter, actualUserAfter);
 
         // Deletes all password reset tokens for the user

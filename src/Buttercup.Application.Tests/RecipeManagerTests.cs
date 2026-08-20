@@ -54,8 +54,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             ModifiedByUserId = currentUser.Id,
             Revision = 0,
         };
-        var actualRecipe = await dbContext.Recipes.FindAsync(
-            [id], TestContext.Current.CancellationToken);
+        var actualRecipe = await dbContext.Recipes.GetAsync(
+            id, TestContext.Current.CancellationToken);
         Assert.Equivalent(expectedRecipe, actualRecipe);
 
         var expectedRevision = new RecipeRevision
@@ -92,7 +92,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var actual = await dbContext.Recipes.FindAsync([id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Recipes.GetAsync(id, TestContext.Current.CancellationToken);
 
         Assert.NotNull(actual);
         Assert.Null(actual.PreparationMinutes);
@@ -124,8 +124,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             Deleted = this.timeProvider.GetUtcDateTimeNow(),
             DeletedByUserId = currentUser.Id,
         };
-        var actual = await dbContext.Recipes.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Recipes.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
         Assert.Equivalent(expected, actual);
     }
 
@@ -141,8 +141,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var actual = await dbContext.Recipes.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Recipes.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
         Assert.Equivalent(original, actual);
     }
 
@@ -224,8 +224,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             ModifiedByUserId = currentUser.Id,
             Revision = original.Revision + 1,
         };
-        var actualRecipe = await dbContext.Recipes.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actualRecipe = await dbContext.Recipes.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
         Assert.Equivalent(expectedRecipe, actualRecipe);
 
         var expectedRevision = new RecipeRevision
@@ -267,10 +267,9 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-        var actual = await dbContext.Recipes.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Recipes.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
 
-        Assert.NotNull(actual);
         Assert.Null(actual.PreparationMinutes);
         Assert.Null(actual.CookingMinutes);
         Assert.Null(actual.Servings);
@@ -295,8 +294,8 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
         var expected = original with { CreatedByUser = null, ModifiedByUser = null };
-        var actual = await dbContext.Recipes.FindAsync(
-            [original.Id], TestContext.Current.CancellationToken);
+        var actual = await dbContext.Recipes.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
 
         Assert.Equivalent(expected, actual);
     }
