@@ -36,47 +36,54 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var expectedRecipe = new Recipe
-        {
-            Id = id,
-            Title = attributes.Title,
-            PreparationMinutes = attributes.PreparationMinutes,
-            CookingMinutes = attributes.CookingMinutes,
-            Servings = attributes.Servings,
-            Ingredients = attributes.Ingredients,
-            Method = attributes.Method,
-            Suggestions = attributes.Suggestions,
-            Remarks = attributes.Remarks,
-            Source = attributes.Source,
-            Created = this.timeProvider.GetUtcDateTimeNow(),
-            CreatedByUserId = currentUser.Id,
-            Modified = this.timeProvider.GetUtcDateTimeNow(),
-            ModifiedByUserId = currentUser.Id,
-            Revision = 0,
-        };
-        var actualRecipe = await dbContext.Recipes.GetAsync(
-            id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(expectedRecipe, actualRecipe);
+        var recipe = await dbContext
+            .Recipes
+            .Include(r => r.Revisions)
+            .GetAsync(id, TestContext.Current.CancellationToken);
 
-        var expectedRevision = new RecipeRevision
-        {
-            RecipeId = id,
-            Revision = 0,
-            Created = this.timeProvider.GetUtcDateTimeNow(),
-            CreatedByUserId = currentUser.Id,
-            Title = attributes.Title,
-            PreparationMinutes = attributes.PreparationMinutes,
-            CookingMinutes = attributes.CookingMinutes,
-            Servings = attributes.Servings,
-            Ingredients = attributes.Ingredients,
-            Method = attributes.Method,
-            Suggestions = attributes.Suggestions,
-            Remarks = attributes.Remarks,
-            Source = attributes.Source,
-        };
-        var actualRevision = await dbContext.RecipeRevisions.SingleAsync(
-            TestContext.Current.CancellationToken);
-        Assert.Equivalent(expectedRevision, actualRevision);
+        Assert.Equal(
+            new()
+            {
+                Id = id,
+                Title = attributes.Title,
+                PreparationMinutes = attributes.PreparationMinutes,
+                CookingMinutes = attributes.CookingMinutes,
+                Servings = attributes.Servings,
+                Ingredients = attributes.Ingredients,
+                Method = attributes.Method,
+                Suggestions = attributes.Suggestions,
+                Remarks = attributes.Remarks,
+                Source = attributes.Source,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
+                CreatedByUserId = currentUser.Id,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
+                ModifiedByUserId = currentUser.Id,
+                Revision = 0,
+            },
+            recipe,
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        var revision = Assert.Single(recipe.Revisions);
+
+        Assert.Equal(
+            new()
+            {
+                RecipeId = id,
+                Revision = 0,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
+                CreatedByUserId = currentUser.Id,
+                Title = attributes.Title,
+                PreparationMinutes = attributes.PreparationMinutes,
+                CookingMinutes = attributes.CookingMinutes,
+                Servings = attributes.Servings,
+                Ingredients = attributes.Ingredients,
+                Method = attributes.Method,
+                Suggestions = attributes.Suggestions,
+                Remarks = attributes.Remarks,
+                Source = attributes.Source,
+            },
+            revision,
+            ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -118,14 +125,17 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var expected = original with
-        {
-            Deleted = this.timeProvider.GetUtcDateTimeNow(),
-            DeletedByUserId = currentUser.Id,
-        };
-        var actual = await dbContext.Recipes.GetAsync(
+        var recipe = await dbContext.Recipes.GetAsync(
             original.Id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(expected, actual);
+
+        Assert.Equal(
+            original with
+            {
+                Deleted = this.timeProvider.GetUtcDateTimeNow(),
+                DeletedByUserId = currentUser.Id,
+            },
+            recipe,
+            ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -140,9 +150,10 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var actual = await dbContext.Recipes.GetAsync(
+        var recipe = await dbContext.Recipes.GetAsync(
             original.Id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(original, actual);
+
+        Assert.Equal(original, recipe, ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -205,47 +216,54 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var expectedRecipe = new Recipe
-        {
-            Id = original.Id,
-            Title = newAttributes.Title,
-            PreparationMinutes = newAttributes.PreparationMinutes,
-            CookingMinutes = newAttributes.CookingMinutes,
-            Servings = newAttributes.Servings,
-            Ingredients = newAttributes.Ingredients,
-            Method = newAttributes.Method,
-            Suggestions = newAttributes.Suggestions,
-            Remarks = newAttributes.Remarks,
-            Source = newAttributes.Source,
-            Created = original.Created,
-            CreatedByUserId = original.CreatedByUserId,
-            Modified = this.timeProvider.GetUtcDateTimeNow(),
-            ModifiedByUserId = currentUser.Id,
-            Revision = original.Revision + 1,
-        };
-        var actualRecipe = await dbContext.Recipes.GetAsync(
-            original.Id, TestContext.Current.CancellationToken);
-        Assert.Equivalent(expectedRecipe, actualRecipe);
+        var recipe = await dbContext
+            .Recipes
+            .Include(r => r.Revisions)
+            .GetAsync(original.Id, TestContext.Current.CancellationToken);
 
-        var expectedRevision = new RecipeRevision
-        {
-            RecipeId = original.Id,
-            Revision = original.Revision + 1,
-            Created = this.timeProvider.GetUtcDateTimeNow(),
-            CreatedByUserId = currentUser.Id,
-            Title = newAttributes.Title,
-            PreparationMinutes = newAttributes.PreparationMinutes,
-            CookingMinutes = newAttributes.CookingMinutes,
-            Servings = newAttributes.Servings,
-            Ingredients = newAttributes.Ingredients,
-            Method = newAttributes.Method,
-            Suggestions = newAttributes.Suggestions,
-            Remarks = newAttributes.Remarks,
-            Source = newAttributes.Source,
-        };
-        var actualRevision = await dbContext.RecipeRevisions.SingleAsync(
-            TestContext.Current.CancellationToken);
-        Assert.Equivalent(expectedRevision, actualRevision);
+        Assert.Equal(
+            new()
+            {
+                Id = original.Id,
+                Title = newAttributes.Title,
+                PreparationMinutes = newAttributes.PreparationMinutes,
+                CookingMinutes = newAttributes.CookingMinutes,
+                Servings = newAttributes.Servings,
+                Ingredients = newAttributes.Ingredients,
+                Method = newAttributes.Method,
+                Suggestions = newAttributes.Suggestions,
+                Remarks = newAttributes.Remarks,
+                Source = newAttributes.Source,
+                Created = original.Created,
+                CreatedByUserId = original.CreatedByUserId,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
+                ModifiedByUserId = currentUser.Id,
+                Revision = original.Revision + 1,
+            },
+            recipe,
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        var revision = Assert.Single(recipe.Revisions);
+
+        Assert.Equal(
+            new()
+            {
+                RecipeId = original.Id,
+                Revision = original.Revision + 1,
+                Created = this.timeProvider.GetUtcDateTimeNow(),
+                CreatedByUserId = currentUser.Id,
+                Title = newAttributes.Title,
+                PreparationMinutes = newAttributes.PreparationMinutes,
+                CookingMinutes = newAttributes.CookingMinutes,
+                Servings = newAttributes.Servings,
+                Ingredients = newAttributes.Ingredients,
+                Method = newAttributes.Method,
+                Suggestions = newAttributes.Suggestions,
+                Remarks = newAttributes.Remarks,
+                Source = newAttributes.Source,
+            },
+            revision,
+            ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
@@ -292,11 +310,11 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
-        var expected = original with { CreatedByUser = null, ModifiedByUser = null };
-        var actual = await dbContext.Recipes.GetAsync(
+
+        var recipe = await dbContext.Recipes.GetAsync(
             original.Id, TestContext.Current.CancellationToken);
 
-        Assert.Equivalent(expected, actual);
+        Assert.Equal(original, recipe, ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
