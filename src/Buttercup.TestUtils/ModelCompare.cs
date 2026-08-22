@@ -24,6 +24,7 @@ public static class ModelCompare
             Recipe = null,
             Author = null,
             DeletedByUser = null,
+            Audits = Array.Empty<CommentAudit>(),
             Revisions = Array.Empty<CommentRevision>(),
         };
 
