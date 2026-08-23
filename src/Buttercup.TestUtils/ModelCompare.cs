@@ -32,6 +32,28 @@ public static class ModelCompare
     }
 
     /// <summary>
+    /// Indicates whether two <see cref="CommentAudit"/> models are equal, excluding navigation
+    /// properties.
+    /// </summary>
+    /// <param name="x">The first object to compare.</param>
+    /// <param name="y">The second object to compare.</param>
+    /// <returns>
+    /// <b>true</b> if the two objects are equal after excluding navigation properties; <b>false</b>
+    /// otherwise.
+    /// </returns>
+    public static bool EqualExcludingNavigationProperties(CommentAudit x, CommentAudit y)
+    {
+        static CommentAudit ClearNavigationProperties(CommentAudit audit) => audit with
+        {
+            Comment = null,
+            Revision = null,
+            Actor = null,
+        };
+
+        return ClearNavigationProperties(x) == ClearNavigationProperties(y);
+    }
+
+    /// <summary>
     /// Indicates whether two <see cref="CommentRevision"/> models are equal, excluding navigation
     /// properties.
     /// </summary>
