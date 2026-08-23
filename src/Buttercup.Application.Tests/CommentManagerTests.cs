@@ -24,20 +24,27 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     #region CreateComment
 
     [Fact]
-    public async Task CreateComment_InsertsCommentAndRevisionAndReturnsId()
+    public async Task CreateComment_InsertsCommentAuditAndRevisionAndReturnsId()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
+        var ipAddress = this.modelFactory.NextIpAddress();
+
         await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
         var attributes = this.BuildCommentAttributes();
         var id = await this.commentManager.CreateComment(
-            recipe.Id, attributes, currentUser.Id, TestContext.Current.CancellationToken);
+            recipe.Id,
+            attributes,
+            currentUser.Id,
+            ipAddress,
+            TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
         var comment = await dbContext
             .Comments
+            .Include(c => c.Audits)
             .Include(c => c.Revisions)
             .GetAsync(id, TestContext.Current.CancellationToken);
 
@@ -59,7 +66,22 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             comment,
             ModelCompare.EqualExcludingNavigationProperties);
 
+        var audit = Assert.Single(comment.Audits);
         var revision = Assert.Single(comment.Revisions);
+
+        Assert.Equal(
+            new()
+            {
+                Id = audit.Id,
+                CommentId = id,
+                Time = this.timeProvider.GetUtcDateTimeNow(),
+                Action = CommentAction.Create,
+                RevisionId = revision.Id,
+                ActorId = currentUser.Id,
+                IpAddress = ipAddress,
+            },
+            audit,
+            ModelCompare.EqualExcludingNavigationProperties);
 
         Assert.Equal(
             new()
@@ -88,6 +110,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
                 recipeId,
                 this.BuildCommentAttributes(),
                 currentUser.Id,
+                this.modelFactory.NextIpAddress(),
                 TestContext.Current.CancellationToken));
 
         Assert.Equal($"Recipe/{recipeId} not found", exception.Message);
@@ -105,6 +128,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
                 recipe.Id,
                 this.BuildCommentAttributes(),
                 currentUser.Id,
+                this.modelFactory.NextIpAddress(),
                 TestContext.Current.CancellationToken));
 
         Assert.Equal($"Cannot add comment to soft-deleted recipe {recipe.Id}", exception.Message);

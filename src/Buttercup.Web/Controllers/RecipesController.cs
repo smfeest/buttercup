@@ -131,7 +131,11 @@ public sealed class RecipesController(
         try
         {
             commentId = await this.commentManager.CreateComment(
-                id, newCommentAttributes, this.User.GetUserId(), cancellationToken);
+                id,
+                newCommentAttributes,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
         }
         catch (Exception e) when (e is NotFoundException or SoftDeletedException)
         {

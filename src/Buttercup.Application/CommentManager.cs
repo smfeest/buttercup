@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ internal sealed class CommentManager(
         long recipeId,
         CommentAttributes attributes,
         long currentUserId,
+        IPAddress? ipAddress,
         CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -34,7 +36,19 @@ internal sealed class CommentManager(
             Created = timestamp,
             Modified = timestamp,
         };
-        comment.Revisions.Add(CommentRevision.From(comment));
+
+        var revision = CommentRevision.From(comment);
+        comment.Revisions.Add(revision);
+
+        comment.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = CommentAction.Create,
+                Revision = revision,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
 
         dbContext.Comments.Add(comment);
         await dbContext.SaveChangesAsync(cancellationToken);

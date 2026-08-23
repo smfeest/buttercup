@@ -364,14 +364,19 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task AddComment_Success_AddsAndRedirectsToCommentOnShowPage()
     {
-        var currentUserId = this.SetupCurrentUserId();
         long recipeId = this.modelFactory.NextInt();
         var commentAttributes = this.BuildCommentAttributes();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
         var commentId = this.modelFactory.NextInt();
 
         this.commentManagerMock
             .Setup(x => x.CreateComment(
-                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
+                recipeId,
+                commentAttributes,
+                currentUserId,
+                ipAddress,
+                TestContext.Current.CancellationToken))
             .ReturnsAsync(commentId);
 
         var result = await this.recipesController.AddComment(
@@ -423,13 +428,18 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task AddComment_NotFoundException_ReturnsNotFoundResult()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
         var commentAttributes = this.BuildCommentAttributes();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.commentManagerMock
             .Setup(x => x.CreateComment(
-                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
+                recipeId,
+                commentAttributes,
+                currentUserId,
+                ipAddress,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
         var result = await this.recipesController.AddComment(
@@ -441,13 +451,18 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task AddComment_SoftDeletedException_ReturnsNotFoundResult()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
         var commentAttributes = this.BuildCommentAttributes();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.commentManagerMock
             .Setup(x => x.CreateComment(
-                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
+                recipeId,
+                commentAttributes,
+                currentUserId,
+                ipAddress,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new SoftDeletedException());
 
         var result = await this.recipesController.AddComment(
