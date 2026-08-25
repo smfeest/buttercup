@@ -75,6 +75,12 @@ public sealed class CommentMutations
     /// <summary>
     /// Soft-deletes a comment.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="authorizationService">
     /// The authorization service.
     /// </param>
@@ -87,9 +93,6 @@ public sealed class CommentMutations
     /// <param name="dbContext">
     /// The database context.
     /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
-    /// </param>
     /// <param name="resolverContext">
     /// The resolver context.
     /// </param>
@@ -101,11 +104,12 @@ public sealed class CommentMutations
     /// </param>
     [Authorize]
     public async Task<DeleteCommentPayload> DeleteComment(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IAuthorizationService authorizationService,
         ICommentManager commentManager,
         IStringLocalizer<CommentMutations> localizer,
         AppDbContext dbContext,
-        ClaimsPrincipal claimsPrincipal,
         IResolverContext resolverContext,
         long id,
         CancellationToken cancellationToken)
@@ -119,7 +123,10 @@ public sealed class CommentMutations
             ? new(
                 id,
                 await commentManager.DeleteComment(
-                    id, claimsPrincipal.GetUserId(), cancellationToken))
+                    id,
+                    claimsPrincipal.GetUserId(),
+                    httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+                    cancellationToken))
             : throw new GraphQLException(
                 resolverContext.CreateError(
                     ErrorCodes.Authentication.NotAuthorized,

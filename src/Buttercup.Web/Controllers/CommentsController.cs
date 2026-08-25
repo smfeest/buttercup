@@ -51,7 +51,11 @@ public sealed class CommentsController(
             return this.Unauthorized();
         }
 
-        await this.commentManager.DeleteComment(id, this.User.GetUserId(), cancellationToken);
+        await this.commentManager.DeleteComment(
+            id,
+            this.User.GetUserId(),
+            this.HttpContext.Connection.RemoteIpAddress,
+            cancellationToken);
 
         return this.RedirectToAction(
             nameof(RecipesController.Show), "Recipes", new { id = comment.RecipeId });

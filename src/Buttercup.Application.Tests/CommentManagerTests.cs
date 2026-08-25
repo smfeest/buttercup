@@ -139,19 +139,23 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     #region DeleteComment
 
     [Fact]
-    public async Task DeleteComment_SetsSoftDeleteAttributesAndReturnsTrue()
+    public async Task DeleteComment_SetsSoftDeleteAttributesInsertsAuditAndReturnsTrue()
     {
         var original = this.modelFactory.BuildComment(setRecipe: true, softDeleted: false);
         var currentUser = this.modelFactory.BuildUser();
+        var ipAddress = this.modelFactory.NextIpAddress();
+
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         Assert.True(await this.commentManager.DeleteComment(
-            original.Id, currentUser.Id, TestContext.Current.CancellationToken));
+            original.Id, currentUser.Id, ipAddress, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var recipe = await dbContext.Comments.GetAsync(
-            original.Id, TestContext.Current.CancellationToken);
+        var comment = await dbContext
+            .Comments
+            .Include(c => c.Audits)
+            .GetAsync(original.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             original with
@@ -159,26 +163,47 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
                 Deleted = this.timeProvider.GetUtcDateTimeNow(),
                 DeletedByUserId = currentUser.Id,
             },
-            recipe,
+            comment,
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        var audit = Assert.Single(comment.Audits);
+
+        Assert.Equal(
+            new CommentAudit()
+            {
+                Id = audit.Id,
+                CommentId = comment.Id,
+                Time = this.timeProvider.GetUtcDateTimeNow(),
+                Action = CommentAction.Delete,
+                RevisionId = null,
+                ActorId = currentUser.Id,
+                IpAddress = ipAddress,
+            },
+            audit,
             ModelCompare.EqualExcludingNavigationProperties);
     }
 
     [Fact]
-    public async Task DeleteComment_DoesNotUpdateAttributesAndReturnsFalseIfAlreadySoftDeleted()
+    public async Task DeleteComment_DoesNotUpdateCommentOrInsertAuditAndReturnsFalseIfAlreadySoftDeleted()
     {
         var original = this.modelFactory.BuildComment(setRecipe: true, softDeleted: true);
         var currentUser = this.modelFactory.BuildUser();
+        var ipAddress = this.modelFactory.NextIpAddress();
+
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
         Assert.False(await this.commentManager.DeleteComment(
-            original.Id, currentUser.Id, TestContext.Current.CancellationToken));
+            original.Id, currentUser.Id, ipAddress, TestContext.Current.CancellationToken));
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        var recipe = await dbContext.Comments.GetAsync(
-            original.Id, TestContext.Current.CancellationToken);
+        var comment = await dbContext
+            .Comments
+            .Include(r => r.Audits)
+            .GetAsync(original.Id, TestContext.Current.CancellationToken);
 
-        Assert.Equal(original, recipe, ModelCompare.EqualExcludingNavigationProperties);
+        Assert.Equal(original, comment, ModelCompare.EqualExcludingNavigationProperties);
+        Assert.Empty(comment.Audits);
     }
 
     [Fact]
@@ -192,6 +217,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             await this.commentManager.DeleteComment(
                 this.modelFactory.NextInt(),
                 currentUser.Id,
+                this.modelFactory.NextIpAddress(),
                 TestContext.Current.CancellationToken));
     }
 

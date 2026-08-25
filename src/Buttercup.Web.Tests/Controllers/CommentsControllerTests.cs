@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
@@ -69,11 +70,12 @@ public sealed class CommentsControllerTests : IDisposable
     {
         var currentUserId = this.SetupCurrentUserId();
         var comment = this.modelFactory.BuildComment();
+        var ipAddress = this.SetupRemoteIpAddress();
         this.SetupFindComment(comment.Id, comment);
         this.SetupAuthorizeCommentAuthorOrAdmin(comment, true);
         this.commentManagerMock
             .Setup(x => x.DeleteComment(
-                comment.Id, currentUserId, TestContext.Current.CancellationToken))
+                comment.Id, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(true)
             .Verifiable();
 
@@ -140,4 +142,11 @@ public sealed class CommentsControllerTests : IDisposable
             .Setup(x => x.FindCommentWithAuthor(
                 this.dbContextFactory.FakeDbContext, id, TestContext.Current.CancellationToken))
             .ReturnsAsync(comment);
+
+    private IPAddress SetupRemoteIpAddress()
+    {
+        var ipAddress = this.modelFactory.NextIpAddress();
+        this.httpContext.SetRemoteIpAddress(ipAddress);
+        return ipAddress;
+    }
 }
