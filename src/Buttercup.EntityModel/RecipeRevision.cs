@@ -7,9 +7,14 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a reversion of a recipe.
 /// </summary>
-[PrimaryKey(nameof(RecipeId), nameof(Revision))]
+[Index(nameof(RecipeId), nameof(Revision), IsUnique = true)]
 public sealed record RecipeRevision
 {
+    /// <summary>
+    /// Gets or sets the primary key of the revision.
+    /// </summary>
+    public long Id { get; set; }
+
     /// <summary>
     /// Gets or sets the recipe.
     /// </summary>

@@ -23,7 +23,6 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
                 createdByUser { id name }
                 modified
                 modifiedByUser { id name }
-                revision
             }
         }
         """;
@@ -62,7 +61,6 @@ public sealed class RecipesTests(AppFactory appFactory) : EndToEndTests(appFacto
             CreatedByUser = IdName.From(recipe.CreatedByUser),
             recipe.Modified,
             ModifiedByUser = IdName.From(recipe.ModifiedByUser),
-            recipe.Revision
         });
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipes"));

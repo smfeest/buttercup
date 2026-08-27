@@ -4,6 +4,7 @@ using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Buttercup.EntityModel.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260809092612_AddIdToCommentAndRecipeRevisions")]
+    partial class AddIdToCommentAndRecipeRevisions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,56 +85,6 @@ namespace Buttercup.EntityModel.Migrations
                         .HasDatabaseName("ix_comments_recipe_id");
 
                     b.ToTable("comments", (string)null);
-                });
-
-            modelBuilder.Entity("Buttercup.EntityModel.CommentAudit", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)")
-                        .HasColumnName("action");
-
-                    b.Property<long?>("ActorId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("actor_id");
-
-                    b.Property<long>("CommentId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("comment_id");
-
-                    b.Property<byte[]>("IpAddress")
-                        .HasColumnType("varbinary(16)")
-                        .HasColumnName("ip_address");
-
-                    b.Property<long?>("RevisionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("revision_id");
-
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("time");
-
-                    b.HasKey("Id")
-                        .HasName("pk_comment_audits");
-
-                    b.HasIndex("ActorId")
-                        .HasDatabaseName("ix_comment_audits_actor_id");
-
-                    b.HasIndex("CommentId")
-                        .HasDatabaseName("ix_comment_audits_comment_id");
-
-                    b.HasIndex("RevisionId")
-                        .HasDatabaseName("ix_comment_audits_revision_id");
-
-                    b.ToTable("comment_audits", (string)null);
                 });
 
             modelBuilder.Entity("Buttercup.EntityModel.CommentRevision", b =>
@@ -299,56 +252,6 @@ namespace Buttercup.EntityModel.Migrations
                         .HasDatabaseName("ix_recipes_title");
 
                     b.ToTable("recipes", (string)null);
-                });
-
-            modelBuilder.Entity("Buttercup.EntityModel.RecipeAudit", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)")
-                        .HasColumnName("action");
-
-                    b.Property<long?>("ActorId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("actor_id");
-
-                    b.Property<byte[]>("IpAddress")
-                        .HasColumnType("varbinary(16)")
-                        .HasColumnName("ip_address");
-
-                    b.Property<long>("RecipeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("recipe_id");
-
-                    b.Property<long?>("RevisionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("revision_id");
-
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("time");
-
-                    b.HasKey("Id")
-                        .HasName("pk_recipe_audits");
-
-                    b.HasIndex("ActorId")
-                        .HasDatabaseName("ix_recipe_audits_actor_id");
-
-                    b.HasIndex("RecipeId")
-                        .HasDatabaseName("ix_recipe_audits_recipe_id");
-
-                    b.HasIndex("RevisionId")
-                        .HasDatabaseName("ix_recipe_audits_revision_id");
-
-                    b.ToTable("recipe_audits", (string)null);
                 });
 
             modelBuilder.Entity("Buttercup.EntityModel.RecipeRevision", b =>
@@ -589,32 +492,6 @@ namespace Buttercup.EntityModel.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("Buttercup.EntityModel.CommentAudit", b =>
-                {
-                    b.HasOne("Buttercup.EntityModel.User", "Actor")
-                        .WithMany()
-                        .HasForeignKey("ActorId")
-                        .HasConstraintName("fk_comment_audits_users_actor_id");
-
-                    b.HasOne("Buttercup.EntityModel.Comment", "Comment")
-                        .WithMany("Audits")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_comment_audits_comments_comment_id");
-
-                    b.HasOne("Buttercup.EntityModel.CommentRevision", "Revision")
-                        .WithMany()
-                        .HasForeignKey("RevisionId")
-                        .HasConstraintName("fk_comment_audits_comment_revisions_revision_id");
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("Comment");
-
-                    b.Navigation("Revision");
-                });
-
             modelBuilder.Entity("Buttercup.EntityModel.CommentRevision", b =>
                 {
                     b.HasOne("Buttercup.EntityModel.Comment", "Comment")
@@ -663,32 +540,6 @@ namespace Buttercup.EntityModel.Migrations
                     b.Navigation("ModifiedByUser");
                 });
 
-            modelBuilder.Entity("Buttercup.EntityModel.RecipeAudit", b =>
-                {
-                    b.HasOne("Buttercup.EntityModel.User", "Actor")
-                        .WithMany()
-                        .HasForeignKey("ActorId")
-                        .HasConstraintName("fk_recipe_audits_users_actor_id");
-
-                    b.HasOne("Buttercup.EntityModel.Recipe", "Recipe")
-                        .WithMany("Audits")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_recipe_audits_recipes_recipe_id");
-
-                    b.HasOne("Buttercup.EntityModel.RecipeRevision", "Revision")
-                        .WithMany()
-                        .HasForeignKey("RevisionId")
-                        .HasConstraintName("fk_recipe_audits_recipe_revisions_revision_id");
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("Recipe");
-
-                    b.Navigation("Revision");
-                });
-
             modelBuilder.Entity("Buttercup.EntityModel.RecipeRevision", b =>
                 {
                     b.HasOne("Buttercup.EntityModel.User", "CreatedByUser")
@@ -731,15 +582,11 @@ namespace Buttercup.EntityModel.Migrations
 
             modelBuilder.Entity("Buttercup.EntityModel.Comment", b =>
                 {
-                    b.Navigation("Audits");
-
                     b.Navigation("Revisions");
                 });
 
             modelBuilder.Entity("Buttercup.EntityModel.Recipe", b =>
                 {
-                    b.Navigation("Audits");
-
                     b.Navigation("Comments");
 
                     b.Navigation("Revisions");

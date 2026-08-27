@@ -13,14 +13,17 @@ public sealed class RecipeMutations
     /// <summary>
     /// Creates a recipe.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
     /// </param>
     /// <param name="recipeManager">
     /// The recipe manager.
-    /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
     /// </param>
     /// <param name="schema">
     /// The GraphQL schema.
@@ -33,9 +36,10 @@ public sealed class RecipeMutations
     /// </param>
     [Authorize]
     public async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
-        ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         RecipeAttributes attributes,
         CancellationToken cancellationToken)
@@ -49,18 +53,25 @@ public sealed class RecipeMutations
         }
 
         var id = await recipeManager.CreateRecipe(
-            attributes, claimsPrincipal.GetUserId(), cancellationToken);
+            attributes,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
+
         return new CreateRecipePayload(id);
     }
 
     /// <summary>
     /// Soft-deletes a recipe.
     /// </summary>
-    /// <param name="recipeManager">
-    /// The recipe manager.
-    /// </param>
     /// <param name="claimsPrincipal">
     /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
+    /// <param name="recipeManager">
+    /// The recipe manager.
     /// </param>
     /// <param name="id">
     /// The recipe ID.
@@ -70,13 +81,18 @@ public sealed class RecipeMutations
     /// </param>
     [Authorize]
     public async Task<DeleteRecipePayload> DeleteRecipe(
-        IRecipeManager recipeManager,
         ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
+        IRecipeManager recipeManager,
         long id,
         CancellationToken cancellationToken) =>
         new(
             id,
-            await recipeManager.DeleteRecipe(id, claimsPrincipal.GetUserId(), cancellationToken));
+            await recipeManager.DeleteRecipe(
+                id,
+                claimsPrincipal.GetUserId(),
+                httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+                cancellationToken));
 
     /// <summary>
     /// Hard-deletes a recipe.
@@ -99,14 +115,17 @@ public sealed class RecipeMutations
     /// <summary>
     /// Updates a recipe.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
     /// </param>
     /// <param name="recipeManager">
     /// The recipe manager.
-    /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
     /// </param>
     /// <param name="schema">
     /// The GraphQL schema.
@@ -129,9 +148,10 @@ public sealed class RecipeMutations
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
     public async Task<FieldResult<UpdateRecipePayload>> UpdateRecipe(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
-        ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         long id,
         RecipeAttributes attributes,
@@ -147,7 +167,13 @@ public sealed class RecipeMutations
         }
 
         await recipeManager.UpdateRecipe(
-            id, attributes, baseRevision, claimsPrincipal.GetUserId(), cancellationToken);
+            id,
+            attributes,
+            baseRevision,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
+
         return new UpdateRecipePayload(id);
     }
 }

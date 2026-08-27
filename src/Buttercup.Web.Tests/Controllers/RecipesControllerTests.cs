@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.Application;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
@@ -104,11 +105,12 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
         long recipeId = this.modelFactory.NextInt();
 
         this.recipeManagerMock
             .Setup(x => x.CreateRecipe(
-                attributes, currentUserId, TestContext.Current.CancellationToken))
+                attributes, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(recipeId);
 
         var result = await this.recipesController.New(
@@ -172,6 +174,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         var result = await this.recipesController.Edit(
             editModel.Id, editModel, TestContext.Current.CancellationToken);
@@ -182,6 +185,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken));
 
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
@@ -208,6 +212,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.localizer.Add("Error_StaleEdit", "translated-stale-edit-error");
 
@@ -217,6 +222,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken))
             .ThrowsAsync(new ConcurrencyException());
 
@@ -238,6 +244,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
@@ -245,6 +252,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
@@ -259,6 +267,7 @@ public sealed class RecipesControllerTests : IDisposable
     {
         var editModel = EditRecipeViewModel.ForRecipe(this.modelFactory.BuildRecipe());
         var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.UpdateRecipe(
@@ -266,6 +275,7 @@ public sealed class RecipesControllerTests : IDisposable
                 editModel.Attributes,
                 editModel.BaseRevision,
                 currentUserId,
+                ipAddress,
                 TestContext.Current.CancellationToken))
             .ThrowsAsync(new SoftDeletedException());
 
@@ -310,12 +320,13 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Post_DeletesRecipeAndRedirectsToIndexPage()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.DeleteRecipe(
-                recipeId, currentUserId, TestContext.Current.CancellationToken))
+                recipeId, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(true)
             .Verifiable();
 
@@ -331,12 +342,13 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task Delete_Post_RecipeNotFoundOrAlreadySoftDeleted_ReturnsNotFoundResult()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.recipeManagerMock
             .Setup(x => x.DeleteRecipe(
-                recipeId, currentUserId, TestContext.Current.CancellationToken))
+                recipeId, currentUserId, ipAddress, TestContext.Current.CancellationToken))
             .ReturnsAsync(false);
 
         var result = await this.recipesController.DeletePost(
@@ -352,14 +364,19 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task AddComment_Success_AddsAndRedirectsToCommentOnShowPage()
     {
-        var currentUserId = this.SetupCurrentUserId();
         long recipeId = this.modelFactory.NextInt();
         var commentAttributes = this.BuildCommentAttributes();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
         var commentId = this.modelFactory.NextInt();
 
         this.commentManagerMock
             .Setup(x => x.CreateComment(
-                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
+                recipeId,
+                commentAttributes,
+                currentUserId,
+                ipAddress,
+                TestContext.Current.CancellationToken))
             .ReturnsAsync(commentId);
 
         var result = await this.recipesController.AddComment(
@@ -411,13 +428,18 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task AddComment_NotFoundException_ReturnsNotFoundResult()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
         var commentAttributes = this.BuildCommentAttributes();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.commentManagerMock
             .Setup(x => x.CreateComment(
-                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
+                recipeId,
+                commentAttributes,
+                currentUserId,
+                ipAddress,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new NotFoundException());
 
         var result = await this.recipesController.AddComment(
@@ -429,13 +451,18 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task AddComment_SoftDeletedException_ReturnsNotFoundResult()
     {
-        var currentUserId = this.SetupCurrentUserId();
         var recipeId = this.modelFactory.NextInt();
         var commentAttributes = this.BuildCommentAttributes();
+        var currentUserId = this.SetupCurrentUserId();
+        var ipAddress = this.SetupRemoteIpAddress();
 
         this.commentManagerMock
             .Setup(x => x.CreateComment(
-                recipeId, commentAttributes, currentUserId, TestContext.Current.CancellationToken))
+                recipeId,
+                commentAttributes,
+                currentUserId,
+                ipAddress,
+                TestContext.Current.CancellationToken))
             .ThrowsAsync(new SoftDeletedException());
 
         var result = await this.recipesController.AddComment(
@@ -492,5 +519,12 @@ public sealed class RecipesControllerTests : IDisposable
                 TestContext.Current.CancellationToken))
             .ReturnsAsync(comments);
         return comments;
+    }
+
+    private IPAddress SetupRemoteIpAddress()
+    {
+        var ipAddress = this.modelFactory.NextIpAddress();
+        this.httpContext.SetRemoteIpAddress(ipAddress);
+        return ipAddress;
     }
 }

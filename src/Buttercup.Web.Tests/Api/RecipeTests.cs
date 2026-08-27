@@ -1,4 +1,3 @@
-using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -14,11 +13,7 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes);
-        recipe.Revisions.Add(
-            RecipeRevision.From(this.ModelFactory.BuildRecipe(setOptionalAttributes)));
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true);
-        comment.Revisions.Add(
-            CommentRevision.From(this.ModelFactory.BuildComment(setOptionalAttributes: true)));
         recipe.Comments.Add(comment);
         recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
         await this.DatabaseFixture.InsertEntities(currentUser, recipe);
@@ -47,22 +42,6 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             ModifiedByUser = IdName.From(recipe.ModifiedByUser),
             recipe.Deleted,
             DeletedByUser = IdName.From(recipe.DeletedByUser),
-            recipe.Revision,
-            revisions = recipe.Revisions.Select(revision => new
-            {
-                revision.Revision,
-                revision.Created,
-                CreatedByUser = IdName.From(revision.CreatedByUser),
-                revision.Title,
-                revision.PreparationMinutes,
-                revision.CookingMinutes,
-                revision.Servings,
-                revision.Ingredients,
-                revision.Method,
-                revision.Suggestions,
-                revision.Remarks,
-                revision.Source,
-            }),
             Comments = new[]
             {
                 new
@@ -72,13 +51,6 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                     comment.Body,
                     comment.Created,
                     comment.Modified,
-                    comment.Revision,
-                    Revisions = comment.Revisions.Select(revision => new
-                    {
-                        revision.Revision,
-                        revision.Created,
-                        revision.Body
-                    }),
                 }
             },
         };
@@ -148,8 +120,6 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             ModifiedByUser = IdName.From(recipe.ModifiedByUser),
             recipe.Deleted,
             DeletedByUser = IdName.From(recipe.DeletedByUser),
-            recipe.Revision,
-            revisions = Array.Empty<object>(),
             Comments = Array.Empty<object>()
         };
 
@@ -250,29 +220,12 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                     modifiedByUser { id name }
                     deleted
                     deletedByUser { id name }
-                    revision
-                    revisions {
-                        revision
-                        created
-                        createdByUser { id name }
-                        title
-                        preparationMinutes
-                        cookingMinutes
-                        servings
-                        ingredients
-                        method
-                        suggestions
-                        remarks
-                        source
-                    }
                     comments {
                         id
                         author { id name }
                         body
                         created
                         modified
-                        revision
-                        revisions { revision created body }
                     }
                 }
             }

@@ -75,6 +75,11 @@ public sealed record Comment : IEntityId, ISoftDeletable
     public int Revision { get; set; }
 
     /// <summary>
+    /// Gets or sets the comment's audit entries.
+    /// </summary>
+    public ICollection<CommentAudit> Audits { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the comment's revisions.
     /// </summary>
     public ICollection<CommentRevision> Revisions { get; set; } = [];

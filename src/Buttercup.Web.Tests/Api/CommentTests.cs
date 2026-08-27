@@ -1,4 +1,3 @@
-using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -14,10 +13,6 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     {
         var currentUser = this.ModelFactory.BuildUser();
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes, setRecipe: true);
-        comment.Revisions.Add(
-            CommentRevision.From(this.ModelFactory.BuildComment(setOptionalAttributes: true)));
-        comment.Revisions.Add(
-            CommentRevision.From(this.ModelFactory.BuildComment(setOptionalAttributes: false)));
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -40,13 +35,6 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
             comment.Modified,
             comment.Deleted,
             DeletedByUser = IdName.From(comment.DeletedByUser),
-            comment.Revision,
-            Revisions = comment.Revisions.Select(revision => new
-            {
-                revision.Revision,
-                revision.Created,
-                revision.Body
-            }),
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("comment"));
@@ -110,8 +98,6 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
             comment.Modified,
             comment.Deleted,
             DeletedByUser = IdName.From(comment.DeletedByUser),
-            comment.Revision,
-            Revisions = Array.Empty<object>()
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("comment"));
@@ -145,8 +131,6 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
                     modified
                     deleted
                     deletedByUser { id name }
-                    revision
-                    revisions { revision created body }
                 }
             }
             """,

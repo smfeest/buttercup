@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +12,10 @@ internal sealed class RecipeManager(
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
 
     public async Task<long> CreateRecipe(
-        RecipeAttributes attributes, long currentUserId, CancellationToken cancellationToken)
+        RecipeAttributes attributes,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var recipe = new Recipe()
@@ -31,7 +35,18 @@ internal sealed class RecipeManager(
             ModifiedByUserId = currentUserId
         };
 
-        recipe.Revisions.Add(RecipeRevision.From(recipe));
+        var revision = RecipeRevision.From(recipe);
+        recipe.Revisions.Add(revision);
+
+        recipe.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = RecipeAction.Create,
+                Revision = revision,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
 
         using var dbContext = this.dbContextFactory.CreateDbContext();
         dbContext.Recipes.Add(recipe);
@@ -41,9 +56,14 @@ internal sealed class RecipeManager(
     }
 
     public async Task<bool> DeleteRecipe(
-        long id, long currentUserId, CancellationToken cancellationToken)
+        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        await using var transaction =
+            await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var updatedRows = await dbContext
             .Recipes
@@ -51,11 +71,30 @@ internal sealed class RecipeManager(
             .WhereNotSoftDeleted()
             .ExecuteUpdateAsync(
                 s => s
-                .SetProperty(r => r.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                .SetProperty(r => r.Deleted, timestamp)
                 .SetProperty(r => r.DeletedByUserId, currentUserId),
                 cancellationToken);
 
-        return updatedRows > 0;
+        if (updatedRows == 0)
+        {
+            return false;
+        }
+
+        dbContext.RecipeAudits.Add(
+            new()
+            {
+                RecipeId = id,
+                Time = timestamp,
+                Action = RecipeAction.Delete,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<bool> HardDeleteRecipe(long id, CancellationToken cancellationToken)
@@ -71,6 +110,7 @@ internal sealed class RecipeManager(
         RecipeAttributes newAttributes,
         int baseRevision,
         long currentUserId,
+        IPAddress? ipAddress,
         CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -91,6 +131,8 @@ internal sealed class RecipeManager(
                 $"Revision {baseRevision} does not match current revision {recipe.Revision}");
         }
 
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
         recipe.Title = newAttributes.Title;
         recipe.PreparationMinutes = newAttributes.PreparationMinutes;
         recipe.CookingMinutes = newAttributes.CookingMinutes;
@@ -100,11 +142,22 @@ internal sealed class RecipeManager(
         recipe.Suggestions = newAttributes.Suggestions;
         recipe.Remarks = newAttributes.Remarks;
         recipe.Source = newAttributes.Source;
-        recipe.Modified = this.timeProvider.GetUtcDateTimeNow();
+        recipe.Modified = timestamp;
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
 
-        recipe.Revisions.Add(RecipeRevision.From(recipe));
+        var revision = RecipeRevision.From(recipe);
+        recipe.Revisions.Add(revision);
+
+        recipe.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = RecipeAction.Update,
+                Revision = revision,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
 
         try
         {
@@ -113,7 +166,7 @@ internal sealed class RecipeManager(
         catch (DbUpdateConcurrencyException)
         {
             return await this.UpdateRecipe(
-                id, newAttributes, baseRevision, currentUserId, cancellationToken);
+                id, newAttributes, baseRevision, currentUserId, ipAddress, cancellationToken);
         }
 
         return true;

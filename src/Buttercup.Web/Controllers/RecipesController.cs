@@ -50,7 +50,10 @@ public sealed class RecipesController(
         }
 
         var id = await this.recipeManager.CreateRecipe(
-            model, this.User.GetUserId(), cancellationToken);
+            model,
+            this.User.GetUserId(),
+            this.HttpContext.Connection.RemoteIpAddress,
+            cancellationToken);
 
         return this.RedirectToAction(nameof(this.Show), new { id });
     }
@@ -74,7 +77,12 @@ public sealed class RecipesController(
         try
         {
             await this.recipeManager.UpdateRecipe(
-                id, model.Attributes, model.BaseRevision, this.User.GetUserId(), cancellationToken);
+                id,
+                model.Attributes,
+                model.BaseRevision,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
         }
         catch (ConcurrencyException)
         {
@@ -101,7 +109,11 @@ public sealed class RecipesController(
 
     [HttpPost("{id}/delete")]
     public async Task<IActionResult> DeletePost(long id, CancellationToken cancellationToken) =>
-        await this.recipeManager.DeleteRecipe(id, this.User.GetUserId(), cancellationToken) ?
+        await this.recipeManager.DeleteRecipe(
+            id,
+            this.User.GetUserId(),
+            this.HttpContext.Connection.RemoteIpAddress,
+            cancellationToken) ?
             this.RedirectToAction(nameof(this.Index)) :
             this.NotFound();
 
@@ -119,7 +131,11 @@ public sealed class RecipesController(
         try
         {
             commentId = await this.commentManager.CreateComment(
-                id, newCommentAttributes, this.User.GetUserId(), cancellationToken);
+                id,
+                newCommentAttributes,
+                this.User.GetUserId(),
+                this.HttpContext.Connection.RemoteIpAddress,
+                cancellationToken);
         }
         catch (Exception e) when (e is NotFoundException or SoftDeletedException)
         {

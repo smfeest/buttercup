@@ -10,6 +10,7 @@ public sealed class RecipeFilterType : FilterInputType<Recipe>
             .Ignore(r => r.CreatedByUserId)
             .Ignore(r => r.ModifiedByUserId)
             .Ignore(r => r.DeletedByUserId)
+            .Ignore(r => r.Audits)
             .Ignore(r => r.Revision)
             .Ignore(r => r.Revisions);
 }

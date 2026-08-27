@@ -34,7 +34,6 @@ public sealed class DeletedCommentsTests(AppFactory appFactory) : EndToEndTests(
                         body
                         created
                         modified
-                        revision
                     }
                 }
             }
@@ -55,7 +54,6 @@ public sealed class DeletedCommentsTests(AppFactory appFactory) : EndToEndTests(
                 deletedComment.Body,
                 deletedComment.Created,
                 deletedComment.Modified,
-                deletedComment.Revision,
             };
         });
 

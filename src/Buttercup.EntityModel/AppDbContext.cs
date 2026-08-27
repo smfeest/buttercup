@@ -28,6 +28,11 @@ public sealed class AppDbContext : DbContext
     public DbSet<Comment> Comments => this.Set<Comment>();
 
     /// <summary>
+    /// Gets the set of all comment audit entries.
+    /// </summary>
+    public DbSet<CommentAudit> CommentAudits => this.Set<CommentAudit>();
+
+    /// <summary>
     /// Gets the set of all comment revisions.
     /// </summary>
     public DbSet<CommentRevision> CommentRevisions => this.Set<CommentRevision>();
@@ -41,6 +46,11 @@ public sealed class AppDbContext : DbContext
     /// Gets the set of all recipes.
     /// </summary>
     public DbSet<Recipe> Recipes => this.Set<Recipe>();
+
+    /// <summary>
+    /// Gets the set of all recipe audit entries.
+    /// </summary>
+    public DbSet<RecipeAudit> RecipeAudits => this.Set<RecipeAudit>();
 
     /// <summary>
     /// Gets the set of all recipe revisions.
@@ -60,6 +70,24 @@ public sealed class AppDbContext : DbContext
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder
+            .Entity<CommentAudit>()
+            .Property(e => e.Action)
+            .HasConversion<CommentActionToStringConverter>()
+            .HasMaxLength(10);
+        modelBuilder
+            .Entity<CommentAudit>()
+            .Property(e => e.IpAddress)
+            .HasConversion<IPAddressToBytesConverter>();
+        modelBuilder
+            .Entity<RecipeAudit>()
+            .Property(e => e.Action)
+            .HasConversion<RecipeActionToStringConverter>()
+            .HasMaxLength(10);
+        modelBuilder
+            .Entity<RecipeAudit>()
+            .Property(e => e.IpAddress)
+            .HasConversion<IPAddressToBytesConverter>();
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)

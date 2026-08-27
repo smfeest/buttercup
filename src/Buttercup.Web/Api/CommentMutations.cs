@@ -16,14 +16,17 @@ public sealed class CommentMutations
     /// <summary>
     /// Creates a comment on a recipe.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="validatorFactory">
     /// The input object validator factory.
     /// </param>
     /// <param name="commentManager">
     /// The comment manager.
-    /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
     /// </param>
     /// <param name="schema">
     /// The GraphQL schema.
@@ -42,9 +45,10 @@ public sealed class CommentMutations
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
     public async Task<FieldResult<CreateCommentPayload>> CreateComment(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         ICommentManager commentManager,
-        ClaimsPrincipal claimsPrincipal,
         ISchema schema,
         long recipeId,
         CommentAttributes attributes,
@@ -59,13 +63,24 @@ public sealed class CommentMutations
         }
 
         var id = await commentManager.CreateComment(
-            recipeId, attributes, claimsPrincipal.GetUserId(), cancellationToken);
+            recipeId,
+            attributes,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
+
         return new CreateCommentPayload(id);
     }
 
     /// <summary>
     /// Soft-deletes a comment.
     /// </summary>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
     /// <param name="authorizationService">
     /// The authorization service.
     /// </param>
@@ -78,9 +93,6 @@ public sealed class CommentMutations
     /// <param name="dbContext">
     /// The database context.
     /// </param>
-    /// <param name="claimsPrincipal">
-    /// The claims principal.
-    /// </param>
     /// <param name="resolverContext">
     /// The resolver context.
     /// </param>
@@ -92,11 +104,12 @@ public sealed class CommentMutations
     /// </param>
     [Authorize]
     public async Task<DeleteCommentPayload> DeleteComment(
+        ClaimsPrincipal claimsPrincipal,
+        IHttpContextAccessor httpContextAccessor,
         IAuthorizationService authorizationService,
         ICommentManager commentManager,
         IStringLocalizer<CommentMutations> localizer,
         AppDbContext dbContext,
-        ClaimsPrincipal claimsPrincipal,
         IResolverContext resolverContext,
         long id,
         CancellationToken cancellationToken)
@@ -110,7 +123,10 @@ public sealed class CommentMutations
             ? new(
                 id,
                 await commentManager.DeleteComment(
-                    id, claimsPrincipal.GetUserId(), cancellationToken))
+                    id,
+                    claimsPrincipal.GetUserId(),
+                    httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+                    cancellationToken))
             : throw new GraphQLException(
                 resolverContext.CreateError(
                     ErrorCodes.Authentication.NotAuthorized,

@@ -1,3 +1,4 @@
+using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ internal sealed class CommentManager(
         long recipeId,
         CommentAttributes attributes,
         long currentUserId,
+        IPAddress? ipAddress,
         CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
@@ -34,7 +36,19 @@ internal sealed class CommentManager(
             Created = timestamp,
             Modified = timestamp,
         };
-        comment.Revisions.Add(CommentRevision.From(comment));
+
+        var revision = CommentRevision.From(comment);
+        comment.Revisions.Add(revision);
+
+        comment.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = CommentAction.Create,
+                Revision = revision,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
 
         dbContext.Comments.Add(comment);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -43,9 +57,14 @@ internal sealed class CommentManager(
     }
 
     public async Task<bool> DeleteComment(
-        long id, long currentUserId, CancellationToken cancellationToken)
+        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
     {
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        await using var transaction =
+            await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var updatedRows = await dbContext
             .Comments
@@ -53,11 +72,30 @@ internal sealed class CommentManager(
             .WhereNotSoftDeleted()
             .ExecuteUpdateAsync(
                 s => s
-                    .SetProperty(c => c.Deleted, this.timeProvider.GetUtcDateTimeNow())
+                    .SetProperty(c => c.Deleted, timestamp)
                     .SetProperty(c => c.DeletedByUserId, currentUserId),
                 cancellationToken);
 
-        return updatedRows > 0;
+        if (updatedRows == 0)
+        {
+            return false;
+        }
+
+        dbContext.CommentAudits.Add(
+            new()
+            {
+                CommentId = id,
+                Time = timestamp,
+                Action = CommentAction.Delete,
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<bool> HardDeleteComment(long id, CancellationToken cancellationToken)

@@ -11,6 +11,8 @@ public sealed class RecipeType : ObjectType<Recipe>
         descriptor
             .Ignore(r => r.CreatedByUserId)
             .Ignore(r => r.ModifiedByUserId)
-            .Ignore(r => r.DeletedByUserId);
+            .Ignore(r => r.DeletedByUserId)
+            .Ignore(r => r.Audits)
+            .Ignore(r => r.Revisions);
     }
 }
