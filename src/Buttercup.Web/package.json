@@ -35,5 +35,8 @@
     "@popperjs/core": "^2.11.8",
     "normalize.css": "^8.0.1"
   },
-  "scripts": {}
+  "scripts": {},
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true
+  }
 }
