@@ -32,6 +32,8 @@ export type ApiUserFixture = {
   hardDeleteTestUser: (id: number) => Promise<void>;
 };
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 const AUTHENTICATE_QUERY = gql`
   mutation ($input: AuthenticateInput!) {
     authenticate(input: $input) {
@@ -99,6 +101,8 @@ const HARD_DELETE_TEST_USER_QUERY = gql`
     }
   }
 `;
+
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
 const DEFAULT_COMMENT_ATTRIBUTES: CommentAttributes = {
   body: 'Everything tastes better with a spoonful of marmite.',
