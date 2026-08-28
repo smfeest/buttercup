@@ -1,13 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a reversion of a recipe.
 /// </summary>
-[Index(nameof(RecipeId), nameof(Revision), IsUnique = true)]
 public sealed record RecipeRevision
 {
     /// <summary>
@@ -23,17 +21,17 @@ public sealed record RecipeRevision
     /// <summary>
     /// Gets or sets the primary key of the recipe.
     /// </summary>
-    public long RecipeId { get; set; }
+    public long? RecipeId { get; set; }
 
     /// <summary>
     /// Gets or sets the revision number.
     /// </summary>
-    public int Revision { get; set; }
+    public int? Revision { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time at which the revision was added.
     /// </summary>
-    public DateTime Created { get; set; }
+    public DateTime? Created { get; set; }
 
     /// <summary>
     /// Gets or sets the user who created the revision.
