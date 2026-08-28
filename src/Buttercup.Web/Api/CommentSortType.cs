@@ -11,6 +11,5 @@ public sealed class CommentSortType : SortInputType<Comment>
             .Ignore(c => c.AuthorId)
             .Ignore(c => c.Body)
             .Ignore(c => c.DeletedByUserId)
-            .Ignore(c => c.Revision)
-            .Ignore(c => c.Revisions);
+            .Ignore(c => c.Revision);
 }

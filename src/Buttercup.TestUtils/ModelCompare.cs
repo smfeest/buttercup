@@ -25,7 +25,6 @@ public static class ModelCompare
             Author = null,
             DeletedByUser = null,
             Audits = Array.Empty<CommentAudit>(),
-            Revisions = Array.Empty<CommentRevision>(),
         };
 
         return ClearNavigationProperties(x) == ClearNavigationProperties(y);

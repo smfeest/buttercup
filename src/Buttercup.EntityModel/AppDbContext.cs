@@ -82,7 +82,7 @@ public sealed class AppDbContext : DbContext
         modelBuilder
             .Entity<CommentRevision>()
             .HasOne(e => e.Comment)
-            .WithMany(e => e.Revisions)
+            .WithMany()
             .OnDelete(DeleteBehavior.Cascade);
         modelBuilder
             .Entity<RecipeAudit>()
