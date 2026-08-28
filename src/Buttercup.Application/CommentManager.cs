@@ -28,6 +28,7 @@ internal sealed class CommentManager(
         }
 
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
         var comment = new Comment
         {
             RecipeId = recipeId,
@@ -37,15 +38,15 @@ internal sealed class CommentManager(
             Modified = timestamp,
         };
 
-        var revision = CommentRevision.From(comment);
-        comment.Revisions.Add(revision);
-
         comment.Audits.Add(
             new()
             {
                 Time = timestamp,
                 Action = CommentAction.Create,
-                Revision = revision,
+                Revision = new()
+                {
+                    Body = attributes.Body,
+                },
                 ActorId = currentUserId,
                 IpAddress = ipAddress,
             });
