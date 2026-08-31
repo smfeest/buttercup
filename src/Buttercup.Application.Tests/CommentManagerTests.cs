@@ -45,7 +45,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
         var comment = await dbContext
             .Comments
             .Include(c => c.Audits)
-            .Include(c => c.Revisions)
+            .ThenInclude(a => a.Revision)
             .GetAsync(id, TestContext.Current.CancellationToken);
 
         var expectedTimestamp = this.timeProvider.GetUtcDateTimeNow();
@@ -67,7 +67,6 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             ModelCompare.EqualExcludingNavigationProperties);
 
         var audit = Assert.Single(comment.Audits);
-        var revision = Assert.Single(comment.Revisions);
 
         Assert.Equal(
             new()
@@ -76,23 +75,25 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
                 CommentId = id,
                 Time = this.timeProvider.GetUtcDateTimeNow(),
                 Action = CommentAction.Create,
-                RevisionId = revision.Id,
+                RevisionId = audit.RevisionId,
                 ActorId = currentUser.Id,
                 IpAddress = ipAddress,
             },
             audit,
             ModelCompare.EqualExcludingNavigationProperties);
 
+        Assert.NotNull(audit.Revision);
+
         Assert.Equal(
             new()
             {
-                Id = revision.Id,
-                CommentId = id,
-                Revision = 0,
-                Created = expectedTimestamp,
+                Id = audit.Revision.Id,
+                CommentId = null,
+                Revision = null,
+                Created = null,
                 Body = attributes.Body,
             },
-            revision,
+            audit.Revision,
             ModelCompare.EqualExcludingNavigationProperties);
     }
 

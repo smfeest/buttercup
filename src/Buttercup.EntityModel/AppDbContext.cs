@@ -80,6 +80,11 @@ public sealed class AppDbContext : DbContext
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
         modelBuilder
+            .Entity<CommentRevision>()
+            .HasOne(e => e.Comment)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder
             .Entity<RecipeAudit>()
             .Property(e => e.Action)
             .HasConversion<RecipeActionToStringConverter>()
@@ -88,6 +93,11 @@ public sealed class AppDbContext : DbContext
             .Entity<RecipeAudit>()
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
+        modelBuilder
+            .Entity<RecipeRevision>()
+            .HasOne(e => e.Recipe)
+            .WithMany()
+            .OnDelete(DeleteBehavior.Cascade);
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)

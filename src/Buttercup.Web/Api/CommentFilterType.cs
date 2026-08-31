@@ -10,6 +10,5 @@ public sealed class CommentFilterType : FilterInputType<Comment>
             .Ignore(c => c.RecipeId)
             .Ignore(c => c.AuthorId)
             .Ignore(c => c.DeletedByUserId)
-            .Ignore(c => c.Revision)
-            .Ignore(c => c.Revisions);
+            .Ignore(c => c.Revision);
 }

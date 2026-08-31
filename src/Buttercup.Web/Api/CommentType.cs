@@ -9,6 +9,5 @@ public sealed class CommentType : ObjectType<Comment>
             .Ignore(c => c.RecipeId)
             .Ignore(c => c.AuthorId)
             .Ignore(c => c.DeletedByUserId)
-            .Ignore(c => c.Audits)
-            .Ignore(c => c.Revisions);
+            .Ignore(c => c.Audits);
 }

@@ -35,15 +35,12 @@ internal sealed class RecipeManager(
             ModifiedByUserId = currentUserId
         };
 
-        var revision = RecipeRevision.From(recipe);
-        recipe.Revisions.Add(revision);
-
         recipe.Audits.Add(
             new()
             {
                 Time = timestamp,
                 Action = RecipeAction.Create,
-                Revision = revision,
+                Revision = CreateRevision(attributes),
                 ActorId = currentUserId,
                 IpAddress = ipAddress,
             });
@@ -146,15 +143,12 @@ internal sealed class RecipeManager(
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
 
-        var revision = RecipeRevision.From(recipe);
-        recipe.Revisions.Add(revision);
-
         recipe.Audits.Add(
             new()
             {
                 Time = timestamp,
                 Action = RecipeAction.Update,
-                Revision = revision,
+                Revision = CreateRevision(newAttributes),
                 ActorId = currentUserId,
                 IpAddress = ipAddress,
             });
@@ -171,4 +165,17 @@ internal sealed class RecipeManager(
 
         return true;
     }
+
+    private static RecipeRevision CreateRevision(RecipeAttributes attributes) => new()
+    {
+        Title = attributes.Title,
+        PreparationMinutes = attributes.PreparationMinutes,
+        CookingMinutes = attributes.CookingMinutes,
+        Servings = attributes.Servings,
+        Ingredients = attributes.Ingredients,
+        Method = attributes.Method,
+        Suggestions = attributes.Suggestions,
+        Remarks = attributes.Remarks,
+        Source = attributes.Source,
+    };
 }

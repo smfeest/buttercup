@@ -25,7 +25,6 @@ public static class ModelCompare
             Author = null,
             DeletedByUser = null,
             Audits = Array.Empty<CommentAudit>(),
-            Revisions = Array.Empty<CommentRevision>(),
         };
 
         return ClearNavigationProperties(x) == ClearNavigationProperties(y);
@@ -90,7 +89,6 @@ public static class ModelCompare
             DeletedByUser = null,
             Audits = Array.Empty<RecipeAudit>(),
             Comments = Array.Empty<Comment>(),
-            Revisions = Array.Empty<RecipeRevision>(),
         };
 
         return ClearNavigationProperties(x) == ClearNavigationProperties(y);
