@@ -90,7 +90,6 @@ public static class ModelCompare
             DeletedByUser = null,
             Audits = Array.Empty<RecipeAudit>(),
             Comments = Array.Empty<Comment>(),
-            Revisions = Array.Empty<RecipeRevision>(),
         };
 
         return ClearNavigationProperties(x) == ClearNavigationProperties(y);

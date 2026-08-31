@@ -96,7 +96,7 @@ public sealed class AppDbContext : DbContext
         modelBuilder
             .Entity<RecipeRevision>()
             .HasOne(e => e.Recipe)
-            .WithMany(e => e.Revisions)
+            .WithMany()
             .OnDelete(DeleteBehavior.Cascade);
         modelBuilder
             .Entity<UserAuditEntry>()

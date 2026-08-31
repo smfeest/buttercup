@@ -128,11 +128,6 @@ public sealed record Recipe : IEntityId, ISoftDeletable
     public ICollection<RecipeAudit> Audits { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets the recipe revisions.
-    /// </summary>
-    public ICollection<RecipeRevision> Revisions { get; set; } = [];
-
-    /// <summary>
     /// Gets or sets the recipe's comments.
     /// </summary>
     public ICollection<Comment> Comments { get; set; } = [];
