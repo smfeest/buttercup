@@ -41,7 +41,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var recipe = await dbContext
             .Recipes
             .Include(r => r.Audits)
-            .Include(r => r.Revisions)
+            .ThenInclude(a => a.Revision)
             .GetAsync(id, TestContext.Current.CancellationToken);
 
         Assert.Equal(
@@ -67,7 +67,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             ModelCompare.EqualExcludingNavigationProperties);
 
         var audit = Assert.Single(recipe.Audits);
-        var revision = Assert.Single(recipe.Revisions);
 
         Assert.Equal(
             new()
@@ -76,21 +75,23 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 RecipeId = id,
                 Time = this.timeProvider.GetUtcDateTimeNow(),
                 Action = RecipeAction.Create,
-                RevisionId = revision.Id,
+                RevisionId = audit.RevisionId,
                 ActorId = currentUser.Id,
                 IpAddress = ipAddress,
             },
             audit,
             ModelCompare.EqualExcludingNavigationProperties);
 
+        Assert.NotNull(audit.Revision);
+
         Assert.Equal(
             new()
             {
-                Id = revision.Id,
-                RecipeId = id,
-                Revision = 0,
-                Created = this.timeProvider.GetUtcDateTimeNow(),
-                CreatedByUserId = currentUser.Id,
+                Id = audit.Revision.Id,
+                RecipeId = null,
+                Revision = null,
+                Created = null,
+                CreatedByUserId = null,
                 Title = attributes.Title,
                 PreparationMinutes = attributes.PreparationMinutes,
                 CookingMinutes = attributes.CookingMinutes,
@@ -101,7 +102,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 Remarks = attributes.Remarks,
                 Source = attributes.Source,
             },
-            revision,
+            audit.Revision,
             ModelCompare.EqualExcludingNavigationProperties);
     }
 
@@ -272,7 +273,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var recipe = await dbContext
             .Recipes
             .Include(r => r.Audits)
-            .Include(r => r.Revisions)
+            .ThenInclude(a => a.Revision)
             .GetAsync(original.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(
@@ -298,7 +299,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             ModelCompare.EqualExcludingNavigationProperties);
 
         var audit = Assert.Single(recipe.Audits);
-        var revision = Assert.Single(recipe.Revisions);
 
         Assert.Equal(
             new()
@@ -307,21 +307,23 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 RecipeId = original.Id,
                 Time = this.timeProvider.GetUtcDateTimeNow(),
                 Action = RecipeAction.Update,
-                RevisionId = revision.Id,
+                RevisionId = audit.RevisionId,
                 ActorId = currentUser.Id,
                 IpAddress = ipAddress,
             },
             audit,
             ModelCompare.EqualExcludingNavigationProperties);
 
+        Assert.NotNull(audit.Revision);
+
         Assert.Equal(
             new()
             {
-                Id = revision.Id,
-                RecipeId = original.Id,
-                Revision = original.Revision + 1,
-                Created = this.timeProvider.GetUtcDateTimeNow(),
-                CreatedByUserId = currentUser.Id,
+                Id = audit.Revision.Id,
+                RecipeId = null,
+                Revision = null,
+                Created = null,
+                CreatedByUserId = null,
                 Title = newAttributes.Title,
                 PreparationMinutes = newAttributes.PreparationMinutes,
                 CookingMinutes = newAttributes.CookingMinutes,
@@ -332,7 +334,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 Remarks = newAttributes.Remarks,
                 Source = newAttributes.Source,
             },
-            revision,
+            audit.Revision,
             ModelCompare.EqualExcludingNavigationProperties);
     }
 
