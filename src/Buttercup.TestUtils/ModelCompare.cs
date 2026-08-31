@@ -53,24 +53,6 @@ public static class ModelCompare
     }
 
     /// <summary>
-    /// Indicates whether two <see cref="CommentRevision"/> models are equal, excluding navigation
-    /// properties.
-    /// </summary>
-    /// <param name="x">The first object to compare.</param>
-    /// <param name="y">The second object to compare.</param>
-    /// <returns>
-    /// <b>true</b> if the two objects are equal after excluding navigation properties; <b>false</b>
-    /// otherwise.
-    /// </returns>
-    public static bool EqualExcludingNavigationProperties(CommentRevision x, CommentRevision y)
-    {
-        static CommentRevision ClearNavigationProperties(CommentRevision revision) =>
-            revision with { Comment = null };
-
-        return ClearNavigationProperties(x) == ClearNavigationProperties(y);
-    }
-
-    /// <summary>
     /// Indicates whether two <see cref="Recipe"/> models are equal, excluding navigation
     /// properties.
     /// </summary>
@@ -111,27 +93,6 @@ public static class ModelCompare
             Recipe = null,
             Revision = null,
             Actor = null,
-        };
-
-        return ClearNavigationProperties(x) == ClearNavigationProperties(y);
-    }
-
-    /// <summary>
-    /// Indicates whether two <see cref="RecipeRevision"/> models are equal, excluding navigation
-    /// properties.
-    /// </summary>
-    /// <param name="x">The first object to compare.</param>
-    /// <param name="y">The second object to compare.</param>
-    /// <returns>
-    /// <b>true</b> if the two objects are equal after excluding navigation properties; <b>false</b>
-    /// otherwise.
-    /// </returns>
-    public static bool EqualExcludingNavigationProperties(RecipeRevision x, RecipeRevision y)
-    {
-        static RecipeRevision ClearNavigationProperties(RecipeRevision revision) => revision with
-        {
-            Recipe = null,
-            CreatedByUser = null,
         };
 
         return ClearNavigationProperties(x) == ClearNavigationProperties(y);

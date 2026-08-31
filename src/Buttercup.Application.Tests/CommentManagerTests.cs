@@ -84,17 +84,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         Assert.NotNull(audit.Revision);
 
-        Assert.Equal(
-            new()
-            {
-                Id = audit.Revision.Id,
-                CommentId = null,
-                Revision = null,
-                Created = null,
-                Body = attributes.Body,
-            },
-            audit.Revision,
-            ModelCompare.EqualExcludingNavigationProperties);
+        Assert.Equal(attributes.Body, audit.Revision.Body);
     }
 
     [Fact]

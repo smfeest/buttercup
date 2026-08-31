@@ -88,10 +88,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             new()
             {
                 Id = audit.Revision.Id,
-                RecipeId = null,
-                Revision = null,
-                Created = null,
-                CreatedByUserId = null,
                 Title = attributes.Title,
                 PreparationMinutes = attributes.PreparationMinutes,
                 CookingMinutes = attributes.CookingMinutes,
@@ -102,8 +98,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 Remarks = attributes.Remarks,
                 Source = attributes.Source,
             },
-            audit.Revision,
-            ModelCompare.EqualExcludingNavigationProperties);
+            audit.Revision);
     }
 
     [Fact]
@@ -320,10 +315,6 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             new()
             {
                 Id = audit.Revision.Id,
-                RecipeId = null,
-                Revision = null,
-                Created = null,
-                CreatedByUserId = null,
                 Title = newAttributes.Title,
                 PreparationMinutes = newAttributes.PreparationMinutes,
                 CookingMinutes = newAttributes.CookingMinutes,
@@ -334,8 +325,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 Remarks = newAttributes.Remarks,
                 Source = newAttributes.Source,
             },
-            audit.Revision,
-            ModelCompare.EqualExcludingNavigationProperties);
+            audit.Revision);
     }
 
     [Fact]

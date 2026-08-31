@@ -14,36 +14,6 @@ public sealed record RecipeRevision
     public long Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the recipe.
-    /// </summary>
-    public Recipe? Recipe { get; set; }
-
-    /// <summary>
-    /// Gets or sets the primary key of the recipe.
-    /// </summary>
-    public long? RecipeId { get; set; }
-
-    /// <summary>
-    /// Gets or sets the revision number.
-    /// </summary>
-    public int? Revision { get; set; }
-
-    /// <summary>
-    /// Gets or sets the date and time at which the revision was added.
-    /// </summary>
-    public DateTime? Created { get; set; }
-
-    /// <summary>
-    /// Gets or sets the user who created the revision.
-    /// </summary>
-    public User? CreatedByUser { get; set; }
-
-    /// <summary>
-    /// Gets or sets the primary key of the user who created the revision.
-    /// </summary>
-    public long? CreatedByUserId { get; set; }
-
-    /// <summary>
     /// Gets or sets the recipe title.
     /// </summary>
     [StringLength(250)]
