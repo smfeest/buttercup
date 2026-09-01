@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -13,7 +14,9 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     {
         var currentUser = this.ModelFactory.BuildUser();
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes, setRecipe: true);
-        await this.DatabaseFixture.InsertEntities(currentUser, comment);
+        var audit = this.ModelFactory.BuildCommentAudit(comment, CommentAction.Create, setOptionalAttributes);
+
+        await this.DatabaseFixture.InsertEntities(currentUser, comment, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostCommentQuery(client, comment.Id);
@@ -35,6 +38,17 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
             comment.Modified,
             comment.Deleted,
             DeletedByUser = IdName.From(comment.DeletedByUser),
+            Audits = new[]
+            {
+                new
+                {
+                    audit.Id,
+                    audit.Time,
+                    Action = "CREATE",
+                    Revision = audit.Revision is null ? null : new { audit.Revision.Id, audit.Revision.Body },
+                    Actor = IdName.From(audit.Actor),
+                },
+            },
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("comment"));
@@ -76,7 +90,9 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         var comment = this.ModelFactory.BuildComment(setRecipe: true, softDeleted: true);
-        await this.DatabaseFixture.InsertEntities(currentUser, comment);
+        var audit = this.ModelFactory.BuildCommentAudit(comment, CommentAction.Delete);
+
+        await this.DatabaseFixture.InsertEntities(currentUser, comment, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostCommentQuery(client, comment.Id);
@@ -98,6 +114,17 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
             comment.Modified,
             comment.Deleted,
             DeletedByUser = IdName.From(comment.DeletedByUser),
+            Audits = new[]
+            {
+                new
+                {
+                    audit.Id,
+                    audit.Time,
+                    Action = "DELETE",
+                    Revision = default(object?),
+                    Actor = IdName.From(audit.Actor),
+                },
+            },
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("comment"));
@@ -131,6 +158,13 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
                     modified
                     deleted
                     deletedByUser { id name }
+                    audits {
+                        id
+                        time
+                        action
+                        revision { id body }
+                        actor { id name }
+                    }
                 }
             }
             """,

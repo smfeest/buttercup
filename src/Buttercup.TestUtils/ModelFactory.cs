@@ -52,6 +52,48 @@ public sealed class ModelFactory
     }
 
     /// <summary>
+    /// Instantiates a new <see cref="CommentAudit" /> object with unique property values.
+    /// </summary>
+    /// <param name="comment">
+    /// The parent <see cref="Comment"/>.
+    /// </param>
+    /// <param name="action">
+    /// The action.
+    /// </param>
+    /// <param name="setOptionalAttributes">
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="CommentAudit" /> object.</returns>
+    public CommentAudit BuildCommentAudit(
+        Comment comment, CommentAction action, bool setOptionalAttributes = false)
+    {
+        var revision = action == CommentAction.Create ? this.BuildCommentRevision() : null;
+        var actor = setOptionalAttributes ? this.BuildUser() : null;
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Comment = comment,
+            CommentId = comment.Id,
+            Time = this.NextDateTime(),
+            Action = action,
+            Revision = revision,
+            RevisionId = revision?.Id,
+            Actor = actor,
+            ActorId = actor?.Id,
+            IpAddress = setOptionalAttributes ? this.NextIpAddress() : null,
+        };
+    }
+
+    /// <summary>
+    /// Instantiates a new <see cref="CommentRevision" /> object with unique property values.
+    /// </summary>
+    /// <returns>The new <see cref="CommentRevision" /> object.</returns>
+    public CommentRevision BuildCommentRevision() =>
+        new() { Id = this.NextInt(), Body = this.NextString("comment-body") };
+
+    /// <summary>
     /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
     /// </summary>
     /// <param name="user">
@@ -109,6 +151,66 @@ public sealed class ModelFactory
             Revision = this.NextInt(),
         };
     }
+
+    /// <summary>
+    /// Instantiates a new <see cref="RecipeAudit" /> object with unique property values.
+    /// </summary>
+    /// <param name="recipe">
+    /// The parent <see cref="Recipe"/>.
+    /// </param>
+    /// <param name="action">
+    /// The action.
+    /// </param>
+    /// <param name="setOptionalAttributes">
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="RecipeAudit" /> object.</returns>
+    public RecipeAudit BuildRecipeAudit(
+        Recipe recipe, RecipeAction action, bool setOptionalAttributes = false)
+    {
+        var revision = action == RecipeAction.Delete
+            ? null :
+            this.BuildRecipeRevision(setOptionalAttributes);
+        var actor = setOptionalAttributes ? this.BuildUser() : null;
+
+        return new()
+        {
+            Id = this.NextInt(),
+            Recipe = recipe,
+            RecipeId = recipe.Id,
+            Time = this.NextDateTime(),
+            Action = action,
+            Revision = revision,
+            RevisionId = revision?.Id,
+            Actor = actor,
+            ActorId = actor?.Id,
+            IpAddress = setOptionalAttributes ? this.NextIpAddress() : null,
+        };
+    }
+
+    /// <summary>
+    /// Instantiates a new <see cref="RecipeRevision" /> object with unique property values.
+    /// </summary>
+    /// <param name="setOptionalAttributes">
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="RecipeRevision" /> object.</returns>
+    public RecipeRevision BuildRecipeRevision(bool setOptionalAttributes = false) =>
+        new()
+        {
+            Id = this.NextInt(),
+            Title = this.NextString("title"),
+            PreparationMinutes = setOptionalAttributes ? this.NextInt() : null,
+            CookingMinutes = setOptionalAttributes ? this.NextInt() : null,
+            Servings = setOptionalAttributes ? this.NextInt() : null,
+            Ingredients = this.NextString("ingredients"),
+            Method = this.NextString("method"),
+            Suggestions = setOptionalAttributes ? this.NextString("suggestions") : null,
+            Remarks = setOptionalAttributes ? this.NextString("remarks") : null,
+            Source = setOptionalAttributes ? this.NextString("source") : null,
+        };
 
     /// <summary>
     /// Instantiates a new <see cref="User" /> object with unique property values.

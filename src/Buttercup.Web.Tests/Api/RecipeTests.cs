@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -16,7 +17,9 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true);
         recipe.Comments.Add(comment);
         recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+        var audit = this.ModelFactory.BuildRecipeAudit(
+            recipe, RecipeAction.Create, setOptionalAttributes);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostRecipeQuery(client, recipe.Id);
@@ -52,6 +55,17 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                     comment.Created,
                     comment.Modified,
                 }
+            },
+            Audits = new[]
+            {
+                new
+                {
+                    audit.Id,
+                    audit.Time,
+                    Action = "CREATE",
+                    Revision = audit.Revision is null ? null : new { audit.Revision.Id, audit.Revision.Title },
+                    Actor = IdName.From(audit.Actor),
+                },
             },
         };
 
@@ -94,7 +108,8 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+        var audit = this.ModelFactory.BuildRecipeAudit(recipe, RecipeAction.Delete);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostRecipeQuery(client, recipe.Id);
@@ -120,7 +135,18 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             ModifiedByUser = IdName.From(recipe.ModifiedByUser),
             recipe.Deleted,
             DeletedByUser = IdName.From(recipe.DeletedByUser),
-            Comments = Array.Empty<object>()
+            Comments = Array.Empty<object>(),
+            Audits = new[]
+            {
+                new
+                {
+                    audit.Id,
+                    audit.Time,
+                    Action = "DELETE",
+                    Revision = default(object?),
+                    Actor = IdName.From(audit.Actor),
+                },
+            },
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
@@ -226,6 +252,13 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         body
                         created
                         modified
+                    }
+                    audits {
+                        id
+                        time
+                        action
+                        revision { id title }
+                        actor { id name }
                     }
                 }
             }
