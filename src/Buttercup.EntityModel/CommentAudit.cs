@@ -33,7 +33,7 @@ public sealed record CommentAudit
     public CommentAction Action { get; set; }
 
     /// <summary>
-    /// Gets or sets the primary key of the comment revision.
+    /// Gets or sets the comment revision.
     /// </summary>
     /// <remarks>
     /// This property is specified if and only if <see cref="Action"/> is <see

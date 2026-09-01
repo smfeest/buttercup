@@ -33,7 +33,7 @@ public sealed record RecipeAudit
     public RecipeAction Action { get; set; }
 
     /// <summary>
-    /// Gets or sets the primary key of the recipe revision.
+    /// Gets or sets the recipe revision.
     /// </summary>
     /// <remarks>
     /// This property is specified if and only if <see cref="Action"/> is <see
