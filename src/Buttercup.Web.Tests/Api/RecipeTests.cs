@@ -1,3 +1,4 @@
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;
@@ -16,7 +17,9 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true);
         recipe.Comments.Add(comment);
         recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+        var audit = this.ModelFactory.BuildRecipeAudit(
+            recipe, RecipeAction.Create, setOptionalAttributes);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostRecipeQuery(client, recipe.Id);
@@ -52,6 +55,17 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                     comment.Created,
                     comment.Modified,
                 }
+            },
+            Audits = new[]
+            {
+                new
+                {
+                    audit.Id,
+                    audit.Time,
+                    Action = "CREATE",
+                    Revision = audit.Revision is null ? null : new { audit.Revision.Id, audit.Revision.Title },
+                    Actor = IdName.From(audit.Actor),
+                },
             },
         };
 
@@ -94,7 +108,8 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         var recipe = this.ModelFactory.BuildRecipe(softDeleted: true);
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+        var audit = this.ModelFactory.BuildRecipeAudit(recipe, RecipeAction.Delete);
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostRecipeQuery(client, recipe.Id);
@@ -120,7 +135,18 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
             ModifiedByUser = IdName.From(recipe.ModifiedByUser),
             recipe.Deleted,
             DeletedByUser = IdName.From(recipe.DeletedByUser),
-            Comments = Array.Empty<object>()
+            Comments = Array.Empty<object>(),
+            Audits = new[]
+            {
+                new
+                {
+                    audit.Id,
+                    audit.Time,
+                    Action = "DELETE",
+                    Revision = default(object?),
+                    Actor = IdName.From(audit.Actor),
+                },
+            },
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
@@ -200,6 +226,69 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         JsonAssert.Equivalent(expectedErrors, errorsElement);
     }
 
+    [Fact]
+    public async Task QueryingIpAddressWhenAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
+        var recipe = this.ModelFactory.BuildRecipe();
+        var audit = this.ModelFactory.BuildRecipeAudit(
+            recipe, RecipeAction.Create, setOptionalAttributes: true);
+
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostIpAddressQuery(client, recipe.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        var dataElement = ApiAssert.SuccessResponse(document);
+
+        var expected = new
+        {
+            Audits = new[]
+            {
+                new
+                {
+                    IpAddress = audit.IpAddress?.ToString(),
+                },
+            },
+        };
+
+        JsonAssert.Equivalent(expected, dataElement.GetProperty("recipe"));
+    }
+
+    [Fact]
+    public async Task QueryingIpAddressWhenNotAnAdmin()
+    {
+        var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
+        var recipe = this.ModelFactory.BuildRecipe();
+        var audit = this.ModelFactory.BuildRecipeAudit(
+            recipe, RecipeAction.Create, setOptionalAttributes: true);
+
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
+
+        using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
+        using var response = await PostIpAddressQuery(client, recipe.Id);
+        using var document = await response.Content.ReadAsJsonDocument();
+
+        JsonAssert.ValueIsNull(
+            document
+                .RootElement
+                .GetProperty("data")
+                .GetProperty("recipe")
+                .GetProperty("audits")[0]
+                .GetProperty("ipAddress"));
+
+        var errorElement = ApiAssert.HasSingleError(
+            ErrorCodes.Authentication.NotAuthorized, document);
+
+        Assert.Collection(
+            errorElement.GetProperty("path").EnumerateArray(),
+            e => Assert.Equal("recipe", e.GetString()),
+            e => Assert.Equal("audits", e.GetString()),
+            e => Assert.Equal(0, e.GetInt32()),
+            e => Assert.Equal("ipAddress", e.GetString()));
+    }
+
     private static Task<HttpResponseMessage> PostRecipeQuery(HttpClient client, long id) =>
         client.PostQuery("""
             query($id: Long!) {
@@ -227,6 +316,13 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         created
                         modified
                     }
+                    audits {
+                        id
+                        time
+                        action
+                        revision { id title }
+                        actor { id name }
+                    }
                 }
             }
             """,
@@ -241,6 +337,16 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
                         deleted
                         deletedByUser { id name }
                     }
+                }
+            }
+            """,
+            new { id });
+
+    private static Task<HttpResponseMessage> PostIpAddressQuery(HttpClient client, long id) =>
+        client.PostQuery("""
+            query($id: Long!) {
+                recipe(id: $id) {
+                    audits { ipAddress }
                 }
             }
             """,

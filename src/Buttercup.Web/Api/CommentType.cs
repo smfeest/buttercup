@@ -8,6 +8,5 @@ public sealed class CommentType : ObjectType<Comment>
         descriptor
             .Ignore(c => c.RecipeId)
             .Ignore(c => c.AuthorId)
-            .Ignore(c => c.DeletedByUserId)
-            .Ignore(c => c.Audits);
+            .Ignore(c => c.DeletedByUserId);
 }
