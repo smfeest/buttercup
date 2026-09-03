@@ -24,7 +24,7 @@ public sealed class ModelFactory
     /// <see cref="Comment.RecipeId"/> should be left null and zero.
     /// </param>
     /// <param name="softDeleted">
-    /// <b>true</b> if the commend should be marked as soft-deleted; <b>false</b> otherwise.
+    /// <b>true</b> if the comment should be marked as soft-deleted; <b>false</b> otherwise.
     /// </param>
     /// <returns>The new <see cref="Comment" /> object.</returns>
     public Comment BuildComment(
