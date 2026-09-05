@@ -88,6 +88,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             new()
             {
                 Id = audit.Revision.Id,
+                RecipeId = id,
                 Title = attributes.Title,
                 PreparationMinutes = attributes.PreparationMinutes,
                 CookingMinutes = attributes.CookingMinutes,
@@ -315,6 +316,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             new()
             {
                 Id = audit.Revision.Id,
+                RecipeId = original.Id,
                 Title = newAttributes.Title,
                 PreparationMinutes = newAttributes.PreparationMinutes,
                 CookingMinutes = newAttributes.CookingMinutes,
