@@ -21,7 +21,7 @@ public sealed record RecipeRevision
     /// <summary>
     /// Gets or sets the primary key of the recipe.
     /// </summary>
-    public long? RecipeId { get; set; }
+    public long RecipeId { get; set; }
 
     /// <summary>
     /// Gets or sets the recipe title.
