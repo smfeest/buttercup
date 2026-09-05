@@ -4,6 +4,7 @@ using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Buttercup.EntityModel.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260905155142_BackfillForeignKeysAndDeleteOrphanedRevisions")]
+    partial class BackfillForeignKeysAndDeleteOrphanedRevisions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -148,7 +151,7 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnType("text")
                         .HasColumnName("body");
 
-                    b.Property<long>("CommentId")
+                    b.Property<long?>("CommentId")
                         .HasColumnType("bigint")
                         .HasColumnName("comment_id");
 
@@ -369,7 +372,7 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnType("int")
                         .HasColumnName("preparation_minutes");
 
-                    b.Property<long>("RecipeId")
+                    b.Property<long?>("RecipeId")
                         .HasColumnType("bigint")
                         .HasColumnName("recipe_id");
 
@@ -596,7 +599,6 @@ namespace Buttercup.EntityModel.Migrations
                         .WithMany()
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_comment_revisions_comments_comment_id");
 
                     b.Navigation("Comment");
@@ -670,7 +672,6 @@ namespace Buttercup.EntityModel.Migrations
                         .WithMany()
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_recipe_revisions_recipes_recipe_id");
 
                     b.Navigation("Recipe");

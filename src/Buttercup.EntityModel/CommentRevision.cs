@@ -20,7 +20,7 @@ public sealed record CommentRevision
     /// <summary>
     /// Gets or sets the primary key of the comment.
     /// </summary>
-    public long? CommentId { get; set; }
+    public long CommentId { get; set; }
 
     /// <summary>
     /// Gets or sets the comment body.

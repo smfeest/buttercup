@@ -85,19 +85,9 @@ public sealed class AppDbContext : DbContext
             .HasConversion<RecipeActionToStringConverter>()
             .HasMaxLength(10);
         modelBuilder
-            .Entity<CommentRevision>()
-            .HasOne(e => e.Comment)
-            .WithMany()
-            .OnDelete(DeleteBehavior.Cascade);
-        modelBuilder
             .Entity<RecipeAudit>()
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
-        modelBuilder
-            .Entity<RecipeRevision>()
-            .HasOne(e => e.Recipe)
-            .WithMany()
-            .OnDelete(DeleteBehavior.Cascade);
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
