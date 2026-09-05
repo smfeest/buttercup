@@ -13,6 +13,16 @@ public sealed record CommentRevision
     public long Id { get; set; }
 
     /// <summary>
+    /// Gets or sets the comment.
+    /// </summary>
+    public Comment? Comment { get; set; }
+
+    /// <summary>
+    /// Gets or sets the primary key of the comment.
+    /// </summary>
+    public long? CommentId { get; set; }
+
+    /// <summary>
     /// Gets or sets the comment body.
     /// </summary>
     [Column(TypeName = "text")]

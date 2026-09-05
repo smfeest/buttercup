@@ -14,6 +14,16 @@ public sealed record RecipeRevision
     public long Id { get; set; }
 
     /// <summary>
+    /// Gets or sets the recipe.
+    /// </summary>
+    public Recipe? Recipe { get; set; }
+
+    /// <summary>
+    /// Gets or sets the primary key of the recipe.
+    /// </summary>
+    public long? RecipeId { get; set; }
+
+    /// <summary>
     /// Gets or sets the recipe title.
     /// </summary>
     [StringLength(250)]

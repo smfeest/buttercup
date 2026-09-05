@@ -84,7 +84,14 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
         Assert.NotNull(audit.Revision);
 
-        Assert.Equal(attributes.Body, audit.Revision.Body);
+        Assert.Equal(
+            new()
+            {
+                Id = audit.Revision.Id,
+                CommentId = id,
+                Body = attributes.Body,
+            },
+            audit.Revision);
     }
 
     [Fact]

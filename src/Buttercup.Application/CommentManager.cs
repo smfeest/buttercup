@@ -45,6 +45,7 @@ internal sealed class CommentManager(
                 Action = CommentAction.Create,
                 Revision = new()
                 {
+                    Comment = comment,
                     Body = attributes.Body,
                 },
                 ActorId = currentUserId,

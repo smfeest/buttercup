@@ -40,7 +40,7 @@ internal sealed class RecipeManager(
             {
                 Time = timestamp,
                 Action = RecipeAction.Create,
-                Revision = CreateRevision(attributes),
+                Revision = CreateRevision(recipe),
                 ActorId = currentUserId,
                 IpAddress = ipAddress,
             });
@@ -148,7 +148,7 @@ internal sealed class RecipeManager(
             {
                 Time = timestamp,
                 Action = RecipeAction.Update,
-                Revision = CreateRevision(newAttributes),
+                Revision = CreateRevision(recipe),
                 ActorId = currentUserId,
                 IpAddress = ipAddress,
             });
@@ -166,16 +166,17 @@ internal sealed class RecipeManager(
         return true;
     }
 
-    private static RecipeRevision CreateRevision(RecipeAttributes attributes) => new()
+    private static RecipeRevision CreateRevision(Recipe recipe) => new()
     {
-        Title = attributes.Title,
-        PreparationMinutes = attributes.PreparationMinutes,
-        CookingMinutes = attributes.CookingMinutes,
-        Servings = attributes.Servings,
-        Ingredients = attributes.Ingredients,
-        Method = attributes.Method,
-        Suggestions = attributes.Suggestions,
-        Remarks = attributes.Remarks,
-        Source = attributes.Source,
+        Recipe = recipe,
+        Title = recipe.Title,
+        PreparationMinutes = recipe.PreparationMinutes,
+        CookingMinutes = recipe.CookingMinutes,
+        Servings = recipe.Servings,
+        Ingredients = recipe.Ingredients,
+        Method = recipe.Method,
+        Suggestions = recipe.Suggestions,
+        Remarks = recipe.Remarks,
+        Source = recipe.Source,
     };
 }
