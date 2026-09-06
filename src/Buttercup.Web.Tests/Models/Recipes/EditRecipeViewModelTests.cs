@@ -16,7 +16,7 @@ public sealed class EditRecipeViewModelTests
 
         Assert.Equal(recipe.Id, editModel.Id);
         Assert.Equal(new(recipe), editModel.Attributes);
-        Assert.Equal(recipe.Revision, editModel.BaseRevision);
+        Assert.Equal(recipe.UpdateCount, editModel.BaseUpdateCount);
     }
 
     #endregion

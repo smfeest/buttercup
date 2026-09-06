@@ -21,7 +21,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         var attributes = new RecipeAttributes(this.ModelFactory.BuildRecipe(setOptionalAttributes));
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision, attributes);
+            client, recipe.Id, recipe.UpdateCount, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -55,7 +55,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
 
         using var client = this.AppFactory.CreateClient();
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision, new(recipe));
+            client, recipe.Id, recipe.UpdateCount, new(recipe));
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
@@ -72,7 +72,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision, new(recipe));
+            client, recipe.Id, recipe.UpdateCount, new(recipe));
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -100,7 +100,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision, new(recipe));
+            client, recipe.Id, recipe.UpdateCount, new(recipe));
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -119,7 +119,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
     }
 
     [Fact]
-    public async Task UpdatingRecipeWithStaleBaseRevision()
+    public async Task UpdatingRecipeWithStaleBaseUpdateCount()
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe();
@@ -128,7 +128,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision - 1, new(this.ModelFactory.BuildRecipe()));
+            client, recipe.Id, recipe.UpdateCount - 1, new(this.ModelFactory.BuildRecipe()));
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -162,7 +162,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         };
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.Revision, attributes);
+            client, recipe.Id, recipe.UpdateCount, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -190,7 +190,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
     }
 
     private static Task<HttpResponseMessage> PostUpdateRecipeMutation(
-        HttpClient client, long id, int baseRevision, RecipeAttributes attributes) =>
+        HttpClient client, long id, int baseUpdateCount, RecipeAttributes attributes) =>
         client.PostQuery("""
             mutation($input: UpdateRecipeInput!) {
                 updateRecipe(input: $input) {
@@ -222,5 +222,5 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
                 }
             }
             """,
-            new { input = new { id, baseRevision, attributes } });
+            new { input = new { id, baseUpdateCount, attributes } });
 }

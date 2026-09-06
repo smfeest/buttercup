@@ -6,8 +6,7 @@
 <h1>@Localizer["Heading_EditRecipe"]</h1>
 <form class="form" method="post">
   @Html.EditorFor(m => m.Attributes)
-  <input type="hidden" asp-for="BaseRevision">
-  <input type="hidden" asp-for="BaseRevision" name="BaseUpdateCount">
+  <input type="hidden" asp-for="BaseUpdateCount">
   <div class="button-bar">
     <button class="push-button push-button--primary">@Localizer["Label_Save"]</button>
     <a class="push-button" asp-action="Show" asp-route-id="@Model.Id">@Localizer["Label_Cancel"]</a>

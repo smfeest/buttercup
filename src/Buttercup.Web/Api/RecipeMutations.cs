@@ -136,7 +136,7 @@ public sealed class RecipeMutations
     /// <param name="attributes">
     /// The recipe attributes.
     /// </param>
-    /// <param name="baseRevision">
+    /// <param name="baseUpdateCount">
     /// The base revision. Used for concurrency control.
     /// </param>
     /// <param name="cancellationToken">
@@ -155,7 +155,7 @@ public sealed class RecipeMutations
         ISchema schema,
         long id,
         RecipeAttributes attributes,
-        int baseRevision,
+        int baseUpdateCount,
         CancellationToken cancellationToken)
     {
         var validator = validatorFactory.CreateValidator<RecipeAttributes>(schema);
@@ -169,7 +169,7 @@ public sealed class RecipeMutations
         await recipeManager.UpdateRecipe(
             id,
             attributes,
-            baseRevision,
+            baseUpdateCount,
             claimsPrincipal.GetUserId(),
             httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
             cancellationToken);

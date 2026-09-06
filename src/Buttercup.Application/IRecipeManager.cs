@@ -81,8 +81,8 @@ public interface IRecipeManager
     /// <param name="newAttributes">
     /// The new recipe attributes.
     /// </param>
-    /// <param name="baseRevision">
-    /// The base revision.
+    /// <param name="baseUpdateCount">
+    /// The base update count.
     /// </param>
     /// <param name="currentUserId">
     /// The current user ID.
@@ -104,12 +104,12 @@ public interface IRecipeManager
     /// Recipe is soft-deleted.
     /// </exception>
     /// <exception cref="ConcurrencyException">
-    /// <paramref name="baseRevision"/> does not match the current revision in the database.
+    /// <paramref name="baseUpdateCount"/> does not match the current update count in the database.
     /// </exception>
     Task<bool> UpdateRecipe(
         long id,
         RecipeAttributes newAttributes,
-        int baseRevision,
+        int baseUpdateCount,
         long currentUserId,
         IPAddress? ipAddress,
         CancellationToken cancellationToken = default);

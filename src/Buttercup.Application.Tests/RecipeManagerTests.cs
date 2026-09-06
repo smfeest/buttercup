@@ -261,7 +261,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.True(await this.recipeManager.UpdateRecipe(
             original.Id,
             newAttributes,
-            original.Revision,
+            original.UpdateCount,
             currentUser.Id,
             ipAddress,
             TestContext.Current.CancellationToken));
@@ -346,7 +346,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.True(await this.recipeManager.UpdateRecipe(
             original.Id,
             newAttributes,
-            original.Revision,
+            original.UpdateCount,
             currentUser.Id,
             null,
             TestContext.Current.CancellationToken));
@@ -373,7 +373,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.False(await this.recipeManager.UpdateRecipe(
             original.Id,
             new(original),
-            original.Revision,
+            original.UpdateCount,
             currentUser.Id,
             null,
             TestContext.Current.CancellationToken));
@@ -417,7 +417,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             () => this.recipeManager.UpdateRecipe(
                 recipe.Id,
                 new(this.modelFactory.BuildRecipe()),
-                recipe.Revision,
+                recipe.UpdateCount,
                 currentUser.Id,
                 null,
                 TestContext.Current.CancellationToken));
@@ -426,24 +426,24 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     }
 
     [Fact]
-    public async Task UpdateRecipe_ThrowsIfRevisionOutOfSync()
+    public async Task UpdateRecipe_ThrowsIfUpdateCountDoesNotMatch()
     {
         var recipe = this.modelFactory.BuildRecipe(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(recipe, currentUser);
 
-        var staleRevision = recipe.Revision - 1;
+        var staleUpdateCount = recipe.UpdateCount - 1;
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeManager.UpdateRecipe(
                 recipe.Id,
                 new(this.modelFactory.BuildRecipe()),
-                staleRevision,
+                staleUpdateCount,
                 currentUser.Id,
                 null,
                 TestContext.Current.CancellationToken));
 
         Assert.Equal(
-            $"Revision {staleRevision} does not match current revision {recipe.Revision}",
+            $"Base update count {staleUpdateCount} does not match current update count {recipe.UpdateCount}",
             exception.Message);
     }
 
