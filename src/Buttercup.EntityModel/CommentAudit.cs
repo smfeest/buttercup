@@ -5,7 +5,7 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents an audit entry for a comment.
 /// </summary>
-public sealed record CommentAudit
+public sealed record CommentAudit : IEntityId
 {
     /// <summary>
     /// Gets or sets the primary key of the audit entry.

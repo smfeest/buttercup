@@ -5,7 +5,7 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents an audit entry for a recipe.
 /// </summary>
-public sealed record RecipeAudit
+public sealed record RecipeAudit : IEntityId
 {
     /// <summary>
     /// Gets or sets the primary key of the audit entry.
