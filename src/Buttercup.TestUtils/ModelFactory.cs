@@ -48,6 +48,7 @@ public sealed class ModelFactory
             DeletedByUser = deletedByUser,
             DeletedByUserId = deletedByUser?.Id,
             Revision = this.NextInt(),
+            UpdateCount = this.NextInt(),
         };
     }
 
