@@ -62,6 +62,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
                 Deleted = null,
                 DeletedByUserId = null,
                 Revision = 0,
+                UpdateCount = 0,
             },
             comment,
             ModelCompare.EqualExcludingNavigationProperties);
@@ -160,6 +161,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
             {
                 Deleted = this.timeProvider.GetUtcDateTimeNow(),
                 DeletedByUserId = currentUser.Id,
+                UpdateCount = original.Revision + 1,
             },
             comment,
             ModelCompare.EqualExcludingNavigationProperties);

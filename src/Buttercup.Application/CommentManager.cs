@@ -75,7 +75,8 @@ internal sealed class CommentManager(
             .ExecuteUpdateAsync(
                 s => s
                     .SetProperty(c => c.Deleted, timestamp)
-                    .SetProperty(c => c.DeletedByUserId, currentUserId),
+                    .SetProperty(c => c.DeletedByUserId, currentUserId)
+                    .SetProperty(c => c.UpdateCount, c => c.Revision + 1),
                 cancellationToken);
 
         if (updatedRows == 0)
