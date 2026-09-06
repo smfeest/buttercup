@@ -123,6 +123,11 @@ public sealed record Recipe : IEntityId, ISoftDeletable
     public int Revision { get; set; }
 
     /// <summary>
+    /// Gets or sets the update count for concurrency control.
+    /// </summary>
+    public int UpdateCount { get; set; }
+
+    /// <summary>
     /// Gets or sets the recipe's audit entries.
     /// </summary>
     public ICollection<RecipeAudit> Audits { get; set; } = [];

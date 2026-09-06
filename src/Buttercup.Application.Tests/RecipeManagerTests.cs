@@ -62,6 +62,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 Modified = this.timeProvider.GetUtcDateTimeNow(),
                 ModifiedByUserId = currentUser.Id,
                 Revision = 0,
+                UpdateCount = 0,
             },
             recipe,
             ModelCompare.EqualExcludingNavigationProperties);
@@ -153,6 +154,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
             {
                 Deleted = this.timeProvider.GetUtcDateTimeNow(),
                 DeletedByUserId = currentUser.Id,
+                UpdateCount = original.Revision + 1,
             },
             recipe,
             ModelCompare.EqualExcludingNavigationProperties);
@@ -290,6 +292,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
                 Modified = this.timeProvider.GetUtcDateTimeNow(),
                 ModifiedByUserId = currentUser.Id,
                 Revision = original.Revision + 1,
+                UpdateCount = original.Revision + 1,
             },
             recipe,
             ModelCompare.EqualExcludingNavigationProperties);
