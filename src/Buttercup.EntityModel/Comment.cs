@@ -75,6 +75,11 @@ public sealed record Comment : IEntityId, ISoftDeletable
     public int Revision { get; set; }
 
     /// <summary>
+    /// Gets or sets the update count for concurrency control.
+    /// </summary>
+    public int UpdateCount { get; set; }
+
+    /// <summary>
     /// Gets or sets the comment's audit entries.
     /// </summary>
     public ICollection<CommentAudit> Audits { get; set; } = [];
