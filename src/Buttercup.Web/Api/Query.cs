@@ -26,6 +26,15 @@ public sealed class Query
     public IQueryable<Comment> Comments(AppDbContext dbContext) =>
         dbContext.Comments.WhereNotSoftDeleted();
 
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [UsePaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseTieBreakSortById<CommentAudit>]
+    [UseSorting]
+    public IQueryable<CommentAudit> CommentAudits(AppDbContext dbContext) =>
+        dbContext.CommentAudits;
+
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)
@@ -58,6 +67,15 @@ public sealed class Query
     [UseProjection]
     public IQueryable<Recipe> Recipe(AppDbContext dbContext, long id) =>
         dbContext.Recipes.Where(r => r.Id == id).OrderBy(r => r.Id);
+
+    [Authorize(AuthorizationPolicyNames.AdminOnly)]
+    [UsePaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseTieBreakSortById<RecipeAudit>]
+    [UseSorting]
+    public IQueryable<RecipeAudit> RecipeAudits(AppDbContext dbContext) =>
+        dbContext.RecipeAudits;
 
     [Authorize]
     [Authorize(AuthorizationPolicyNames.AdminOnlyFilterAndSortFields)]
