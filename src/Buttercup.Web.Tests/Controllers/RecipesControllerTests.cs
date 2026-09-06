@@ -183,7 +183,7 @@ public sealed class RecipesControllerTests : IDisposable
             x => x.UpdateRecipe(
                 editModel.Id,
                 editModel.Attributes,
-                editModel.BaseRevision,
+                editModel.BaseUpdateCount,
                 currentUserId,
                 ipAddress,
                 TestContext.Current.CancellationToken));
@@ -220,7 +220,7 @@ public sealed class RecipesControllerTests : IDisposable
             .Setup(x => x.UpdateRecipe(
                 editModel.Id,
                 editModel.Attributes,
-                editModel.BaseRevision,
+                editModel.BaseUpdateCount,
                 currentUserId,
                 ipAddress,
                 TestContext.Current.CancellationToken))
@@ -250,7 +250,7 @@ public sealed class RecipesControllerTests : IDisposable
             .Setup(x => x.UpdateRecipe(
                 editModel.Id,
                 editModel.Attributes,
-                editModel.BaseRevision,
+                editModel.BaseUpdateCount,
                 currentUserId,
                 ipAddress,
                 TestContext.Current.CancellationToken))
@@ -273,7 +273,7 @@ public sealed class RecipesControllerTests : IDisposable
             .Setup(x => x.UpdateRecipe(
                 editModel.Id,
                 editModel.Attributes,
-                editModel.BaseRevision,
+                editModel.BaseUpdateCount,
                 currentUserId,
                 ipAddress,
                 TestContext.Current.CancellationToken))
