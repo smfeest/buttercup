@@ -71,6 +71,11 @@ public sealed class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
+            .Entity<Comment>()
+            .Property(e => e.Revision)
+            .HasDefaultValue(0)
+            .ValueGeneratedNever();
+        modelBuilder
             .Entity<CommentAudit>()
             .Property(e => e.Action)
             .HasConversion<CommentActionToStringConverter>()
@@ -79,6 +84,11 @@ public sealed class AppDbContext : DbContext
             .Entity<CommentAudit>()
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
+        modelBuilder
+            .Entity<Recipe>()
+            .Property(e => e.Revision)
+            .HasDefaultValue(0)
+            .ValueGeneratedNever();
         modelBuilder
             .Entity<RecipeAudit>()
             .Property(e => e.Action)
