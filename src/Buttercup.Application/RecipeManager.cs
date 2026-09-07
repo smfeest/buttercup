@@ -142,7 +142,6 @@ internal sealed class RecipeManager(
         recipe.Source = newAttributes.Source;
         recipe.Modified = timestamp;
         recipe.ModifiedByUserId = currentUserId;
-        recipe.Revision++;
         recipe.UpdateCount++;
 
         recipe.Audits.Add(

@@ -47,7 +47,6 @@ public sealed class ModelFactory
             Deleted = softDeleted ? this.NextDateTime() : null,
             DeletedByUser = deletedByUser,
             DeletedByUserId = deletedByUser?.Id,
-            Revision = this.NextInt(),
             UpdateCount = this.NextInt(),
         };
     }
@@ -158,7 +157,6 @@ public sealed class ModelFactory
             Deleted = softDeleted ? this.NextDateTime() : null,
             DeletedByUser = deletedByUser,
             DeletedByUserId = deletedByUser?.Id,
-            Revision = this.NextInt(),
             UpdateCount = this.NextInt(),
         };
     }

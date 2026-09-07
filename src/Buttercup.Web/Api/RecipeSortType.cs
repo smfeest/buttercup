@@ -9,6 +9,5 @@ public sealed class RecipeSortType : SortInputType<Recipe>
         descriptor
             .Ignore(r => r.CreatedByUserId)
             .Ignore(r => r.ModifiedByUserId)
-            .Ignore(r => r.DeletedByUserId)
-            .Ignore(r => r.Revision);
+            .Ignore(r => r.DeletedByUserId);
 }

@@ -61,7 +61,6 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
                 Modified = expectedTimestamp,
                 Deleted = null,
                 DeletedByUserId = null,
-                Revision = 0,
                 UpdateCount = 0,
             },
             comment,
