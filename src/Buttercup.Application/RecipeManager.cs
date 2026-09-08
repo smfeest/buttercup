@@ -70,7 +70,7 @@ internal sealed class RecipeManager(
                 s => s
                 .SetProperty(r => r.Deleted, timestamp)
                 .SetProperty(r => r.DeletedByUserId, currentUserId)
-                .SetProperty(r => r.UpdateCount, r => r.Revision + 1),
+                .SetProperty(r => r.UpdateCount, r => r.UpdateCount + 1),
                 cancellationToken);
 
         if (updatedRows == 0)
@@ -106,7 +106,7 @@ internal sealed class RecipeManager(
     public async Task<bool> UpdateRecipe(
         long id,
         RecipeAttributes newAttributes,
-        int baseRevision,
+        int baseUpdateCount,
         long currentUserId,
         IPAddress? ipAddress,
         CancellationToken cancellationToken)
@@ -123,10 +123,10 @@ internal sealed class RecipeManager(
         {
             return false;
         }
-        if (recipe.Revision != baseRevision)
+        if (recipe.UpdateCount != baseUpdateCount)
         {
             throw new ConcurrencyException(
-                $"Revision {baseRevision} does not match current revision {recipe.Revision}");
+                $"Base update count {baseUpdateCount} does not match current update count {recipe.UpdateCount}");
         }
 
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
@@ -143,7 +143,7 @@ internal sealed class RecipeManager(
         recipe.Modified = timestamp;
         recipe.ModifiedByUserId = currentUserId;
         recipe.Revision++;
-        recipe.UpdateCount = recipe.Revision;
+        recipe.UpdateCount++;
 
         recipe.Audits.Add(
             new()
@@ -162,7 +162,7 @@ internal sealed class RecipeManager(
         catch (DbUpdateConcurrencyException)
         {
             return await this.UpdateRecipe(
-                id, newAttributes, baseRevision, currentUserId, ipAddress, cancellationToken);
+                id, newAttributes, baseUpdateCount, currentUserId, ipAddress, cancellationToken);
         }
 
         return true;

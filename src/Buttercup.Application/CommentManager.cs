@@ -76,7 +76,7 @@ internal sealed class CommentManager(
                 s => s
                     .SetProperty(c => c.Deleted, timestamp)
                     .SetProperty(c => c.DeletedByUserId, currentUserId)
-                    .SetProperty(c => c.UpdateCount, c => c.Revision + 1),
+                    .SetProperty(c => c.UpdateCount, c => c.UpdateCount + 1),
                 cancellationToken);
 
         if (updatedRows == 0)

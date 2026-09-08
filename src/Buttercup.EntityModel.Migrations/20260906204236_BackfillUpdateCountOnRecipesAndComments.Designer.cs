@@ -4,6 +4,7 @@ using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Buttercup.EntityModel.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260906204236_BackfillUpdateCountOnRecipesAndComments")]
+    partial class BackfillUpdateCountOnRecipesAndComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,6 +48,7 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("created");
 
                     b.Property<DateTime?>("Deleted")
+                        .IsConcurrencyToken()
                         .HasColumnType("datetime(6)")
                         .HasColumnName("deleted");
 
@@ -61,12 +65,11 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("recipe_id");
 
                     b.Property<int>("Revision")
+                        .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
                         .HasColumnName("revision");
 
                     b.Property<int>("UpdateCount")
-                        .IsConcurrencyToken()
                         .HasColumnType("int")
                         .HasColumnName("update_count");
 
@@ -211,6 +214,7 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("created_by_user_id");
 
                     b.Property<DateTime?>("Deleted")
+                        .IsConcurrencyToken()
                         .HasColumnType("datetime(6)")
                         .HasColumnName("deleted");
 
@@ -245,8 +249,8 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("remarks");
 
                     b.Property<int>("Revision")
+                        .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
                         .HasColumnName("revision");
 
                     b.Property<int?>("Servings")
@@ -269,7 +273,6 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("title");
 
                     b.Property<int>("UpdateCount")
-                        .IsConcurrencyToken()
                         .HasColumnType("int")
                         .HasColumnName("update_count");
 

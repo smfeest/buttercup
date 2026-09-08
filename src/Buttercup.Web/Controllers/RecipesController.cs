@@ -79,7 +79,7 @@ public sealed class RecipesController(
             await this.recipeManager.UpdateRecipe(
                 id,
                 model.Attributes,
-                model.BaseRevision,
+                model.BaseUpdateCount,
                 this.User.GetUserId(),
                 this.HttpContext.Connection.RemoteIpAddress,
                 cancellationToken);
