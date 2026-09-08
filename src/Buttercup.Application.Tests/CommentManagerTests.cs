@@ -139,7 +139,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     [Fact]
     public async Task DeleteComment_SetsSoftDeleteAttributesInsertsAuditAndReturnsTrue()
     {
-        var original = this.modelFactory.BuildComment(setRecipe: true, softDeleted: false);
+        var recipe = this.modelFactory.BuildRecipe();
+        var original = this.modelFactory.BuildComment(recipe, softDeleted: false);
         var currentUser = this.modelFactory.BuildUser();
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -185,7 +186,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     [Fact]
     public async Task DeleteComment_DoesNotUpdateCommentOrInsertAuditAndReturnsFalseIfAlreadySoftDeleted()
     {
-        var original = this.modelFactory.BuildComment(setRecipe: true, softDeleted: true);
+        var recipe = this.modelFactory.BuildRecipe();
+        var original = this.modelFactory.BuildComment(recipe, softDeleted: true);
         var currentUser = this.modelFactory.BuildUser();
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -210,7 +212,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     {
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(
-            this.modelFactory.BuildComment(setRecipe: true), currentUser);
+            this.modelFactory.BuildComment(this.modelFactory.BuildRecipe()), currentUser);
 
         Assert.False(
             await this.commentManager.DeleteComment(
@@ -227,7 +229,7 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     [Fact]
     public async Task HardDeleteComment_HardDeletesCommentAndReturnsTrue()
     {
-        var comment = this.modelFactory.BuildComment(setRecipe: true);
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
         await this.DatabaseFixture.InsertEntities(comment);
 
         Assert.True(await this.commentManager.HardDeleteComment(
@@ -241,7 +243,8 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
     [Fact]
     public async Task HardDeleteComment_ReturnsFalseIfRecordNotFound()
     {
-        await this.DatabaseFixture.InsertEntities(this.modelFactory.BuildComment(setRecipe: true));
+        await this.DatabaseFixture.InsertEntities(
+            this.modelFactory.BuildComment(this.modelFactory.BuildRecipe()));
 
         Assert.False(await this.commentManager.HardDeleteComment(
             this.modelFactory.NextInt(), TestContext.Current.CancellationToken));

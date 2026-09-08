@@ -14,23 +14,20 @@ public sealed class ModelFactory
     /// <summary>
     /// Instantiates a new <see cref="Comment" /> object with unique property values.
     /// </summary>
+    /// <param name="recipe">
+    /// The parent <see cref="Recipe"/>.
+    /// </param>
     /// <param name="setOptionalAttributes">
     /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
     /// null.
-    /// </param>
-    /// <param name="setRecipe">
-    /// <b>true</b> if a <see cref="Comment.Recipe"/> should be populated and <see
-    /// cref="Comment.RecipeId"/> set to match; <b>false</b> if <see cref="Comment.Recipe"/> and
-    /// <see cref="Comment.RecipeId"/> should be left null and zero.
     /// </param>
     /// <param name="softDeleted">
     /// <b>true</b> if the comment should be marked as soft-deleted; <b>false</b> otherwise.
     /// </param>
     /// <returns>The new <see cref="Comment" /> object.</returns>
     public Comment BuildComment(
-        bool setOptionalAttributes = false, bool setRecipe = false, bool softDeleted = false)
+        Recipe recipe, bool setOptionalAttributes = false, bool softDeleted = false)
     {
-        var recipe = setRecipe ? this.BuildRecipe() : null;
         var author = setOptionalAttributes ? this.BuildUser() : null;
         var deletedByUser = softDeleted && setOptionalAttributes ? this.BuildUser() : null;
 
@@ -38,7 +35,7 @@ public sealed class ModelFactory
         {
             Id = this.NextInt(),
             Recipe = recipe,
-            RecipeId = recipe?.Id ?? 0,
+            RecipeId = recipe.Id,
             Author = author,
             AuthorId = author?.Id,
             Body = this.NextString("comment-body"),

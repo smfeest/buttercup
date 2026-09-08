@@ -40,7 +40,7 @@ public sealed class CommentsControllerTests : IDisposable
     [Fact]
     public async Task Delete_Get_ReturnsViewResultWithComment()
     {
-        var comment = this.modelFactory.BuildComment();
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
         this.SetupFindCommentWithAuthor(comment.Id, comment);
 
         var result = await this.commentsController.Delete(
@@ -69,7 +69,7 @@ public sealed class CommentsControllerTests : IDisposable
     public async Task Delete_Post_DeletesCommentAndRedirectsToRecipeShowPage()
     {
         var currentUserId = this.SetupCurrentUserId();
-        var comment = this.modelFactory.BuildComment();
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
         var ipAddress = this.SetupRemoteIpAddress();
         this.SetupFindComment(comment.Id, comment);
         this.SetupAuthorizeCommentAuthorOrAdmin(comment, true);
@@ -106,7 +106,7 @@ public sealed class CommentsControllerTests : IDisposable
     public async Task Delete_Post_FailedAuthorization_ReturnsUnauthorizedResult()
     {
         this.SetupCurrentUserId();
-        var comment = this.modelFactory.BuildComment();
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
         this.SetupFindComment(comment.Id, comment);
         this.SetupAuthorizeCommentAuthorOrAdmin(comment, false);
 

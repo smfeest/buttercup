@@ -16,10 +16,11 @@ public sealed class CommentsControllerQueriesTests(
     [Fact]
     public async Task FindComment_ReturnsCommentIfExistsAndNotDeleted()
     {
+        var recipe = this.modelFactory.BuildRecipe();
         var accessibleComment = this.modelFactory.BuildComment(
-            setOptionalAttributes: true, setRecipe: true);
+            recipe, setOptionalAttributes: true);
         var softDeletedComment = this.modelFactory.BuildComment(
-            setOptionalAttributes: true, setRecipe: true, softDeleted: true);
+            recipe, setOptionalAttributes: true, softDeleted: true);
         await this.DatabaseFixture.InsertEntities(accessibleComment, softDeletedComment);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
@@ -44,10 +45,11 @@ public sealed class CommentsControllerQueriesTests(
     [Fact]
     public async Task FindCommentWithAuthor_ReturnsCommentWithAuthorIfExistsAndNotDeleted()
     {
+        var recipe = this.modelFactory.BuildRecipe();
         var accessibleComment = this.modelFactory.BuildComment(
-            setOptionalAttributes: true, setRecipe: true);
+            recipe, setOptionalAttributes: true);
         var softDeletedComment = this.modelFactory.BuildComment(
-            setOptionalAttributes: true, setRecipe: true, softDeleted: true);
+            recipe, setOptionalAttributes: true, softDeleted: true);
         await this.DatabaseFixture.InsertEntities(accessibleComment, softDeletedComment);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();

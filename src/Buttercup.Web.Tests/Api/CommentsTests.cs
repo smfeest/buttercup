@@ -27,8 +27,10 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         var currentUser = this.ModelFactory.BuildUser();
         var comments = new[]
         {
-            this.ModelFactory.BuildComment(setOptionalAttributes: true, setRecipe: true),
-            this.ModelFactory.BuildComment(setOptionalAttributes: false, setRecipe: true),
+            this.ModelFactory.BuildComment(
+                this.ModelFactory.BuildRecipe(), setOptionalAttributes: true),
+            this.ModelFactory.BuildComment(
+                this.ModelFactory.BuildRecipe(), setOptionalAttributes: false),
         };
         var deletedComment = this.ModelFactory.BuildRecipe(softDeleted: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comments, deletedComment);
@@ -70,8 +72,8 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         var recipe = this.ModelFactory.BuildRecipe();
         var comments = new[]
         {
-            this.ModelFactory.BuildComment() with { Recipe = recipe, Body = "Delectable" },
-            this.ModelFactory.BuildComment() with { Recipe = recipe, Body = "Palatable" },
+            this.ModelFactory.BuildComment(recipe) with { Body = "Delectable" },
+            this.ModelFactory.BuildComment(recipe) with { Body = "Palatable" },
         };
         await this.DatabaseFixture.InsertEntities(currentUser, comments);
 
@@ -122,14 +124,14 @@ public sealed class CommentsTests(AppFactory appFactory) : EndToEndTests(appFact
         var baseCreated = this.ModelFactory.NextDateTime();
         var comments = new[]
         {
-            this.ModelFactory.BuildComment() with
-                { Id = 1, Recipe = recipe, Created = baseCreated },
-            this.ModelFactory.BuildComment() with
-                { Id = 2, Recipe = recipe, Created = baseCreated.AddHours(10) },
-            this.ModelFactory.BuildComment() with
-                { Id = 3, Recipe = recipe, Created = baseCreated.AddHours(5) },
-            this.ModelFactory.BuildComment() with
-                { Id = 4, Recipe = recipe, Created = baseCreated.AddHours(15) },
+            this.ModelFactory.BuildComment(recipe) with
+                { Id = 1, Created = baseCreated },
+            this.ModelFactory.BuildComment(recipe) with
+                { Id = 2, Created = baseCreated.AddHours(10) },
+            this.ModelFactory.BuildComment(recipe) with
+                { Id = 3, Created = baseCreated.AddHours(5) },
+            this.ModelFactory.BuildComment(recipe) with
+                { Id = 4, Created = baseCreated.AddHours(15) },
         };
         await this.DatabaseFixture.InsertEntities(currentUser, comments);
 

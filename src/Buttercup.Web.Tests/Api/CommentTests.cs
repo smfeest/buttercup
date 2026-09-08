@@ -13,8 +13,10 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     public async Task QueryingComment(bool setOptionalAttributes)
     {
         var currentUser = this.ModelFactory.BuildUser();
-        var comment = this.ModelFactory.BuildComment(setOptionalAttributes, setRecipe: true);
-        var audit = this.ModelFactory.BuildCommentAudit(comment, CommentAction.Create, setOptionalAttributes);
+        var recipe = this.ModelFactory.BuildRecipe();
+        var comment = this.ModelFactory.BuildComment(recipe, setOptionalAttributes);
+        var audit = this.ModelFactory.BuildCommentAudit(
+            comment, CommentAction.Create, setOptionalAttributes);
 
         await this.DatabaseFixture.InsertEntities(currentUser, comment, audit);
 
@@ -27,11 +29,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
         var expected = new
         {
             comment.Id,
-            Recipe = new
-            {
-                comment.Recipe!.Id,
-                comment.Recipe.Title,
-            },
+            Recipe = new { recipe.Id, recipe.Title },
             Author = IdName.From(comment.Author),
             comment.Body,
             comment.Created,
@@ -58,7 +56,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     public async Task QueryingNonExistentComment()
     {
         var currentUser = this.ModelFactory.BuildUser();
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -73,7 +71,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     [Fact]
     public async Task QueryingCommentWhenUnauthenticated()
     {
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         await this.DatabaseFixture.InsertEntities(comment);
 
         using var client = this.AppFactory.CreateClient();
@@ -89,7 +87,8 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     public async Task QueryingDeletedCommentWhenAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true, softDeleted: true);
+        var recipe = this.ModelFactory.BuildRecipe();
+        var comment = this.ModelFactory.BuildComment(recipe, softDeleted: true);
         var audit = this.ModelFactory.BuildCommentAudit(comment, CommentAction.Delete);
 
         await this.DatabaseFixture.InsertEntities(currentUser, comment, audit);
@@ -103,11 +102,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
         var expected = new
         {
             comment.Id,
-            Recipe = new
-            {
-                comment.Recipe!.Id,
-                comment.Recipe.Title,
-            },
+            Recipe = new { recipe.Id, recipe.Title },
             Author = IdName.From(comment.Author),
             comment.Body,
             comment.Created,
@@ -134,7 +129,8 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     public async Task QueryingDeletedCommentWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true, softDeleted: true);
+        var comment = this.ModelFactory.BuildComment(
+            this.ModelFactory.BuildRecipe(), softDeleted: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -150,7 +146,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     public async Task QueryingIpAddressWhenAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         var audit = this.ModelFactory.BuildCommentAudit(
             comment, CommentAction.Create, setOptionalAttributes: true);
 
@@ -180,7 +176,7 @@ public sealed class CommentTests(AppFactory appFactory) : EndToEndTests(appFacto
     public async Task QueryingIpAddressWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         var audit = this.ModelFactory.BuildCommentAudit(
             comment, CommentAction.Create, setOptionalAttributes: true);
 

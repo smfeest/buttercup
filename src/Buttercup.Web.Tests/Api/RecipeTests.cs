@@ -14,12 +14,13 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     {
         var currentUser = this.ModelFactory.BuildUser();
         var recipe = this.ModelFactory.BuildRecipe(setOptionalAttributes);
-        var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true);
-        recipe.Comments.Add(comment);
-        recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
+        var comment = this.ModelFactory.BuildComment(recipe, setOptionalAttributes: true);
+        var deletedComment = this.ModelFactory.BuildComment(recipe, softDeleted: true);
         var audit = this.ModelFactory.BuildRecipeAudit(
             recipe, RecipeAction.Create, setOptionalAttributes);
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe, audit);
+
+        await this.DatabaseFixture.InsertEntities(
+            currentUser, recipe, comment, deletedComment, audit);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostRecipeQuery(client, recipe.Id);
@@ -174,10 +175,11 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         var recipe = this.ModelFactory.BuildRecipe();
         var deletedComment = this.ModelFactory.BuildComment(
-            setOptionalAttributes: true, softDeleted: true);
-        recipe.Comments.Add(deletedComment);
-        recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: false));
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+            recipe, setOptionalAttributes: true, softDeleted: true);
+        var otherComment = this.ModelFactory.BuildComment(recipe, softDeleted: false);
+
+        await this.DatabaseFixture.InsertEntities(
+            currentUser, recipe, deletedComment, otherComment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostDeletedCommentsQuery(client, recipe.Id);
@@ -204,8 +206,9 @@ public sealed class RecipeTests(AppFactory appFactory) : EndToEndTests(appFactor
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
         var recipe = this.ModelFactory.BuildRecipe();
-        recipe.Comments.Add(this.ModelFactory.BuildComment(softDeleted: true));
-        await this.DatabaseFixture.InsertEntities(currentUser, recipe);
+        var comment = this.ModelFactory.BuildComment(recipe, softDeleted: true);
+
+        await this.DatabaseFixture.InsertEntities(currentUser, recipe, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
         using var response = await PostDeletedCommentsQuery(client, recipe.Id);

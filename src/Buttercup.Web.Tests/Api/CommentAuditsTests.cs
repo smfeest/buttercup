@@ -31,11 +31,11 @@ public sealed class CommentAuditsTests(AppFactory appFactory) : EndToEndTests(ap
         var audits = new[]
         {
             this.ModelFactory.BuildCommentAudit(
-                this.ModelFactory.BuildComment(setRecipe: true),
+                this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe()),
                 CommentAction.Create,
                 setOptionalAttributes: true),
             this.ModelFactory.BuildCommentAudit(
-                this.ModelFactory.BuildComment(setRecipe: true, softDeleted: true),
+                this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe(), softDeleted: true),
                 CommentAction.Delete),
         };
         await this.DatabaseFixture.InsertEntities(currentUser, audits);
@@ -83,7 +83,8 @@ public sealed class CommentAuditsTests(AppFactory appFactory) : EndToEndTests(ap
     {
         var currentUser = this.ModelFactory.BuildUser(true) with { IsAdmin = true };
 
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var recipe = this.ModelFactory.BuildRecipe();
+        var comment = this.ModelFactory.BuildComment(recipe);
         var actor = this.ModelFactory.BuildUser();
 
         var audit = this.ModelFactory.BuildCommentAudit(comment, CommentAction.Create) with
@@ -91,7 +92,7 @@ public sealed class CommentAuditsTests(AppFactory appFactory) : EndToEndTests(ap
             Actor = actor,
         };
         var auditOtherComment = this.ModelFactory.BuildCommentAudit(
-            this.ModelFactory.BuildComment(setRecipe: true), CommentAction.Create) with
+            this.ModelFactory.BuildComment(recipe), CommentAction.Create) with
         {
             Actor = actor,
         };
@@ -135,7 +136,7 @@ public sealed class CommentAuditsTests(AppFactory appFactory) : EndToEndTests(ap
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
 
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
 
         CommentAudit AuditWithIpAddress(string ipAddress) => this.ModelFactory.BuildCommentAudit(
             comment, CommentAction.Create) with

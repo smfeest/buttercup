@@ -10,7 +10,7 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
     public async Task DeletingComment()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -29,7 +29,7 @@ public sealed class HardDeleteCommentTests(AppFactory appFactory) : EndToEndTest
     public async Task DeletingCommentWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

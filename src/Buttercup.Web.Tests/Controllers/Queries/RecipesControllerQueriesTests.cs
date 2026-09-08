@@ -56,20 +56,14 @@ public sealed class RecipesControllerQueriesTests(
     [Fact]
     public async Task GetCommentsForRecipe_ReturnsNonDeletedCommentsForRecipeOrderedById()
     {
-        var comment1 = this.modelFactory.BuildComment(setOptionalAttributes: true);
-        var comment2 = this.modelFactory.BuildComment(setOptionalAttributes: false);
-        var softDeletedComment = this.modelFactory.BuildComment(softDeleted: true);
-        var commentForOtherRecipe = this.modelFactory.BuildComment();
+        var recipe = this.modelFactory.BuildRecipe();
+        var comment1 = this.modelFactory.BuildComment(recipe, setOptionalAttributes: true);
+        var comment2 = this.modelFactory.BuildComment(recipe, setOptionalAttributes: false);
+        var softDeletedComment = this.modelFactory.BuildComment(recipe, softDeleted: true);
+        var commentForOtherRecipe = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
 
-        var recipe = this.modelFactory.BuildRecipe() with
-        {
-            Comments = [comment1, comment2, softDeletedComment],
-        };
-        var otherRecipe = this.modelFactory.BuildRecipe() with
-        {
-            Comments = [commentForOtherRecipe],
-        };
-        await this.DatabaseFixture.InsertEntities(recipe, otherRecipe);
+        await this.DatabaseFixture.InsertEntities(
+            comment1, comment2, softDeletedComment, commentForOtherRecipe);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 

@@ -10,7 +10,8 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     public async Task DeletingOwnCommentWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
-        var comment = this.ModelFactory.BuildComment(setRecipe: true) with { Author = currentUser };
+        var recipe = this.ModelFactory.BuildRecipe();
+        var comment = this.ModelFactory.BuildComment(recipe) with { Author = currentUser };
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -36,7 +37,8 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     public async Task DeletingSomeoneElsesCommentWhenNotAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = false };
-        var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true, setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(
+            this.ModelFactory.BuildRecipe(), setOptionalAttributes: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -54,7 +56,8 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     public async Task DeletingSomeoneElsesCommentWhenAnAdmin()
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
-        var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true, setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(
+            this.ModelFactory.BuildRecipe(), setOptionalAttributes: true);
         await this.DatabaseFixture.InsertEntities(currentUser, comment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
@@ -79,7 +82,8 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     [Fact]
     public async Task DeletingCommentWhenUnauthenticated()
     {
-        var comment = this.ModelFactory.BuildComment(setOptionalAttributes: true, setRecipe: true);
+        var comment = this.ModelFactory.BuildComment(
+            this.ModelFactory.BuildRecipe(), setOptionalAttributes: true);
         await this.DatabaseFixture.InsertEntities(comment);
 
         using var client = this.AppFactory.CreateClient();
@@ -95,7 +99,7 @@ public sealed class DeleteCommentTests(AppFactory appFactory) : EndToEndTests(ap
     {
         var currentUser = this.ModelFactory.BuildUser();
         var comment = this.ModelFactory.BuildComment(
-            setRecipe: true, setOptionalAttributes: true, softDeleted: true) with
+            this.ModelFactory.BuildRecipe(), setOptionalAttributes: true, softDeleted: true) with
         {
             Author = currentUser
         };

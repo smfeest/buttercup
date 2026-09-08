@@ -23,9 +23,13 @@ public sealed class ShowRecipeViewModelTests
     [Fact]
     public void ExposesComments()
     {
-        var comments = new[] { this.modelFactory.BuildComment(), this.modelFactory.BuildComment() };
-        var viewModel = new ShowRecipeViewModel(
-            this.modelFactory.BuildRecipe(), comments, new(), new());
+        var recipe = this.modelFactory.BuildRecipe();
+        var comments = new[]
+        {
+            this.modelFactory.BuildComment(recipe),
+            this.modelFactory.BuildComment(recipe),
+        };
+        var viewModel = new ShowRecipeViewModel(recipe, comments, new(), new());
 
         Assert.Equal(comments, viewModel.Comments);
     }
@@ -56,15 +60,15 @@ public sealed class ShowRecipeViewModelTests
     public void UserNotAnAdmin_InitializesCommentViewModelsWithDeleteLinkOnOwnComments()
     {
         var userId = this.modelFactory.NextInt();
+        var recipe = this.modelFactory.BuildRecipe();
         var comments = new Comment[]
         {
-            this.modelFactory.BuildComment(),
-            this.modelFactory.BuildComment() with { AuthorId = userId },
-            this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
+            this.modelFactory.BuildComment(recipe),
+            this.modelFactory.BuildComment(recipe) with { AuthorId = userId },
+            this.modelFactory.BuildComment(recipe) with { AuthorId = this.modelFactory.NextInt() },
         };
         var user = PrincipalFactory.CreateWithUserId(userId);
-        var viewModel = new ShowRecipeViewModel(
-            this.modelFactory.BuildRecipe(), comments, new(), user);
+        var viewModel = new ShowRecipeViewModel(recipe, comments, new(), user);
 
         Assert.Equal(
             [
@@ -78,15 +82,15 @@ public sealed class ShowRecipeViewModelTests
     [Fact]
     public void UserIsAdmin_InitializesCommentViewModelsWithDeleteLinkOnAllComments()
     {
+        var recipe = this.modelFactory.BuildRecipe();
         var comments = new Comment[]
         {
-            this.modelFactory.BuildComment(),
-            this.modelFactory.BuildComment() with { AuthorId = this.modelFactory.NextInt() },
+            this.modelFactory.BuildComment(recipe),
+            this.modelFactory.BuildComment(recipe) with { AuthorId = this.modelFactory.NextInt() },
         };
         var user = PrincipalFactory.CreateWithUserId(
             this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
-        var viewModel = new ShowRecipeViewModel(
-            this.modelFactory.BuildRecipe(), comments, new(), user);
+        var viewModel = new ShowRecipeViewModel(recipe, comments, new(), user);
 
         Assert.Equal(
             [

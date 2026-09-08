@@ -16,7 +16,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
         var requirement = new CommentAuthorOrAdminRequirement();
         var currentUser = PrincipalFactory.CreateWithUserId(
             this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
-        var resource = this.modelFactory.BuildComment();
+        var resource = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -30,7 +30,10 @@ public sealed class CommentAuthorOrAdminRequirementTests
         var requirement = new CommentAuthorOrAdminRequirement();
         var currentUserId = this.modelFactory.NextInt();
         var currentUser = PrincipalFactory.CreateWithUserId(currentUserId);
-        var resource = this.modelFactory.BuildComment() with { AuthorId = currentUserId };
+        var resource = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe()) with
+        {
+            AuthorId = currentUserId,
+        };
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -43,7 +46,10 @@ public sealed class CommentAuthorOrAdminRequirementTests
     {
         var requirement = new CommentAuthorOrAdminRequirement();
         var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
-        var resource = this.modelFactory.BuildComment() with { AuthorId = null };
+        var resource = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe()) with
+        {
+            AuthorId = null,
+        };
         var context = new AuthorizationHandlerContext([requirement], currentUser, resource);
 
         await requirement.HandleAsync(context);
@@ -56,7 +62,7 @@ public sealed class CommentAuthorOrAdminRequirementTests
     {
         var requirement = new CommentAuthorOrAdminRequirement();
         var currentUser = PrincipalFactory.CreateWithUserId(this.modelFactory.NextInt());
-        var resource = this.modelFactory.BuildComment() with
+        var resource = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe()) with
         {
             AuthorId = this.modelFactory.NextInt(),
         };

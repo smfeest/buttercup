@@ -5,10 +5,13 @@ namespace Buttercup.Web.Models;
 
 public sealed class CommentViewModelTests
 {
+    private readonly ModelFactory modelFactory = new();
+
     [Fact]
     public void DelegatesToComment()
     {
-        var comment = new ModelFactory().BuildComment(setOptionalAttributes: true);
+        var comment = this.modelFactory.BuildComment(
+            this.modelFactory.BuildRecipe(), setOptionalAttributes: true);
         var viewModel = new CommentViewModel(comment);
 
         Assert.Equal(comment.Id, viewModel.Id);
@@ -20,7 +23,8 @@ public sealed class CommentViewModelTests
     [Fact]
     public void AuthorName_NullWhenAuthorIsNull()
     {
-        var comment = new ModelFactory().BuildComment(setOptionalAttributes: false);
+        var comment = this.modelFactory.BuildComment(
+            this.modelFactory.BuildRecipe(), setOptionalAttributes: false);
         var viewModel = new CommentViewModel(comment);
         Assert.Null(viewModel.AuthorName);
     }

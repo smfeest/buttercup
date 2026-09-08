@@ -11,13 +11,13 @@ public sealed class DeletedCommentsTests(AppFactory appFactory) : EndToEndTests(
     {
         var currentUser = this.ModelFactory.BuildUser() with { IsAdmin = true };
         var deletedComments = new string[] { "Foo", "Bar", "Qux", "Baz", "Bar" }
-            .Select(recipeTitle =>
-                this.ModelFactory.BuildComment(setOptionalAttributes: true, softDeleted: true) with
-                {
-                    Recipe = this.ModelFactory.BuildRecipe() with { Title = recipeTitle }
-                })
+            .Select(
+                recipeTitle => this.ModelFactory.BuildComment(
+                    this.ModelFactory.BuildRecipe() with { Title = recipeTitle },
+                    setOptionalAttributes: true,
+                    softDeleted: true))
             .ToArray();
-        var otherComment = this.ModelFactory.BuildComment(setRecipe: true);
+        var otherComment = this.ModelFactory.BuildComment(this.ModelFactory.BuildRecipe());
         await this.DatabaseFixture.InsertEntities(currentUser, deletedComments, otherComment);
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);

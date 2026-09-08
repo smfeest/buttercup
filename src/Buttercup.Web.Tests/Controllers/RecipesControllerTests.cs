@@ -511,7 +511,7 @@ public sealed class RecipesControllerTests : IDisposable
 
     private Comment[] SetupGetCommentsForRecipe(long recipeId)
     {
-        var comments = new[] { this.modelFactory.BuildComment() };
+        var comments = new[] { this.modelFactory.BuildComment(this.modelFactory.BuildRecipe()) };
         this.queriesMock
             .Setup(x => x.GetCommentsForRecipe(
                 this.dbContextFactory.FakeDbContext,
