@@ -9,7 +9,7 @@ namespace Buttercup.TestUtils;
 /// </summary>
 public sealed class ModelFactory
 {
-    private int nextInt = Random.Shared.Next(0, 2);
+    private int nextInt = Random.Shared.Next(1, 3);
 
     /// <summary>
     /// Instantiates a new <see cref="Comment" /> object with unique property values.
