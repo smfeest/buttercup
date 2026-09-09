@@ -28,7 +28,7 @@ public sealed class ReactivateUserTests(AppFactory appFactory) : EndToEndTests(a
                 user.Name,
                 Modified = timestamp,
                 Deactivated = (DateTime?)null,
-                Revision = user.Revision + 1,
+                UpdateCount = user.UpdateCount + 1,
             },
             Errors = (object?)null,
         };
@@ -71,7 +71,7 @@ public sealed class ReactivateUserTests(AppFactory appFactory) : EndToEndTests(a
                 user.Name,
                 user.Modified,
                 user.Deactivated,
-                user.Revision,
+                user.UpdateCount,
             },
             Errors = (object?)null,
         };
@@ -118,7 +118,7 @@ public sealed class ReactivateUserTests(AppFactory appFactory) : EndToEndTests(a
                         name
                         modified
                         deactivated
-                        revision
+                        updateCount
                     }
                     errors {
                         __typename

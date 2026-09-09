@@ -27,7 +27,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
             user.Created,
             user.Modified,
             user.Deactivated,
-            user.Revision,
+            user.UpdateCount,
         };
 
         JsonAssert.Equivalent(expected, dataElement.GetProperty("user"));
@@ -154,7 +154,7 @@ public sealed class UserTests(AppFactory appFactory) : EndToEndTests(appFactory)
                     created
                     modified
                     deactivated
-                    revision
+                    updateCount
                 }
             }
             """,
