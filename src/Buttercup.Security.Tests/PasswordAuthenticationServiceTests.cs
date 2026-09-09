@@ -339,7 +339,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 using var dbContext = this.DatabaseFixture.CreateDbContext();
                 dbContext.Users.Attach(userAfterConcurrentModification);
                 userAfterConcurrentModification.Name = this.modelFactory.NextString("name");
-                userAfterConcurrentModification.Revision++;
+                userAfterConcurrentModification.UpdateCount++;
                 dbContext.SaveChanges();
             });
 
