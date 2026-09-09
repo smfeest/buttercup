@@ -81,4 +81,9 @@ public sealed record User : IEntityId
     /// </summary>
     [ConcurrencyCheck]
     public int Revision { get; set; }
+
+    /// <summary>
+    /// Gets or sets the update count for concurrency control.
+    /// </summary>
+    public int UpdateCount { get; set; }
 }
