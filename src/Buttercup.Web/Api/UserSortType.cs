@@ -13,6 +13,7 @@ public sealed class UserSortType : SortInputType<User>
         descriptor
             .Ignore(u => u.HashedPassword)
             .Ignore(u => u.SecurityStamp)
-            .Ignore(u => u.Revision);
+            .Ignore(u => u.Revision)
+            .Ignore(u => u.UpdateCount);
     }
 }
