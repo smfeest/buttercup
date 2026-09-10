@@ -294,7 +294,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
-            UpdateCount = userBefore.Revision + 1,
+            UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
             userBefore.Id, TestContext.Current.CancellationToken);
@@ -430,7 +430,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = null,
             Revision = userBefore.Revision + 1,
-            UpdateCount = userBefore.Revision + 1,
+            UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
             userBefore.Id, TestContext.Current.CancellationToken);
@@ -472,7 +472,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             TimeZone = newTimeZone,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = original.Revision + 1,
-            UpdateCount = original.Revision + 1,
+            UpdateCount = original.UpdateCount + 1,
         };
         var actual = await dbContext.Users.GetAsync(
             original.Id, TestContext.Current.CancellationToken);

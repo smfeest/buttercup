@@ -121,7 +121,7 @@ internal sealed class UserManager(
         user.Modified = timestamp;
         user.Deactivated = timestamp;
         user.Revision++;
-        user.UpdateCount = user.Revision;
+        user.UpdateCount++;
 
         dbContext.UserAuditEntries.Add(
             new()
@@ -178,7 +178,7 @@ internal sealed class UserManager(
         user.Modified = timestamp;
         user.Deactivated = null;
         user.Revision++;
-        user.UpdateCount = user.Revision;
+        user.UpdateCount++;
 
         dbContext.UserAuditEntries.Add(
             new()
@@ -213,7 +213,7 @@ internal sealed class UserManager(
                 .SetProperty(u => u.TimeZone, timeZone)
                 .SetProperty(u => u.Modified, this.timeProvider.GetUtcDateTimeNow())
                 .SetProperty(u => u.Revision, u => u.Revision + 1)
-                .SetProperty(u => u.UpdateCount, u => u.Revision + 1),
+                .SetProperty(u => u.UpdateCount, u => u.UpdateCount + 1),
             cancellationToken);
     }
 
