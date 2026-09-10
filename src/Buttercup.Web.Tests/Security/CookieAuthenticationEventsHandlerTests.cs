@@ -155,8 +155,8 @@ public sealed class CookieAuthenticationEventsHandlerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTheoryDataForUserRevisionIsMissingOrStale))]
-    public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_ReplacesPrincipal(
+    [MemberData(nameof(GetTheoryDataForUserUpdateCountIsMissingOrStale))]
+    public async Task ValidatePrincipal_UserUpdateCountIsMissingOrStale_ReplacesPrincipal(
          Func<User, ClaimsPrincipal> principalFactory)
     {
         var user = this.SetupFindUser();
@@ -169,8 +169,8 @@ public sealed class CookieAuthenticationEventsHandlerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTheoryDataForUserRevisionIsMissingOrStale))]
-    public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_RenewsCookie(
+    [MemberData(nameof(GetTheoryDataForUserUpdateCountIsMissingOrStale))]
+    public async Task ValidatePrincipal_UserUpdateCountIsMissingOrStale_RenewsCookie(
         Func<User, ClaimsPrincipal> principalFactory)
     {
         var user = this.SetupFindUser();
@@ -183,8 +183,8 @@ public sealed class CookieAuthenticationEventsHandlerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetTheoryDataForUserRevisionIsMissingOrStale))]
-    public async Task ValidatePrincipal_UserRevisionIsMissingOrStale_LogsInfoMessage(
+    [MemberData(nameof(GetTheoryDataForUserUpdateCountIsMissingOrStale))]
+    public async Task ValidatePrincipal_UserUpdateCountIsMissingOrStale_LogsInfoMessage(
         Func<User, ClaimsPrincipal> principalFactory)
     {
         var user = this.SetupFindUser();
@@ -199,7 +199,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
     }
 
     [Fact]
-    public async Task ValidatePrincipal_UserRevisionMatches_RetainsPrincipal()
+    public async Task ValidatePrincipal_UserUpdateCountMatches_RetainsPrincipal()
     {
         var initialPrincipal = BuildPrincipal(this.SetupFindUser());
         var context = this.BuildValidatePrincipalContext(initialPrincipal);
@@ -216,7 +216,7 @@ public sealed class CookieAuthenticationEventsHandlerTests
         {
             [ClaimTypes.NameIdentifier] = user.Id.ToString(CultureInfo.InvariantCulture),
             [CustomClaimTypes.SecurityStamp] = user.SecurityStamp,
-            [CustomClaimTypes.UserRevision] = user.Revision.ToString(CultureInfo.InvariantCulture),
+            [CustomClaimTypes.UserUpdateCount] = user.UpdateCount.ToString(CultureInfo.InvariantCulture),
         };
 
         configureClaims?.Invoke(claims);
@@ -252,14 +252,14 @@ public sealed class CookieAuthenticationEventsHandlerTests
         return new([SetupPrincipalWithoutSecurityStamp, SetupPrincipalWithStaleSecurityStamp]);
     }
 
-    public static TheoryData<Func<User, ClaimsPrincipal>> GetTheoryDataForUserRevisionIsMissingOrStale()
+    public static TheoryData<Func<User, ClaimsPrincipal>> GetTheoryDataForUserUpdateCountIsMissingOrStale()
     {
-        ClaimsPrincipal SetupPrincipalWithoutUserRevision(User user) =>
-            BuildPrincipal(user, claims => claims.Remove(CustomClaimTypes.UserRevision));
-        ClaimsPrincipal SetupPrincipalWithStaleUserRevision(User user) =>
-            BuildPrincipal(user with { Revision = user.Revision - 1 });
+        ClaimsPrincipal SetupPrincipalWithoutUserUpdateCount(User user) =>
+            BuildPrincipal(user, claims => claims.Remove(CustomClaimTypes.UserUpdateCount));
+        ClaimsPrincipal SetupPrincipalWithStaleUserUpdateCount(User user) =>
+            BuildPrincipal(user with { UpdateCount = user.UpdateCount - 1 });
 
-        return new([SetupPrincipalWithoutUserRevision, SetupPrincipalWithStaleUserRevision]);
+        return new([SetupPrincipalWithoutUserUpdateCount, SetupPrincipalWithStaleUserUpdateCount]);
     }
 
     private ClaimsIdentity SetupCreateIdentityForUser(User user, AuthenticationScheme scheme)

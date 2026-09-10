@@ -55,13 +55,13 @@ public sealed class ClaimsIdentityFactoryTests
     }
 
     [Fact]
-    public void CreateIdentityForUser_SetsRevisionClaim()
+    public void CreateIdentityForUser_SetsUpdateCountClaim()
     {
         var user = this.modelFactory.BuildUser();
         Assert.True(
             CreateIdentityForUser(user).HasClaim(
-                CustomClaimTypes.UserRevision,
-                user.Revision.ToString(CultureInfo.InvariantCulture)));
+                CustomClaimTypes.UserUpdateCount,
+                user.UpdateCount.ToString(CultureInfo.InvariantCulture)));
     }
 
     [Fact]
