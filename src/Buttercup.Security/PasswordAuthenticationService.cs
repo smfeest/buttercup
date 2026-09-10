@@ -136,7 +136,6 @@ internal sealed partial class PasswordAuthenticationService(
 
             user.HashedPassword = this.passwordHasher.HashPassword(user, password);
             user.Modified = this.timeProvider.GetUtcDateTimeNow();
-            user.Revision++;
             user.UpdateCount++;
 
             try
@@ -403,7 +402,6 @@ internal sealed partial class PasswordAuthenticationService(
         user.SecurityStamp = this.randomTokenGenerator.Generate(2);
         user.PasswordCreated = timestamp;
         user.Modified = timestamp;
-        user.Revision++;
         user.UpdateCount++;
 
         dbContext.UserAuditEntries.Add(

@@ -77,7 +77,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = null,
-            Revision = 0,
             UpdateCount = 0,
         };
         var actual = await dbContext.Users.GetAsync(id, TestContext.Current.CancellationToken);
@@ -184,7 +183,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = null,
-            Revision = 0,
             UpdateCount = 0,
         };
         var actual = await this.userManager.FindUser(id, TestContext.Current.CancellationToken);
@@ -234,7 +232,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             Created = this.timeProvider.GetUtcDateTimeNow(),
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = null,
-            Revision = 0,
             UpdateCount = 0,
         };
         var actual = await this.userManager.FindUser(id, TestContext.Current.CancellationToken);
@@ -293,7 +290,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             SecurityStamp = newSecurityStamp,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = this.timeProvider.GetUtcDateTimeNow(),
-            Revision = userBefore.Revision + 1,
             UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
@@ -429,7 +425,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         {
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Deactivated = null,
-            Revision = userBefore.Revision + 1,
             UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
@@ -471,7 +466,6 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         {
             TimeZone = newTimeZone,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
-            Revision = original.Revision + 1,
             UpdateCount = original.UpdateCount + 1,
         };
         var actual = await dbContext.Users.GetAsync(

@@ -292,7 +292,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         {
             HashedPassword = rehashedPassword,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
-            Revision = userBefore.Revision + 1,
             UpdateCount = userBefore.UpdateCount + 1,
         };
 
@@ -637,7 +636,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
             SecurityStamp = newSecurityStamp,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
-            Revision = userBefore.Revision + 1,
             UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
@@ -809,7 +807,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             PasswordCreated = this.timeProvider.GetUtcDateTimeNow(),
             SecurityStamp = newSecurityStamp,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
-            Revision = userBefore.Revision + 1,
             UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(

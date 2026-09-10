@@ -22,7 +22,6 @@ public sealed class UserType : ObjectType<User>
 
         descriptor
             .Ignore(u => u.HashedPassword)
-            .Ignore(u => u.SecurityStamp)
-            .Ignore(u => u.Revision);
+            .Ignore(u => u.SecurityStamp);
     }
 }

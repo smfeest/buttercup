@@ -89,11 +89,6 @@ public sealed class AppDbContext : DbContext
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
         modelBuilder
-            .Entity<User>()
-            .Property(e => e.Revision)
-            .HasDefaultValue(0)
-            .ValueGeneratedNever();
-        modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
             .HasConversion<UserAuditOperationToStringConverter>()

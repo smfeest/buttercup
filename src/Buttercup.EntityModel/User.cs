@@ -77,11 +77,6 @@ public sealed record User : IEntityId
     public DateTime? Deactivated { get; set; }
 
     /// <summary>
-    /// Gets or sets the revision number for concurrency control.
-    /// </summary>
-    public int Revision { get; set; }
-
-    /// <summary>
     /// Gets or sets the update count for concurrency control.
     /// </summary>
     [ConcurrencyCheck]
