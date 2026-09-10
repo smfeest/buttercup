@@ -16,7 +16,7 @@ public static class CustomClaimTypes
     public const string TimeZone = "http://schemas.smf.me.uk/buttercup/time-zone";
 
     /// <summary>
-    /// The URI for a claim that specifies the user revision.
+    /// The URI for a claim that specifies the user update count.
     /// </summary>
-    public const string UserRevision = "http://schemas.smf.me.uk/buttercup/user-revision";
+    public const string UserUpdateCount = "http://schemas.smf.me.uk/buttercup/update-count";
 }

@@ -293,7 +293,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             HashedPassword = rehashedPassword,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
-            UpdateCount = userBefore.Revision + 1,
+            UpdateCount = userBefore.UpdateCount + 1,
         };
 
         // Updates user in database
@@ -339,7 +339,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 using var dbContext = this.DatabaseFixture.CreateDbContext();
                 dbContext.Users.Attach(userAfterConcurrentModification);
                 userAfterConcurrentModification.Name = this.modelFactory.NextString("name");
-                userAfterConcurrentModification.Revision++;
+                userAfterConcurrentModification.UpdateCount++;
                 dbContext.SaveChanges();
             });
 
@@ -638,7 +638,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             SecurityStamp = newSecurityStamp,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
-            UpdateCount = userBefore.Revision + 1,
+            UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
             userBefore.Id, TestContext.Current.CancellationToken);
@@ -810,7 +810,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
             SecurityStamp = newSecurityStamp,
             Modified = this.timeProvider.GetUtcDateTimeNow(),
             Revision = userBefore.Revision + 1,
-            UpdateCount = userBefore.Revision + 1,
+            UpdateCount = userBefore.UpdateCount + 1,
         };
         var actualUserAfter = await dbContext.Users.GetAsync(
             userBefore.Id, TestContext.Current.CancellationToken);

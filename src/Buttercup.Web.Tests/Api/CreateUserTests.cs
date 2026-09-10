@@ -34,7 +34,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
             attributes.Email,
             attributes.TimeZone,
             isAdmin,
-            Revision = 0
+            UpdateCount = 0
         };
         JsonAssert.Equivalent(expected, userElement);
 
@@ -181,7 +181,7 @@ public sealed class CreateUserTests(AppFactory appFactory) : EndToEndTests(appFa
                         email
                         timeZone
                         isAdmin
-                        revision
+                        updateCount
                     }
                     errors {
                         ... on ValidationError {

@@ -4,6 +4,7 @@ using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Buttercup.EntityModel.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260909222352_BackfillUpdateCountOnUsers")]
+    partial class BackfillUpdateCountOnUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -450,8 +453,8 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("password_created");
 
                     b.Property<int>("Revision")
+                        .IsConcurrencyToken()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
                         .HasColumnName("revision");
 
                     b.Property<string>("SecurityStamp")
@@ -467,7 +470,6 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("time_zone");
 
                     b.Property<int>("UpdateCount")
-                        .IsConcurrencyToken()
                         .HasColumnType("int")
                         .HasColumnName("update_count");
 

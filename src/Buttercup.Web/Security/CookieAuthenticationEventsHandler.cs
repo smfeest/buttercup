@@ -62,10 +62,10 @@ public sealed partial class CookieAuthenticationEventsHandler(
 
         this.LogValidatedPrincipal(user.Id, user.Email);
 
-        var userRevision = principal.FindFirstValue(CustomClaimTypes.UserRevision);
+        var userUpdateCount = principal.FindFirstValue(CustomClaimTypes.UserUpdateCount);
 
-        if (userRevision is null ||
-            int.Parse(userRevision, CultureInfo.InvariantCulture) != user.Revision)
+        if (userUpdateCount is null ||
+            int.Parse(userUpdateCount, CultureInfo.InvariantCulture) != user.UpdateCount)
         {
             context.ReplacePrincipal(
                 new(this.claimsIdentityFactory.CreateIdentityForUser(user, context.Scheme.Name)));
