@@ -248,6 +248,7 @@ public sealed class ModelFactory
         Modified = this.NextDateTime(),
         Deactivated = deactivated ? this.NextDateTime() : null,
         Revision = this.NextInt(),
+        UpdateCount = this.NextInt(),
     };
 
     /// <summary>
