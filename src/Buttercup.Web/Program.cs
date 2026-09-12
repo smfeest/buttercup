@@ -150,6 +150,9 @@ services.AddAuthorizationBuilder()
         policy =>
             policy.RequireAuthenticatedUser().AddRequirements(new AdminWhenDeletedRequirement()))
     .AddPolicy(
+        AuthorizationPolicyNames.CommentAuthor,
+        policy => policy.AddRequirements(new CommentAuthorRequirement()))
+    .AddPolicy(
         AuthorizationPolicyNames.CommentAuthorOrAdmin,
         policy => policy.AddRequirements(new CommentAuthorOrAdminRequirement()))
     .AddPolicy(
