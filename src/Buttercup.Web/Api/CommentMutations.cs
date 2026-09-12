@@ -150,4 +150,98 @@ public sealed class CommentMutations
     public async Task<HardDeletePayload> HardDeleteComment(
         ICommentManager commentManager, long id, CancellationToken cancellationToken) =>
         new(await commentManager.HardDeleteComment(id, cancellationToken));
+
+    /// <summary>
+    /// Updates a comment.
+    /// </summary>
+    /// <param name="authorizationService">
+    /// The authorization service.
+    /// </param>
+    /// <param name="claimsPrincipal">
+    /// The claims principal.
+    /// </param>
+    /// <param name="commentManager">
+    /// The comment manager.
+    /// </param>
+    /// <param name="dbContext">
+    /// The database context.
+    /// </param>
+    /// <param name="httpContextAccessor">
+    /// The HTTP context accessor.
+    /// </param>
+    /// <param name="localizer">
+    /// The string localizer.
+    /// </param>
+    /// <param name="resolverContext">
+    /// The resolver context.
+    /// </param>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="validatorFactory">
+    /// The input object validator factory.
+    /// </param>
+    /// <param name="id">
+    /// The comment ID.
+    /// </param>
+    /// <param name="attributes">
+    /// The comment attributes.
+    /// </param>
+    /// <param name="baseUpdateCount">
+    /// The base update count. Used for concurrency control.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    [Authorize]
+    [Error<ConcurrencyException>]
+    [Error<NotFoundException>]
+    [Error<InputObjectValidationError>]
+    [Error<SoftDeletedException>]
+    public async Task<FieldResult<UpdateCommentPayload>> UpdateComment(
+        IAuthorizationService authorizationService,
+        ClaimsPrincipal claimsPrincipal,
+        ICommentManager commentManager,
+        AppDbContext dbContext,
+        IHttpContextAccessor httpContextAccessor,
+        IStringLocalizer<CommentMutations> localizer,
+        IResolverContext resolverContext,
+        ISchema schema,
+        IInputObjectValidatorFactory validatorFactory,
+        long id,
+        CommentAttributes attributes,
+        int baseUpdateCount,
+        CancellationToken cancellationToken)
+    {
+        var comment = await dbContext.Comments.FindAsync([id], cancellationToken);
+
+        var authorizationResult = await authorizationService.AuthorizeAsync(
+            claimsPrincipal, comment, AuthorizationPolicyNames.CommentAuthor);
+
+        if (!authorizationResult.Succeeded)
+        {
+            throw new GraphQLException(
+                resolverContext.CreateError(
+                    ErrorCodes.Authentication.NotAuthorized,
+                    localizer["Error_UpdateCommentNotAuthorized"]));
+        }
+
+        var validator = validatorFactory.CreateValidator<CommentAttributes>(schema);
+        var validationErrors = new List<InputObjectValidationError>();
+
+        if (!validator.Validate(attributes, ["input", "attributes"], validationErrors))
+        {
+            return new(validationErrors);
+        }
+
+        await commentManager.UpdateComment(
+            id,
+            attributes,
+            baseUpdateCount,
+            claimsPrincipal.GetUserId(),
+            httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
+            cancellationToken);
+
+        return new UpdateCommentPayload(id);
+    }
 }

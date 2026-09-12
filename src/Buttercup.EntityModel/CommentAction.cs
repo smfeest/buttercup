@@ -14,4 +14,9 @@ public enum CommentAction
     /// Indicates that the comment was soft-deleted.
     /// </summary>
     Delete,
+
+    /// <summary>
+    /// Indicates that the comment was updated.
+    /// </summary>
+    Update,
 }
