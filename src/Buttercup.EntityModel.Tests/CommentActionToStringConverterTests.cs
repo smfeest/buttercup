@@ -7,6 +7,7 @@ public sealed class CommentActionToStringConverterTests
     [Theory]
     [InlineData(CommentAction.Create, "create")]
     [InlineData(CommentAction.Delete, "delete")]
+    [InlineData(CommentAction.Update, "update")]
     public void ConvertsToAndFromExpectedString(CommentAction action, string stringValue)
     {
         var converter = new CommentActionToStringConverter();
