@@ -12,6 +12,7 @@ internal sealed class CommentActionToStringConverter : ValueConverter<CommentAct
     {
         "create" => CommentAction.Create,
         "delete" => CommentAction.Delete,
+        "update" => CommentAction.Update,
         _ => throw new ArgumentException($"Invalid action '{value}'", nameof(value))
     };
 
@@ -19,6 +20,7 @@ internal sealed class CommentActionToStringConverter : ValueConverter<CommentAct
     {
         CommentAction.Create => "create",
         CommentAction.Delete => "delete",
+        CommentAction.Update => "update",
         _ => throw new ArgumentOutOfRangeException(nameof(action), action, null)
     };
 }

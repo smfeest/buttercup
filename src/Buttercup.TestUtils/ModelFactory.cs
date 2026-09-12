@@ -65,7 +65,7 @@ public sealed class ModelFactory
     public CommentAudit BuildCommentAudit(
         Comment comment, CommentAction action, bool setOptionalAttributes = false)
     {
-        var revision = action == CommentAction.Create ? this.BuildCommentRevision(comment) : null;
+        var revision = action == CommentAction.Delete ? null : this.BuildCommentRevision(comment);
         var actor = setOptionalAttributes ? this.BuildUser() : null;
 
         return new()

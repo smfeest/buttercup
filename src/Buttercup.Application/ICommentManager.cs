@@ -81,4 +81,46 @@ public interface ICommentManager
     /// comment does not exist.
     /// </returns>
     Task<bool> HardDeleteComment(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates a comment.
+    /// </summary>
+    /// <param name="id">
+    /// The comment ID.
+    /// </param>
+    /// <param name="newAttributes">
+    /// The new comment attributes.
+    /// </param>
+    /// <param name="baseUpdateCount">
+    /// The base update count.
+    /// </param>
+    /// <param name="currentUserId">
+    /// The current user ID.
+    /// </param>
+    /// <param name="ipAddress">
+    /// The IP address of the current user.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// A task for the operation. The task result is <b>true</b> if the comment was updated,
+    /// <b>false</b> if the comment's attributes already matched <paramref name="newAttributes"/>.
+    /// </returns>
+    /// <exception cref="NotFoundException">
+    /// No matching comment was found.
+    /// </exception>
+    /// <exception cref="SoftDeletedException">
+    /// Comment or recipe is soft-deleted.
+    /// </exception>
+    /// <exception cref="ConcurrencyException">
+    /// <paramref name="baseUpdateCount"/> does not match the current update count in the database.
+    /// </exception>
+    Task<bool> UpdateComment(
+        long id,
+        CommentAttributes newAttributes,
+        int baseUpdateCount,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default);
 }

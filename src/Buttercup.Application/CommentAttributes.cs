@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Buttercup.EntityModel;
 
 namespace Buttercup.Application;
 
@@ -7,6 +8,23 @@ namespace Buttercup.Application;
 /// </summary>
 public sealed record CommentAttributes
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommentAttributes" /> class.
+    /// </summary>
+    public CommentAttributes()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommentAttributes" /> class with the attribute
+    /// values from a comment.
+    /// </summary>
+    /// <param name="comment">
+    /// The comment.
+    /// </param>
+    public CommentAttributes(Comment comment) =>
+        this.Body = comment.Body;
+
     /// <summary>
     /// Gets or sets the comment body.
     /// </summary>
