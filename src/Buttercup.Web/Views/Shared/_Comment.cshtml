@@ -5,14 +5,9 @@
   class="@Bem.Block("comment", Model.IncludeFrame ? "framed" : null)">
   <header class="comment__header">
     <span class="comment__author">@(Model.AuthorName is null ? Localizer["Label_UnknownUser"] : Model.AuthorName)</span>
-    @if (Model.IncludeFragmentLink)
-    {
-      <a class="comment__timestamp" href="@($"#comment{Model.Id}")">@Html.UserDateTime(Model.Created, "d")</a>
-    }
-    else
-    {
-      <span class="comment__timestamp">@Html.UserDateTime(Model.Created, "d")</span>
-    }
+    <a class="comment__timestamp" href="@(Model.IncludeFragmentLink ? $"#comment{Model.Id}" : null)">
+      @Html.UserDateTime(Model.Created, "d")
+    </a>
     @if (Model.IncludeEditLink)
     {
       <a class="comment__action" asp-controller="Comments" asp-action="Edit" asp-route-id="@Model.Id">@Localizer["Label_Edit"]</a>
