@@ -5,6 +5,7 @@ namespace Buttercup.Web.Models;
 public sealed record CommentViewModel(
     Comment Comment,
     bool IncludeDeleteLink = false,
+    bool IncludeEditLink = false,
     bool IncludeFragmentLink = false,
     bool IncludeFrame = false)
 {

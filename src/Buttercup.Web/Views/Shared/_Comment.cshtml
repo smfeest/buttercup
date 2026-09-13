@@ -13,6 +13,10 @@
     {
       <span class="comment__timestamp">@Html.UserDateTime(Model.Created, "d")</span>
     }
+    @if (Model.IncludeEditLink)
+    {
+      <a class="comment__action" asp-controller="Comments" asp-action="Edit" asp-route-id="@Model.Id">@Localizer["Label_Edit"]</a>
+    }
     @if (Model.IncludeDeleteLink)
     {
       <a class="comment__action" asp-controller="Comments" asp-action="Delete" asp-route-id="@Model.Id">@Localizer["Label_Delete"]</a>
