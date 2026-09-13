@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title_EditComment">
+    <value>Edit comment</value>
+  </data>
+  <data name="Label_Comment">
+    <value>Comment</value>
+  </data>
+  <data name="Placeholder_Comment">
+    <value>Write a comment…</value>
+  </data>
+  <data name="Label_Save">
+    <value>Save</value>
+  </data>
+  <data name="Label_Cancel">
+    <value>Cancel</value>
+  </data>
+</root>
