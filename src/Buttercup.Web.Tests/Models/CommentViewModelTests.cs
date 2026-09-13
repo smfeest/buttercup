@@ -28,4 +28,26 @@ public sealed class CommentViewModelTests
         var viewModel = new CommentViewModel(comment);
         Assert.Null(viewModel.AuthorName);
     }
+
+    [Fact]
+    public void IncludedEditedMarker_ReturnsFalseWhenCreatedAndModifiedMatch()
+    {
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
+        comment.Modified = comment.Created;
+
+        var viewModel = new CommentViewModel(comment);
+
+        Assert.False(viewModel.IncludeEditedMarker);
+    }
+
+    [Fact]
+    public void IncludedEditedMarker_ReturnsTrueWhenCreatedAndModifiedDiffer()
+    {
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
+        comment.Modified = this.modelFactory.NextDateTime();
+
+        var viewModel = new CommentViewModel(comment);
+
+        Assert.True(viewModel.IncludeEditedMarker);
+    }
 }

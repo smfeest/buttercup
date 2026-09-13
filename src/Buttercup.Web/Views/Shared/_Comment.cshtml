@@ -7,6 +7,10 @@
     <span class="comment__author">@(Model.AuthorName is null ? Localizer["Label_UnknownUser"] : Model.AuthorName)</span>
     <a class="comment__timestamp" href="@(Model.IncludeFragmentLink ? $"#comment{Model.Id}" : null)">
       @Html.UserDateTime(Model.Created, "d")
+      @if (Model.IncludeEditedMarker)
+      {
+        <span>(@Localizer["Label_Edited"])</span>
+      }
     </a>
     @if (Model.IncludeEditLink)
     {

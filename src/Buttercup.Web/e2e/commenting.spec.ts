@@ -47,7 +47,12 @@ test('can edit own comment', async ({ page, api, commentForm }) => {
     await commentForm.input.fill('Also great on toast');
     await commentForm.saveButton.click();
 
-    await expect(page.getByText('Also great on toast')).toBeInViewport();
+    await expect(
+      page
+        .getByRole('article')
+        .filter({ hasText: '(Edited)' })
+        .filter({ hasText: 'Also great on toast' }),
+    ).toBeInViewport();
   } finally {
     await hardDeleteRecipe(recipe.id);
   }

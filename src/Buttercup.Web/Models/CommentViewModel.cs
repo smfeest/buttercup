@@ -13,4 +13,5 @@ public sealed record CommentViewModel(
     public string? AuthorName => this.Comment.Author?.Name;
     public DateTime Created => this.Comment.Created;
     public string Body => this.Comment.Body;
+    public bool IncludeEditedMarker => this.Comment.Created != this.Comment.Modified;
 }
