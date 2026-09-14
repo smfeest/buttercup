@@ -7,19 +7,21 @@ test.use({ storageState: authStatePath('e2e-user') });
 test('can comment on a recipe', async ({ page, api }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
-  const { id } = await createRecipe();
+  const recipe = await createRecipe();
 
   try {
-    await page.goto(`recipes/${id}`);
+    await page.goto(`recipes/${recipe.id}`);
 
-    const commentBody = 'You can also use precooked beans to save time';
-
-    await page.getByPlaceholder('Write a comment…').fill(commentBody);
+    await page
+      .getByPlaceholder('Write a comment…')
+      .fill('You can also use precooked beans');
     await page.getByRole('button', { name: 'Add' }).click();
 
-    await expect(page.getByText(commentBody)).toBeInViewport();
+    await expect(
+      page.getByText('You can also use precooked beans'),
+    ).toBeInViewport();
   } finally {
-    await hardDeleteRecipe(id);
+    await hardDeleteRecipe(recipe.id);
   }
 });
 
@@ -27,12 +29,12 @@ test('can delete a comment', async ({ page, api }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
   const { createComment } = api('e2e-user');
 
-  const { id, title } = await createRecipe();
+  const recipe = await createRecipe({ title: 'Chocolate fudge cake' });
 
   try {
-    await createComment(id, { body: 'Delicious with cream' });
+    await createComment(recipe.id, { body: 'Delicious with cream' });
 
-    await page.goto(`recipes/${id}`);
+    await page.goto(`recipes/${recipe.id}`);
 
     await page
       .getByRole('article')
@@ -41,9 +43,9 @@ test('can delete a comment', async ({ page, api }) => {
       .click();
     await page.getByRole('button', { name: 'Delete' }).click();
 
-    await expect(page.locator('h1')).toHaveText(title);
+    await expect(page.locator('h1')).toHaveText('Chocolate fudge cake');
     await expect(page.getByText('Delicious with cream')).toHaveCount(0);
   } finally {
-    await hardDeleteRecipe(id);
+    await hardDeleteRecipe(recipe.id);
   }
 });
