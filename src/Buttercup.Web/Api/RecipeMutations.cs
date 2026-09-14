@@ -137,7 +137,7 @@ public sealed class RecipeMutations
     /// The recipe attributes.
     /// </param>
     /// <param name="baseUpdateCount">
-    /// The base revision. Used for concurrency control.
+    /// The base update count. Used for concurrency control.
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
