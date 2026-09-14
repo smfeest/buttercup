@@ -49,3 +49,24 @@ test('can delete a comment', async ({ page, api }) => {
     await hardDeleteRecipe(recipe.id);
   }
 });
+
+test("cannot delete another user's comment", async ({ page, api }) => {
+  const { createComment, createRecipe, hardDeleteRecipe } = api('e2e-admin');
+
+  const recipe = await createRecipe();
+
+  try {
+    await createComment(recipe.id, { body: 'Best with dark chocolate flakes' });
+
+    await page.goto(`recipes/${recipe.id}`);
+
+    await expect(
+      page
+        .getByRole('article')
+        .filter({ hasText: 'Best with dark chocolate flakes' })
+        .getByRole('link', { name: 'Delete' }),
+    ).toHaveCount(0);
+  } finally {
+    await hardDeleteRecipe(recipe.id);
+  }
+});
