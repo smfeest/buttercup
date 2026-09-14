@@ -30,18 +30,19 @@ test('can delete a comment', async ({ page, api }) => {
   const { id, title } = await createRecipe();
 
   try {
-    const comment = await createComment(id);
+    await createComment(id, { body: 'Delicious with cream' });
 
     await page.goto(`recipes/${id}`);
 
     await page
-      .locator(`#comment${comment.id}`)
+      .getByRole('article')
+      .filter({ hasText: 'Delicious with cream' })
       .getByRole('link', { name: 'Delete' })
       .click();
     await page.getByRole('button', { name: 'Delete' }).click();
 
     await expect(page.locator('h1')).toHaveText(title);
-    await expect(page.getByText(comment.body)).toHaveCount(0);
+    await expect(page.getByText('Delicious with cream')).toHaveCount(0);
   } finally {
     await hardDeleteRecipe(id);
   }
