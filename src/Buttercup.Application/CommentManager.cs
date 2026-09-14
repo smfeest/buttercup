@@ -43,11 +43,7 @@ internal sealed class CommentManager(
             {
                 Time = timestamp,
                 Action = CommentAction.Create,
-                Revision = new()
-                {
-                    Comment = comment,
-                    Body = attributes.Body,
-                },
+                Revision = CreateRevision(comment),
                 ActorId = currentUserId,
                 IpAddress = ipAddress,
             });
@@ -110,4 +106,73 @@ internal sealed class CommentManager(
             .Where(r => r.Id == id)
             .ExecuteDeleteAsync(cancellationToken) != 0;
     }
+
+    public async Task<bool> UpdateComment(
+        long id,
+        CommentAttributes newAttributes,
+        int baseUpdateCount,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken)
+    {
+        using var dbContext = this.dbContextFactory.CreateDbContext();
+
+        var comment = await dbContext
+            .Comments
+            .Include(c => c.Recipe)
+            .AsTracking()
+            .GetAsync(id, cancellationToken);
+
+        if (comment.Recipe!.Deleted.HasValue)
+        {
+            throw new SoftDeletedException($"Cannot update comment {id} on soft-deleted recipe {comment.RecipeId}");
+        }
+        if (comment.Deleted.HasValue)
+        {
+            throw new SoftDeletedException($"Cannot update soft-deleted comment {id}");
+        }
+        if (newAttributes == new CommentAttributes(comment))
+        {
+            return false;
+        }
+        if (comment.UpdateCount != baseUpdateCount)
+        {
+            throw new ConcurrencyException(
+                $"Base update count {baseUpdateCount} does not match current update count {comment.UpdateCount}");
+        }
+
+        var timestamp = this.timeProvider.GetUtcDateTimeNow();
+
+        comment.Body = newAttributes.Body;
+        comment.Modified = timestamp;
+        comment.UpdateCount++;
+
+        comment.Audits.Add(
+            new()
+            {
+                Time = timestamp,
+                Action = CommentAction.Update,
+                Revision = CreateRevision(comment),
+                ActorId = currentUserId,
+                IpAddress = ipAddress,
+            });
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return await this.UpdateComment(
+                id, newAttributes, baseUpdateCount, currentUserId, ipAddress, cancellationToken);
+        }
+
+        return true;
+    }
+
+    private static CommentRevision CreateRevision(Comment comment) => new()
+    {
+        Comment = comment,
+        Body = comment.Body,
+    };
 }

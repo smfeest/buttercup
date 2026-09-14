@@ -252,6 +252,189 @@ public sealed class CommentManagerTests : DatabaseTests<DatabaseCollection>
 
     #endregion
 
+    #region UpdateComment
+
+    [Fact]
+    public async Task UpdateComment_UpdatesCommentInsertsAuditAndRevisionAndReturnsTrue()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        var original = this.modelFactory.BuildComment(recipe, setOptionalAttributes: true);
+        var currentUser = this.modelFactory.BuildUser();
+        var ipAddress = this.modelFactory.NextIpAddress();
+
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
+
+        var newAttributes = this.BuildCommentAttributes();
+
+        Assert.True(await this.commentManager.UpdateComment(
+            original.Id,
+            newAttributes,
+            original.UpdateCount,
+            currentUser.Id,
+            ipAddress,
+            TestContext.Current.CancellationToken));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var comment = await dbContext
+            .Comments
+            .Include(r => r.Audits)
+            .ThenInclude(a => a.Revision)
+            .GetAsync(original.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            new()
+            {
+                Id = original.Id,
+                RecipeId = recipe.Id,
+                AuthorId = original.AuthorId,
+                Body = newAttributes.Body,
+                Created = original.Created,
+                Modified = this.timeProvider.GetUtcDateTimeNow(),
+                UpdateCount = original.UpdateCount + 1,
+            },
+            comment,
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        var audit = Assert.Single(comment.Audits);
+
+        Assert.Equal(
+            new()
+            {
+                Id = audit.Id,
+                CommentId = original.Id,
+                Time = this.timeProvider.GetUtcDateTimeNow(),
+                Action = CommentAction.Update,
+                RevisionId = audit.RevisionId,
+                ActorId = currentUser.Id,
+                IpAddress = ipAddress,
+            },
+            audit,
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        Assert.NotNull(audit.Revision);
+
+        Assert.Equal(
+            new()
+            {
+                Id = audit.Revision.Id,
+                CommentId = original.Id,
+                Body = newAttributes.Body,
+            },
+            audit.Revision);
+    }
+
+    [Fact]
+    public async Task UpdateComment_ReturnsFalseAndDoesNotUpdateIfAttributesAlreadyMatch()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        var original = this.modelFactory.BuildComment(recipe);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(original, currentUser);
+
+        Assert.False(await this.commentManager.UpdateComment(
+            original.Id,
+            new(original),
+            original.UpdateCount,
+            currentUser.Id,
+            null,
+            TestContext.Current.CancellationToken));
+
+        using var dbContext = this.DatabaseFixture.CreateDbContext();
+
+        var comment = await dbContext.Comments.GetAsync(
+            original.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(original, comment, ModelCompare.EqualExcludingNavigationProperties);
+    }
+
+    [Fact]
+    public async Task UpdateComment_ThrowsIfCommentNotFound()
+    {
+        var otherComment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(otherComment, currentUser);
+
+        var id = this.modelFactory.NextInt();
+        var exception = await Assert.ThrowsAsync<NotFoundException>(
+            () => this.commentManager.UpdateComment(
+                id,
+                this.BuildCommentAttributes(),
+                0,
+                currentUser.Id,
+                null,
+                TestContext.Current.CancellationToken));
+
+        Assert.Equal($"Comment/{id} not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateComment_ThrowsIfRecipeSoftDeleted()
+    {
+        var recipe = this.modelFactory.BuildRecipe(softDeleted: true);
+        var comment = this.modelFactory.BuildComment(recipe);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(comment, currentUser);
+
+        var exception = await Assert.ThrowsAsync<SoftDeletedException>(
+            () => this.commentManager.UpdateComment(
+                comment.Id,
+                this.BuildCommentAttributes(),
+                comment.UpdateCount,
+                currentUser.Id,
+                null,
+                TestContext.Current.CancellationToken));
+
+        Assert.Equal(
+            $"Cannot update comment {comment.Id} on soft-deleted recipe {recipe.Id}",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateComment_ThrowsIfCommentSoftDeleted()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        var comment = this.modelFactory.BuildComment(recipe, softDeleted: true);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(comment, currentUser);
+
+        var exception = await Assert.ThrowsAsync<SoftDeletedException>(
+            () => this.commentManager.UpdateComment(
+                comment.Id,
+                this.BuildCommentAttributes(),
+                comment.UpdateCount,
+                currentUser.Id,
+                null,
+                TestContext.Current.CancellationToken));
+
+        Assert.Equal($"Cannot update soft-deleted comment {comment.Id}", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateComment_ThrowsIfUpdateCountDoesNotMatch()
+    {
+        var recipe = this.modelFactory.BuildRecipe();
+        var comment = this.modelFactory.BuildComment(recipe);
+        var currentUser = this.modelFactory.BuildUser();
+        await this.DatabaseFixture.InsertEntities(comment, currentUser);
+
+        var staleUpdateCount = comment.UpdateCount - 1;
+        var exception = await Assert.ThrowsAsync<ConcurrencyException>(
+            () => this.commentManager.UpdateComment(
+                comment.Id,
+                this.BuildCommentAttributes(),
+                staleUpdateCount,
+                currentUser.Id,
+                null,
+                TestContext.Current.CancellationToken));
+
+        Assert.Equal(
+            $"Base update count {staleUpdateCount} does not match current update count {comment.UpdateCount}",
+            exception.Message);
+    }
+
+    #endregion
+
     private CommentAttributes BuildCommentAttributes() =>
         new() { Body = this.modelFactory.NextString("comment-body") };
 }

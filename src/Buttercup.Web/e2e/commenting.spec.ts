@@ -25,6 +25,66 @@ test('can comment on a recipe', async ({ page, api }) => {
   }
 });
 
+test('can edit own comment', async ({ page, api, commentForm }) => {
+  const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
+  const { createComment } = api('e2e-user');
+
+  const recipe = await createRecipe();
+
+  try {
+    await createComment(recipe.id, { body: 'Also great on bread' });
+
+    await page.goto(`recipes/${recipe.id}`);
+
+    await page
+      .getByRole('article')
+      .filter({ hasText: 'Also great on bread' })
+      .getByRole('link', { name: 'Edit' })
+      .click();
+
+    await expect(commentForm.input).toHaveValue('Also great on bread');
+
+    await commentForm.input.fill('Also great on toast');
+    await commentForm.saveButton.click();
+
+    await expect(
+      page
+        .getByRole('article')
+        .filter({ hasText: '(Edited)' })
+        .filter({ hasText: 'Also great on toast' }),
+    ).toBeInViewport();
+  } finally {
+    await hardDeleteRecipe(recipe.id);
+  }
+});
+
+test("cannot edit another user's comment", async ({ page, api }) => {
+  const { createComment, createRecipe, hardDeleteRecipe } = api('e2e-admin');
+
+  const recipe = await createRecipe();
+
+  try {
+    const comment = await createComment(recipe.id, {
+      body: 'I prefer to use sticky rice',
+    });
+
+    await page.goto(`recipes/${recipe.id}`);
+
+    await expect(
+      page
+        .getByRole('article')
+        .filter({ hasText: 'I prefer to use sticky rice' })
+        .getByRole('link', { name: 'Edit' }),
+    ).toHaveCount(0);
+
+    await page.goto(`comments/${comment.id}/edit`);
+
+    await expect(page.getByText('Access denied')).toBeVisible();
+  } finally {
+    await hardDeleteRecipe(recipe.id);
+  }
+});
+
 test('can delete a comment', async ({ page, api }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
   const { createComment } = api('e2e-user');

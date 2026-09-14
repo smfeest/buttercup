@@ -57,7 +57,7 @@ public sealed class ShowRecipeViewModelTests
     }
 
     [Fact]
-    public void UserNotAnAdmin_InitializesCommentViewModelsWithDeleteLinkOnOwnComments()
+    public void UserNotAnAdmin_InitializesCommentViewModelsWithEditAndDeleteLinkOnOwnComments()
     {
         var userId = this.modelFactory.NextInt();
         var recipe = this.modelFactory.BuildRecipe();
@@ -72,30 +72,57 @@ public sealed class ShowRecipeViewModelTests
 
         Assert.Equal(
             [
-                new(comments[0], IncludeDeleteLink: false, IncludeFragmentLink: true),
-                new(comments[1], IncludeDeleteLink: true, IncludeFragmentLink: true),
-                new(comments[2], IncludeDeleteLink: false, IncludeFragmentLink: true),
+                new(
+                    comments[0],
+                    IncludeEditLink: false,
+                    IncludeDeleteLink: false,
+                    IncludeFragmentLink: true),
+                new(
+                    comments[1],
+                    IncludeEditLink: true,
+                    IncludeDeleteLink: true,
+                    IncludeFragmentLink: true),
+                new(
+                    comments[2],
+                    IncludeEditLink: false,
+                    IncludeDeleteLink: false,
+                    IncludeFragmentLink: true),
             ],
             viewModel.CommentViewModels);
     }
 
     [Fact]
-    public void UserIsAdmin_InitializesCommentViewModelsWithDeleteLinkOnAllComments()
+    public void UserIsAdmin_InitializesCommentViewModelsWithEditLinkOnOwnCommentsAndDeleteLinkOnAllComments()
     {
+        var userId = this.modelFactory.NextInt();
         var recipe = this.modelFactory.BuildRecipe();
         var comments = new Comment[]
         {
             this.modelFactory.BuildComment(recipe),
+            this.modelFactory.BuildComment(recipe) with { AuthorId = userId },
             this.modelFactory.BuildComment(recipe) with { AuthorId = this.modelFactory.NextInt() },
         };
         var user = PrincipalFactory.CreateWithUserId(
-            this.modelFactory.NextInt(), new Claim(ClaimTypes.Role, RoleNames.Admin));
+            userId, new Claim(ClaimTypes.Role, RoleNames.Admin));
         var viewModel = new ShowRecipeViewModel(recipe, comments, new(), user);
 
         Assert.Equal(
             [
-                new(comments[0], IncludeDeleteLink: true, IncludeFragmentLink: true),
-                new(comments[1], IncludeDeleteLink: true, IncludeFragmentLink: true)
+                new(
+                    comments[0],
+                    IncludeEditLink: false,
+                    IncludeDeleteLink: true,
+                    IncludeFragmentLink: true),
+                new(
+                    comments[1],
+                    IncludeEditLink: true,
+                    IncludeDeleteLink: true,
+                    IncludeFragmentLink: true),
+                new(
+                    comments[2],
+                    IncludeEditLink: false,
+                    IncludeDeleteLink: true,
+                    IncludeFragmentLink: true),
             ],
             viewModel.CommentViewModels);
     }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_StaleEdit">
+    <value>Impossible d'enregistrer car d'autres modifications ont été apportées à ce commentaire depuis que vous avez commencé à le modifier</value>
+  </data>
+</root>

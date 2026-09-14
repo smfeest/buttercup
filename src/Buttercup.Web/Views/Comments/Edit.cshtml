@@ -1,0 +1,18 @@
+﻿@inject IViewLocalizer Localizer
+@model Buttercup.Web.Models.Comments.EditCommentViewModel
+@{
+  ViewData["Title"] = Localizer["Title_EditComment"];
+}
+<h1>@Localizer["Title_EditComment"]</h1>
+<form class="form" method="post">
+  <div asp-validation-summary="ModelOnly"></div>
+  <div class="form-field">
+    <textarea class="input-box" asp-for="Attributes.Body" aria-label="@Localizer["Label_Comment"]" placeholder="@Localizer["Placeholder_Comment"]" required></textarea>
+    <span asp-validation-for="Attributes.Body"></span>
+  </div>
+  <input type="hidden" asp-for="BaseUpdateCount">
+  <div class="button-bar">
+    <button class="push-button push-button--primary">@Localizer["Label_Save"]</button>
+    <a class="push-button" asp-action="Show" asp-controller="Recipes" asp-route-id="@Model.Comment.RecipeId">@Localizer["Label_Cancel"]</a>
+  </div>
+</form>
