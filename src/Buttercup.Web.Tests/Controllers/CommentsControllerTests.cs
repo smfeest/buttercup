@@ -42,6 +42,7 @@ public sealed class CommentsControllerTests : IDisposable
     {
         var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
         this.SetupFindCommentWithAuthor(comment.Id, comment);
+        this.SetupAuthorizeCommentAuthorOrAdmin(comment, true);
 
         var result = await this.commentsController.Delete(
             comment.Id, TestContext.Current.CancellationToken);
@@ -58,7 +59,21 @@ public sealed class CommentsControllerTests : IDisposable
 
         var result = await this.commentsController.Delete(
             commentId, TestContext.Current.CancellationToken);
+
         Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Delete_Get_FailedAuthorization_ReturnsForbidResult()
+    {
+        var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
+        this.SetupFindCommentWithAuthor(comment.Id, comment);
+        this.SetupAuthorizeCommentAuthorOrAdmin(comment, false);
+
+        var result = await this.commentsController.Delete(
+            comment.Id, TestContext.Current.CancellationToken);
+
+        Assert.IsType<ForbidResult>(result);
     }
 
     #endregion
@@ -103,7 +118,7 @@ public sealed class CommentsControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Delete_Post_FailedAuthorization_ReturnsUnauthorizedResult()
+    public async Task Delete_Post_FailedAuthorization_ReturnsForbidResult()
     {
         this.SetupCurrentUserId();
         var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
@@ -113,7 +128,7 @@ public sealed class CommentsControllerTests : IDisposable
         var result = await this.commentsController.DeletePost(
             comment.Id, TestContext.Current.CancellationToken);
 
-        Assert.IsType<UnauthorizedResult>(result);
+        Assert.IsType<ForbidResult>(result);
     }
 
     #endregion

@@ -7,19 +7,21 @@ test.use({ storageState: authStatePath('e2e-user') });
 test('can comment on a recipe', async ({ page, api }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
 
-  const { id } = await createRecipe();
+  const recipe = await createRecipe();
 
   try {
-    await page.goto(`recipes/${id}`);
+    await page.goto(`recipes/${recipe.id}`);
 
-    const commentBody = 'You can also use precooked beans to save time';
-
-    await page.getByPlaceholder('Write a comment…').fill(commentBody);
+    await page
+      .getByPlaceholder('Write a comment…')
+      .fill('You can also use precooked beans');
     await page.getByRole('button', { name: 'Add' }).click();
 
-    await expect(page.getByText(commentBody)).toBeInViewport();
+    await expect(
+      page.getByText('You can also use precooked beans'),
+    ).toBeInViewport();
   } finally {
-    await hardDeleteRecipe(id);
+    await hardDeleteRecipe(recipe.id);
   }
 });
 
@@ -27,22 +29,50 @@ test('can delete a comment', async ({ page, api }) => {
   const { createRecipe, hardDeleteRecipe } = api('e2e-admin');
   const { createComment } = api('e2e-user');
 
-  const { id, title } = await createRecipe();
+  const recipe = await createRecipe({ title: 'Chocolate fudge cake' });
 
   try {
-    const comment = await createComment(id);
+    await createComment(recipe.id, { body: 'Delicious with cream' });
 
-    await page.goto(`recipes/${id}`);
+    await page.goto(`recipes/${recipe.id}`);
 
     await page
-      .locator(`#comment${comment.id}`)
+      .getByRole('article')
+      .filter({ hasText: 'Delicious with cream' })
       .getByRole('link', { name: 'Delete' })
       .click();
     await page.getByRole('button', { name: 'Delete' }).click();
 
-    await expect(page.locator('h1')).toHaveText(title);
-    await expect(page.getByText(comment.body)).toHaveCount(0);
+    await expect(page.locator('h1')).toHaveText('Chocolate fudge cake');
+    await expect(page.getByText('Delicious with cream')).toHaveCount(0);
   } finally {
-    await hardDeleteRecipe(id);
+    await hardDeleteRecipe(recipe.id);
+  }
+});
+
+test("cannot delete another user's comment", async ({ page, api }) => {
+  const { createComment, createRecipe, hardDeleteRecipe } = api('e2e-admin');
+
+  const recipe = await createRecipe();
+
+  try {
+    const comment = await createComment(recipe.id, {
+      body: 'Best with dark chocolate flakes',
+    });
+
+    await page.goto(`recipes/${recipe.id}`);
+
+    await expect(
+      page
+        .getByRole('article')
+        .filter({ hasText: 'Best with dark chocolate flakes' })
+        .getByRole('link', { name: 'Delete' }),
+    ).toHaveCount(0);
+
+    await page.goto(`comments/${comment.id}/delete`);
+
+    await expect(page.getByText('Access denied')).toBeVisible();
+  } finally {
+    await hardDeleteRecipe(recipe.id);
   }
 });

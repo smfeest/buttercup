@@ -26,6 +26,7 @@ dotnet_style_qualification_for_event = true
 
 # Code style analysis rules
 dotnet_analyzer_diagnostic.category-Style.severity = warning
+dotnet_diagnostic.IDE0046.severity = none # Use conditional expression for return
 dotnet_diagnostic.IDE0058.severity = none # Remove unnecessary expression value
 
 [src/*.Tests/**.cs]
