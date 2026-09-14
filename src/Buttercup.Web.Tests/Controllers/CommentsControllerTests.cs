@@ -103,7 +103,7 @@ public sealed class CommentsControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Delete_Post_FailedAuthorization_ReturnsUnauthorizedResult()
+    public async Task Delete_Post_FailedAuthorization_ReturnsForbidResult()
     {
         this.SetupCurrentUserId();
         var comment = this.modelFactory.BuildComment(this.modelFactory.BuildRecipe());
@@ -113,7 +113,7 @@ public sealed class CommentsControllerTests : IDisposable
         var result = await this.commentsController.DeletePost(
             comment.Id, TestContext.Current.CancellationToken);
 
-        Assert.IsType<UnauthorizedResult>(result);
+        Assert.IsType<ForbidResult>(result);
     }
 
     #endregion

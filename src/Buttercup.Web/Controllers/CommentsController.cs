@@ -48,7 +48,7 @@ public sealed class CommentsController(
 
         if (!authorizationResult.Succeeded)
         {
-            return this.Unauthorized();
+            return this.Forbid();
         }
 
         await this.commentManager.DeleteComment(

@@ -56,7 +56,9 @@ test("cannot delete another user's comment", async ({ page, api }) => {
   const recipe = await createRecipe();
 
   try {
-    await createComment(recipe.id, { body: 'Best with dark chocolate flakes' });
+    const comment = await createComment(recipe.id, {
+      body: 'Best with dark chocolate flakes',
+    });
 
     await page.goto(`recipes/${recipe.id}`);
 
@@ -66,6 +68,11 @@ test("cannot delete another user's comment", async ({ page, api }) => {
         .filter({ hasText: 'Best with dark chocolate flakes' })
         .getByRole('link', { name: 'Delete' }),
     ).toHaveCount(0);
+
+    await page.goto(`comments/${comment.id}/delete`);
+    await page.getByRole('button', { name: 'Delete' }).click();
+
+    await expect(page.getByText('Access denied')).toBeVisible();
   } finally {
     await hardDeleteRecipe(recipe.id);
   }
