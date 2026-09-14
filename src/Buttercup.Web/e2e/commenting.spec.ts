@@ -70,7 +70,6 @@ test("cannot delete another user's comment", async ({ page, api }) => {
     ).toHaveCount(0);
 
     await page.goto(`comments/${comment.id}/delete`);
-    await page.getByRole('button', { name: 'Delete' }).click();
 
     await expect(page.getByText('Access denied')).toBeVisible();
   } finally {

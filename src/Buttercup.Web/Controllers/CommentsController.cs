@@ -27,8 +27,20 @@ public sealed class CommentsController(
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
+
         var comment = await this.queries.FindCommentWithAuthor(dbContext, id, cancellationToken);
-        return comment is null ? this.NotFound() : this.View(comment);
+
+        if (comment is null)
+        {
+            return this.NotFound();
+        }
+
+        if (!await this.UserAuthorisedToDelete(comment))
+        {
+            return this.Forbid();
+        }
+
+        return this.View(comment);
     }
 
     [HttpPost("{id}/delete")]
@@ -43,10 +55,7 @@ public sealed class CommentsController(
             return this.NotFound();
         }
 
-        var authorizationResult = await this.authorizationService.AuthorizeAsync(
-            this.User, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
-
-        if (!authorizationResult.Succeeded)
+        if (!await this.UserAuthorisedToDelete(comment))
         {
             return this.Forbid();
         }
@@ -59,5 +68,13 @@ public sealed class CommentsController(
 
         return this.RedirectToAction(
             nameof(RecipesController.Show), "Recipes", new { id = comment.RecipeId });
+    }
+
+    private async Task<bool> UserAuthorisedToDelete(Comment comment)
+    {
+        var authorizationResult = await this.authorizationService.AuthorizeAsync(
+            this.User, comment, AuthorizationPolicyNames.CommentAuthorOrAdmin);
+
+        return authorizationResult.Succeeded;
     }
 }
