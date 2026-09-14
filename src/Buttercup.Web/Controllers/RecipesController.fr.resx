@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="Error_StaleEdit">
-    <value>D'autres modifications ont été enregistrées depuis que vous avez commencé à modifier cette recette</value>
+    <value>Impossible d'enregistrer car d'autres modifications ont été apportées à cette recette depuis que vous avez commencé à la modifier.</value>
   </data>
 </root>
