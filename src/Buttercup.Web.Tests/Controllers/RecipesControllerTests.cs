@@ -103,7 +103,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task New_Post_Success_AddsRecipeAndRedirectsToShowPage()
     {
-        var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
+        var attributes = this.modelFactory.BuildRecipeAttributes();
         var currentUserId = this.SetupCurrentUserId();
         var ipAddress = this.SetupRemoteIpAddress();
         long recipeId = this.modelFactory.NextInt();
@@ -125,7 +125,7 @@ public sealed class RecipesControllerTests : IDisposable
     [Fact]
     public async Task New_Post_InvalidModel_ReturnsViewResultWithEditModel()
     {
-        var attributes = new RecipeAttributes(this.modelFactory.BuildRecipe());
+        var attributes = this.modelFactory.BuildRecipeAttributes();
         this.recipesController.ModelState.AddModelError("test", "test");
 
         var result = await this.recipesController.New(

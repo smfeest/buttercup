@@ -26,8 +26,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     [Fact]
     public async Task CreateRecipe_InsertsRecipeAuditAndRevisionAndReturnsId()
     {
-        var attributes = new RecipeAttributes(
-            this.modelFactory.BuildRecipe(setOptionalAttributes: true));
+        var attributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: true);
         var currentUser = this.modelFactory.BuildUser();
         var ipAddress = this.modelFactory.NextIpAddress();
 
@@ -93,8 +92,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
     public async Task CreateRecipe_AcceptsNullForOptionalAttributes()
     {
         var currentUser = this.modelFactory.BuildUser();
-        var attributes = new RecipeAttributes(
-            this.modelFactory.BuildRecipe(setOptionalAttributes: false));
+        var attributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: false);
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         var id = await this.recipeManager.CreateRecipe(
@@ -241,8 +239,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
 
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
-        var newAttributes = new RecipeAttributes(
-            this.modelFactory.BuildRecipe(setOptionalAttributes: true));
+        var newAttributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: true);
 
         Assert.True(await this.recipeManager.UpdateRecipe(
             original.Id,
@@ -312,8 +309,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(original, currentUser);
 
-        var newAttributes = new RecipeAttributes(
-            this.modelFactory.BuildRecipe(setOptionalAttributes: false));
+        var newAttributes = this.modelFactory.BuildRecipeAttributes(setOptionalAttributes: false);
 
         Assert.True(await this.recipeManager.UpdateRecipe(
             original.Id,
@@ -369,7 +365,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var exception = await Assert.ThrowsAsync<NotFoundException>(
             () => this.recipeManager.UpdateRecipe(
                 id,
-                new(this.modelFactory.BuildRecipe()),
+                this.modelFactory.BuildRecipeAttributes(),
                 0,
                 currentUser.Id,
                 null,
@@ -388,7 +384,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var exception = await Assert.ThrowsAsync<SoftDeletedException>(
             () => this.recipeManager.UpdateRecipe(
                 recipe.Id,
-                new(this.modelFactory.BuildRecipe()),
+                this.modelFactory.BuildRecipeAttributes(),
                 recipe.UpdateCount,
                 currentUser.Id,
                 null,
@@ -408,7 +404,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         var exception = await Assert.ThrowsAsync<ConcurrencyException>(
             () => this.recipeManager.UpdateRecipe(
                 recipe.Id,
-                new(this.modelFactory.BuildRecipe()),
+                this.modelFactory.BuildRecipeAttributes(),
                 staleUpdateCount,
                 currentUser.Id,
                 null,

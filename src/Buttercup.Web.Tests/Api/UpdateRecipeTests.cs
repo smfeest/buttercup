@@ -18,7 +18,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        var attributes = new RecipeAttributes(this.ModelFactory.BuildRecipe(setOptionalAttributes));
+        var attributes = this.ModelFactory.BuildRecipeAttributes(setOptionalAttributes);
 
         using var response = await PostUpdateRecipeMutation(
             client, recipe.Id, recipe.UpdateCount, attributes);
@@ -55,7 +55,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
 
         using var client = this.AppFactory.CreateClient();
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.UpdateCount, new(recipe));
+            client, recipe.Id, recipe.UpdateCount, this.ModelFactory.BuildRecipeAttributes());
         using var document = await response.Content.ReadAsJsonDocument();
 
         JsonAssert.ValueIsNull(document.RootElement.GetProperty("data"));
@@ -72,7 +72,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.UpdateCount, new(recipe));
+            client, recipe.Id, recipe.UpdateCount, this.ModelFactory.BuildRecipeAttributes());
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -100,7 +100,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.UpdateCount, new(recipe));
+            client, recipe.Id, recipe.UpdateCount, this.ModelFactory.BuildRecipeAttributes());
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");
@@ -128,7 +128,7 @@ public sealed class UpdateRecipeTests(AppFactory appFactory) : EndToEndTests(app
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
         using var response = await PostUpdateRecipeMutation(
-            client, recipe.Id, recipe.UpdateCount - 1, new(this.ModelFactory.BuildRecipe()));
+            client, recipe.Id, recipe.UpdateCount - 1, this.ModelFactory.BuildRecipeAttributes());
         using var document = await response.Content.ReadAsJsonDocument();
 
         var updateRecipeElement = ApiAssert.SuccessResponse(document).GetProperty("updateRecipe");

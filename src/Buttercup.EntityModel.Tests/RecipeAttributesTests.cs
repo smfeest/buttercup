@@ -10,7 +10,7 @@ public sealed class RecipeAttributesTests
     [Fact]
     public void Constructor_CopiesValuesFromSource()
     {
-        var source = new ModelFactory().BuildRecipe();
+        var source = new ModelFactory().BuildRecipeAttributes();
 
         var attributes = new RecipeAttributes(source);
 

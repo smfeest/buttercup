@@ -133,18 +133,9 @@ public sealed class ModelFactory
         var modifiedByUser = setOptionalAttributes ? this.BuildUser() : null;
         var deletedByUser = softDeleted && setOptionalAttributes ? this.BuildUser() : null;
 
-        return new()
+        return new(this.BuildRecipeAttributes(setOptionalAttributes))
         {
             Id = this.NextInt(),
-            Title = this.NextString("title"),
-            PreparationMinutes = setOptionalAttributes ? this.NextInt() : null,
-            CookingMinutes = setOptionalAttributes ? this.NextInt() : null,
-            Servings = setOptionalAttributes ? this.NextInt() : null,
-            Ingredients = this.NextString("ingredients"),
-            Method = this.NextString("method"),
-            Suggestions = setOptionalAttributes ? this.NextString("suggestions") : null,
-            Remarks = setOptionalAttributes ? this.NextString("remarks") : null,
-            Source = setOptionalAttributes ? this.NextString("source") : null,
             Created = this.NextDateTime(),
             CreatedByUser = createdByUser,
             CreatedByUserId = createdByUser?.Id,
@@ -157,6 +148,27 @@ public sealed class ModelFactory
             UpdateCount = this.NextInt(),
         };
     }
+
+    /// <summary>
+    /// Instantiates a new <see cref="RecipeAttributes" /> object with unique property values.
+    /// </summary>
+    /// <param name="setOptionalAttributes">
+    /// <b>true</b> if optional properties should be populated; <b>false</b> if they should be left
+    /// null.
+    /// </param>
+    /// <returns>The new <see cref="RecipeAttributes" /> object.</returns>
+    public RecipeAttributes BuildRecipeAttributes(bool setOptionalAttributes = false) => new()
+    {
+        Title = this.NextString("title"),
+        PreparationMinutes = setOptionalAttributes ? this.NextInt() : null,
+        CookingMinutes = setOptionalAttributes ? this.NextInt() : null,
+        Servings = setOptionalAttributes ? this.NextInt() : null,
+        Ingredients = this.NextString("ingredients"),
+        Method = this.NextString("method"),
+        Suggestions = setOptionalAttributes ? this.NextString("suggestions") : null,
+        Remarks = setOptionalAttributes ? this.NextString("remarks") : null,
+        Source = setOptionalAttributes ? this.NextString("source") : null,
+    };
 
     /// <summary>
     /// Instantiates a new <see cref="RecipeAudit" /> object with unique property values.

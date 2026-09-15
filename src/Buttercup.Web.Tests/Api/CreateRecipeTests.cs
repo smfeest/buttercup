@@ -17,7 +17,7 @@ public sealed class CreateRecipeTests(AppFactory appFactory) : EndToEndTests(app
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        var attributes = new RecipeAttributes(this.ModelFactory.BuildRecipe(setOptionalAttributes));
+        var attributes = this.ModelFactory.BuildRecipeAttributes(setOptionalAttributes);
 
         using var response = await PostCreateRecipeMutation(client, attributes);
         using var document = await response.Content.ReadAsJsonDocument();
@@ -49,7 +49,7 @@ public sealed class CreateRecipeTests(AppFactory appFactory) : EndToEndTests(app
     [Fact]
     public async Task CreatingRecipeWhenUnauthenticated()
     {
-        var attributes = new RecipeAttributes(this.ModelFactory.BuildRecipe());
+        var attributes = this.ModelFactory.BuildRecipeAttributes();
 
         using var client = this.AppFactory.CreateClient();
         using var response = await PostCreateRecipeMutation(client, attributes);
@@ -67,7 +67,7 @@ public sealed class CreateRecipeTests(AppFactory appFactory) : EndToEndTests(app
 
         using var client = await this.AppFactory.CreateClientForApiUser(currentUser);
 
-        var attributes = new RecipeAttributes(this.ModelFactory.BuildRecipe()) with
+        var attributes = this.ModelFactory.BuildRecipeAttributes() with
         {
             Method = string.Empty,
             Servings = -5,
