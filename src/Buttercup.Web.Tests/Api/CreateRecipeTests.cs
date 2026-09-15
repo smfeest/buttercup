@@ -1,4 +1,4 @@
-using Buttercup.Application;
+using Buttercup.EntityModel;
 using Buttercup.Web.TestUtils;
 using HotChocolate;
 using Xunit;

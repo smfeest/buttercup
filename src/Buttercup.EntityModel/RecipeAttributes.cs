@@ -1,38 +1,39 @@
 using System.ComponentModel.DataAnnotations;
-using Buttercup.EntityModel;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Buttercup.Application;
+namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a recipe's attributes.
 /// </summary>
-public sealed record RecipeAttributes
+public record RecipeAttributes
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RecipeAttributes" /> class.
     /// </summary>
     public RecipeAttributes()
-    {
-    }
+    { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RecipeAttributes" /> class with the attribute
-    /// values from a recipe.
+    /// Initializes a new instance of the <see cref="RecipeAttributes" /> class with values from
+    /// another instance.
     /// </summary>
-    /// <param name="recipe">
-    /// The recipe.
+    /// <param name="source">
+    /// The source object.
     /// </param>
-    public RecipeAttributes(Recipe recipe)
+    [SetsRequiredMembers]
+    public RecipeAttributes(RecipeAttributes source)
     {
-        this.Title = recipe.Title;
-        this.PreparationMinutes = recipe.PreparationMinutes;
-        this.CookingMinutes = recipe.CookingMinutes;
-        this.Servings = recipe.Servings;
-        this.Ingredients = recipe.Ingredients;
-        this.Method = recipe.Method;
-        this.Suggestions = recipe.Suggestions;
-        this.Remarks = recipe.Remarks;
-        this.Source = recipe.Source;
+        this.Title = source.Title;
+        this.PreparationMinutes = source.PreparationMinutes;
+        this.CookingMinutes = source.CookingMinutes;
+        this.Servings = source.Servings;
+        this.Ingredients = source.Ingredients;
+        this.Method = source.Method;
+        this.Suggestions = source.Suggestions;
+        this.Remarks = source.Remarks;
+        this.Source = source.Source;
     }
 
     /// <summary>
@@ -43,7 +44,7 @@ public sealed record RecipeAttributes
     /// </value>
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(250, ErrorMessage = "Error_TooManyCharacters")]
-    public string Title { get; init; } = string.Empty;
+    public required string Title { get; set; }
 
     /// <summary>
     /// Gets or sets the preparation time in minutes.
@@ -52,7 +53,7 @@ public sealed record RecipeAttributes
     /// The preparation time in minutes.
     /// </value>
     [Range(0, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
-    public int? PreparationMinutes { get; init; }
+    public int? PreparationMinutes { get; set; }
 
     /// <summary>
     /// Gets or sets the cooking time in minutes.
@@ -61,7 +62,7 @@ public sealed record RecipeAttributes
     /// The cooking time in minutes.
     /// </value>
     [Range(0, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
-    public int? CookingMinutes { get; init; }
+    public int? CookingMinutes { get; set; }
 
     /// <summary>
     /// Gets or sets the number of servings.
@@ -70,7 +71,7 @@ public sealed record RecipeAttributes
     /// The number of servings.
     /// </value>
     [Range(1, int.MaxValue, ErrorMessage = "Error_OutOfRange")]
-    public int? Servings { get; init; }
+    public int? Servings { get; set; }
 
     /// <summary>
     /// Gets or sets the ingredients.
@@ -78,9 +79,10 @@ public sealed record RecipeAttributes
     /// <value>
     /// The ingredients.
     /// </value>
+    [Column(TypeName = "text")]
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-    public string Ingredients { get; init; } = string.Empty;
+    public required string Ingredients { get; set; }
 
     /// <summary>
     /// Gets or sets the method.
@@ -88,9 +90,10 @@ public sealed record RecipeAttributes
     /// <value>
     /// The method.
     /// </value>
+    [Column(TypeName = "text")]
     [Required(ErrorMessage = "Error_RequiredField")]
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-    public string Method { get; init; } = string.Empty;
+    public required string Method { get; set; }
 
     /// <summary>
     /// Gets or sets the suggestions.
@@ -98,8 +101,9 @@ public sealed record RecipeAttributes
     /// <value>
     /// The suggestions.
     /// </value>
+    [Column(TypeName = "text")]
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-    public string? Suggestions { get; init; }
+    public string? Suggestions { get; set; }
 
     /// <summary>
     /// Gets or sets the remarks.
@@ -107,8 +111,9 @@ public sealed record RecipeAttributes
     /// <value>
     /// The remarks.
     /// </value>
+    [Column(TypeName = "text")]
     [StringLength(32000, ErrorMessage = "Error_TooManyCharacters")]
-    public string? Remarks { get; init; }
+    public string? Remarks { get; set; }
 
     /// <summary>
     /// Gets or sets the source.
@@ -117,5 +122,24 @@ public sealed record RecipeAttributes
     /// The source.
     /// </value>
     [StringLength(250, ErrorMessage = "Error_TooManyCharacters")]
-    public string? Source { get; init; }
+    public string? Source { get; set; }
+
+    /// <summary>
+    /// Copies all <see cref="RecipeAttributes"/> values over from another object.
+    /// </summary>
+    /// <param name="source">
+    /// The source object.
+    /// </param>
+    public void CopyValuesFrom(RecipeAttributes source)
+    {
+        this.Title = source.Title;
+        this.PreparationMinutes = source.PreparationMinutes;
+        this.CookingMinutes = source.CookingMinutes;
+        this.Servings = source.Servings;
+        this.Ingredients = source.Ingredients;
+        this.Method = source.Method;
+        this.Suggestions = source.Suggestions;
+        this.Remarks = source.Remarks;
+        this.Source = source.Source;
+    }
 }

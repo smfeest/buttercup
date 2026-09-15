@@ -1,4 +1,3 @@
-using Buttercup.Application;
 using Buttercup.EntityModel;
 
 namespace Buttercup.Web.Models.Recipes;

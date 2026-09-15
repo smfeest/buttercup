@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
@@ -11,63 +11,28 @@ namespace Buttercup.EntityModel;
 [Index(nameof(Created))]
 [Index(nameof(Modified))]
 [Index(nameof(Deleted))]
-public sealed record Recipe : IEntityId, ISoftDeletable
+public sealed record Recipe : RecipeAttributes, IEntityId, ISoftDeletable
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Recipe" /> class.
+    /// </summary>
+    public Recipe()
+    { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Recipe" /> class.
+    /// </summary>
+    /// <param name="attributes">
+    /// The recipe attributes.
+    /// </param>
+    [SetsRequiredMembers]
+    public Recipe(RecipeAttributes attributes) : base(attributes)
+    { }
+
     /// <summary>
     /// Gets or sets the primary key of the recipe.
     /// </summary>
     public long Id { get; set; }
-
-    /// <summary>
-    /// Gets or sets the recipe title.
-    /// </summary>
-    [StringLength(250)]
-    public required string Title { get; set; }
-
-    /// <summary>
-    /// Gets or sets the preparation time in minutes.
-    /// </summary>
-    public int? PreparationMinutes { get; set; }
-
-    /// <summary>
-    /// Gets or sets the cooking time in minutes.
-    /// </summary>
-    public int? CookingMinutes { get; set; }
-
-    /// <summary>
-    /// Gets or sets the number of servings.
-    /// </summary>
-    public int? Servings { get; set; }
-
-    /// <summary>
-    /// Gets or sets the ingredients.
-    /// </summary>
-    [Column(TypeName = "text")]
-    public required string Ingredients { get; set; }
-
-    /// <summary>
-    /// Gets or sets the method.
-    /// </summary>
-    [Column(TypeName = "text")]
-    public required string Method { get; set; }
-
-    /// <summary>
-    /// Gets or sets the suggestions for the recipe.
-    /// </summary>
-    [Column(TypeName = "text")]
-    public string? Suggestions { get; set; }
-
-    /// <summary>
-    /// Gets or sets the remarks for the recipe.
-    /// </summary>
-    [Column(TypeName = "text")]
-    public string? Remarks { get; set; }
-
-    /// <summary>
-    /// Gets or sets the source of the recipe.
-    /// </summary>
-    [StringLength(250)]
-    public string? Source { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time at which the recipe was added.
