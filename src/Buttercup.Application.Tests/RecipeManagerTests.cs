@@ -85,20 +85,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.NotNull(audit.Revision);
 
         Assert.Equal(
-            new()
-            {
-                Id = audit.Revision.Id,
-                RecipeId = id,
-                Title = attributes.Title,
-                PreparationMinutes = attributes.PreparationMinutes,
-                CookingMinutes = attributes.CookingMinutes,
-                Servings = attributes.Servings,
-                Ingredients = attributes.Ingredients,
-                Method = attributes.Method,
-                Suggestions = attributes.Suggestions,
-                Remarks = attributes.Remarks,
-                Source = attributes.Source,
-            },
+            new(recipe) { Id = audit.Revision.Id },
             audit.Revision);
     }
 
@@ -314,20 +301,7 @@ public sealed class RecipeManagerTests : DatabaseTests<DatabaseCollection>
         Assert.NotNull(audit.Revision);
 
         Assert.Equal(
-            new()
-            {
-                Id = audit.Revision.Id,
-                RecipeId = original.Id,
-                Title = newAttributes.Title,
-                PreparationMinutes = newAttributes.PreparationMinutes,
-                CookingMinutes = newAttributes.CookingMinutes,
-                Servings = newAttributes.Servings,
-                Ingredients = newAttributes.Ingredients,
-                Method = newAttributes.Method,
-                Suggestions = newAttributes.Suggestions,
-                Remarks = newAttributes.Remarks,
-                Source = newAttributes.Source,
-            },
+            new(recipe) { Id = audit.Revision.Id },
             audit.Revision);
     }
 
