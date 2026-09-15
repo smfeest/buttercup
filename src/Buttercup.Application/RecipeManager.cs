@@ -122,7 +122,15 @@ internal sealed class RecipeManager(
 
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
-        recipe.CopyValuesFrom(newAttributes);
+        recipe.Title = newAttributes.Title;
+        recipe.PreparationMinutes = newAttributes.PreparationMinutes;
+        recipe.CookingMinutes = newAttributes.CookingMinutes;
+        recipe.Servings = newAttributes.Servings;
+        recipe.Ingredients = newAttributes.Ingredients;
+        recipe.Method = newAttributes.Method;
+        recipe.Suggestions = newAttributes.Suggestions;
+        recipe.Remarks = newAttributes.Remarks;
+        recipe.Source = newAttributes.Source;
         recipe.Modified = timestamp;
         recipe.ModifiedByUserId = currentUserId;
         recipe.UpdateCount++;

@@ -123,23 +123,4 @@ public record RecipeAttributes
     /// </value>
     [StringLength(250, ErrorMessage = "Error_TooManyCharacters")]
     public string? Source { get; set; }
-
-    /// <summary>
-    /// Copies all <see cref="RecipeAttributes"/> values over from another object.
-    /// </summary>
-    /// <param name="source">
-    /// The source object.
-    /// </param>
-    public void CopyValuesFrom(RecipeAttributes source)
-    {
-        this.Title = source.Title;
-        this.PreparationMinutes = source.PreparationMinutes;
-        this.CookingMinutes = source.CookingMinutes;
-        this.Servings = source.Servings;
-        this.Ingredients = source.Ingredients;
-        this.Method = source.Method;
-        this.Suggestions = source.Suggestions;
-        this.Remarks = source.Remarks;
-        this.Source = source.Source;
-    }
 }
