@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Buttercup.Security;
 using Buttercup.TestUtils;
@@ -60,16 +59,16 @@ public sealed class UserDateTimeExtensionsTests
     }
 
     [Fact]
-    public void UserDateTime_SetsTitleAttributeToUtcDateTime()
+    public void UserDateTime_SetsTitleAttributeToFormattedUserDateAndTimeWithOffset()
     {
         var utcDateTime = this.modelFactory.NextDateTime();
 
         var output = this.htmlHelper.UserDateTime(utcDateTime);
 
+        var localDateTime = ConvertToUserTimeZone(utcDateTime);
+
         var builder = Assert.IsType<TagBuilder>(output);
-        Assert.Equal(
-            utcDateTime.ToString("u", CultureInfo.CurrentCulture),
-            builder.Attributes["title"]);
+        Assert.Equal($"{localDateTime:G} +05:00", builder.Attributes["title"]);
     }
 
     private static DateTimeOffset ConvertToUserTimeZone(DateTime dateTime) =>

@@ -26,13 +26,15 @@ public static class UserDateTimeExtensions
     public static IHtmlContent UserDateTime(
         this IHtmlHelper helper, DateTime dateTime, string format = "G")
     {
+        var culture = CultureInfo.CurrentCulture;
+        var generalWithTzPattern =
+            $"{culture.DateTimeFormat.ShortDatePattern} {culture.DateTimeFormat.LongTimePattern} zzz";
         var userDateTime = helper.ViewContext.HttpContext.ToUserTime(dateTime);
-        var uFormatted = userDateTime.ToString("u", CultureInfo.CurrentCulture);
 
         var builder = new TagBuilder("time");
-        builder.MergeAttribute("datetime", uFormatted);
-        builder.MergeAttribute("title", uFormatted);
-        builder.InnerHtml.SetContent(userDateTime.ToString(format, CultureInfo.CurrentCulture));
+        builder.MergeAttribute("datetime", userDateTime.ToString("u", culture));
+        builder.MergeAttribute("title", userDateTime.ToString(generalWithTzPattern, culture));
+        builder.InnerHtml.SetContent(userDateTime.ToString(format, culture));
 
         return builder;
     }
