@@ -34,7 +34,7 @@ public sealed class UserDateTimeExtensionsTests
         Assert.Equal("time", builder.TagName);
     }
 
-    [Fact]
+    [CulturedFact(["en-GB", "fr-FR"])]
     public void UserDateTime_SetsTagContentToFormattedUserDateAndTime()
     {
         var utcDateTime = this.modelFactory.NextDateTime();
@@ -58,7 +58,7 @@ public sealed class UserDateTimeExtensionsTests
             $"HtmlEncode[[{ConvertToUserTimeZone(utcDateTime):G}]]", GetTagContent(builder));
     }
 
-    [Fact]
+    [CulturedFact(["en-GB", "fr-FR"])]
     public void UserDateTime_SetsTitleAttributeToFormattedUserDateAndTimeWithOffset()
     {
         var utcDateTime = this.modelFactory.NextDateTime();
