@@ -1,4 +1,5 @@
 using Buttercup.EntityModel;
+using Buttercup.Web.Models.Recipes;
 
 namespace Buttercup.Web.Controllers.Queries;
 
@@ -75,5 +76,5 @@ public interface IRecipesControllerQueries
     /// <returns>
     /// A task for the operation.
     /// </returns>
-    Task<Recipe[]> GetRecipesForIndex(AppDbContext dbContext, CancellationToken cancellationToken);
+    Task<RecipeForIndex[]> GetRecipesForIndex(AppDbContext dbContext, CancellationToken cancellationToken);
 }

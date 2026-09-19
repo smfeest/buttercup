@@ -1,5 +1,6 @@
-﻿@inject IViewLocalizer Localizer
-@model IList<Recipe>
+﻿@using Buttercup.Web.Models.Recipes
+@inject IViewLocalizer Localizer
+@model IList<RecipeForIndex>
 @{
   ViewData["Title"] = Localizer["Title_AllRecipes"];
 }
@@ -15,6 +16,7 @@
   <thead class="data-table--collapsed-below-medium">
     <tr>
       <th>@Localizer["Label_Title"]</th>
+      <th></th>
       <th class="data-table--right-aligned data-table--collapsed-below-medium">@Localizer["Label_Added"]</th>
       <th class="data-table--right-aligned data-table--collapsed-below-medium">@Localizer["Label_Updated"]</th>
     </tr>
@@ -24,6 +26,15 @@
     {
       <tr>
         <td><a asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></td>
+        <td class="recipe-index__comments">
+          @if (recipe.CommentCount > 0)
+          {
+          <a class="recipes-index__comments-link" asp-action="Show" asp-route-id="@recipe.Recipe.Id" asp-fragment="comments">
+            <img class="recipes-index__comments-icon" src="~/assets/images/comment.svg" alt="Comment" />
+            @recipe.CommentCount
+          </a>
+          }
+        </td>
         <td class="data-table--right-aligned data-table--collapsed-below-medium">@Html.UserDateTime(recipe.Created, "d")</td>
         <td class="data-table--right-aligned data-table--collapsed-below-medium">@Html.UserDateTime(recipe.Modified, "d")</td>
       </tr>

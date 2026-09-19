@@ -21,6 +21,29 @@
   display: none;
 }
 
+.data-table td.recipe-index__comments {
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.recipes-index__comments-link {
+  align-items: center;
+  border-radius: 0.2em;
+  display: inline-flex;
+  color: unset;
+  gap: 0.5em;
+  padding: 0.2em;
+
+  &:hover {
+    background-color: var(--color-light-grey);
+  }
+}
+
+.recipes-index__comments-icon {
+  height: 1.2em;
+  margin-top: -0.2em;
+}
+
 @media (min-width: @medium-breakpoint) {
   .recipes-index__header {
     align-items: center;

@@ -1,4 +1,5 @@
 using Buttercup.EntityModel;
+using Buttercup.Web.Models.Recipes;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.Web.Controllers.Queries;
@@ -26,10 +27,11 @@ public sealed class RecipesControllerQueries : IRecipesControllerQueries
             .OrderBy(c => c.Id)
             .ToArrayAsync(cancellationToken);
 
-    public Task<Recipe[]> GetRecipesForIndex(
+    public Task<RecipeForIndex[]> GetRecipesForIndex(
         AppDbContext dbContext, CancellationToken cancellationToken) =>
         dbContext.Recipes
             .WhereNotSoftDeleted()
             .OrderBy(r => r.Title)
+            .Select(r => new RecipeForIndex(r, r.Comments.Count()))
             .ToArrayAsync(cancellationToken);
 }
