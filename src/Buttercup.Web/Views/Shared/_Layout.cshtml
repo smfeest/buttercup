@@ -22,7 +22,9 @@
 <body>
   @await Html.PartialAsync("_TopBar")
   <div class="layout__content">
+    <main>
     @RenderBody()
+    </main>
     @await Html.PartialAsync("_FooterNav")
   </div>
 </body>
