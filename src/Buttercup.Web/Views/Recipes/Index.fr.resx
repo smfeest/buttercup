@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <data name="Title_AllRecipes">
-    <value>Toutes recettes</value>
+  <data name="Title_Recipes">
+    <value>Recettes</value>
   </data>
   <data name="Label_FindRecipe">
     <value>Trouver une recette</value>

@@ -64,7 +64,7 @@ test('can delete a recipe', async ({ page, api }) => {
     await page.getByRole('link', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
 
-    await expect(page).toHaveTitle(/All recipes/);
+    await expect(page).toHaveTitle(/Recipes/);
   } finally {
     await hardDeleteRecipe(id);
   }
