@@ -1,4 +1,5 @@
 ﻿@inject IViewLocalizer Localizer
+@inject ITimeFormatter TimeFormatter
 @model IList<Recipe>
 @{
   ViewData["Title"] = Localizer["Title_Recipes"];
@@ -7,26 +8,23 @@
   <h1>@Localizer["Title_Recipes"]</h1>
   <input id="recipe-index__filter" class="input-box" placeholder="@Localizer["Label_FindRecipe"]" aria-label="@Localizer["Label_FindRecipe"]" />
 </div>
-<table id="recipes-index__table" class="data-table">
-  <colgroup>
-    <col>
-    <col class="data-table--collapsed-below-medium recipes-index--date" span="2">
-  </colgroup>
-  <thead class="data-table--collapsed-below-medium">
-    <tr>
-      <th>@Localizer["Label_Title"]</th>
-      <th class="data-table--right-aligned data-table--collapsed-below-medium">@Localizer["Label_Added"]</th>
-      <th class="data-table--right-aligned data-table--collapsed-below-medium">@Localizer["Label_Updated"]</th>
-    </tr>
-  </thead>
-  <tbody>
-    @foreach (var recipe in Model!)
+<div style="display: none">
+  <svg xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-chef-hat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z" /><path d="M6 17h12" /></symbol>
+    <symbol id="icon-cooking-pot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/></symbol>
+  </svg>
+</div>
+@foreach (var recipe in Model!)
+{
+  <article>
+    <a asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a>
+    @if (recipe.PreparationMinutes.HasValue)
     {
-      <tr>
-        <td><a asp-action="Show" asp-route-id="@recipe.Id">@recipe.Title</a></td>
-        <td class="data-table--right-aligned data-table--collapsed-below-medium">@Html.UserDateTime(recipe.Created, "d")</td>
-        <td class="data-table--right-aligned data-table--collapsed-below-medium">@Html.UserDateTime(recipe.Modified, "d")</td>
-      </tr>
+      <span><svg height="20" width="20"><use href="#icon-chef-hat" /></svg> @TimeFormatter.AsHoursAndMinutes(recipe.PreparationMinutes.Value)</span>
     }
-  </tbody>
-</table>
+    @if (recipe.CookingMinutes.HasValue)
+    {
+      <span><svg height="20" width="20"><use href="#icon-cooking-pot" /></svg> @TimeFormatter.AsHoursAndMinutes(recipe.CookingMinutes.Value)</span>
+    }
+  </article>
+}
