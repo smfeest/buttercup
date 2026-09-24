@@ -15,16 +15,16 @@ paths.assets = 'wwwroot/assets';
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
 
-const bundleProductionScripts = () =>
+const buildProductionScripts = () =>
   webpackScripts({
     mode: 'production',
     output: { filename: 'scripts/[name].prod.js' },
   }).pipe(dest(paths.assets));
 
-const bundleDevelopmentScripts = () =>
+const buildDevelopmentScripts = () =>
   webpackDevScripts().pipe(dest(paths.assets));
 
-const bundleStyles = () =>
+const buildStyles = () =>
   src(`${paths.styles}/main.less`)
     .pipe(less({ math: 'parens-division' }))
     .pipe(dest(paths.styleAssets))
@@ -43,7 +43,7 @@ const watchScripts = () =>
     },
   }).pipe(dest(paths.assets));
 
-const watchStyles = () => watch(`${paths.styles}/*.less`, bundleStyles);
+const watchStyles = () => watch(`${paths.styles}/*.less`, buildStyles);
 
 const webpackDevScripts = (config) =>
   webpackScripts({
@@ -76,13 +76,13 @@ const webpackScripts = (config) =>
   );
 
 const build = parallel(
-  bundleDevelopmentScripts,
-  bundleProductionScripts,
-  bundleStyles,
+  buildDevelopmentScripts,
+  buildProductionScripts,
+  buildStyles,
 );
 
 const rebuild = series(clean, build);
 
-const watchAll = parallel(bundleStyles, watchScripts, watchStyles);
+const watchAll = parallel(buildStyles, watchScripts, watchStyles);
 
 export { build as default, build, clean, rebuild, watchAll as watch };
