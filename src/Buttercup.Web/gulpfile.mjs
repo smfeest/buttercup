@@ -43,7 +43,10 @@ const watchScripts = () =>
     },
   }).pipe(dest(paths.assets));
 
-const watchStyles = () => watch(`${paths.styles}/**/*.less`, buildStyles);
+const watchStylesAfterBuild = () =>
+  watch(`${paths.styles}/**/*.less`, buildStyles);
+
+const watchStyles = series(buildStyles, watchStylesAfterBuild);
 
 const webpackDevScripts = (config) =>
   webpackScripts({
@@ -83,6 +86,6 @@ const build = parallel(
 
 const rebuild = series(clean, build);
 
-const watchAll = parallel(buildStyles, watchScripts, watchStyles);
+const watchAll = parallel(watchScripts, watchStyles);
 
 export { build as default, build, clean, rebuild, watchAll as watch };
