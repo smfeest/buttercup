@@ -15,57 +15,46 @@ paths.assets = 'wwwroot/assets';
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
 
-function bundleProductionScripts() {
-  return webpackScripts({
+const bundleProductionScripts = () =>
+  webpackScripts({
     mode: 'production',
     output: { filename: 'scripts/[name].prod.js' },
   }).pipe(dest(paths.assets));
-}
 
-function bundleDevelopmentScripts() {
-  return webpackDevScripts().pipe(dest(paths.assets));
-}
+const bundleDevelopmentScripts = () =>
+  webpackDevScripts().pipe(dest(paths.assets));
 
-function bundleStyles() {
-  return src(`${paths.styles}/main.less`)
+const bundleStyles = () =>
+  src(`${paths.styles}/main.less`)
     .pipe(less({ math: 'parens-division' }))
     .pipe(dest(paths.styleAssets))
     .pipe(rename({ suffix: '.prod' }))
     .pipe(cleanCss())
     .pipe(dest(paths.styleAssets));
-}
 
-function clean() {
-  return deleteAsync([
-    `${paths.scriptAssets}/**/*`,
-    `${paths.styleAssets}/**/*`,
-  ]);
-}
+const clean = () =>
+  deleteAsync([`${paths.scriptAssets}/**/*`, `${paths.styleAssets}/**/*`]);
 
-function watchScripts() {
-  return webpackDevScripts({
+const watchScripts = () =>
+  webpackDevScripts({
     watch: true,
     watchOptions: {
       ignored: /node_modules/,
     },
   }).pipe(dest(paths.assets));
-}
 
-function watchStyles() {
-  return watch(`${paths.styles}/*.less`, bundleStyles);
-}
+const watchStyles = () => watch(`${paths.styles}/*.less`, bundleStyles);
 
-function webpackDevScripts(config) {
-  return webpackScripts({
+const webpackDevScripts = (config) =>
+  webpackScripts({
     mode: 'development',
     devtool: 'eval-cheap-module-source-map',
     output: { filename: 'scripts/[name].js' },
     ...config,
   });
-}
 
-function webpackScripts(config) {
-  return src(`${paths.scripts}/main.ts`).pipe(
+const webpackScripts = (config) =>
+  src(`${paths.scripts}/main.ts`).pipe(
     webpackStream(
       {
         resolve: {
@@ -85,7 +74,6 @@ function webpackScripts(config) {
       webpack,
     ),
   );
-}
 
 const build = parallel(
   bundleDevelopmentScripts,
