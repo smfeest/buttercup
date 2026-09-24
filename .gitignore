@@ -3,6 +3,7 @@ coverage/
 node_modules/
 obj/
 TestResults/
+src/Buttercup.Web/icons/
 **/assets/scripts
 **/assets/styles
 mono_crash.*
