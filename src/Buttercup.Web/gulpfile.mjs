@@ -43,7 +43,7 @@ const watchScripts = () =>
     },
   }).pipe(dest(paths.assets));
 
-const watchStyles = () => watch(`${paths.styles}/*.less`, buildStyles);
+const watchStyles = () => watch(`${paths.styles}/**/*.less`, buildStyles);
 
 const webpackDevScripts = (config) =>
   webpackScripts({
