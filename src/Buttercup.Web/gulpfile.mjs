@@ -15,57 +15,50 @@ paths.assets = 'wwwroot/assets';
 paths.scriptAssets = `${paths.assets}/scripts`;
 paths.styleAssets = `${paths.assets}/styles`;
 
-function bundleProductionScripts() {
-  return webpackScripts({
+const buildScriptsDev = () => webpackDevScripts().pipe(dest(paths.assets));
+
+const buildScriptsProd = () =>
+  webpackScripts({
     mode: 'production',
     output: { filename: 'scripts/[name].prod.js' },
   }).pipe(dest(paths.assets));
-}
 
-function bundleDevelopmentScripts() {
-  return webpackDevScripts().pipe(dest(paths.assets));
-}
+const buildScripts = parallel(buildScriptsDev, buildScriptsProd);
 
-function bundleStyles() {
-  return src(`${paths.styles}/main.less`)
+const buildStyles = () =>
+  src(`${paths.styles}/main.less`)
     .pipe(less({ math: 'parens-division' }))
     .pipe(dest(paths.styleAssets))
     .pipe(rename({ suffix: '.prod' }))
     .pipe(cleanCss())
     .pipe(dest(paths.styleAssets));
-}
 
-function clean() {
-  return deleteAsync([
-    `${paths.scriptAssets}/**/*`,
-    `${paths.styleAssets}/**/*`,
-  ]);
-}
+const clean = () =>
+  deleteAsync([`${paths.scriptAssets}/**/*`, `${paths.styleAssets}/**/*`]);
 
-function watchScripts() {
-  return webpackDevScripts({
+const watchScripts = () =>
+  webpackDevScripts({
     watch: true,
     watchOptions: {
       ignored: /node_modules/,
     },
   }).pipe(dest(paths.assets));
-}
 
-function watchStyles() {
-  return watch(`${paths.styles}/*.less`, bundleStyles);
-}
+const watchStylesAfterBuild = () =>
+  watch(`${paths.styles}/**/*.less`, buildStyles);
 
-function webpackDevScripts(config) {
-  return webpackScripts({
+const watchStyles = series(buildStyles, watchStylesAfterBuild);
+
+const webpackDevScripts = (config) =>
+  webpackScripts({
     mode: 'development',
     devtool: 'eval-cheap-module-source-map',
     output: { filename: 'scripts/[name].js' },
     ...config,
   });
-}
 
-function webpackScripts(config) {
-  return src(`${paths.scripts}/main.ts`).pipe(
+const webpackScripts = (config) =>
+  src(`${paths.scripts}/main.ts`).pipe(
     webpackStream(
       {
         resolve: {
@@ -85,16 +78,23 @@ function webpackScripts(config) {
       webpack,
     ),
   );
-}
 
-const build = parallel(
-  bundleDevelopmentScripts,
-  bundleProductionScripts,
-  bundleStyles,
-);
+const build = parallel(buildScripts, buildStyles);
 
 const rebuild = series(clean, build);
 
-const watchAll = parallel(bundleStyles, watchScripts, watchStyles);
+const watchAll = parallel(watchScripts, watchStyles);
 
-export { build as default, build, clean, rebuild, watchAll as watch };
+export {
+  build as default,
+  build,
+  buildScripts,
+  buildScriptsDev,
+  buildScriptsProd,
+  buildStyles,
+  clean,
+  rebuild,
+  watchAll as watch,
+  watchScripts,
+  watchStyles,
+};
