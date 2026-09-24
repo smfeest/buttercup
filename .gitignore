@@ -6,3 +6,4 @@ TestResults/
 **/assets/scripts
 **/assets/styles
 mono_crash.*
+src/Buttercup.Web/Icons/sprite.*
