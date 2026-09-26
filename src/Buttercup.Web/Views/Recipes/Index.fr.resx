@@ -6,4 +6,10 @@
   <data name="Label_FindRecipe">
     <value>Trouver une recette</value>
   </data>
+  <data name="Label_PreparationTime">
+    <value>Temps de préparation : {0}</value>
+  </data>
+  <data name="Label_CookingTime">
+    <value>Temps de cuisson : {0}</value>
+  </data>
 </root>

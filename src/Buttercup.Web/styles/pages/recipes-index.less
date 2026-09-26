@@ -21,10 +21,44 @@
 
 .recipes-index__item {
   border-bottom: 1px solid var(--color-grey);
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding);
   padding: var(--padding) 0;
 
   &:last-child {
     border-bottom-style: none;
+  }
+}
+
+.recipes-index__particulars {
+  color: var(--color-very-dark-grey);
+  display: flex;
+  flex-shrink: 0;
+  font-size: 0.9em;
+  gap: 0.8em;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  > li {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .icon {
+    --icon-size: 1.2em;
+    height: var(--icon-size);
+    width: var(--icon-size);
+  }
+
+  .icon--blender {
+    padding-inline-end: 0.1em;
+  }
+
+  .icon--cooking-pot {
+    padding-inline-end: 0.3em;
   }
 }
 
@@ -42,5 +76,11 @@
   #recipe-index__filter {
     margin-bottom: 0;
     width: 50%;
+  }
+
+  .recipes-index__item {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
   }
 }
