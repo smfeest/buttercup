@@ -22,7 +22,7 @@ import recipesFilter from './recipes-filter';
   if (recipeFilterInput) {
     recipesFilter(
       recipeFilterInput,
-      document.getElementById('recipes-index__table') as HTMLTableElement,
+      document.getElementById('recipes-index__list') as HTMLUListElement,
     );
   }
 })();

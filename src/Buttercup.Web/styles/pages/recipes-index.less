@@ -13,8 +13,19 @@
   }
 }
 
-.recipes-index--date {
-  width: 10em;
+#recipes-index__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recipes-index__item {
+  border-bottom: 1px solid var(--color-grey);
+  padding: var(--padding) 0;
+
+  &:last-child {
+    border-bottom-style: none;
+  }
 }
 
 .recipes-index--hidden {

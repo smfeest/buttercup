@@ -1,4 +1,4 @@
-export default (filterInput: HTMLInputElement, table: HTMLTableElement) => {
+export default (filterInput: HTMLInputElement, list: HTMLUListElement) => {
   const rows: { text: string; element: Element }[] = [];
 
   const apply = () => {
@@ -11,10 +11,10 @@ export default (filterInput: HTMLInputElement, table: HTMLTableElement) => {
     );
   };
 
-  table.querySelectorAll('tbody > tr').forEach((element) =>
+  list.querySelectorAll('li').forEach((element) =>
     rows.push({
       element,
-      text: element.firstElementChild!.textContent.toLocaleLowerCase(),
+      text: element.textContent.toLocaleLowerCase(),
     }),
   );
 
