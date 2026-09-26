@@ -15,6 +15,7 @@ using Buttercup.Web.Areas.Admin.Controllers.Queries;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Globalization;
+using Buttercup.Web.Icons;
 using Buttercup.Web.Security;
 using HotChocolate.Data.Sorting;
 using Microsoft.AspNetCore.Authentication;
@@ -169,6 +170,7 @@ services
     .AddTransient<IHomeControllerQueries, HomeControllerQueries>()
     .AddTransient<ICommentsControllerQueries, CommentsControllerQueries>()
     .AddTransient<IRecipesControllerQueries, RecipesControllerQueries>()
+    .AddSingleton<ISpriteProvider, SpriteProvider>()
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
