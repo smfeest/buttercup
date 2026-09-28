@@ -15,6 +15,7 @@ using Buttercup.Web.Areas.Admin.Controllers.Queries;
 using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Globalization;
+using Buttercup.Web.Hosting;
 using Buttercup.Web.Security;
 using HotChocolate.Data.Sorting;
 using Microsoft.AspNetCore.Authentication;
@@ -172,7 +173,8 @@ services
     .AddTransient<CookieAuthenticationEventsHandler>()
     .AddTransient<ITimeFormatter, TimeFormatter>()
     .AddTransient<ITimeZoneOptionsHelper, TimeZoneOptionsHelper>()
-    .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>();
+    .AddTransient<ITimeZoneRegistry, TimeZoneRegistry>()
+    .AddTransient<IIconSpriteProvider, IconSpriteProvider>();
 
 if (isDevelopment)
 {

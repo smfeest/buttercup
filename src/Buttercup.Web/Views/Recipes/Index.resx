@@ -6,13 +6,10 @@
   <data name="Label_FindRecipe">
     <value>Find a recipe</value>
   </data>
-  <data name="Label_Title">
-    <value>Title</value>
+  <data name="Label_PreparationTime">
+    <value>Preparation time: {0}</value>
   </data>
-  <data name="Label_Added">
-    <value>Added</value>
-  </data>
-  <data name="Label_Updated">
-    <value>Updated</value>
+  <data name="Label_CookingTime">
+    <value>Cooking time: {0}</value>
   </data>
 </root>

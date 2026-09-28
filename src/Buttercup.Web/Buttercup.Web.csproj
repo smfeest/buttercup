@@ -5,6 +5,9 @@
     <NoWarn>$(NoWarn);AD0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="icons/sprites/**/*.svg" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.5.0" />
     <PackageReference Include="Bugsnag.AspNet.Core" Version="4.1.1" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.17" />
