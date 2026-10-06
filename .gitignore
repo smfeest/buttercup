@@ -2,7 +2,9 @@ bin/
 coverage/
 node_modules/
 obj/
+sprites/
 TestResults/
 **/assets/scripts
 **/assets/styles
 mono_crash.*
+

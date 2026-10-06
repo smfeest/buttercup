@@ -3,8 +3,7 @@ import recipesFilter from './recipes-filter';
 describe('recipesFilter', () => {
   let fixture: HTMLElement;
   let filterInput: HTMLInputElement;
-  let table: HTMLTableElement;
-  let tableBody: HTMLTableSectionElement;
+  let list: HTMLUListElement;
   let rows: {
     applePie: HTMLElement;
     chickenPie: HTMLElement;
@@ -12,21 +11,18 @@ describe('recipesFilter', () => {
   };
 
   const addRow = (recipeTitle: string) => {
-    const cell = document.createElement('td');
-    cell.textContent = recipeTitle;
+    const item = document.createElement('li');
+    item.textContent = recipeTitle;
 
-    const row = document.createElement('tr');
-    row.appendChild(cell);
+    list.appendChild(item);
 
-    tableBody.appendChild(row);
-
-    return row;
+    return item;
   };
 
   const initializeFilter = (initialFilter = '') => {
     filterInput.value = initialFilter;
 
-    recipesFilter(filterInput, table);
+    recipesFilter(filterInput, list);
   };
 
   const triggerFilterInput = (newFilter: string) => {
@@ -37,8 +33,7 @@ describe('recipesFilter', () => {
   beforeEach(() => {
     document.body.appendChild((fixture = document.createElement('div')));
     fixture.appendChild((filterInput = document.createElement('input')));
-    fixture.appendChild((table = document.createElement('table')));
-    table.appendChild((tableBody = document.createElement('tbody')));
+    fixture.appendChild((list = document.createElement('ul')));
 
     rows = {
       applePie: addRow('Apple pie'),
