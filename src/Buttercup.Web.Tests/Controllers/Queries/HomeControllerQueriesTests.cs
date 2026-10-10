@@ -22,7 +22,7 @@ public sealed class HomeControllerQueriesTests(DatabaseFixture<DatabaseCollectio
         {
             allRecipes.Add(this.modelFactory.BuildRecipe(softDeleted: i % 5 == 0) with
             {
-                Created = new DateTime(2010, 1, 2, 3, 4, 5).AddHours(36 * i),
+                Created = new DateTime(2010, 1, 2, 3, 4, 5, DateTimeKind.Utc).AddHours(36 * i),
             });
         }
 
