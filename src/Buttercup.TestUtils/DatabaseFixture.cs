@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
+using Npgsql;
 using Xunit;
 
 namespace Buttercup.TestUtils;
@@ -20,25 +20,17 @@ namespace Buttercup.TestUtils;
 /// </typeparam>
 public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFactory<AppDbContext>
 {
-    private const string Server = "localhost";
-    private const string User = "buttercup_dev";
-
-    private readonly Lazy<ServerVersion> serverVersion;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DatabaseFixture{TCollection}" /> class.
     /// </summary>
     public DatabaseFixture()
     {
         this.DatabaseName = $"buttercup_test_{ComputeDatabaseNameSuffix()}";
-        this.ConnectionString = new MySqlConnectionStringBuilder
+        this.ConnectionString = new NpgsqlConnectionStringBuilder
         {
-            Server = Server,
-            UserID = User,
+            Host = "/var/run/postgresql",
             Database = this.DatabaseName,
         }.ToString();
-
-        this.serverVersion = new(() => ServerVersion.AutoDetect(this.ConnectionString));
     }
 
     /// <summary>
@@ -60,7 +52,7 @@ public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFac
     public AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder()
-            .UseAppDbOptions(this.ConnectionString, this.serverVersion.Value)
+            .UseAppDbOptions(this.ConnectionString)
             .EnableSensitiveDataLogging()
             .Options;
 

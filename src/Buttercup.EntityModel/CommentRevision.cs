@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Buttercup.EntityModel;
 
 /// <summary>
@@ -25,6 +23,5 @@ public sealed record CommentRevision
     /// <summary>
     /// Gets or sets the comment body.
     /// </summary>
-    [Column(TypeName = "text")]
     public required string Body { get; set; }
 }

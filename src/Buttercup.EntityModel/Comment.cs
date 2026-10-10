@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
@@ -38,7 +37,6 @@ public sealed record Comment : IEntityId, ISoftDeletable
     /// <summary>
     /// Gets or sets the comment body.
     /// </summary>
-    [Column(TypeName = "text")]
     public required string Body { get; set; }
 
     /// <summary>

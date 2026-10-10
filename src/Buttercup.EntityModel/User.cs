@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
@@ -45,7 +44,6 @@ public sealed record User : IEntityId
     /// Gets or sets security stamp; an opaque string that changes whenever the user's existing
     /// sessions need to be invalidate.
     /// </summary>
-    [Column(TypeName = "char")]
     [StringLength(8)]
     public required string SecurityStamp { get; set; }
 

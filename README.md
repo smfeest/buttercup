@@ -5,8 +5,8 @@
 1.  Install required tools and dependencies:
     - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
     - [Mailpit](https://mailpit.axllent.org/)
-    - [MySQL Server](https://dev.mysql.com/downloads/mysql/)
     - [Node.js 24](https://nodejs.org)
+    - [PostgreSQL 18 server](https://www.postgresql.org/download/)
     - [Redis](https://redis.io/open-source/) or [Valkey](https://valkey.io/download/)
     - [Visual Studio Code](https://code.visualstudio.com/) with [recommended
       extensions](.vscode/extensions.json)
@@ -15,30 +15,29 @@
 
         dotnet tool restore
 
-3.  Create the _buttercup_dev_ user that will be used to connect to the
-    application and test databases:
+3.  The default database connection string assumes that:
+    - the database will be hosted on a local Postgres instance
+    - your user account is able to connect to that instance through a local UNIX socket and
+      authenticate with peer authentication
+    - your Postgres role has permission to create new databases
+    - the database will be named 'buttercup_app'
 
-        mysql -u root -p < scripts/create-dev-user.sql
+    If necessary, use Secret Manager to override the database connection string:
 
-4.  The default database connection string connects to MySQL on localhost, using the password-less
-    _buttercup_dev_ user created in the previous step and _buttercup_app_ as the database name.
+        dotnet user-secrets set "ConnectionStrings:AppDb" "Host=..." -p src/Buttercup.Web
 
-    If necessary, use the ASP.NET Core Secret Manager to override the database connection string:
-
-        dotnet user-secrets set "ConnectionStrings:AppDb" "Server=..." -p src/Buttercup.Web
-
-5.  Create the application database:
+4.  Create the application database:
 
         dotnet ef database update -s src/Buttercup.Web
 
-6.  The default Redis connection string connects to Redis or Valkey on localhost without credentials
+5.  The default Redis connection string connects to Redis or Valkey on localhost without credentials
     or TLS encryption.
 
     If necessary, use the ASP.NET Core Secret Manager to override the Redis connection string:
 
         dotnet user-secrets set "Redis:ConnectionString" "redis.local,user=..." -p src/Buttercup.Web
 
-7.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and use the ASP.NET
+6.  Create a [Bugsnag](https://www.bugsnag.com/) project for the application and use the ASP.NET
     Core Secret Manager to add the project's API key as a user secret:
 
         dotnet user-secrets set "Bugsnag:ApiKey" "<replace-with-api-key>" -p src/Buttercup.Web

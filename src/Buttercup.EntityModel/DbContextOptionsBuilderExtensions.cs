@@ -1,6 +1,5 @@
 
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 
 namespace Buttercup.EntityModel;
 
@@ -18,30 +17,19 @@ public static class DbContextOptionsBuilderExtensions
     /// <param name="connectionString">
     /// The connection string.
     /// </param>
-    /// <param name="serverVersion">
-    /// The database server version.
-    /// </param>
     /// <returns>
     /// The same options builder so that calls can be chained.
     /// </returns>
     public static DbContextOptionsBuilder UseAppDbOptions(
         this DbContextOptionsBuilder options,
-        string connectionString,
-        ServerVersion serverVersion) =>
+        string connectionString) =>
         options
-            .UseMySql(
-                AddConnectionStringOptions(connectionString),
-                serverVersion,
-                mysqlOptions => mysqlOptions
+            .UseNpgsql(
+                connectionString,
+                npgOptions => npgOptions
                     .MigrationsAssembly("Buttercup.EntityModel.Migrations")
                     .MigrationsHistoryTable("__migrations_history")
                     .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .UseSnakeCaseNamingConvention();
-
-    private static string AddConnectionStringOptions(string baseConnectionString) =>
-        new MySqlConnectionStringBuilder(baseConnectionString)
-        {
-            DateTimeKind = MySqlDateTimeKind.Utc
-        }.ToString();
 }

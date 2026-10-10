@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Buttercup.EntityModel;
 
@@ -8,6 +7,9 @@ namespace Buttercup.EntityModel;
 /// </summary>
 public sealed class AppDbContext : DbContext
 {
+    private const string CaseInsensitiveCollationName = "und-ci";
+    private const string OrdinalCollationName = "C";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AppDbContext" /> class.
     /// </summary>
@@ -68,39 +70,57 @@ public sealed class AppDbContext : DbContext
     public DbSet<UserAuditEntry> UserAuditEntries => this.Set<UserAuditEntry>();
 
     /// <inheritdoc/>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
+        configurationBuilder.Properties<string>().UseCollation(CaseInsensitiveCollationName);
+
+    /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasCollation(
+            CaseInsensitiveCollationName,
+            locale: "und-u-ks-level2",
+            provider: "icu",
+            deterministic: false);
+
         modelBuilder
             .Entity<CommentAudit>()
             .Property(e => e.Action)
             .HasConversion<CommentActionToStringConverter>()
-            .HasMaxLength(10);
+            .HasMaxLength(10)
+            .UseCollation(OrdinalCollationName);
         modelBuilder
-            .Entity<CommentAudit>()
-            .Property(e => e.IpAddress)
-            .HasConversion<IPAddressToBytesConverter>();
+            .Entity<PasswordResetToken>()
+            .Property(e => e.Token)
+            .UseCollation(OrdinalCollationName);
         modelBuilder
             .Entity<RecipeAudit>()
             .Property(e => e.Action)
             .HasConversion<RecipeActionToStringConverter>()
-            .HasMaxLength(10);
+            .HasMaxLength(10)
+            .UseCollation(OrdinalCollationName);
         modelBuilder
-            .Entity<RecipeAudit>()
-            .Property(e => e.IpAddress)
-            .HasConversion<IPAddressToBytesConverter>();
+            .Entity<User>()
+            .Property(e => e.HashedPassword)
+            .UseCollation(OrdinalCollationName);
+        modelBuilder
+            .Entity<User>()
+            .Property(e => e.SecurityStamp)
+            .UseCollation(OrdinalCollationName);
+        modelBuilder
+            .Entity<User>()
+            .Property(e => e.TimeZone)
+            .UseCollation(OrdinalCollationName);
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
             .HasConversion<UserAuditOperationToStringConverter>()
-            .HasMaxLength(30);
-        modelBuilder
-            .Entity<UserAuditEntry>()
-            .Property(e => e.IpAddress)
-            .HasConversion<IPAddressToBytesConverter>();
+            .HasMaxLength(30)
+            .UseCollation(OrdinalCollationName);
         modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Failure)
             .HasConversion<UserAuditFailureToStringConverter>()
-            .HasMaxLength(30);
+            .HasMaxLength(30)
+            .UseCollation(OrdinalCollationName);
     }
 }

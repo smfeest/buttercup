@@ -170,6 +170,6 @@ public sealed class CommentAuditsTests(AppFactory appFactory) : EndToEndTests(ap
             .EnumerateArray()
             .Select(e => e.GetProperty("id").GetInt64());
 
-        Assert.Equal([auditA.Id, auditB.Id, auditD.Id, auditC.Id], returnedIds);
+        Assert.Equal([auditD.Id, auditC.Id, auditA.Id, auditB.Id], returnedIds);
     }
 }
