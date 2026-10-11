@@ -737,6 +737,37 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
+    public async Task ResetPassword_TokenHasIncorrectCasing()
+    {
+        var user = this.modelFactory.BuildUser();
+        var token = this.modelFactory.BuildPasswordResetToken(user) with
+        {
+            Token = this.modelFactory.NextString("tOkEn"),
+            Created = this.timeProvider.GetUtcDateTimeNow(),
+        };
+        await this.DatabaseFixture.InsertEntities(user, token);
+
+        var suppliedToken = token.Token.ToUpperInvariant();
+        var maskedToken = this.SetupMaskToken(suppliedToken);
+        var newPassword = this.modelFactory.NextString("new-password");
+        var ipAddress = this.modelFactory.NextIpAddress();
+
+        var result = await this.passwordAuthenticationService.ResetPassword(
+            suppliedToken, newPassword, ipAddress, TestContext.Current.CancellationToken);
+
+        // Logs invalid token message
+        LogAssert.SingleEntry(this.logger)
+            .HasId(10)
+            .HasLevel(LogLevel.Information)
+            .HasMessage(
+                $"Unable to reset password; password reset token {maskedToken} is invalid");
+
+        // Returns 'invalid token' failure
+        Assert.False(result.IsSuccess);
+        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
+    }
+
+    [Fact]
     public async Task ResetPassword_UserDeactivated()
     {
         var user = this.modelFactory.BuildUser(deactivated: true);

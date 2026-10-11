@@ -16,6 +16,7 @@ using Buttercup.Web.Binders;
 using Buttercup.Web.Controllers.Queries;
 using Buttercup.Web.Globalization;
 using Buttercup.Web.Hosting;
+using Buttercup.Web.Routing;
 using Buttercup.Web.Security;
 using HotChocolate.Data.Sorting;
 using Microsoft.AspNetCore.Authentication;
@@ -23,6 +24,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
@@ -68,10 +70,10 @@ services.AddAzureClients(clientBuilder =>
 });
 
 services
-    .AddRouting(options => options.LowercaseUrls = true)
-    .AddControllersWithViews()
-    .AddMvcOptions(options =>
+    .AddControllersWithViews(options =>
     {
+        options.Conventions.Add(
+            new RouteTokenTransformerConvention(new LowercaseParameterTransformer()));
         options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         options.ModelBinderProviders.Insert(0, new NormalizedStringBinderProvider());
     })
