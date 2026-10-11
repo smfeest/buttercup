@@ -165,7 +165,8 @@ namespace Buttercup.EntityModel.Migrations
                     b.Property<string>("Token")
                         .HasMaxLength(48)
                         .HasColumnType("char")
-                        .HasColumnName("token");
+                        .HasColumnName("token")
+                        .UseCollation("ascii_bin");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime(6)")

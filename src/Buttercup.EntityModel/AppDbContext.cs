@@ -89,6 +89,10 @@ public sealed class AppDbContext : DbContext
             .Property(e => e.IpAddress)
             .HasConversion<IPAddressToBytesConverter>();
         modelBuilder
+            .Entity<PasswordResetToken>()
+            .Property(e => e.Token)
+            .UseCollation("ascii_bin");
+        modelBuilder
             .Entity<UserAuditEntry>()
             .Property(e => e.Operation)
             .HasConversion<UserAuditOperationToStringConverter>()
