@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Buttercup.EntityModel;
 
@@ -47,25 +46,21 @@ public sealed record RecipeRevision
     /// <summary>
     /// Gets or sets the ingredients.
     /// </summary>
-    [Column(TypeName = "text")]
     public required string Ingredients { get; set; }
 
     /// <summary>
     /// Gets or sets the method.
     /// </summary>
-    [Column(TypeName = "text")]
     public required string Method { get; set; }
 
     /// <summary>
     /// Gets or sets the suggestions for the recipe.
     /// </summary>
-    [Column(TypeName = "text")]
     public string? Suggestions { get; set; }
 
     /// <summary>
     /// Gets or sets the remarks for the recipe.
     /// </summary>
-    [Column(TypeName = "text")]
     public string? Remarks { get; set; }
 
     /// <summary>

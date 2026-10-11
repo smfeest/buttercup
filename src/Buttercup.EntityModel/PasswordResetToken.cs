@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Buttercup.EntityModel;
 
@@ -12,7 +11,6 @@ public sealed record PasswordResetToken
     /// Gets or sets the token.
     /// </summary>
     [Key]
-    [Column(TypeName = "char")]
     [StringLength(48)]
     public required string Token { get; set; }
 

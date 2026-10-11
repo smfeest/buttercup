@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Buttercup.EntityModel;
@@ -23,15 +22,9 @@ public static class ServiceCollectionExtensions
     /// </returns>
     public static IServiceCollection AddAppDbContextFactory(
         this IServiceCollection services, string connectionString) => services
-            .AddSingleton(
-                new Lazy<ServerVersion>(
-                    () => ServerVersion.AutoDetect(connectionString),
-                    LazyThreadSafetyMode.PublicationOnly))
             .AddPooledDbContextFactory<AppDbContext>((serviceProvider, options) =>
             {
-                options.UseAppDbOptions(
-                    connectionString,
-                    serviceProvider.GetRequiredService<Lazy<ServerVersion>>().Value);
+                options.UseAppDbOptions(connectionString);
 
                 var seeder = serviceProvider.GetService<IDatabaseSeeder>();
 
