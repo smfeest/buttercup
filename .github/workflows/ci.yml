@@ -7,12 +7,24 @@ jobs:
     name: Build and test
     runs-on: ubuntu-24.04
     env:
+      ConnectionStrings__AppDb: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=buttercup_app
       WEB_PROJECT_PATH: src/Buttercup.Web
     services:
       mailpit:
         image: axllent/mailpit
         ports:
           - 8025:8025
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 3s
+          --health-timeout 2s
+          --health-retries 5
+        ports:
+          - 5432:5432
       redis:
         image: redis
         ports:
@@ -43,11 +55,9 @@ jobs:
       - name: Build assets
         run: npx gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
-      - name: Start MySQL Server
-        run: sudo systemctl start mysql.service
-      - name: Create MySQL user
-        run: mysql -uroot -proot < scripts/create-dev-user.sql
       - name: Run .NET tests
+        env:
+          BUTTERCUP_TEST_DB_SERVER_CONNECTION_STRING: Host=localhost;Port=5432;Username=postgres;Password=postgres;
         run: dotnet test --no-build --configuration Release --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
       - name: Report .NET test coverage
         if: ${{ hashFiles('**/coverage.cobertura.xml') }}

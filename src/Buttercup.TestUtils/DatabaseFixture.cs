@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Buttercup.EntityModel;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
+using Npgsql;
 using Xunit;
 
 namespace Buttercup.TestUtils;
@@ -20,36 +20,21 @@ namespace Buttercup.TestUtils;
 /// </typeparam>
 public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFactory<AppDbContext>
 {
-    private const string Server = "localhost";
-    private const string User = "buttercup_dev";
-
-    private readonly Lazy<ServerVersion> serverVersion;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DatabaseFixture{TCollection}" /> class.
     /// </summary>
-    public DatabaseFixture()
-    {
-        this.DatabaseName = $"buttercup_test_{ComputeDatabaseNameSuffix()}";
-        this.ConnectionString = new MySqlConnectionStringBuilder
+    public DatabaseFixture() =>
+        this.ConnectionString = new NpgsqlConnectionStringBuilder(
+            Environment.GetEnvironmentVariable("BUTTERCUP_TEST_DB_SERVER_CONNECTION_STRING") ??
+            "Host=/var/run/postgresql")
         {
-            Server = Server,
-            UserID = User,
-            Database = this.DatabaseName,
+            Database = $"buttercup_test_{ComputeDatabaseNameSuffix()}",
         }.ToString();
-
-        this.serverVersion = new(() => ServerVersion.AutoDetect(this.ConnectionString));
-    }
 
     /// <summary>
     /// Gets the connection string for the test database.
     /// </summary>
     public string ConnectionString { get; }
-
-    /// <summary>
-    /// Gets the name of the test database.
-    /// </summary>
-    public string DatabaseName { get; }
 
     /// <summary>
     /// Creates a new <see cref="AppDbContext" /> that connects to the test database.
@@ -60,7 +45,7 @@ public sealed class DatabaseFixture<TCollection> : IAsyncLifetime, IDbContextFac
     public AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder()
-            .UseAppDbOptions(this.ConnectionString, this.serverVersion.Value)
+            .UseAppDbOptions(this.ConnectionString)
             .EnableSensitiveDataLogging()
             .Options;
 
