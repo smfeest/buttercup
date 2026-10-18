@@ -13,7 +13,7 @@
     "@urql/exchange-auth": "3.0.0",
     "cheerio": "^1.2.0",
     "del": "^9.0.1",
-    "eslint": "^10.9.1",
+    "eslint": "^10.13.0",
     "gulp": "^5.0.1",
     "gulp-clean-css": "^4.3.0",
     "gulp-less": "^5.0.0",
