@@ -48,12 +48,12 @@ jobs:
       - name: Restore .NET tools
         run: dotnet tool restore
       - name: Restore Node.js dependencies
-        run: npm ci
+        run: npm ci --strict-allow-scripts
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build .NET solution
         run: dotnet build --configuration Release /WarnAsError
       - name: Build assets
-        run: npx gulp build
+        run: npx --no gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Run .NET tests
         env:
@@ -65,13 +65,13 @@ jobs:
           ./scripts/build-dotnet-coverage-report.sh -reporttypes:TextSummary
           cat coverage/Summary.txt
       - name: Run Jest tests
-        run: npx jest --coverage
+        run: npx --no -- jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx --no playwright install --with-deps
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx --no playwright test
         working-directory: ${{env.WEB_PROJECT_PATH}}
         env:
           CreateDatabaseOnStartup: true
@@ -83,11 +83,11 @@ jobs:
           path: ${{env.WEB_PROJECT_PATH}}/.playwright/results
           if-no-files-found: ignore
       - name: Check formatting
-        run: npx prettier -c .
+        run: npx --no -- prettier -c .
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint scripts
-        run: npx eslint .
+        run: npx --no eslint .
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Lint styles
-        run: npx stylelint --max-warnings 0 styles/
+        run: npx --no -- stylelint --max-warnings 0 styles/
         working-directory: ${{env.WEB_PROJECT_PATH}}

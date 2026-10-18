@@ -27,10 +27,10 @@ jobs:
           cache: npm
           cache-dependency-path: ${{env.WEB_PROJECT_PATH}}/package-lock.json
       - name: Restore Node.js dependencies
-        run: npm ci
+        run: npm ci --strict-allow-scripts
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build assets
-        run: npx gulp build
+        run: npx --no gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build architecture-specific images
         run: |
