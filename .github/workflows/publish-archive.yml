@@ -29,7 +29,7 @@ jobs:
         run: npm ci --strict-allow-scripts
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build assets
-        run: npx gulp build
+        run: npx --no gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Publish web app
         run: dotnet publish Buttercup.Web.csproj --output publish-output
