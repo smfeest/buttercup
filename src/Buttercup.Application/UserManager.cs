@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Net;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
@@ -219,7 +218,7 @@ internal sealed class UserManager(
     private static async Task UpdateUserProperties(
         AppDbContext dbContext,
         long userId,
-        Expression<Func<SetPropertyCalls<User>, SetPropertyCalls<User>>> setPropertyCalls,
+        Action<UpdateSettersBuilder<User>> setPropertyCalls,
         CancellationToken cancellationToken)
     {
         var updatedRows = await dbContext
