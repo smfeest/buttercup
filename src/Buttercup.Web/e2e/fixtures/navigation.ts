@@ -13,7 +13,7 @@ export type Navigation = {
   signOutLink: Locator;
 };
 
-export const navigation: TestFixture<Navigation, PlaywrightTestArgs> = async (
+export const navigation: TestFixture<Navigation, PlaywrightTestArgs> = (
   { page },
   use,
 ) =>

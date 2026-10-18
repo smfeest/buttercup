@@ -9,7 +9,7 @@ export type CommentForm = {
   saveButton: Locator;
 };
 
-export const commentForm: TestFixture<CommentForm, PlaywrightTestArgs> = async (
+export const commentForm: TestFixture<CommentForm, PlaywrightTestArgs> = (
   { page },
   use,
 ) =>

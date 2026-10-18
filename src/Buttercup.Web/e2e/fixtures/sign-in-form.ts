@@ -10,7 +10,7 @@ export type SignInForm = {
   signInButton: Locator;
 };
 
-export const signInForm: TestFixture<SignInForm, PlaywrightTestArgs> = async (
+export const signInForm: TestFixture<SignInForm, PlaywrightTestArgs> = (
   { page },
   use,
 ) =>
