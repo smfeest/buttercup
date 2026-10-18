@@ -48,7 +48,7 @@ jobs:
       - name: Restore .NET tools
         run: dotnet tool restore
       - name: Restore Node.js dependencies
-        run: npm ci
+        run: npm ci --strict-allow-scripts
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build .NET solution
         run: dotnet build --configuration Release /WarnAsError

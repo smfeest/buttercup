@@ -26,7 +26,7 @@ jobs:
       - name: Set SHORT_COMMIT_SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Restore Node.js dependencies
-        run: npm ci
+        run: npm ci --strict-allow-scripts
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build assets
         run: npx gulp build
