@@ -11,7 +11,7 @@ public class UseTieBreakSortByIdAttribute<T> : ObjectFieldDescriptorAttribute wh
     public UseTieBreakSortByIdAttribute([CallerLineNumber] int order = 0) => this.Order = order;
 
     protected override void OnConfigure(
-        IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member) =>
+        IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo? member) =>
         descriptor.Use(next => async middlewareContext =>
         {
             var sortingContext = middlewareContext.GetSortingContext();

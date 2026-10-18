@@ -40,7 +40,7 @@ public sealed class RecipeMutations
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
-        ISchema schema,
+        Schema schema,
         RecipeAttributes attributes,
         CancellationToken cancellationToken)
     {
@@ -152,7 +152,7 @@ public sealed class RecipeMutations
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IRecipeManager recipeManager,
-        ISchema schema,
+        Schema schema,
         long id,
         RecipeAttributes attributes,
         int baseUpdateCount,

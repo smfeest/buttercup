@@ -209,10 +209,10 @@ app.UseAuthorization();
 app.MapControllers().WithStaticAssets();
 
 app.MapGraphQL()
-    .WithOptions(new()
+    .WithOptions(options =>
     {
-        EnableSchemaRequests = isDevelopment,
-        Tool = { Enable = isDevelopment }
+        options.EnableSchemaRequests = isDevelopment;
+        options.Tool.Enable = isDevelopment;
     })
     .RequireAuthorization(new AuthorizeAttribute
     {

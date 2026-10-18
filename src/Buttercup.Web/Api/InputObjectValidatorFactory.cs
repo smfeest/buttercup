@@ -7,7 +7,8 @@ public sealed class InputObjectValidatorFactory(IServiceProvider serviceProvider
 {
     private readonly IServiceProvider serviceProvider = serviceProvider;
 
-    public IInputObjectValidator<T> CreateValidator<T>(ISchema schema) where T : notnull =>
+    public IInputObjectValidator<T> CreateValidator<T>(
+        ISchemaDefinition schema) where T : notnull =>
         new InputObjectValidator<T>(
             schema, this.serviceProvider.GetRequiredService<IValidator<T>>());
 }

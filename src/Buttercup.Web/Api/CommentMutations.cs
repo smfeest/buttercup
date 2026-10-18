@@ -48,7 +48,7 @@ public sealed class CommentMutations
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         ICommentManager commentManager,
-        ISchema schema,
+        Schema schema,
         long recipeId,
         CommentAttributes attributes,
         CancellationToken cancellationToken)
@@ -196,7 +196,7 @@ public sealed class CommentMutations
         AppDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
         IStringLocalizer<CommentMutations> localizer,
-        ISchema schema,
+        Schema schema,
         IInputObjectValidatorFactory validatorFactory,
         long id,
         CommentAttributes attributes,
