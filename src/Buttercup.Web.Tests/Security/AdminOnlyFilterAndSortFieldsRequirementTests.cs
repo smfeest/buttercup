@@ -18,7 +18,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task NoOrderOrWhereArgumentWhenNotAnAdmin_IsAuthorized()
     {
         var result = await Execute("{ foos { field1 } }", isAdmin: false);
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -33,7 +33,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task OrderArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -51,7 +51,6 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     {
         var result = await Execute(query, isAdmin: false);
         var errors = result.ExpectOperationResult().Errors;
-        Assert.NotNull(errors);
         Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
     }
 
@@ -71,7 +70,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
             }
             """,
             isAdmin: true);
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -104,7 +103,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     public async Task WhereArgumentWithoutAdminOnlyFieldsWhenNotAnAdmin_IsAuthorized(string query)
     {
         var result = await Execute(query, isAdmin: false);
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [Theory]
@@ -140,7 +139,6 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
     {
         var result = await Execute(query, isAdmin: false);
         var errors = result.ExpectOperationResult().Errors;
-        Assert.NotNull(errors);
         Assert.Equal(ErrorCodes.Authentication.NotAuthorized, Assert.Single(errors).Code);
     }
 
@@ -161,7 +159,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirementTests
             }
             """,
             isAdmin: true);
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     [Fact]

@@ -59,7 +59,7 @@ public sealed class AdminOnlyFilterAndSortFieldsRequirement
             itemNode => NodeContainsAdminOnlyField<T>(elementType, itemNode));
 
     public static bool ObjectNodeContainsAdminOnlyField<T>(
-        ObjectValueNode objectValueNode, INamedType namedType) where T : InputObjectType =>
+        ObjectValueNode objectValueNode, ITypeDefinition namedType) where T : InputObjectType =>
         namedType is T inputObjectType && objectValueNode.Fields.Any(fieldNode =>
         {
             var field = inputObjectType.Fields[fieldNode.Name.Value];

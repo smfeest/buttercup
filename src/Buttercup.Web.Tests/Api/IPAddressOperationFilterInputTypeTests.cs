@@ -10,13 +10,13 @@ public sealed class IPAddressOperationFilterInputTypeTests
     [Fact]
     public void HasEqualityAndSetOperations()
     {
-        var type = SchemaBuilder
+        var schema = SchemaBuilder
             .New()
             .AddFiltering()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddType<IPAddressOperationFilterInputType>()
-            .Create()
-            .GetType<IFilterInputType>("IPAddressOperationFilterInput");
+            .Create();
+        var type = schema.Types.GetType<IFilterInputType>("IPAddressOperationFilterInput");
 
         Assert.Collection(type.Fields,
             field =>

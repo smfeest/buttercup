@@ -44,7 +44,7 @@ public sealed class UserMutations
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
         IUserManager userManager,
-        ISchema schema,
+        Schema schema,
         IStringLocalizer<UserMutations> localizer,
         NewUserAttributes attributes,
         CancellationToken cancellationToken)

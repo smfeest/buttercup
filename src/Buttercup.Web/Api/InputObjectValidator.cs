@@ -3,7 +3,7 @@ using Buttercup.Application.Validation;
 
 namespace Buttercup.Web.Api;
 
-public sealed class InputObjectValidator<T>(ISchema schema, IValidator<T> validator)
+public sealed class InputObjectValidator<T>(ISchemaDefinition schema, IValidator<T> validator)
     : IInputObjectValidator<T> where T : notnull
 {
     private readonly Lazy<Dictionary<string, string>> propertyMappings =
@@ -33,9 +33,9 @@ public sealed class InputObjectValidator<T>(ISchema schema, IValidator<T> valida
         return true;
     }
 
-    private static Dictionary<string, string> BuildPropertyMappings(ISchema schema)
+    private static Dictionary<string, string> BuildPropertyMappings(ISchemaDefinition schema)
     {
-        var inputType = schema.Types.OfType<IInputObjectType>()
+        var inputType = schema.Types.OfType<IInputObjectTypeDefinition>()
             .First(type => type.RuntimeType == typeof(T));
 
         var mappings = new Dictionary<string, string>();

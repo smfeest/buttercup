@@ -24,7 +24,7 @@ public sealed class InputObjectValidatorTests
     public void Validate_DoesNotQuerySchemaWhenValid()
     {
         this.SetupValid();
-        var schemaMock = new Mock<ISchema>();
+        var schemaMock = new Mock<ISchemaDefinition>();
         var inputObjectValidator = this.CreateInputObjectValidator(schemaMock.Object);
 
         inputObjectValidator.Validate(this.planet, [], []);
@@ -166,11 +166,11 @@ public sealed class InputObjectValidatorTests
     private InputObjectValidator<Planet> CreateInputObjectValidator() =>
         this.CreateInputObjectValidator(CreateSchema());
 
-    private InputObjectValidator<Planet> CreateInputObjectValidator(ISchema schema) =>
+    private InputObjectValidator<Planet> CreateInputObjectValidator(ISchemaDefinition schema) =>
         new(schema, this.validatorMock.Object);
 
-    private static ISchema CreateSchema() =>
-        new SchemaBuilder()
+    private static Schema CreateSchema() =>
+        SchemaBuilder.New()
             .ModifyOptions(options => options.StrictValidation = false)
             .AddInputObjectType<Galaxy>()
             .AddInputObjectType<Planet>()

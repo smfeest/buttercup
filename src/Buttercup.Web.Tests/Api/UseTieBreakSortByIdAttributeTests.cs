@@ -1,7 +1,8 @@
 using Buttercup.EntityModel;
+using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
+using HotChocolate.Text.Json;
 using Xunit;
 
 namespace Buttercup.Web.Api;
@@ -15,8 +16,11 @@ public sealed class UseTieBreakSortByIdAttributeTests
     public async Task TieBreaksSortById(string query, long[] expectedOrderedIds)
     {
         var result = await Execute(query);
-        var actualOrderedIds = ((ListResult)result.ExpectOperationResult().Data!["foos"]!).Select(
-            listItem => (long)((IReadOnlyDictionary<string, object?>)listItem!)["id"]!);
+        var data = result.ExpectOperationResult().Data;
+        Assert.NotNull(data);
+        var resultDocument = Assert.IsType<ResultDocument>(data.Value.Value);
+        var actualOrderedIds = resultDocument.Data.GetProperty("foos").EnumerateArray().Select(
+            item => item.GetProperty("id").GetInt64());
         Assert.Equal(expectedOrderedIds, actualOrderedIds);
     }
 

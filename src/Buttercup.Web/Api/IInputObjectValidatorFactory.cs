@@ -17,5 +17,5 @@ public interface IInputObjectValidatorFactory
     /// <returns>
     /// The new validator.
     /// </returns>
-    IInputObjectValidator<T> CreateValidator<T>(ISchema schema) where T : notnull;
+    IInputObjectValidator<T> CreateValidator<T>(ISchemaDefinition schema) where T : notnull;
 }
