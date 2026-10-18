@@ -65,7 +65,8 @@ public sealed class RedisConnectionManagerTests
         await connectionManager.EnsureInitialized();
 
         Assert.True(await connectionManager.CheckException(
-            new RedisConnectionException(ConnectionFailureType.SocketClosed, string.Empty)));
+            new RedisConnectionException(
+                ConnectionFailureType.SocketClosed, CommandFlags.None, string.Empty)));
     }
 
     [Fact]
