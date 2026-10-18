@@ -4,7 +4,6 @@ using Buttercup.EntityModel;
 using Buttercup.Security;
 using Buttercup.Web.Security;
 using HotChocolate.Authorization;
-using HotChocolate.Resolvers;
 using Microsoft.Extensions.Localization;
 using IAuthorizationService = Microsoft.AspNetCore.Authorization.IAuthorizationService;
 
@@ -93,9 +92,6 @@ public sealed class CommentMutations
     /// <param name="dbContext">
     /// The database context.
     /// </param>
-    /// <param name="resolverContext">
-    /// The resolver context.
-    /// </param>
     /// <param name="id">
     /// The comment ID.
     /// </param>
@@ -110,7 +106,6 @@ public sealed class CommentMutations
         ICommentManager commentManager,
         IStringLocalizer<CommentMutations> localizer,
         AppDbContext dbContext,
-        IResolverContext resolverContext,
         long id,
         CancellationToken cancellationToken)
     {
@@ -127,10 +122,9 @@ public sealed class CommentMutations
                     claimsPrincipal.GetUserId(),
                     httpContextAccessor.HttpContext?.Connection.RemoteIpAddress,
                     cancellationToken))
-            : throw new GraphQLException(
-                resolverContext.CreateError(
-                    ErrorCodes.Authentication.NotAuthorized,
-                    localizer["Error_DeleteCommentNotAuthorized"]));
+            : throw CreateErrorException(
+                ErrorCodes.Authentication.NotAuthorized,
+                localizer["Error_DeleteCommentNotAuthorized"]);
     }
 
     /// <summary>
@@ -172,9 +166,6 @@ public sealed class CommentMutations
     /// <param name="localizer">
     /// The string localizer.
     /// </param>
-    /// <param name="resolverContext">
-    /// The resolver context.
-    /// </param>
     /// <param name="schema">
     /// The GraphQL schema.
     /// </param>
@@ -205,7 +196,6 @@ public sealed class CommentMutations
         AppDbContext dbContext,
         IHttpContextAccessor httpContextAccessor,
         IStringLocalizer<CommentMutations> localizer,
-        IResolverContext resolverContext,
         ISchema schema,
         IInputObjectValidatorFactory validatorFactory,
         long id,
@@ -220,10 +210,9 @@ public sealed class CommentMutations
 
         if (!authorizationResult.Succeeded)
         {
-            throw new GraphQLException(
-                resolverContext.CreateError(
-                    ErrorCodes.Authentication.NotAuthorized,
-                    localizer["Error_UpdateCommentNotAuthorized"]));
+            throw CreateErrorException(
+                ErrorCodes.Authentication.NotAuthorized,
+                localizer["Error_UpdateCommentNotAuthorized"]);
         }
 
         var validator = validatorFactory.CreateValidator<CommentAttributes>(schema);
@@ -244,4 +233,7 @@ public sealed class CommentMutations
 
         return new UpdateCommentPayload(id);
     }
+
+    private static GraphQLException CreateErrorException(string code, string message) =>
+        new(ErrorBuilder.New().SetCode(code).SetMessage(message).Build());
 }
