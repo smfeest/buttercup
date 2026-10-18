@@ -960,7 +960,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
             },
-            dbContext.PasswordResetTokens.Single());
+            await dbContext.PasswordResetTokens.SingleAsync(TestContext.Current.CancellationToken));
 
         // Sends link to user
         this.authenticationMailerMock.Verify(x => x.SendPasswordResetLink(user.Email, link));
