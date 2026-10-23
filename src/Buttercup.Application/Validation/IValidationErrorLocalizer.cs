@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Buttercup.Application.Validation;
 
@@ -8,6 +9,10 @@ namespace Buttercup.Application.Validation;
 /// <typeparam name="T">
 /// The type of object being validated.
 /// </typeparam>
+[SuppressMessage(
+    "Intentionality",
+    "S2326",
+    Justification = "Type is used to obtain relevant string localiser")]
 internal interface IValidationErrorLocalizer<T>
 {
     /// <summary>
