@@ -14,7 +14,10 @@ internal sealed partial class MailpitSender(
     private readonly ILogger<MailpitSender> logger = logger;
 
     public async Task Send(
-        string toAddress, string subject, string body, CancellationToken cancellationToken)
+        string toAddress,
+        string subject,
+        string body,
+        CancellationToken cancellationToken = default)
     {
         var response = await this.httpClient.PostAsJsonAsync(
             new Uri(this.options.MailpitServer, "/api/v1/send"),

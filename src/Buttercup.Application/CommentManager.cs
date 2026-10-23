@@ -16,7 +16,7 @@ internal sealed class CommentManager(
         CommentAttributes attributes,
         long currentUserId,
         IPAddress? ipAddress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -55,7 +55,10 @@ internal sealed class CommentManager(
     }
 
     public async Task<bool> DeleteComment(
-        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
@@ -97,7 +100,8 @@ internal sealed class CommentManager(
         return true;
     }
 
-    public async Task<bool> HardDeleteComment(long id, CancellationToken cancellationToken)
+    public async Task<bool> HardDeleteComment(
+        long id, CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -113,7 +117,7 @@ internal sealed class CommentManager(
         int baseUpdateCount,
         long currentUserId,
         IPAddress? ipAddress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 

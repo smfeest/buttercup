@@ -11,7 +11,7 @@ internal sealed class AuthenticationMailer(
     private readonly IStringLocalizer<AuthenticationMailer> localizer = localizer;
 
     public async Task SendPasswordChangeNotification(
-        string email, CancellationToken cancellationToken) =>
+        string email, CancellationToken cancellationToken = default) =>
         await this.emailSender.Send(
             email,
             this.localizer["Subject_PasswordChangeNotification"],
@@ -19,7 +19,7 @@ internal sealed class AuthenticationMailer(
             cancellationToken);
 
     public async Task SendPasswordResetLink(
-        string email, string link, CancellationToken cancellationToken) =>
+        string email, string link, CancellationToken cancellationToken = default) =>
         await this.emailSender.Send(
             email,
             this.localizer["Subject_PasswordResetLink"],

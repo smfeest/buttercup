@@ -15,7 +15,7 @@ internal sealed class RecipeManager(
         RecipeAttributes attributes,
         long currentUserId,
         IPAddress? ipAddress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var recipe = new Recipe()
@@ -53,7 +53,10 @@ internal sealed class RecipeManager(
     }
 
     public async Task<bool> DeleteRecipe(
-        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
@@ -95,7 +98,7 @@ internal sealed class RecipeManager(
         return true;
     }
 
-    public async Task<bool> HardDeleteRecipe(long id, CancellationToken cancellationToken)
+    public async Task<bool> HardDeleteRecipe(long id, CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -109,7 +112,7 @@ internal sealed class RecipeManager(
         int baseUpdateCount,
         long currentUserId,
         IPAddress? ipAddress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
