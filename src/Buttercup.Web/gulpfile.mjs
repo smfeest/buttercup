@@ -1,10 +1,10 @@
 import * as cheerio from 'cheerio';
 import { deleteAsync } from 'del';
-import fs from 'fs/promises';
 import gulp from 'gulp';
 import cleanCss from 'gulp-clean-css';
 import less from 'gulp-less';
 import rename from 'gulp-rename';
+import fs from 'node:fs/promises';
 import { pid } from 'node:process';
 import webpack from 'webpack';
 import webpackStream from 'webpack-stream';
