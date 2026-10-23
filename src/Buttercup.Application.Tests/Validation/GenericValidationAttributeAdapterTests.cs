@@ -63,6 +63,7 @@ public sealed class GenericValidationAttributeAdapterTests
         return adapter.GetErrorMessage(validationContext);
     }
 
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     private sealed class AlwaysInvalidAttribute() : ValidationAttribute("[base] {0} is invalid")
     {
         public override string FormatErrorMessage(string name) =>

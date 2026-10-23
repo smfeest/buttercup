@@ -67,6 +67,7 @@ public sealed class ValidationErrorLocalizerTests
             this.validationErrorLocalizer.FormatMessage(this.validationContext, attribute));
     }
 
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     private sealed class OddIntegerValidationAttribute : ValidationAttribute
     {
         public override string FormatErrorMessage(string name) =>
