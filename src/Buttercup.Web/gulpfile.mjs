@@ -144,10 +144,11 @@ export {
   buildScriptsProd,
   buildStyles,
   clean,
-  build as default,
   rebuild,
   watchAll as watch,
   watchIcons,
   watchScripts,
   watchStyles,
 };
+
+export default build;
