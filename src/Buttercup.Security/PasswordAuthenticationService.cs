@@ -33,7 +33,10 @@ internal sealed partial class PasswordAuthenticationService(
     private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<PasswordAuthenticationResult> Authenticate(
-        string email, string password, IPAddress? ipAddress, CancellationToken cancellationToken)
+        string email,
+        string password,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -156,7 +159,7 @@ internal sealed partial class PasswordAuthenticationService(
     }
 
     public async Task<PasswordResetResult> CanResetPassword(
-        string token, IPAddress? ipAddress, CancellationToken cancellationToken)
+        string token, IPAddress? ipAddress, CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -202,7 +205,7 @@ internal sealed partial class PasswordAuthenticationService(
         string currentPassword,
         string newPassword,
         IPAddress? ipAddress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -267,7 +270,10 @@ internal sealed partial class PasswordAuthenticationService(
     }
 
     public async Task<PasswordResetResult> ResetPassword(
-        string token, string newPassword, IPAddress? ipAddress, CancellationToken cancellationToken)
+        string token,
+        string newPassword,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -326,7 +332,7 @@ internal sealed partial class PasswordAuthenticationService(
         string email,
         IPAddress? ipAddress,
         IUrlHelper urlHelper,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 

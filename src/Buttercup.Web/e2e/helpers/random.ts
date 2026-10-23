@@ -1,4 +1,4 @@
-import { getRandomValues } from 'crypto';
+import { getRandomValues } from 'node:crypto';
 
 export const randomString = () => {
   const buffer = new Uint32Array(1);

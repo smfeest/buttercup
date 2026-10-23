@@ -12,7 +12,10 @@ internal sealed class AzureEmailSender(
     private readonly string fromAddress = optionsAccessor.Value.FromAddress;
 
     public Task Send(
-        string toAddress, string subject, string body, CancellationToken cancellationToken) =>
+        string toAddress,
+        string subject,
+        string body,
+        CancellationToken cancellationToken = default) =>
         this.emailClient.SendAsync(
             WaitUntil.Started,
             new(this.fromAddress, toAddress, new(subject) { PlainText = body }),

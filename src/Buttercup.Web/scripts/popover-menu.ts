@@ -76,9 +76,10 @@ export default class PopoverMenu {
     }
   }
 
-  private onButtonClick = () => (this.popper ? this.close() : this.open());
+  private readonly onButtonClick = () =>
+    this.popper ? this.close() : this.open();
 
-  private onDocumentClick = (event: MouseEvent) => {
+  private readonly onDocumentClick = (event: MouseEvent) => {
     const { defaultPrevented, target } = event;
 
     if (
@@ -92,7 +93,7 @@ export default class PopoverMenu {
     }
   };
 
-  private onKeyDown = (event: KeyboardEvent) => {
+  private readonly onKeyDown = (event: KeyboardEvent) => {
     const { key, shiftKey, target } = event;
 
     if (this.popper) {

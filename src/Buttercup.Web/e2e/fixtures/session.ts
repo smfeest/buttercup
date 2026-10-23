@@ -8,7 +8,7 @@ export type Session = {
 export const session: TestFixture<
   Session,
   PlaywrightTestArgs & { signInForm: SignInForm }
-> = async ({ page, signInForm }, use) =>
+> = ({ page, signInForm }, use) =>
   use({
     async signIn(email, password) {
       await page.goto('/sign-in');

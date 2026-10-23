@@ -128,6 +128,7 @@ public sealed class ValidatorTests
         };
     }
 
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     private sealed class OptionalNumberNotOddAttribute : ValidationAttribute
     {
         protected override ValidationResult? IsValid(

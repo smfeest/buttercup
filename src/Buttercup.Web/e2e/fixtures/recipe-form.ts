@@ -11,7 +11,7 @@ export type RecipeForm = {
   saveButton: Locator;
 };
 
-export const recipeForm: TestFixture<RecipeForm, PlaywrightTestArgs> = async (
+export const recipeForm: TestFixture<RecipeForm, PlaywrightTestArgs> = (
   { page },
   use,
 ) =>

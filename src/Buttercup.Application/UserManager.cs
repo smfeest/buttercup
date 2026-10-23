@@ -25,7 +25,7 @@ internal sealed class UserManager(
         NewUserAttributes attributes,
         long currentUserId,
         IPAddress? ipAddress,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var user = new User
@@ -67,7 +67,7 @@ internal sealed class UserManager(
     }
 
     public async Task<(long Id, string Password)> CreateTestUser(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var suffix = this.randomTokenGenerator.Generate(2);
         var password = this.randomTokenGenerator.Generate(4);
@@ -103,7 +103,10 @@ internal sealed class UserManager(
     }
 
     public async Task<bool> DeactivateUser(
-        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
@@ -143,14 +146,15 @@ internal sealed class UserManager(
         return true;
     }
 
-    public async Task<User?> FindUser(long id, CancellationToken cancellationToken)
+    public async Task<User?> FindUser(long id, CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
         return await dbContext.Users.FindAsync([id], cancellationToken);
     }
 
-    public async Task<bool> HardDeleteTestUser(long id, CancellationToken cancellationToken)
+    public async Task<bool> HardDeleteTestUser(
+        long id, CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
@@ -160,7 +164,10 @@ internal sealed class UserManager(
     }
 
     public async Task<bool> ReactivateUser(
-        long id, long currentUserId, IPAddress? ipAddress, CancellationToken cancellationToken)
+        long id,
+        long currentUserId,
+        IPAddress? ipAddress,
+        CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
@@ -199,7 +206,8 @@ internal sealed class UserManager(
         return true;
     }
 
-    public async Task SetTimeZone(long userId, string timeZone, CancellationToken cancellationToken)
+    public async Task SetTimeZone(
+        long userId, string timeZone, CancellationToken cancellationToken = default)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();
 

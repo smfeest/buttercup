@@ -1,4 +1,7 @@
-export default (filterInput: HTMLInputElement, list: HTMLUListElement) => {
+export default function recipesFilter(
+  filterInput: HTMLInputElement,
+  list: HTMLUListElement,
+) {
   const rows: { text: string; element: Element }[] = [];
 
   const apply = () => {
@@ -21,4 +24,4 @@ export default (filterInput: HTMLInputElement, list: HTMLUListElement) => {
   filterInput.addEventListener('input', apply);
 
   apply();
-};
+}

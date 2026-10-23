@@ -6,6 +6,7 @@ using Microsoft.Extensions.Localization;
 
 namespace Buttercup.Web.Controllers;
 
+[Route("")]
 public sealed class AuthenticationController(
     ICookieAuthenticationService cookieAuthenticationService,
     IPasswordAuthenticationService passwordAuthenticationService,

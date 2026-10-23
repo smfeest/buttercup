@@ -19,7 +19,7 @@ internal sealed partial class TokenAuthenticationService(
     private readonly TimeProvider timeProvider = timeProvider;
 
     public async Task<string> IssueAccessToken(
-        User user, IPAddress? ipAddress, CancellationToken cancellationToken)
+        User user, IPAddress? ipAddress, CancellationToken cancellationToken = default)
     {
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
         var token = this.accessTokenEncoder.Encode(new(user.Id, user.SecurityStamp, timestamp));
@@ -43,7 +43,7 @@ internal sealed partial class TokenAuthenticationService(
     }
 
     public async Task<User?> ValidateAccessToken(
-        string accessToken, CancellationToken cancellationToken)
+        string accessToken, CancellationToken cancellationToken = default)
     {
         AccessTokenPayload payload;
 
