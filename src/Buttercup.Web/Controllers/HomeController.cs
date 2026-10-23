@@ -8,13 +8,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Buttercup.Web.Controllers;
 
 [Authorize]
+[Route("/")]
 public sealed class HomeController(
     IDbContextFactory<AppDbContext> dbContextFactory, IHomeControllerQueries queries) : Controller
 {
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly IHomeControllerQueries queries = queries;
 
-    [HttpGet("/")]
+    [HttpGet("")]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         using var dbContext = this.dbContextFactory.CreateDbContext();

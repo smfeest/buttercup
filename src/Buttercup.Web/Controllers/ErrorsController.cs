@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Buttercup.Web.Controllers;
 
+[Route("error")]
 public sealed class ErrorsController : Controller
 {
-    [Route("/error/{statusCode}")]
+    [Route("{statusCode}")]
     public IActionResult Error(int statusCode) =>
         this.View(
             statusCode switch
