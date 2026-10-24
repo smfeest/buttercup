@@ -39,6 +39,9 @@ dotnet_diagnostic.CA1861.severity = none # Avoid constant arrays as arguments
 dotnet_diagnostic.CA1707.severity = none # Identifiers should not contain underscores
 dotnet_diagnostic.CA1822.severity = none # Mark members as static
 
+# Sonar rules
+dotnet_diagnostic.S6964.severity = none # Value type property used as input in a controller action should be nullable, required or annotated with the JsonRequiredAttribute to avoid under-posting
+
 [src/Buttercup.EntityModel.Migrations/**.cs]
 
 # Compiler warnings
