@@ -35,12 +35,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Setup .NET
+      - name: Set up .NET
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.1xx
           dotnet-quality: ga
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version-file: ${{env.WEB_PROJECT_PATH}}/.nvmrc
