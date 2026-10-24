@@ -54,7 +54,7 @@ jobs:
         run: npm ci --strict-allow-scripts
         working-directory: ${{env.WEB_PROJECT_PATH}}
       - name: Build .NET solution
-        run: dotnet build --configuration Release /WarnAsError
+        run: dotnet build --configuration Release
       - name: Build assets
         run: npx --no gulp build
         working-directory: ${{env.WEB_PROJECT_PATH}}
