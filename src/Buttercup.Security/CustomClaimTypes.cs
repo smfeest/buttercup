@@ -1,14 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Buttercup.Security;
 
 /// <summary>
 /// Provides constants for custom claim types.
 /// </summary>
-[SuppressMessage(
-    "Security",
-    "S5332",
-    Justification = "URLs are claim identifiers, not endpoints")]
 public static class CustomClaimTypes
 {
     /// <summary>
