@@ -62,11 +62,6 @@ jobs:
         env:
           BUTTERCUP_TEST_DB_SERVER_CONNECTION_STRING: Host=localhost;Port=5432;Username=postgres;Password=postgres;
         run: dotnet test --no-build --configuration Release --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
-      - name: Report .NET test coverage
-        if: ${{ hashFiles('**/coverage.cobertura.xml') }}
-        run: |
-          ./scripts/build-dotnet-coverage-report.sh -reporttypes:TextSummary
-          cat coverage/Summary.txt
       - name: Run Jest tests
         run: npx --no -- jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
