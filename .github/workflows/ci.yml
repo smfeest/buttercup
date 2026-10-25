@@ -3,12 +3,12 @@ on:
   pull_request:
   push:
     branches: [main]
-permissions:
-  contents: read
 jobs:
   build:
     name: Build and test
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     env:
       ConnectionStrings__AppDb: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=buttercup_app
       WEB_PROJECT_PATH: src/Buttercup.Web
@@ -94,3 +94,18 @@ jobs:
       - name: Lint styles
         run: npx --no -- stylelint --max-warnings 0 styles/
         working-directory: ${{env.WEB_PROJECT_PATH}}
+  semgrep:
+    name: Semgrep analysis
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+    container:
+      image: semgrep/semgrep
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Analyze
+        run: semgrep ci --no-suppress-errors
