@@ -24,12 +24,9 @@ public static class Bem
     {
         var builder = new StringBuilder(block);
 
-        foreach (var modifier in modifiers)
+        foreach (var modifier in modifiers.Where(modifier => !string.IsNullOrEmpty(modifier)))
         {
-            if (!string.IsNullOrEmpty(modifier))
-            {
-                builder.Append(' ').Append(block).Append("--").Append(modifier);
-            }
+            builder.Append(' ').Append(block).Append("--").Append(modifier);
         }
 
         return builder.ToString();
