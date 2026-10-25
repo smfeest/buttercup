@@ -5,7 +5,6 @@
     "dbaeumer.vscode-eslint",
     "stylelint.vscode-stylelint",
     "esbenp.prettier-vscode",
-    "ms-playwright.playwright",
-    "sonarsource.sonarlint-vscode"
+    "ms-playwright.playwright"
   ]
 }
