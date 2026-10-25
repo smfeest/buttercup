@@ -70,6 +70,13 @@ jobs:
       - name: Run Jest tests
         run: npx --no -- jest --coverage
         working-directory: ${{env.WEB_PROJECT_PATH}}
+      - name: Upload reports to Codecov
+        if: (github.actor != 'dependabot[bot]')
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
+        with:
+          fail_ci_if_error: true
+          files: "**/coverage.cobertura.xml,**/coverage/lcov.info"
+          token: ${{ secrets.CODECOV_TOKEN }}
       - name: Install Playwright browsers
         run: npx --no playwright install --with-deps
         working-directory: ${{env.WEB_PROJECT_PATH}}
