@@ -34,7 +34,11 @@ public sealed class RecipesControllerTests : IDisposable
             ControllerContext = new() { HttpContext = this.httpContext },
         };
 
-    public void Dispose() => this.recipesController.Dispose();
+    public void Dispose()
+    {
+        this.recipesController.Dispose();
+        this.dbContextFactory.Dispose();
+    }
 
     #region Index
 

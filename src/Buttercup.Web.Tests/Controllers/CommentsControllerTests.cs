@@ -36,7 +36,11 @@ public sealed class CommentsControllerTests : IDisposable
             ControllerContext = new() { HttpContext = this.httpContext },
         };
 
-    public void Dispose() => this.commentsController.Dispose();
+    public void Dispose()
+    {
+        this.commentsController.Dispose();
+        this.dbContextFactory.Dispose();
+    }
 
     #region Delete (GET)
 

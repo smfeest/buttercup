@@ -20,7 +20,7 @@ public sealed class HomeControllerTests
         var recentlyAddedIds = new[] { recentlyAddedRecipes[0].Id };
         var recentlyUpdatedRecipes = new[] { modelFactory.BuildRecipe() };
 
-        var dbContextFactory = new FakeDbContextFactory();
+        using var dbContextFactory = new FakeDbContextFactory();
         var queriesMock = new Mock<IHomeControllerQueries>();
 
         queriesMock

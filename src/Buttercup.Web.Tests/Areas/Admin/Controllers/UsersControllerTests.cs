@@ -42,7 +42,11 @@ public sealed class UsersControllerTests : IDisposable
         };
     }
 
-    public void Dispose() => this.usersController.Dispose();
+    public void Dispose()
+    {
+        this.usersController.Dispose();
+        this.dbContextFactory.Dispose();
+    }
 
     #region Index
 
