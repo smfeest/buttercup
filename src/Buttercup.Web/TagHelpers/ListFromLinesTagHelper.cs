@@ -29,12 +29,13 @@ public sealed class ListFromLinesTagHelper : TagHelper
             return;
         }
 
-        foreach (var line in this.Input.Split(LineSeparators))
+        var lines = this.Input
+            .Split(LineSeparators)
+            .Where(line => !string.IsNullOrWhiteSpace(line));
+
+        foreach (var line in lines)
         {
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                output.Content.AppendHtml("<li>").Append(line).AppendHtml("</li>");
-            }
+            output.Content.AppendHtml("<li>").Append(line).AppendHtml("</li>");
         }
     }
 }

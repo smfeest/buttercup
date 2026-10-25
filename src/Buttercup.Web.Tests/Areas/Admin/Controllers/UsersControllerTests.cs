@@ -122,8 +122,7 @@ public sealed class UsersControllerTests : IDisposable
         var currentUserId = this.SetupCurrentUserId();
         var ipAddress = this.SetupRemoteIpAddress();
 
-        var result = await this.usersController.New(
-            attributes, TestContext.Current.CancellationToken);
+        await this.usersController.New(attributes, TestContext.Current.CancellationToken);
 
         this.userManagerMock.Verify(
             x => x.CreateUser(
