@@ -39,7 +39,7 @@ public sealed class UserMutations
     /// The cancellation token.
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    public async Task<FieldResult<CreateUserPayload, InputObjectValidationError>> CreateUser(
+    public static async Task<FieldResult<CreateUserPayload, InputObjectValidationError>> CreateUser(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
@@ -87,7 +87,7 @@ public sealed class UserMutations
     /// The cancellation token.
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
-    public async Task<FieldResult<CreateTestUserPayload>> CreateTestUser(
+    public static async Task<FieldResult<CreateTestUserPayload>> CreateTestUser(
         IUserManager userManager, CancellationToken cancellationToken)
     {
         var (id, password) = await userManager.CreateTestUser(cancellationToken);
@@ -114,7 +114,7 @@ public sealed class UserMutations
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [Error<NotFoundException>]
-    public async Task<DeactivateUserPayload> DeactivateUser(
+    public static async Task<DeactivateUserPayload> DeactivateUser(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IUserManager userManager,
@@ -147,7 +147,7 @@ public sealed class UserMutations
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
-    public async Task<HardDeletePayload> HardDeleteTestUser(
+    public static async Task<HardDeletePayload> HardDeleteTestUser(
         IUserManager userManager, long id, CancellationToken cancellationToken) =>
         new(await userManager.HardDeleteTestUser(id, cancellationToken));
 
@@ -171,7 +171,7 @@ public sealed class UserMutations
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [Error<NotFoundException>]
-    public async Task<ReactivateUserPayload> ReactivateUser(
+    public static async Task<ReactivateUserPayload> ReactivateUser(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IUserManager userManager,

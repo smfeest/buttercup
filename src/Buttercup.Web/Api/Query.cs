@@ -7,13 +7,13 @@ using HotChocolate.Authorization;
 namespace Buttercup.Web.Api;
 
 [QueryType]
-public sealed class Query
+public static class Query
 {
     [Authorize(
         AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted, ApplyPolicy.AfterResolver)]
     [UseSingleOrDefault]
     [UseProjection]
-    public IQueryable<Comment> Comment(AppDbContext dbContext, long id) =>
+    public static IQueryable<Comment> Comment(AppDbContext dbContext, long id) =>
         dbContext.Comments.Where(c => c.Id == id).OrderBy(c => c.Id);
 
     [Authorize]
@@ -23,7 +23,7 @@ public sealed class Query
     [UseFiltering]
     [UseTieBreakSortById<Comment>]
     [UseSorting]
-    public IQueryable<Comment> Comments(AppDbContext dbContext) =>
+    public static IQueryable<Comment> Comments(AppDbContext dbContext) =>
         dbContext.Comments.WhereNotSoftDeleted();
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
@@ -32,12 +32,12 @@ public sealed class Query
     [UseFiltering]
     [UseTieBreakSortById<CommentAudit>]
     [UseSorting]
-    public IQueryable<CommentAudit> CommentAudits(AppDbContext dbContext) =>
+    public static IQueryable<CommentAudit> CommentAudits(AppDbContext dbContext) =>
         dbContext.CommentAudits;
 
     [UseSingleOrDefault]
     [UseProjection]
-    public IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)
+    public static IQueryable<User>? CurrentUser(AppDbContext dbContext, ClaimsPrincipal principal)
     {
         var userId = principal.TryGetUserId();
 
@@ -52,20 +52,20 @@ public sealed class Query
     [UseFiltering]
     [UseTieBreakSortById<Comment>]
     [UseSorting]
-    public IQueryable<Comment> DeletedComments(AppDbContext dbContext) =>
+    public static IQueryable<Comment> DeletedComments(AppDbContext dbContext) =>
         dbContext.Comments.WhereSoftDeleted();
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
+    public static IQueryable<Recipe> DeletedRecipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereSoftDeleted();
 
     [Authorize(AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted, ApplyPolicy.AfterResolver)]
     [UseSingleOrDefault]
     [UseProjection]
-    public IQueryable<Recipe> Recipe(AppDbContext dbContext, long id) =>
+    public static IQueryable<Recipe> Recipe(AppDbContext dbContext, long id) =>
         dbContext.Recipes.Where(r => r.Id == id).OrderBy(r => r.Id);
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
@@ -74,7 +74,7 @@ public sealed class Query
     [UseFiltering]
     [UseTieBreakSortById<RecipeAudit>]
     [UseSorting]
-    public IQueryable<RecipeAudit> RecipeAudits(AppDbContext dbContext) =>
+    public static IQueryable<RecipeAudit> RecipeAudits(AppDbContext dbContext) =>
         dbContext.RecipeAudits;
 
     [Authorize]
@@ -82,7 +82,7 @@ public sealed class Query
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
+    public static IQueryable<Recipe> Recipes(AppDbContext dbContext) =>
         dbContext.Recipes.WhereNotSoftDeleted();
 
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
@@ -91,13 +91,13 @@ public sealed class Query
     [UseFiltering]
     [UseTieBreakSortById<UserAuditEntry>]
     [UseSorting]
-    public IQueryable<UserAuditEntry> UserAuditEntries(AppDbContext dbContext) =>
+    public static IQueryable<UserAuditEntry> UserAuditEntries(AppDbContext dbContext) =>
         dbContext.UserAuditEntries;
 
     [Authorize]
     [UseSingleOrDefault]
     [UseProjection]
-    public IQueryable<User> User(AppDbContext dbContext, long id) =>
+    public static IQueryable<User> User(AppDbContext dbContext, long id) =>
         dbContext.Users.Where(u => u.Id == id).OrderBy(u => u.Id);
 
     [Authorize]
@@ -105,5 +105,5 @@ public sealed class Query
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;
+    public static IQueryable<User> Users(AppDbContext dbContext) => dbContext.Users;
 }

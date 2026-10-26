@@ -43,7 +43,7 @@ public sealed class CommentMutations
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<FieldResult<CreateCommentPayload>> CreateComment(
+    public static async Task<FieldResult<CreateCommentPayload>> CreateComment(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
@@ -99,7 +99,7 @@ public sealed class CommentMutations
     /// The cancellation token.
     /// </param>
     [Authorize]
-    public async Task<DeleteCommentPayload> DeleteComment(
+    public static async Task<DeleteCommentPayload> DeleteComment(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IAuthorizationService authorizationService,
@@ -141,7 +141,7 @@ public sealed class CommentMutations
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
-    public async Task<HardDeletePayload> HardDeleteComment(
+    public static async Task<HardDeletePayload> HardDeleteComment(
         ICommentManager commentManager, long id, CancellationToken cancellationToken) =>
         new(await commentManager.HardDeleteComment(id, cancellationToken));
 
@@ -189,7 +189,7 @@ public sealed class CommentMutations
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<FieldResult<UpdateCommentPayload>> UpdateComment(
+    public static async Task<FieldResult<UpdateCommentPayload>> UpdateComment(
         IAuthorizationService authorizationService,
         ClaimsPrincipal claimsPrincipal,
         ICommentManager commentManager,

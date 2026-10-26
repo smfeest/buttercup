@@ -7,7 +7,7 @@ namespace Buttercup.Web.Api;
 [MutationType]
 public sealed class AuthenticationMutations
 {
-    public async Task<AuthenticatePayload> Authenticate(
+    public static async Task<AuthenticatePayload> Authenticate(
         IHttpContextAccessor httpContextAccessor,
         IStringLocalizer<AuthenticationMutations> localizer,
         IPasswordAuthenticationService passwordAuthenticationService,
