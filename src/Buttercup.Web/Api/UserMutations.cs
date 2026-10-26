@@ -9,7 +9,7 @@ using Microsoft.Extensions.Localization;
 namespace Buttercup.Web.Api;
 
 [MutationType]
-public sealed class UserMutations
+public sealed partial class UserMutations
 {
     /// <summary>
     /// Creates a user.

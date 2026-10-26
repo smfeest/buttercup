@@ -5,7 +5,7 @@ using Microsoft.Extensions.Localization;
 namespace Buttercup.Web.Api;
 
 [MutationType]
-public sealed class AuthenticationMutations
+public sealed partial class AuthenticationMutations
 {
     public static async Task<AuthenticatePayload> Authenticate(
         IHttpContextAccessor httpContextAccessor,

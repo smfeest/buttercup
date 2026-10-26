@@ -8,7 +8,7 @@ using HotChocolate.Authorization;
 namespace Buttercup.Web.Api;
 
 [MutationType]
-public static class RecipeMutations
+public static partial class RecipeMutations
 {
     /// <summary>
     /// Creates a recipe.

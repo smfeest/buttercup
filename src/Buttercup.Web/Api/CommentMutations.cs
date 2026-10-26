@@ -10,7 +10,7 @@ using IAuthorizationService = Microsoft.AspNetCore.Authorization.IAuthorizationS
 namespace Buttercup.Web.Api;
 
 [MutationType]
-public sealed class CommentMutations
+public sealed partial class CommentMutations
 {
     /// <summary>
     /// Creates a comment on a recipe.

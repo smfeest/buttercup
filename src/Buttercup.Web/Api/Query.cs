@@ -7,7 +7,7 @@ using HotChocolate.Authorization;
 namespace Buttercup.Web.Api;
 
 [QueryType]
-public static class Query
+public static partial class Query
 {
     [Authorize(
         AuthorizationPolicyNames.AuthenticatedAndAdminWhenDeleted, ApplyPolicy.AfterResolver)]
