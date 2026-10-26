@@ -8,7 +8,7 @@ using HotChocolate.Authorization;
 namespace Buttercup.Web.Api;
 
 [MutationType]
-public sealed class RecipeMutations
+public static partial class RecipeMutations
 {
     /// <summary>
     /// Creates a recipe.
@@ -35,7 +35,7 @@ public sealed class RecipeMutations
     /// The cancellation token.
     /// </param>
     [Authorize]
-    public async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
+    public static async Task<FieldResult<CreateRecipePayload, InputObjectValidationError>> CreateRecipe(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
@@ -80,7 +80,7 @@ public sealed class RecipeMutations
     /// The cancellation token.
     /// </param>
     [Authorize]
-    public async Task<DeleteRecipePayload> DeleteRecipe(
+    public static async Task<DeleteRecipePayload> DeleteRecipe(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IRecipeManager recipeManager,
@@ -108,7 +108,7 @@ public sealed class RecipeMutations
     /// </param>
     [Authorize(AuthorizationPolicyNames.AdminOnly)]
     [UseMutationConvention(PayloadTypeName = nameof(HardDeletePayload))]
-    public async Task<HardDeletePayload> HardDeleteRecipe(
+    public static async Task<HardDeletePayload> HardDeleteRecipe(
         IRecipeManager recipeManager, long id, CancellationToken cancellationToken) =>
         new(await recipeManager.HardDeleteRecipe(id, cancellationToken));
 
@@ -147,7 +147,7 @@ public sealed class RecipeMutations
     [Error<NotFoundException>]
     [Error<InputObjectValidationError>]
     [Error<SoftDeletedException>]
-    public async Task<FieldResult<UpdateRecipePayload>> UpdateRecipe(
+    public static async Task<FieldResult<UpdateRecipePayload>> UpdateRecipe(
         ClaimsPrincipal claimsPrincipal,
         IHttpContextAccessor httpContextAccessor,
         IInputObjectValidatorFactory validatorFactory,
