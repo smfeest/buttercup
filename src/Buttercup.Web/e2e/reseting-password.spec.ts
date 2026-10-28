@@ -12,11 +12,11 @@ test('can reset password', async ({ api, baseURL, page }) => {
     await page.getByRole('link', { name: 'Forgot your password?' }).click();
 
     await page.getByLabel('Email').fill(user.email);
-    await page.getByRole('button', { name: 'Send reset link' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
 
     await expect(
       page.getByText(
-        `If we found an account with the email address ${user.email}, we’ll have sent you a link you can use to set your new password.`,
+        `If you have an account, we’ll have sent a link to ${user.email} for you to reset your password.`,
       ),
     ).toBeVisible();
 
@@ -60,9 +60,9 @@ test('cannot reset password as deactivated user', async ({
     await page.getByRole('link', { name: 'Forgot your password?' }).click();
 
     await page.getByLabel('Email').fill(user.email);
-    await page.getByRole('button', { name: 'Send reset link' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.getByText('sent you a link')).toBeVisible();
+    await expect(page.getByText('sent a link')).toBeVisible();
 
     const resetPasswordEmailText = await latestEmailText(user.email);
     const resetLinkMatch = resetPasswordEmailText.match(
