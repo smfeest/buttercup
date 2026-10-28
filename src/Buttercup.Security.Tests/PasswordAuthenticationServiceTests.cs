@@ -390,7 +390,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var user = this.modelFactory.BuildUser();
         var token = this.modelFactory.BuildPasswordResetToken(user) with
         {
-            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(24, 0, 1)),
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(31)),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
@@ -486,7 +486,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var user = this.modelFactory.BuildUser();
         var token = this.modelFactory.BuildPasswordResetToken(user) with
         {
-            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(23, 59, 59)),
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(29)),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
@@ -683,7 +683,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var user = this.modelFactory.BuildUser();
         var token = this.modelFactory.BuildPasswordResetToken(user) with
         {
-            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(24, 0, 1)),
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(31)),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
@@ -813,7 +813,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var userBefore = this.modelFactory.BuildUser();
         var token = this.modelFactory.BuildPasswordResetToken(userBefore) with
         {
-            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(new TimeSpan(23, 59, 59))
+            Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(29))
         };
         var otherUser = this.modelFactory.BuildUser();
         var tokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);

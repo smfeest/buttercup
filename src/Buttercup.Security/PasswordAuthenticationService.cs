@@ -19,8 +19,6 @@ internal sealed partial class PasswordAuthenticationService(
     TimeProvider timeProvider)
     : IPasswordAuthenticationService
 {
-    private static readonly TimeSpan PasswordResetTokenExpiry = TimeSpan.FromDays(1);
-
     private readonly IAuthenticationMailer authenticationMailer = authenticationMailer;
     private readonly IDbContextFactory<AppDbContext> dbContextFactory = dbContextFactory;
     private readonly ILogger<PasswordAuthenticationService> logger = logger;
@@ -391,7 +389,7 @@ internal sealed partial class PasswordAuthenticationService(
     private IQueryable<PasswordResetToken> ValidPasswordResetToken(
         AppDbContext dbContext, string token) =>
         dbContext.PasswordResetTokens.Where(t =>
-            t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(PasswordResetTokenExpiry) &&
+            t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(30)) &&
             t.Token == token);
 
     private async Task SetPassword(
