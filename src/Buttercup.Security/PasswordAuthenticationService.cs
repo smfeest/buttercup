@@ -354,6 +354,13 @@ internal sealed partial class PasswordAuthenticationService(
 
         var token = this.randomTokenGenerator.Generate(12);
 
+        await using var transaction =
+            await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        await dbContext.PasswordResetTokens
+            .Where(t => t.UserId == user.Id)
+            .ExecuteDeleteAsync(cancellationToken);
+
         dbContext.PasswordResetTokens.Add(
             new()
             {
@@ -370,8 +377,9 @@ internal sealed partial class PasswordAuthenticationService(
                 ActorId = user.Id,
                 IpAddress = ipAddress,
             });
-
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         var link = urlHelper.Link("ResetPassword", new { token })!;
 

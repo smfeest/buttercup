@@ -935,7 +935,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         var urlHelperMock = new Mock<IUrlHelper>();
 
         var user = this.modelFactory.BuildUser();
-        await this.DatabaseFixture.InsertEntities(user);
+        var tokenForUser = this.modelFactory.BuildPasswordResetToken(user);
+        var otherUser = this.modelFactory.BuildUser();
+        var tokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
+
+        await this.DatabaseFixture.InsertEntities(user, tokenForUser, otherUser, tokenForOtherUser);
 
         this.SetPasswordResetRateLimiterResult(user.Email, true);
 
@@ -952,7 +956,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
-        // Inserts password reset token
+        // Replaces existing token for user
         Assert.Equal(
             new PasswordResetToken
             {
@@ -960,7 +964,16 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
             },
-            await dbContext.PasswordResetTokens.SingleAsync(TestContext.Current.CancellationToken));
+            await dbContext.PasswordResetTokens.SingleAsync(
+                t => t.UserId == user.Id, TestContext.Current.CancellationToken),
+            ModelCompare.EqualExcludingNavigationProperties);
+
+        // Preserves existing tokens for other users
+        Assert.Equal(
+            tokenForOtherUser,
+            await dbContext.PasswordResetTokens.SingleAsync(
+                t => t.UserId == otherUser.Id, TestContext.Current.CancellationToken),
+            ModelCompare.EqualExcludingNavigationProperties);
 
         // Sends link to user
         this.authenticationMailerMock.Verify(x => x.SendPasswordResetLink(user.Email, link));
