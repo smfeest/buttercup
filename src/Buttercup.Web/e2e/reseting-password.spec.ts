@@ -47,6 +47,13 @@ test('can reset password', async ({ api, baseURL, page }) => {
 
 test('can return to sign in when resetting password', async ({ page }) => {
   await page.goto('/reset-password');
+  await page.getByLabel('Email').fill('user@example.com');
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Check your email' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Back' }).click();
 
   await expect(
     page.getByRole('heading', { name: 'Forgot your password?' }),
