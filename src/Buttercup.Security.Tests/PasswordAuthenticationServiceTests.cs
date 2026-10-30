@@ -943,7 +943,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         this.SetPasswordResetRateLimiterResult(user.Email, true);
 
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(12)).Returns(token);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(36)).Returns(token);
         urlHelperMock
             .Setup(
                 x => x.Link(
@@ -1005,7 +1005,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     {
         var securityStamp =
             this.modelFactory.NextInt().ToString("X8", CultureInfo.InvariantCulture);
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(2)).Returns(securityStamp);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(6)).Returns(securityStamp);
         return securityStamp;
     }
 

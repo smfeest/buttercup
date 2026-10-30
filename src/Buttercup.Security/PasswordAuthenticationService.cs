@@ -352,7 +352,7 @@ internal sealed partial class PasswordAuthenticationService(
 
         email = user.Email;
 
-        var token = this.randomTokenGenerator.Generate(12);
+        var token = this.randomTokenGenerator.Generate(36);
 
         await using var transaction =
             await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -411,7 +411,7 @@ internal sealed partial class PasswordAuthenticationService(
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
         user.HashedPassword = this.passwordHasher.HashPassword(user, newPassword);
-        user.SecurityStamp = this.randomTokenGenerator.Generate(2);
+        user.SecurityStamp = this.randomTokenGenerator.Generate(6);
         user.PasswordCreated = timestamp;
         user.Modified = timestamp;
         user.UpdateCount++;

@@ -8,9 +8,9 @@ internal sealed class RandomTokenGenerator(RandomNumberGenerator randomNumberGen
 {
     private readonly RandomNumberGenerator randomNumberGenerator = randomNumberGenerator;
 
-    public string Generate(int n)
+    public string Generate(int size)
     {
-        var bytes = new byte[n * 3];
+        var bytes = new byte[size];
         this.randomNumberGenerator.GetBytes(bytes);
         return Base64Url.EncodeToString(bytes);
     }

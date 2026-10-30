@@ -8,12 +8,11 @@ public interface IRandomTokenGenerator
     /// <summary>
     /// Generates a new token.
     /// </summary>
-    /// <param name="n">
-    /// The length factor.
+    /// <param name="size">
+    /// The size of the token in bytes, prior to Base64Url encoding.
     /// </param>
     /// <returns>
-    /// The randomly generated token as a URL-safe Base64 string of 4 × <paramref name="n"/>
-    /// characters.
+    /// The new token as a Base64Url string.
     /// </returns>
-    string Generate(int n);
+    string Generate(int size);
 }
