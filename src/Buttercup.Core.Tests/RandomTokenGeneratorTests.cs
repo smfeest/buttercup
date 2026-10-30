@@ -13,12 +13,12 @@ public sealed class RandomTokenGeneratorTests
     public RandomTokenGeneratorTests() =>
         this.randomTokenGenerator = new(this.randomNumberGeneratorMock.Object);
 
-    #region Generate
+    #region GenerateUrlSafe
 
     [Theory]
     [InlineData(3)]
     [InlineData(6)]
-    public void Generate_ReturnsBase64UrlEncodedRandomTokenOfRequestedLength(int length)
+    public void GenerateUrlSafe_ReturnsBase64UrlEncodedRandomTokenOfRequestedLength(int length)
     {
         var expectedBytes = RandomNumberGenerator.GetBytes(length);
 
@@ -28,7 +28,7 @@ public sealed class RandomTokenGeneratorTests
 
         Assert.Equal(
             Base64Url.EncodeToString(expectedBytes),
-            this.randomTokenGenerator.Generate(length));
+            this.randomTokenGenerator.GenerateUrlSafe(length));
     }
 
     #endregion

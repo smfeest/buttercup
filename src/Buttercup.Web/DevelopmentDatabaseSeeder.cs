@@ -50,7 +50,7 @@ internal sealed class DevelopmentDatabaseSeeder(
             Name = name,
             Email = $"{username}@example.com",
             PasswordCreated = timestamp,
-            SecurityStamp = this.randomTokenGenerator.Generate(6),
+            SecurityStamp = this.randomTokenGenerator.GenerateUrlSafe(6),
             TimeZone = "Etc/UTC",
             IsAdmin = isAdmin,
             Created = timestamp,

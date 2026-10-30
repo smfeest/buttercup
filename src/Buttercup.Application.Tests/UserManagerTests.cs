@@ -48,7 +48,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         await this.DatabaseFixture.InsertEntities(currentUser);
 
         var securityStamp = this.modelFactory.NextToken(8);
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(6)).Returns(securityStamp);
+        this.randomTokenGeneratorMock.Setup(x => x.GenerateUrlSafe(6)).Returns(securityStamp);
 
         var attributes = new NewUserAttributes
         {
@@ -102,7 +102,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         var currentUser = this.modelFactory.BuildUser();
         await this.DatabaseFixture.InsertEntities(currentUser);
 
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(6)).Returns(
+        this.randomTokenGeneratorMock.Setup(x => x.GenerateUrlSafe(6)).Returns(
             this.modelFactory.NextToken(8));
 
         var id = await this.userManager.CreateUser(
@@ -153,12 +153,12 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
     {
         var suffix = this.modelFactory.NextString("suffix");
         var securityStamp = this.modelFactory.NextToken(8);
-        this.randomTokenGeneratorMock.SetupSequence(x => x.Generate(6))
+        this.randomTokenGeneratorMock.SetupSequence(x => x.GenerateUrlSafe(6))
             .Returns(suffix)
             .Returns(securityStamp);
 
         var password = this.modelFactory.NextString("password");
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(12)).Returns(password);
+        this.randomTokenGeneratorMock.Setup(x => x.GenerateUrlSafe(12)).Returns(password);
 
         var hashedPassword = this.modelFactory.NextString("hashed-password");
         this.passwordHasherMock
@@ -197,14 +197,14 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         var secondSuffix = this.modelFactory.NextString("suffix");
         var firstSecurityStamp = this.modelFactory.NextToken(8);
         var secondSecurityStamp = this.modelFactory.NextToken(8);
-        this.randomTokenGeneratorMock.SetupSequence(x => x.Generate(6))
+        this.randomTokenGeneratorMock.SetupSequence(x => x.GenerateUrlSafe(6))
             .Returns(firstSuffix)
             .Returns(firstSecurityStamp)
             .Returns(secondSuffix)
             .Returns(secondSecurityStamp);
 
         var password = this.modelFactory.NextString("password");
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(12)).Returns(password);
+        this.randomTokenGeneratorMock.Setup(x => x.GenerateUrlSafe(12)).Returns(password);
 
         var hashedPassword = this.modelFactory.NextString("hashed-password");
         this.passwordHasherMock
@@ -277,7 +277,7 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var newSecurityStamp = this.modelFactory.NextToken(8);
-        this.randomTokenGeneratorMock.Setup(x => x.Generate(6)).Returns(newSecurityStamp);
+        this.randomTokenGeneratorMock.Setup(x => x.GenerateUrlSafe(6)).Returns(newSecurityStamp);
 
         Assert.True(
             await this.userManager.DeactivateUser(

@@ -6,7 +6,7 @@ namespace Buttercup;
 public interface IRandomTokenGenerator
 {
     /// <summary>
-    /// Generates a new token.
+    /// Randomly generates a new Base64Url-encoded token.
     /// </summary>
     /// <param name="size">
     /// The size of the token in bytes, prior to Base64Url encoding.
@@ -14,5 +14,5 @@ public interface IRandomTokenGenerator
     /// <returns>
     /// The new token as a Base64Url string.
     /// </returns>
-    string Generate(int size);
+    string GenerateUrlSafe(int size);
 }

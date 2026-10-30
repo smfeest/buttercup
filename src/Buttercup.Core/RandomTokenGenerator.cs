@@ -8,7 +8,7 @@ internal sealed class RandomTokenGenerator(RandomNumberGenerator randomNumberGen
 {
     private readonly RandomNumberGenerator randomNumberGenerator = randomNumberGenerator;
 
-    public string Generate(int size)
+    public string GenerateUrlSafe(int size)
     {
         var bytes = new byte[size];
         this.randomNumberGenerator.GetBytes(bytes);

@@ -69,8 +69,8 @@ internal sealed class UserManager(
     public async Task<(long Id, string Password)> CreateTestUser(
         CancellationToken cancellationToken = default)
     {
-        var suffix = this.randomTokenGenerator.Generate(6);
-        var password = this.randomTokenGenerator.Generate(12);
+        var suffix = this.randomTokenGenerator.GenerateUrlSafe(6);
+        var password = this.randomTokenGenerator.GenerateUrlSafe(12);
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
         var user = new User
@@ -221,7 +221,7 @@ internal sealed class UserManager(
             cancellationToken);
     }
 
-    private string GenerateSecurityStamp() => this.randomTokenGenerator.Generate(6);
+    private string GenerateSecurityStamp() => this.randomTokenGenerator.GenerateUrlSafe(6);
 
     private static async Task UpdateUserProperties(
         AppDbContext dbContext,
