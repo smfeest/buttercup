@@ -53,6 +53,25 @@ public static class ModelCompare
     }
 
     /// <summary>
+    /// Indicates whether two <see cref="PasswordResetToken"/> models are equal, excluding navigation
+    /// properties.
+    /// </summary>
+    /// <param name="x">The first object to compare.</param>
+    /// <param name="y">The second object to compare.</param>
+    /// <returns>
+    /// <b>true</b> if the two objects are equal after excluding navigation properties; <b>false</b>
+    /// otherwise.
+    /// </returns>
+    public static bool EqualExcludingNavigationProperties(
+        PasswordResetToken x, PasswordResetToken y)
+    {
+        static PasswordResetToken ClearNavigationProperties(PasswordResetToken token) =>
+            token with { User = null };
+
+        return ClearNavigationProperties(x) == ClearNavigationProperties(y);
+    }
+
+    /// <summary>
     /// Indicates whether two <see cref="Recipe"/> models are equal, excluding navigation
     /// properties.
     /// </summary>
