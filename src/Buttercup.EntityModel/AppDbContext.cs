@@ -93,6 +93,10 @@ public sealed class AppDbContext : DbContext
             .Property(e => e.Token)
             .UseCollation(OrdinalCollationName);
         modelBuilder
+            .Entity<PasswordResetToken>()
+            .HasOne(e => e.User)
+            .WithOne();
+        modelBuilder
             .Entity<RecipeAudit>()
             .Property(e => e.Action)
             .HasConversion<RecipeActionToStringConverter>()

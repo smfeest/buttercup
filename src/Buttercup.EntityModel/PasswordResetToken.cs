@@ -1,16 +1,17 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Buttercup.EntityModel;
 
 /// <summary>
 /// Represents a password reset token.
 /// </summary>
+[Index(nameof(Token), IsUnique = true)]
 public sealed record PasswordResetToken
 {
     /// <summary>
     /// Gets or sets the token.
     /// </summary>
-    [Key]
     [StringLength(48)]
     public required string Token { get; set; }
 
@@ -22,6 +23,7 @@ public sealed record PasswordResetToken
     /// <summary>
     /// Gets or sets the primary key of the associated user.
     /// </summary>
+    [Key]
     public required long UserId { get; set; }
 
     /// <summary>

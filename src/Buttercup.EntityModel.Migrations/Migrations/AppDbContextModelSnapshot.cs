@@ -19,7 +19,7 @@ namespace Buttercup.EntityModel.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:CollationDefinition:und-ci", "und-u-ks-level2,und-u-ks-level2,icu,False")
-                .HasAnnotation("ProductVersion", "9.0.18")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -167,25 +167,27 @@ namespace Buttercup.EntityModel.Migrations
 
             modelBuilder.Entity("Buttercup.EntityModel.PasswordResetToken", b =>
                 {
-                    b.Property<string>("Token")
-                        .HasMaxLength(48)
-                        .HasColumnType("character varying(48)")
-                        .HasColumnName("token")
-                        .UseCollation("C");
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(48)
+                        .HasColumnType("character varying(48)")
+                        .HasColumnName("token")
+                        .UseCollation("C");
 
-                    b.HasKey("Token")
+                    b.HasKey("UserId")
                         .HasName("pk_password_reset_tokens");
 
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_password_reset_tokens_user_id");
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_password_reset_tokens_token");
 
                     b.ToTable("password_reset_tokens", (string)null);
                 });
@@ -629,8 +631,8 @@ namespace Buttercup.EntityModel.Migrations
             modelBuilder.Entity("Buttercup.EntityModel.PasswordResetToken", b =>
                 {
                     b.HasOne("Buttercup.EntityModel.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne("PasswordResetToken")
+                        .HasForeignKey("Buttercup.EntityModel.PasswordResetToken", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_password_reset_tokens_users_user_id");
@@ -731,6 +733,11 @@ namespace Buttercup.EntityModel.Migrations
                     b.Navigation("Audits");
 
                     b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("Buttercup.EntityModel.User", b =>
+                {
+                    b.Navigation("PasswordResetToken");
                 });
 #pragma warning restore 612, 618
         }
