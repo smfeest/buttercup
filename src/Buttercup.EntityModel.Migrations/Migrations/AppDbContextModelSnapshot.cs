@@ -175,6 +175,10 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created");
 
+                    b.Property<byte[]>("HashedToken")
+                        .HasColumnType("bytea")
+                        .HasColumnName("hashed_token");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(48)
@@ -184,6 +188,10 @@ namespace Buttercup.EntityModel.Migrations
 
                     b.HasKey("UserId")
                         .HasName("pk_password_reset_tokens");
+
+                    b.HasIndex("HashedToken")
+                        .IsUnique()
+                        .HasDatabaseName("ix_password_reset_tokens_hashed_token");
 
                     b.HasIndex("Token")
                         .IsUnique()
@@ -631,7 +639,7 @@ namespace Buttercup.EntityModel.Migrations
             modelBuilder.Entity("Buttercup.EntityModel.PasswordResetToken", b =>
                 {
                     b.HasOne("Buttercup.EntityModel.User", "User")
-                        .WithOne("PasswordResetToken")
+                        .WithOne()
                         .HasForeignKey("Buttercup.EntityModel.PasswordResetToken", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -733,11 +741,6 @@ namespace Buttercup.EntityModel.Migrations
                     b.Navigation("Audits");
 
                     b.Navigation("Comments");
-                });
-
-            modelBuilder.Entity("Buttercup.EntityModel.User", b =>
-                {
-                    b.Navigation("PasswordResetToken");
                 });
 #pragma warning restore 612, 618
         }

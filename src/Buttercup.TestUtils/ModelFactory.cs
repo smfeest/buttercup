@@ -1,5 +1,7 @@
+using System.Buffers.Text;
 using System.Globalization;
 using System.Net;
+using System.Security.Cryptography;
 using Buttercup.EntityModel;
 
 namespace Buttercup.TestUtils;
@@ -107,14 +109,19 @@ public sealed class ModelFactory
     /// cref="PasswordResetToken.UserId"/>.
     /// </param>
     /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
-    public PasswordResetToken BuildPasswordResetToken(User user) =>
-        new()
+    public PasswordResetToken BuildPasswordResetToken(User user)
+    {
+        var token = this.NextBytes(36);
+
+        return new()
         {
-            Token = this.NextString("token"),
+            Token = Base64Url.EncodeToString(token),
+            HashedToken = SHA256.HashData(token),
             User = user,
             UserId = user.Id,
             Created = this.NextDateTime(),
         };
+    }
 
     /// <summary>
     /// Instantiates a new <see cref="Recipe" /> object with unique property values.
@@ -255,6 +262,20 @@ public sealed class ModelFactory
     /// </summary>
     /// <returns>The boolean value.</returns>
     public bool NextBoolean() => this.NextInt() % 2 == 0;
+
+    /// <summary>
+    /// Generates a byte array.
+    /// </summary>
+    /// <param name="length">The length of the array.</param>
+    /// <returns>The byte array.</returns>
+    public byte[] NextBytes(int length)
+    {
+        unchecked
+        {
+            var start = (byte)this.NextInt();
+            return [.. Enumerable.Range(0, length).Select(i => (byte)(start + i))];
+        }
+    }
 
     /// <summary>
     /// Generates a unique UTC date and time.

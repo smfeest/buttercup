@@ -63,13 +63,11 @@ public static class ModelCompare
     /// otherwise.
     /// </returns>
     public static bool EqualExcludingNavigationProperties(
-        PasswordResetToken x, PasswordResetToken y)
-    {
-        static PasswordResetToken ClearNavigationProperties(PasswordResetToken token) =>
-            token with { User = null };
-
-        return ClearNavigationProperties(x) == ClearNavigationProperties(y);
-    }
+        PasswordResetToken x, PasswordResetToken y) =>
+        x.Token == y.Token &&
+        x.HashedToken.SequenceEqual(y.HashedToken) &&
+        x.UserId == y.UserId &&
+        x.Created == y.Created;
 
     /// <summary>
     /// Indicates whether two <see cref="Recipe"/> models are equal, excluding navigation

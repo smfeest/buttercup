@@ -1,4 +1,6 @@
+using System.Buffers.Text;
 using System.Net;
+using System.Security.Cryptography;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -352,7 +354,9 @@ internal sealed partial class PasswordAuthenticationService(
 
         email = user.Email;
 
-        var token = this.randomTokenGenerator.GenerateUrlSafe(36);
+        var rawToken = this.randomTokenGenerator.Generate(36);
+        var encodedToken = Base64Url.EncodeToString(rawToken);
+        var hashedToken = SHA256.HashData(rawToken);
 
         await using var transaction =
             await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -364,7 +368,8 @@ internal sealed partial class PasswordAuthenticationService(
         dbContext.PasswordResetTokens.Add(
             new()
             {
-                Token = token,
+                Token = encodedToken,
+                HashedToken = hashedToken,
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
             });
@@ -381,7 +386,7 @@ internal sealed partial class PasswordAuthenticationService(
 
         await transaction.CommitAsync(cancellationToken);
 
-        var link = urlHelper.Link("ResetPassword", new { token })!;
+        var link = urlHelper.Link("ResetPassword", new { Token = encodedToken })!;
 
         await this.authenticationMailer.SendPasswordResetLink(email, link, CancellationToken.None);
 

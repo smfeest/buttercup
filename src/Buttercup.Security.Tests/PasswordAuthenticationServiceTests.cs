@@ -1,5 +1,7 @@
+using System.Buffers.Text;
 using System.Globalization;
 using System.Net;
+using System.Security.Cryptography;
 using Buttercup.EntityModel;
 using Buttercup.TestUtils;
 using Microsoft.AspNetCore.Identity;
@@ -930,25 +932,27 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task SendPasswordResetLink_Success()
     {
         var ipAddress = this.modelFactory.NextIpAddress();
-        var token = this.modelFactory.NextString("token");
+        var newToken = this.modelFactory.NextBytes(36);
+        var newTokenEncoded = Base64Url.EncodeToString(newToken);
         var link = this.modelFactory.NextString("https://example.com/reset-password/token");
         var urlHelperMock = new Mock<IUrlHelper>();
 
         var user = this.modelFactory.BuildUser();
-        var tokenForUser = this.modelFactory.BuildPasswordResetToken(user);
+        var existingTokenForUser = this.modelFactory.BuildPasswordResetToken(user);
         var otherUser = this.modelFactory.BuildUser();
-        var tokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
+        var existingTokenForOtherUser = this.modelFactory.BuildPasswordResetToken(otherUser);
 
-        await this.DatabaseFixture.InsertEntities(user, tokenForUser, otherUser, tokenForOtherUser);
+        await this.DatabaseFixture.InsertEntities(
+            user, existingTokenForUser, otherUser, existingTokenForOtherUser);
 
         this.SetPasswordResetRateLimiterResult(user.Email, true);
 
-        this.randomTokenGeneratorMock.Setup(x => x.GenerateUrlSafe(36)).Returns(token);
+        this.randomTokenGeneratorMock.Setup(x => x.Generate(36)).Returns(newToken);
         urlHelperMock
             .Setup(
                 x => x.Link(
                     "ResetPassword",
-                    It.Is<object>(o => token.Equals(new RouteValueDictionary(o)["token"]))))
+                    It.Is<object>(o => newTokenEncoded.Equals(new RouteValueDictionary(o)["token"]))))
             .Returns(link);
 
         var result = await this.passwordAuthenticationService.SendPasswordResetLink(
@@ -960,7 +964,8 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.Equal(
             new PasswordResetToken
             {
-                Token = token,
+                Token = newTokenEncoded,
+                HashedToken = SHA256.HashData(newToken),
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
             },
@@ -970,7 +975,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Preserves existing tokens for other users
         Assert.Equal(
-            tokenForOtherUser,
+            existingTokenForOtherUser,
             await dbContext.PasswordResetTokens.SingleAsync(
                 t => t.UserId == otherUser.Id, TestContext.Current.CancellationToken),
             ModelCompare.EqualExcludingNavigationProperties);
