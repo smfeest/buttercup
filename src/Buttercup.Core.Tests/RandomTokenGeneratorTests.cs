@@ -13,6 +13,24 @@ public sealed class RandomTokenGeneratorTests
     public RandomTokenGeneratorTests() =>
         this.randomTokenGenerator = new(this.randomNumberGeneratorMock.Object);
 
+    #region Generate
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(4)]
+    public void Generate_ReturnsRandomTokenOfRequestedLength(int length)
+    {
+        var expectedBytes = RandomNumberGenerator.GetBytes(length);
+
+        this.randomNumberGeneratorMock
+            .Setup(x => x.GetBytes(It.Is<byte[]>(array => array.Length == length)))
+            .Callback((byte[] bytes) => Array.Copy(expectedBytes, bytes, length));
+
+        Assert.Equal(expectedBytes, this.randomTokenGenerator.Generate(length));
+    }
+
+    #endregion
+
     #region GenerateUrlSafe
 
     [Theory]
