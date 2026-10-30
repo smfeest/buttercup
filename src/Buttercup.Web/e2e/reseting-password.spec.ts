@@ -12,11 +12,11 @@ test('can reset password', async ({ api, baseURL, page }) => {
     await page.getByRole('link', { name: 'Forgot your password?' }).click();
 
     await page.getByLabel('Email').fill(user.email);
-    await page.getByRole('button', { name: 'Send reset link' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
 
     await expect(
       page.getByText(
-        `If we found an account with the email address ${user.email}, we’ll have sent you a link you can use to set your new password.`,
+        `If you have an account, we’ll have sent a link to ${user.email} for you to reset your password.`,
       ),
     ).toBeVisible();
 
@@ -45,6 +45,24 @@ test('can reset password', async ({ api, baseURL, page }) => {
   }
 });
 
+test('can return to sign in when resetting password', async ({ page }) => {
+  await page.goto('/reset-password');
+  await page.getByLabel('Email').fill('user@example.com');
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Check your email' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Back' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Forgot your password?' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Cancel' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+});
+
 test('cannot reset password as deactivated user', async ({
   api,
   baseURL,
@@ -56,13 +74,11 @@ test('cannot reset password as deactivated user', async ({
   await deactivateUser(user.id);
 
   try {
-    await page.goto('/sign-in');
-    await page.getByRole('link', { name: 'Forgot your password?' }).click();
-
+    await page.goto('/reset-password');
     await page.getByLabel('Email').fill(user.email);
-    await page.getByRole('button', { name: 'Send reset link' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.getByText('sent you a link')).toBeVisible();
+    await expect(page.getByText('sent a link')).toBeVisible();
 
     const resetPasswordEmailText = await latestEmailText(user.email);
     const resetLinkMatch = resetPasswordEmailText.match(
