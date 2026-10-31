@@ -108,15 +108,19 @@ public sealed class ModelFactory
     /// The user for <see cref="PasswordResetToken.User"/> and <see
     /// cref="PasswordResetToken.UserId"/>.
     /// </param>
+    /// <param name="setHashedToken">
+    /// <b>true</b> if <see cref="PasswordResetToken.HashedToken"/> should be populated;
+    /// <b>false</b> otherwise.
+    /// </param>
     /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
-    public PasswordResetToken BuildPasswordResetToken(User user)
+    public PasswordResetToken BuildPasswordResetToken(User user, bool setHashedToken = true)
     {
         var token = this.NextBytes(36);
 
         return new()
         {
             Token = Base64Url.EncodeToString(token),
-            HashedToken = SHA256.HashData(token),
+            HashedToken = setHashedToken ? SHA256.HashData(token) : null,
             User = user,
             UserId = user.Id,
             Created = this.NextDateTime(),

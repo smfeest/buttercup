@@ -161,13 +161,12 @@ internal sealed partial class PasswordAuthenticationService(
     public async Task<PasswordResetResult> CanResetPassword(
         string token, IPAddress? ipAddress, CancellationToken cancellationToken = default)
     {
+        var maskedToken = this.parameterMaskingService.MaskToken(token);
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.ValidPasswordResetToken(dbContext, token)
-            .Select(t => t.User)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var maskedToken = this.parameterMaskingService.MaskToken(token);
+        var user = await this.GetUserIfPasswordResetTokenIsValid(
+            dbContext, token, QueryTrackingBehavior.NoTracking, cancellationToken);
 
         if (user is null)
         {
@@ -275,14 +274,12 @@ internal sealed partial class PasswordAuthenticationService(
         IPAddress? ipAddress,
         CancellationToken cancellationToken = default)
     {
+        var maskedToken = this.parameterMaskingService.MaskToken(token);
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.ValidPasswordResetToken(dbContext, token)
-            .AsTracking()
-            .Select(t => t.User)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var maskedToken = this.parameterMaskingService.MaskToken(token);
+        var user = await this.GetUserIfPasswordResetTokenIsValid(
+            dbContext, token, QueryTrackingBehavior.TrackAll, cancellationToken);
 
         if (user is null)
         {
@@ -399,11 +396,37 @@ internal sealed partial class PasswordAuthenticationService(
         IQueryable<User> queryable, string email, CancellationToken cancellationToken) =>
         queryable.Where(u => u.Email == email).FirstOrDefaultAsync(cancellationToken);
 
-    private IQueryable<PasswordResetToken> ValidPasswordResetToken(
-        AppDbContext dbContext, string token) =>
-        dbContext.PasswordResetTokens.Where(t =>
-            t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(30)) &&
-            t.Token == token);
+    private async Task<User?> GetUserIfPasswordResetTokenIsValid(
+        AppDbContext dbContext,
+        string token,
+        QueryTrackingBehavior track,
+        CancellationToken cancellationToken)
+    {
+        var decodedToken = new byte[36];
+
+        try
+        {
+            if (!Base64Url.TryDecodeFromChars(token, decodedToken, out _))
+            {
+                return null;
+            }
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
+        var hashedToken = SHA256.HashData(decodedToken);
+
+        return await dbContext
+            .PasswordResetTokens
+            .Where(t =>
+                t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(30)) &&
+                (t.HashedToken == hashedToken || (t.HashedToken == null && t.Token == token)))
+            .AsTracking(track)
+            .Select(t => t.User)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 
     private async Task SetPassword(
         AppDbContext dbContext,
