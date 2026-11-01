@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Security.Cryptography;
 
 namespace Buttercup;
@@ -7,10 +8,12 @@ internal sealed class RandomTokenGenerator(RandomNumberGenerator randomNumberGen
 {
     private readonly RandomNumberGenerator randomNumberGenerator = randomNumberGenerator;
 
-    public string Generate(int n)
+    public byte[] Generate(int size)
     {
-        var bytes = new byte[n * 3];
+        var bytes = new byte[size];
         this.randomNumberGenerator.GetBytes(bytes);
-        return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_');
+        return bytes;
     }
+
+    public string GenerateUrlSafe(int size) => Base64Url.EncodeToString(this.Generate(size));
 }

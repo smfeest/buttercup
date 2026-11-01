@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using Moq;
 using Xunit;
@@ -15,34 +16,37 @@ public sealed class RandomTokenGeneratorTests
     #region Generate
 
     [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    public void Generate_Uses3nRandomBytes(int n)
+    [InlineData(2)]
+    [InlineData(4)]
+    public void Generate_ReturnsRandomTokenOfRequestedLength(int length)
     {
-        this.randomTokenGenerator.Generate(n);
+        var expectedBytes = RandomNumberGenerator.GetBytes(length);
 
         this.randomNumberGeneratorMock
-            .Verify(x => x.GetBytes(It.Is<byte[]>(bytes => bytes.Length == (3 * n))));
+            .Setup(x => x.GetBytes(It.Is<byte[]>(array => array.Length == length)))
+            .Callback((byte[] bytes) => Array.Copy(expectedBytes, bytes, length));
+
+        Assert.Equal(expectedBytes, this.randomTokenGenerator.Generate(length));
     }
 
-    [Fact]
-    public void Generate_ReturnsUrlSafeBase64()
+    #endregion
+
+    #region GenerateUrlSafe
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(6)]
+    public void GenerateUrlSafe_ReturnsBase64UrlEncodedRandomTokenOfRequestedLength(int length)
     {
+        var expectedBytes = RandomNumberGenerator.GetBytes(length);
+
         this.randomNumberGeneratorMock
-            .Setup(x => x.GetBytes(It.IsAny<byte[]>()))
-            .Callback((byte[] bytes) =>
-            {
-                var generatedBytes = new byte[]
-                {
-                    0xd1, 0xa0, 0x7e,
-                    0xd5, 0xc0, 0xde,
-                    0xff, 0x61, 0x60,
-                };
+            .Setup(x => x.GetBytes(It.Is<byte[]>(array => array.Length == length)))
+            .Callback((byte[] bytes) => Array.Copy(expectedBytes, bytes, length));
 
-                Array.Copy(generatedBytes, bytes, 9);
-            });
-
-        Assert.Equal("0aB-1cDe_2Fg", this.randomTokenGenerator.Generate(3));
+        Assert.Equal(
+            Base64Url.EncodeToString(expectedBytes),
+            this.randomTokenGenerator.GenerateUrlSafe(length));
     }
 
     #endregion

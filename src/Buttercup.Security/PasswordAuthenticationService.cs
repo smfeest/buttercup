@@ -1,4 +1,6 @@
+using System.Buffers.Text;
 using System.Net;
+using System.Security.Cryptography;
 using Buttercup.EntityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -159,13 +161,12 @@ internal sealed partial class PasswordAuthenticationService(
     public async Task<PasswordResetResult> CanResetPassword(
         string token, IPAddress? ipAddress, CancellationToken cancellationToken = default)
     {
+        var maskedToken = this.parameterMaskingService.MaskToken(token);
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.ValidPasswordResetToken(dbContext, token)
-            .Select(t => t.User)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var maskedToken = this.parameterMaskingService.MaskToken(token);
+        var user = await this.GetUserIfPasswordResetTokenIsValid(
+            dbContext, token, QueryTrackingBehavior.NoTracking, cancellationToken);
 
         if (user is null)
         {
@@ -273,14 +274,12 @@ internal sealed partial class PasswordAuthenticationService(
         IPAddress? ipAddress,
         CancellationToken cancellationToken = default)
     {
+        var maskedToken = this.parameterMaskingService.MaskToken(token);
+
         using var dbContext = this.dbContextFactory.CreateDbContext();
 
-        var user = await this.ValidPasswordResetToken(dbContext, token)
-            .AsTracking()
-            .Select(t => t.User)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var maskedToken = this.parameterMaskingService.MaskToken(token);
+        var user = await this.GetUserIfPasswordResetTokenIsValid(
+            dbContext, token, QueryTrackingBehavior.TrackAll, cancellationToken);
 
         if (user is null)
         {
@@ -352,7 +351,9 @@ internal sealed partial class PasswordAuthenticationService(
 
         email = user.Email;
 
-        var token = this.randomTokenGenerator.Generate(12);
+        var rawToken = this.randomTokenGenerator.Generate(36);
+        var encodedToken = Base64Url.EncodeToString(rawToken);
+        var hashedToken = SHA256.HashData(rawToken);
 
         await using var transaction =
             await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -364,7 +365,8 @@ internal sealed partial class PasswordAuthenticationService(
         dbContext.PasswordResetTokens.Add(
             new()
             {
-                Token = token,
+                Token = encodedToken,
+                HashedToken = hashedToken,
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
             });
@@ -381,7 +383,7 @@ internal sealed partial class PasswordAuthenticationService(
 
         await transaction.CommitAsync(cancellationToken);
 
-        var link = urlHelper.Link("ResetPassword", new { token })!;
+        var link = urlHelper.Link("ResetPassword", new { Token = encodedToken })!;
 
         await this.authenticationMailer.SendPasswordResetLink(email, link, CancellationToken.None);
 
@@ -394,11 +396,37 @@ internal sealed partial class PasswordAuthenticationService(
         IQueryable<User> queryable, string email, CancellationToken cancellationToken) =>
         queryable.Where(u => u.Email == email).FirstOrDefaultAsync(cancellationToken);
 
-    private IQueryable<PasswordResetToken> ValidPasswordResetToken(
-        AppDbContext dbContext, string token) =>
-        dbContext.PasswordResetTokens.Where(t =>
-            t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(30)) &&
-            t.Token == token);
+    private async Task<User?> GetUserIfPasswordResetTokenIsValid(
+        AppDbContext dbContext,
+        string token,
+        QueryTrackingBehavior track,
+        CancellationToken cancellationToken)
+    {
+        var decodedToken = new byte[36];
+
+        try
+        {
+            if (!Base64Url.TryDecodeFromChars(token, decodedToken, out _))
+            {
+                return null;
+            }
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
+        var hashedToken = SHA256.HashData(decodedToken);
+
+        return await dbContext
+            .PasswordResetTokens
+            .Where(t =>
+                t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(30)) &&
+                (t.HashedToken == hashedToken || (t.HashedToken == null && t.Token == token)))
+            .AsTracking(track)
+            .Select(t => t.User)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 
     private async Task SetPassword(
         AppDbContext dbContext,
@@ -411,7 +439,7 @@ internal sealed partial class PasswordAuthenticationService(
         var timestamp = this.timeProvider.GetUtcDateTimeNow();
 
         user.HashedPassword = this.passwordHasher.HashPassword(user, newPassword);
-        user.SecurityStamp = this.randomTokenGenerator.Generate(2);
+        user.SecurityStamp = this.randomTokenGenerator.GenerateUrlSafe(6);
         user.PasswordCreated = timestamp;
         user.Modified = timestamp;
         user.UpdateCount++;
