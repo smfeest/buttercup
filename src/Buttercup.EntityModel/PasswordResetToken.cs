@@ -19,7 +19,7 @@ public sealed record PasswordResetToken
     /// <summary>
     /// Gets or sets the hashed token.
     /// </summary>
-    public required byte[]? HashedToken { get; set; }
+    public required byte[] HashedToken { get; set; }
 
     /// <summary>
     /// Gets or sets the associated user.

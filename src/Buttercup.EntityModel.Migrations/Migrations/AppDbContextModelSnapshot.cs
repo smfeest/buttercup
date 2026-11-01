@@ -176,6 +176,7 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("created");
 
                     b.Property<byte[]>("HashedToken")
+                        .IsRequired()
                         .HasColumnType("bytea")
                         .HasColumnName("hashed_token");
 
