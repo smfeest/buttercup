@@ -1032,7 +1032,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.Equal(
             new PasswordResetToken
             {
-                Token = newTokenEncoded,
                 HashedToken = SHA256.HashData(newToken),
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
