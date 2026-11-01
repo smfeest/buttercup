@@ -362,10 +362,10 @@ public sealed class UserManagerTests : DatabaseTests<DatabaseCollection>
             otherUser,
             await dbContext.Users.SingleAsync(TestContext.Current.CancellationToken));
         Assert.Equal(
-            passwordResetTokenForOtherUser.Token,
+            passwordResetTokenForOtherUser.HashedToken,
             await dbContext
                 .PasswordResetTokens
-                .Select(t => t.Token)
+                .Select(t => t.HashedToken)
                 .SingleAsync(TestContext.Current.CancellationToken));
     }
 

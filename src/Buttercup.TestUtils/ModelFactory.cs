@@ -108,18 +108,44 @@ public sealed class ModelFactory
     /// The user for <see cref="PasswordResetToken.User"/> and <see
     /// cref="PasswordResetToken.UserId"/>.
     /// </param>
+    /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
+    public PasswordResetToken BuildPasswordResetToken(User user) =>
+        new()
+        {
+            HashedToken = this.NextBytes(32),
+            User = user,
+            UserId = user.Id,
+            Created = this.NextDateTime(),
+        };
+
+    /// <summary>
+    /// Instantiates a new <see cref="PasswordResetToken" /> object with unique property values.
+    /// </summary>
+    /// <param name="user">
+    /// The user for <see cref="PasswordResetToken.User"/> and <see
+    /// cref="PasswordResetToken.UserId"/>.
+    /// </param>
+    /// <param name="setToken">
+    /// <b>true</b> if <see cref="PasswordResetToken.Token"/> should be populated;
+    /// <b>false</b> otherwise.
+    /// </param>
     /// <param name="setHashedToken">
     /// <b>true</b> if <see cref="PasswordResetToken.HashedToken"/> should be populated;
     /// <b>false</b> otherwise.
     /// </param>
+    /// <param name="encodedToken">
+    /// The Base64Url-encoded plaintext token.
+    /// </param>
     /// <returns>The new <see cref="PasswordResetToken" /> object.</returns>
-    public PasswordResetToken BuildPasswordResetToken(User user, bool setHashedToken = true)
+    public PasswordResetToken BuildPasswordResetToken(
+        User user, bool setToken, bool setHashedToken, out string encodedToken)
     {
         var token = this.NextBytes(36);
+        encodedToken = Base64Url.EncodeToString(token);
 
         return new()
         {
-            Token = Base64Url.EncodeToString(token),
+            Token = setToken ? encodedToken : null,
             HashedToken = setHashedToken ? SHA256.HashData(token) : null,
             User = user,
             UserId = user.Id,

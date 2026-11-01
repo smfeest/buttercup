@@ -440,22 +440,24 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task CanResetPassword_TokenExpired(bool setHashedToken)
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public async Task CanResetPassword_TokenExpired(bool setToken, bool setHashedToken)
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(user, setHashedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(
+            user, setToken, setHashedToken, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(31)),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        var maskedToken = this.SetupMaskToken(token.Token);
+        var maskedToken = this.SetupMaskToken(encodedToken);
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token.Token, ipAddress, TestContext.Current.CancellationToken);
+            encodedToken, ipAddress, TestContext.Current.CancellationToken);
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -473,17 +475,18 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task CanResetPassword_UserDeactivated()
     {
         var user = this.modelFactory.BuildUser(deactivated: true);
-        var token = this.modelFactory.BuildPasswordResetToken(user) with
+        var token = this.modelFactory.BuildPasswordResetToken(
+            user, false, true, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow(),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        var maskedToken = this.SetupMaskToken(token.Token);
+        var maskedToken = this.SetupMaskToken(encodedToken);
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token.Token, ipAddress, TestContext.Current.CancellationToken);
+            encodedToken, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -509,21 +512,23 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task CanResetPassword_Success(bool setHashedToken)
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public async Task CanResetPassword_Success(bool setToken, bool setHashedToken)
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(user, setHashedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(
+            user, setToken, setHashedToken, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(29)),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        var maskedToken = this.SetupMaskToken(token.Token);
+        var maskedToken = this.SetupMaskToken(encodedToken);
 
         var result = await this.passwordAuthenticationService.CanResetPassword(
-            token.Token, this.modelFactory.NextIpAddress(), TestContext.Current.CancellationToken);
+            encodedToken, this.modelFactory.NextIpAddress(), TestContext.Current.CancellationToken);
 
         // Logs valid token message
         LogAssert.SingleEntry(this.logger)
@@ -674,10 +679,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
-            passwordResetTokenForOtherUser.Token,
+            passwordResetTokenForOtherUser.HashedToken,
             await dbContext
                 .PasswordResetTokens
-                .Select(t => t.Token)
+                .Select(t => t.HashedToken)
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
@@ -766,9 +771,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task ResetPassword_CaseInsensitiveMatchInDatabase()
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(user, setHashedToken: false) with
+        var token = this.modelFactory.BuildPasswordResetToken(user) with
         {
             Token = this.modelFactory.NextString("tOkEn"),
+            HashedToken = null,
             Created = this.timeProvider.GetUtcDateTimeNow(),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
@@ -794,23 +800,25 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ResetPassword_TokenExpired(bool setHashedToken)
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public async Task ResetPassword_TokenExpired(bool setToken, bool setHashedToken)
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(user, setHashedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(
+            user, setToken, setHashedToken, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(31)),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        var maskedToken = this.SetupMaskToken(token.Token);
+        var maskedToken = this.SetupMaskToken(encodedToken);
         var newPassword = this.modelFactory.NextString("new-password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
+            encodedToken, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         // Logs invalid token message
         LogAssert.SingleEntry(this.logger)
@@ -828,18 +836,19 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task ResetPassword_UserDeactivated()
     {
         var user = this.modelFactory.BuildUser(deactivated: true);
-        var token = this.modelFactory.BuildPasswordResetToken(user) with
+        var token = this.modelFactory.BuildPasswordResetToken(
+            user, false, true, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow(),
         };
         await this.DatabaseFixture.InsertEntities(user, token);
 
-        var maskedToken = this.SetupMaskToken(token.Token);
+        var maskedToken = this.SetupMaskToken(encodedToken);
         var newPassword = this.modelFactory.NextString("new-password");
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
+            encodedToken, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -865,12 +874,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ResetPassword_Success(bool setHashedToken)
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public async Task ResetPassword_Success(bool setToken, bool setHashedToken)
     {
         var userBefore = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(userBefore, setHashedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(
+            userBefore, setToken, setHashedToken, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(29))
         };
@@ -879,14 +890,14 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         await this.DatabaseFixture.InsertEntities(
             userBefore, otherUser, token, tokenForOtherUser);
 
-        var maskedToken = this.SetupMaskToken(token.Token);
+        var maskedToken = this.SetupMaskToken(encodedToken);
         var newPassword = this.modelFactory.NextString("new-password");
         var newPasswordHash = this.SetupHashPassword(userBefore, newPassword);
         var newSecurityStamp = this.SetupGenerateSecurityStamp();
         var ipAddress = this.modelFactory.NextIpAddress();
 
         var result = await this.passwordAuthenticationService.ResetPassword(
-            token.Token, newPassword, ipAddress, TestContext.Current.CancellationToken);
+            encodedToken, newPassword, ipAddress, TestContext.Current.CancellationToken);
 
         using var dbContext = this.DatabaseFixture.CreateDbContext();
 
@@ -905,10 +916,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
-            tokenForOtherUser.Token,
+            tokenForOtherUser.HashedToken,
             await dbContext
                 .PasswordResetTokens
-                .Select(t => t.Token)
+                .Select(t => t.HashedToken)
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
@@ -1021,7 +1032,6 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.Equal(
             new PasswordResetToken
             {
-                Token = newTokenEncoded,
                 HashedToken = SHA256.HashData(newToken),
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),

@@ -351,9 +351,7 @@ internal sealed partial class PasswordAuthenticationService(
 
         email = user.Email;
 
-        var rawToken = this.randomTokenGenerator.Generate(36);
-        var encodedToken = Base64Url.EncodeToString(rawToken);
-        var hashedToken = SHA256.HashData(rawToken);
+        var plaintextToken = this.randomTokenGenerator.Generate(36);
 
         await using var transaction =
             await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -365,8 +363,7 @@ internal sealed partial class PasswordAuthenticationService(
         dbContext.PasswordResetTokens.Add(
             new()
             {
-                Token = encodedToken,
-                HashedToken = hashedToken,
+                HashedToken = SHA256.HashData(plaintextToken),
                 UserId = user.Id,
                 Created = this.timeProvider.GetUtcDateTimeNow(),
             });
@@ -383,7 +380,8 @@ internal sealed partial class PasswordAuthenticationService(
 
         await transaction.CommitAsync(cancellationToken);
 
-        var link = urlHelper.Link("ResetPassword", new { Token = encodedToken })!;
+        var link = urlHelper.Link(
+            "ResetPassword", new { Token = Base64Url.EncodeToString(plaintextToken) })!;
 
         await this.authenticationMailer.SendPasswordResetLink(email, link, CancellationToken.None);
 

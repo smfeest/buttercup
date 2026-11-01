@@ -180,7 +180,6 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnName("hashed_token");
 
                     b.Property<string>("Token")
-                        .IsRequired()
                         .HasMaxLength(48)
                         .HasColumnType("character varying(48)")
                         .HasColumnName("token")

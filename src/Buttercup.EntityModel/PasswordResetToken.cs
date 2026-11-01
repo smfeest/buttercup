@@ -14,7 +14,7 @@ public sealed record PasswordResetToken
     /// Gets or sets the token.
     /// </summary>
     [StringLength(48)]
-    public required string Token { get; set; }
+    public string? Token { get; set; }
 
     /// <summary>
     /// Gets or sets the hashed token.
