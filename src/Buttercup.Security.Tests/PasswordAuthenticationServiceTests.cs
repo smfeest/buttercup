@@ -439,15 +439,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
     }
 
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
-    public async Task CanResetPassword_TokenExpired(bool setToken, bool setHashedToken)
+    [Fact]
+    public async Task CanResetPassword_TokenExpired()
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(
-            user, setToken, setHashedToken, out var encodedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(user, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(31)),
         };
@@ -475,8 +471,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task CanResetPassword_UserDeactivated()
     {
         var user = this.modelFactory.BuildUser(deactivated: true);
-        var token = this.modelFactory.BuildPasswordResetToken(
-            user, false, true, out var encodedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(user, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow(),
         };
@@ -511,15 +506,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.Equal(PasswordResetFailure.UserDeactivated, result.Failure);
     }
 
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
-    public async Task CanResetPassword_Success(bool setToken, bool setHashedToken)
+    [Fact]
+    public async Task CanResetPassword_Success()
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(
-            user, setToken, setHashedToken, out var encodedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(user, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(29)),
         };
@@ -768,46 +759,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     }
 
     [Fact]
-    public async Task ResetPassword_CaseInsensitiveMatchInDatabase()
+    public async Task ResetPassword_TokenExpired()
     {
         var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(user) with
-        {
-            Token = this.modelFactory.NextString("tOkEn"),
-            HashedToken = null,
-            Created = this.timeProvider.GetUtcDateTimeNow(),
-        };
-        await this.DatabaseFixture.InsertEntities(user, token);
-
-        var suppliedToken = token.Token.ToUpperInvariant();
-        var maskedToken = this.SetupMaskToken(suppliedToken);
-        var newPassword = this.modelFactory.NextString("new-password");
-        var ipAddress = this.modelFactory.NextIpAddress();
-
-        var result = await this.passwordAuthenticationService.ResetPassword(
-            suppliedToken, newPassword, ipAddress, TestContext.Current.CancellationToken);
-
-        // Logs invalid token message
-        LogAssert.SingleEntry(this.logger)
-            .HasId(10)
-            .HasLevel(LogLevel.Information)
-            .HasMessage(
-                $"Unable to reset password; password reset token {maskedToken} is invalid");
-
-        // Returns 'invalid token' failure
-        Assert.False(result.IsSuccess);
-        Assert.Equal(PasswordResetFailure.InvalidToken, result.Failure);
-    }
-
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
-    public async Task ResetPassword_TokenExpired(bool setToken, bool setHashedToken)
-    {
-        var user = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(
-            user, setToken, setHashedToken, out var encodedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(user, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(31)),
         };
@@ -836,8 +791,7 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
     public async Task ResetPassword_UserDeactivated()
     {
         var user = this.modelFactory.BuildUser(deactivated: true);
-        var token = this.modelFactory.BuildPasswordResetToken(
-            user, false, true, out var encodedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(user, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow(),
         };
@@ -873,15 +827,11 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
         Assert.Equal(PasswordResetFailure.UserDeactivated, result.Failure);
     }
 
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
-    public async Task ResetPassword_Success(bool setToken, bool setHashedToken)
+    [Fact]
+    public async Task ResetPassword_Success()
     {
         var userBefore = this.modelFactory.BuildUser();
-        var token = this.modelFactory.BuildPasswordResetToken(
-            userBefore, setToken, setHashedToken, out var encodedToken) with
+        var token = this.modelFactory.BuildPasswordResetToken(userBefore, out var encodedToken) with
         {
             Created = this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(29))
         };

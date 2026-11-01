@@ -420,7 +420,7 @@ internal sealed partial class PasswordAuthenticationService(
             .PasswordResetTokens
             .Where(t =>
                 t.Created >= this.timeProvider.GetUtcDateTimeNow().Subtract(TimeSpan.FromMinutes(30)) &&
-                (t.HashedToken == hashedToken || (t.HashedToken == null && t.Token == token)))
+                t.HashedToken == hashedToken)
             .AsTracking(track)
             .Select(t => t.User)
             .FirstOrDefaultAsync(cancellationToken);
