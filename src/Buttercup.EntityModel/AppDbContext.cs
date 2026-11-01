@@ -90,10 +90,6 @@ public sealed class AppDbContext : DbContext
             .UseCollation(OrdinalCollationName);
         modelBuilder
             .Entity<PasswordResetToken>()
-            .Property(e => e.Token)
-            .UseCollation(OrdinalCollationName);
-        modelBuilder
-            .Entity<PasswordResetToken>()
             .HasOne(e => e.User)
             .WithOne();
         modelBuilder

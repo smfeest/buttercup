@@ -180,22 +180,12 @@ namespace Buttercup.EntityModel.Migrations
                         .HasColumnType("bytea")
                         .HasColumnName("hashed_token");
 
-                    b.Property<string>("Token")
-                        .HasMaxLength(48)
-                        .HasColumnType("character varying(48)")
-                        .HasColumnName("token")
-                        .UseCollation("C");
-
                     b.HasKey("UserId")
                         .HasName("pk_password_reset_tokens");
 
                     b.HasIndex("HashedToken")
                         .IsUnique()
                         .HasDatabaseName("ix_password_reset_tokens_hashed_token");
-
-                    b.HasIndex("Token")
-                        .IsUnique()
-                        .HasDatabaseName("ix_password_reset_tokens_token");
 
                     b.ToTable("password_reset_tokens", (string)null);
                 });

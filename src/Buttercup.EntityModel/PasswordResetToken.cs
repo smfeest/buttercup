@@ -6,16 +6,9 @@ namespace Buttercup.EntityModel;
 /// <summary>
 /// Represents a password reset token.
 /// </summary>
-[Index(nameof(Token), IsUnique = true)]
 [Index(nameof(HashedToken), IsUnique = true)]
 public sealed record PasswordResetToken
 {
-    /// <summary>
-    /// Gets or sets the token.
-    /// </summary>
-    [StringLength(48)]
-    public string? Token { get; set; }
-
     /// <summary>
     /// Gets or sets the hashed token.
     /// </summary>

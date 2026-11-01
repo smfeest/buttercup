@@ -64,7 +64,6 @@ public static class ModelCompare
     /// </returns>
     public static bool EqualExcludingNavigationProperties(
         PasswordResetToken x, PasswordResetToken y) =>
-        x.Token == y.Token &&
         x.HashedToken.SequenceEqual(y.HashedToken) &&
         x.UserId == y.UserId &&
         x.Created == y.Created;
