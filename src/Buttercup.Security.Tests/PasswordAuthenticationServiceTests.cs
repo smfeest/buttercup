@@ -674,10 +674,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
-            passwordResetTokenForOtherUser.Token,
+            passwordResetTokenForOtherUser.HashedToken,
             await dbContext
                 .PasswordResetTokens
-                .Select(t => t.Token)
+                .Select(t => t.HashedToken)
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
@@ -905,10 +905,10 @@ public sealed class PasswordAuthenticationServiceTests : DatabaseTests<DatabaseC
 
         // Deletes all password reset tokens for the user
         Assert.Equal(
-            tokenForOtherUser.Token,
+            tokenForOtherUser.HashedToken,
             await dbContext
                 .PasswordResetTokens
-                .Select(t => t.Token)
+                .Select(t => t.HashedToken)
                 .SingleAsync(TestContext.Current.CancellationToken));
 
         // Inserts user audit entry
