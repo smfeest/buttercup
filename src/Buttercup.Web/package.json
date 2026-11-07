@@ -20,7 +20,7 @@
     "gulp-rename": "^2.1.0",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
-    "postcss-less": "^6.0.0",
+    "postcss-less": "^7.0.1",
     "prettier": "^3.9.10",
     "stylelint": "^17.16.0",
     "stylelint-config-standard": "^40.0.0",
