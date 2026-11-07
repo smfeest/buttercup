@@ -9,6 +9,7 @@ jobs:
       IMAGE_NAME: ${{ github.repository }}
       WEB_PROJECT_PATH: src/Buttercup.Web
     permissions:
+      contents: read
       attestations: write
       id-token: write
       packages: write
